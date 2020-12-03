@@ -1,0 +1,6 @@
+.idea/
+assets/models
+assets/textures
+cmake-build-*/
+thirdparty/
+build/
