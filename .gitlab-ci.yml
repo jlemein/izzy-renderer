@@ -2,7 +2,8 @@
 # can use verions as well, like gcc:5.2
 # see https://hub.docker.com/_/gcc/
 #image: gcc
-image: docker-registry:5000/gcc-cmake
+#image: docker-registry:5000/gcc-cmake
+image: rikorose/gcc-cmake:gcc-10
 
 build:
   stage: build
