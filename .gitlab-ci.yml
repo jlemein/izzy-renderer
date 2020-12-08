@@ -11,8 +11,6 @@ build:
   # install the necessary build tools when needed
   # before_script:
   #   - apt update && apt -y install make autoconf
-  environment:
-    DOCKER_TLS_CERTDIR: ""
   script:
     - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -B build
     - make -j8
