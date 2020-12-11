@@ -6,7 +6,6 @@
 #define GLVIEWER_ECS_TRANSFORM_H
 
 #include <glm/glm.hpp>
-#include <glm/detail/type_quat.hpp>
 #include <glm/gtx/quaternion.hpp>
 
 namespace artifax {
