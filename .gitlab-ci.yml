@@ -2,7 +2,7 @@
 # can use verions as well, like gcc:5.2
 # see https://hub.docker.com/_/gcc/
 #image: gcc
-image: jlemein/gcc-cmake-gl:gcc-10.2
+image: jlemein/gcc-cmake-gl:latest
 #image: rikorose/gcc-cmake:gcc-10
 
 build:
