@@ -16,7 +16,8 @@ build:
     - cmake --build ./build --config Release -j2
   artifacts:
     paths:
-      - build
+      - build/bin
+      - build/assets
       # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
       # cache:
       #   paths:
