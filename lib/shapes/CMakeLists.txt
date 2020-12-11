@@ -11,4 +11,4 @@ target_include_directories(shp
         PUBLIC include
         PRIVATE src)
 
-target_link_libraries(shp PRIVATE assimp)
+target_link_libraries(shp PRIVATE assimp glm)
