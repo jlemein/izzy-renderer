@@ -13,6 +13,7 @@ build:
   #   - apt update && apt -y install make autoconf
   script:
     - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -B build
+    - glslc
     - cmake --build ./build --config Release -j8
   artifacts:
     paths:
