@@ -12,6 +12,9 @@ build:
   # before_script:
   #   - apt update && apt -y install make autoconf
   script:
+    - conan profile new default --detect
+    - conan profile update settings.compiler.libcxx=libstdc++11 default
+    - conan install . -if build
     - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -B build
     - cmake --build ./build --config Release -j2
   artifacts:
