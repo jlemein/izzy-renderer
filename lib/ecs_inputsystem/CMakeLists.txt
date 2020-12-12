@@ -5,4 +5,4 @@ target_include_directories(inputsystem
         PRIVATE src)
 
 target_link_libraries(inputsystem
-        PUBLIC EnTT glfw)
+PUBLIC CONAN_PKG::entt CONAN_PKG::glfw)

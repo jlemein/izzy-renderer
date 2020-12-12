@@ -59,4 +59,4 @@ target_include_directories(ecs_system
         PRIVATE src ${PROJECT_SOURCE_DIR}/thirdparty/stb)
 
 target_link_libraries(ecs_system
-        PUBLIC EnTT glm inputsystem)
+PUBLIC CONAN_PKG::entt CONAN_PKG::glm inputsystem)

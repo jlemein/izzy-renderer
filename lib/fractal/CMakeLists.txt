@@ -11,4 +11,4 @@ target_include_directories(fractal
         PUBLIC include
         PRIVATE src)
 
-target_link_libraries(fractal PUBLIC glm)
+target_link_libraries(fractal PUBLIC CONAN_PKG::glm)

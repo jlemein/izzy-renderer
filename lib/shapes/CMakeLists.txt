@@ -11,4 +11,4 @@ target_include_directories(shp
         PUBLIC include
         PRIVATE src)
 
-target_link_libraries(shp PRIVATE assimp glm)
+target_link_libraries(shp PRIVATE CONAN_PKG::assimp CONAN_PKG::glm)

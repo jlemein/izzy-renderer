@@ -1,0 +1,9 @@
+[requires]
+assimp/5.0.1
+glm/0.9.9.8
+gtest/1.10.0
+entt/3.5.2
+glfw/3.3.2
+
+[generators]
+cmake

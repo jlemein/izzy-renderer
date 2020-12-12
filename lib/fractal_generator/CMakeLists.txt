@@ -7,4 +7,4 @@ target_include_directories(fractalgenerator
         PUBLIC include
         PRIVATE src)
 
-target_link_libraries(fractalgenerator PRIVATE fractal simpleviewer EnTT shp)
+target_link_libraries(fractalgenerator PRIVATE fractal simpleviewer CONAN_PKG::entt shp)
