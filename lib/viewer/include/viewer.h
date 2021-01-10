@@ -1,18 +1,15 @@
-//
-// Created by jlemein on 06-11-20.
-//
+// Copyright 2020 Jeffrey Lemein
+#pragma once
 
-#ifndef INCLUDED_VIEWER_H_
-#define INCLUDED_VIEWER_H_
-
+#include <ecs_firstpersoncontrolsystem.h>
+#include <ecs_interactable.h>
 #include <ecs_rendersubsystem.h>
 
-#include <entt/entt.hpp>
 #include <list>
 #include <memory>
 #include <string>
-#include <ecs_interactable.h>
-#include <ecs_firstpersoncontrolsystem.h>
+
+#include <entt/entt.hpp>
 
 namespace artifax {
 
@@ -20,20 +17,19 @@ namespace ecs {
 class TransformSystem;
 class RenderSystem;
 class CameraSystem;
+class DebugSystem;
 class IViewerInteractable;
 } // namespace ecs
 
 namespace io {
 class InputSystem;
-}
+} // namespace io
 
-namespace viewer
-{
+namespace viewer {
 class WindowInputListener;
 
-class Viewer
-{
- public:
+class Viewer {
+public:
   typedef entt::registry SceneGraph;
 
   Viewer();
@@ -43,10 +39,12 @@ class Viewer
 
   int run();
 
-  void registerExtension(std::shared_ptr<ecs::IViewerInteractable> interactable);
-  void registerRenderSubsystem(std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem);
+  void
+  registerExtension(std::shared_ptr<ecs::IViewerInteractable> interactable);
+  void registerRenderSubsystem(
+      std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem);
 
- private:
+private:
   void init();
 
   entt::registry m_registry;
@@ -55,13 +53,12 @@ class Viewer
   std::shared_ptr<ecs::RenderSystem> m_renderSystem;
   std::shared_ptr<ecs::TransformSystem> m_transformSystem;
   std::shared_ptr<ecs::CameraSystem> m_cameraSystem;
+  std::shared_ptr<ecs::DebugSystem> m_debugSystem;
   std::shared_ptr<io::InputSystem> m_inputSystem;
   std::shared_ptr<ecs::FirstPersonMovementSystem> m_firstPersonSystem;
 
   std::shared_ptr<WindowInputListener> m_genericInputListener;
 };
 
-} // end package namespace
+} // namespace viewer
 } // namespace artifax
-
-#endif // INCLUDED_VIEWER_H_

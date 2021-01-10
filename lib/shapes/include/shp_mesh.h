@@ -16,25 +16,19 @@
 namespace artifax {
 namespace shp {
 
+enum class PolygonMode {
+  kTriangles,
+  kQuads
+};
+
 struct Mesh {
   std::vector<float> vertices;
   std::vector<float> normals;
   std::vector<float> uvs;
   std::vector<uint32_t> indices;
 
-  BoundingBox getBoundingBox() {
-    BoundingBox bbox;
-    for (int i=0; i<vertices.size(); i+=3) {
-      bbox.xMin = vertices[i] < bbox.xMin ? vertices[i] : bbox.xMin;
-      bbox.yMin = vertices[i+1] < bbox.yMin ? vertices[i] : bbox.yMin;
-      bbox.zMin = vertices[i+2] < bbox.zMin ? vertices[i] : bbox.zMin;
-
-      bbox.xMax = vertices[i] > bbox.xMax ? vertices[i] : bbox.xMax;
-      bbox.yMax = vertices[i+1] > bbox.yMax ? vertices[i] : bbox.yMax;
-      bbox.zMax = vertices[i+2] > bbox.zMax ? vertices[i] : bbox.zMax;
-    }
-    return bbox;
-  }
+  // describes the data
+  PolygonMode polygonMode {PolygonMode::kTriangles};
 };
 
 } // end package

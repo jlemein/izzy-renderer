@@ -3,25 +3,24 @@
 //
 #include <ecs_rendersystem.h>
 
+#include <cstring>
 #include <ecs_camera.h>
 #include <ecs_transform.h>
-#include <shp_curve.h>
-#include <shp_mesh.h>
-#include <cstring>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
+#include <shp_curve.h>
+#include <shp_mesh.h>
 using namespace artifax;
 using namespace artifax::ecs;
 
-namespace
-{
-std::vector<char>
-readFile(const std::string &filename)
-{
+namespace {
+std::vector<char> readFile(const std::string &filename) {
+  // TODO: check for empty file name and give clear error message
+
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
-    std::cerr << "Failed to open file " << filename;
+    std::cerr << "Failed to open file '" << filename << "'" << std::endl;
     throw std::runtime_error("failed to open file!");
   }
 
@@ -35,9 +34,7 @@ readFile(const std::string &filename)
   return buffer;
 }
 
-void
-getShaderLog(GLint shader)
-{
+void getShaderLog(GLint shader) {
   std::cout << "Failed to compile shader" << std::endl;
   GLint reqBufferSize;
   glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &reqBufferSize);
@@ -50,118 +47,22 @@ getShaderLog(GLint shader)
   std::cout << log << std::endl;
 }
 
-constexpr void *
-BUFFER_OFFSET(unsigned int offset)
-{
+constexpr void *BUFFER_OFFSET(unsigned int offset) {
   uint8_t *pAddress = 0;
   return pAddress + offset;
 }
 
-void
-pushModelViewProjection(const Renderable &renderable)
-{
-  //  std::cout << renderable.name << ": binding mvp.index = " << renderable.uboBlockIndex
-  //  << ", " << renderable.ubo_handle << std::endl;
-
-  glBindBuffer(GL_UNIFORM_BUFFER, renderable.ubo_handle);
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex, renderable.ubo_handle);
-  //  glUniformBlockBinding(renderable.program, renderable.uboBlockIndex, 0);
-  void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-  std::memcpy(buff_ptr, &renderable.uniformBlock, sizeof(UniformBlock));
-  glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
-void
-initMVPUniformBlock(Renderable &renderable)
-{
-  glUseProgram(renderable.program);
-  renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program,
-                                                    "UniformBufferBlock");
-  if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
-    std::cerr << "Invalid ubo block index for renderable " << renderable.name
-              << std::endl;
-    exit(1);
-  }
-
-  glGenBuffers(1, &renderable.ubo_handle);
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex, renderable.ubo_handle);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), &renderable.uniformBlock,
-               GL_DYNAMIC_DRAW);
-}
-
-void
-initShaderProperties(Renderable &renderable, const Shader::UniformProperties &properties)
-{
-  std::cout << "For renderable: " << renderable.name << std::endl;
-
-  glUseProgram(renderable.program);
-  initMVPUniformBlock(renderable);
-
-  std::cout << " -- number of uniform blocks: " << properties.size() << std::endl;
-
-  for (const auto &[name, blockData] : properties) {
-    GLuint uboHandle;
-    glGenBuffers(1, &uboHandle);
-    glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
-
-    GLint blockIndex = glGetUniformBlockIndex(renderable.program, name.c_str());
-    GLint blockBinding;
-    glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING,
-                              &blockBinding);
-
-    //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
-    glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uboHandle);
-
-    //    std::cout << " --- " << name << " has uboBlockIndex: " << blockIndex <<
-    //    std::endl;
-    if (blockIndex == GL_INVALID_INDEX) {
-      std::cerr << "Cannot find ubo block with name '" << name << "' in shader";
-      exit(1);
-    }
-    glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
-
-    // Each active uniform block in GLSL has a corresponding
-    // active uniform block in the linked program.
-
-    std::cout << " -- " << name << " blockIndex: " << blockIndex << std::endl;
-
-    GLint bi = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
-    std::cout << " -- "
-              << "UniformBufferBlock blockIndex: " << bi << std::endl;
-
-    ColorBlock c;
-    float rgb[4] = {1.0F, 1.0F, 1.0F, 1.0F};
-    //    glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorBlock), rgb, GL_DYNAMIC_DRAW);
-
-    void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    std::memcpy(buff_ptr, rgb, sizeof(ColorBlock));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-    auto p = reinterpret_cast<ColorBlock *>(blockData.data);
-    std::cout << "   --- Init " << name << " with " << p->color.r << " " << p->color.g
-              << " " << p->color.b << std::endl;
-
-    // store block handle in renderable
-    renderable.userProperties[name] = Renderable_UniformBlockInfo{
-      uboHandle, blockIndex, blockBinding, &blockData};
-  }
-}
-
-void
-pushUniforms(const Renderable &r)
-{
+void pushUniforms(const Renderable &r) {
   for (const auto &[name, uniformBlock] : r.userProperties) {
-    //    std::cout << r.name << ": binding uniformBlock.index = " <<
-    //    uniformBlock.blockIndex
-    //              << ", " << uniformBlock.bufferId << " (size: " <<
-    //              uniformBlock.pData->size
-    //              << ")" << std::endl;
 
     // TODO problem here
     glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
-    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockIndex, uniformBlock.bufferId);
-    //    glUniformBlockBinding(r.program, uniformBlock.blockIndex,
-    //    uniformBlock.blockBinding);
+    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding,
+                     uniformBlock.bufferId);
+
+    // is this needed?
+    glUniformBlockBinding(r.program, uniformBlock.blockIndex,
+                          uniformBlock.blockBinding);
 
     void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
@@ -174,9 +75,104 @@ pushUniforms(const Renderable &r)
   }
 }
 
-void
-checkError(std::string message)
-{
+void pushModelViewProjection(const Renderable &renderable) {
+  glUseProgram(renderable.program);
+
+  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
+  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockBinding,
+                   renderable.uboId);
+
+  // is this needed?
+  glUniformBlockBinding(renderable.program, renderable.uboBlockIndex,
+                        renderable.uboBlockBinding);
+
+  void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+  UniformBlock b = renderable.uniformBlock;
+  std::memcpy(buff_ptr, &b, sizeof(UniformBlock));
+  glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
+void initMVPUniformBlock(Renderable &renderable) {
+  glUseProgram(renderable.program);
+  renderable.uboBlockIndex =
+      glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
+  if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
+    std::cerr << "Invalid ubo block index for renderable " << renderable.name
+              << std::endl;
+    exit(1);
+  }
+
+  glGenBuffers(1, &renderable.uboId);
+
+  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
+  GLint blockIndex =
+      glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
+  if (blockIndex == GL_INVALID_INDEX) {
+    std::cerr
+        << "Cannot find ubo block with name 'UniformBufferBlock' in shader";
+    exit(1);
+  }
+
+  glGetActiveUniformBlockiv(renderable.program, blockIndex,
+                            GL_UNIFORM_BLOCK_BINDING, &renderable.uboBlockBinding);
+  std::cout << "Renderable " << renderable.name << " | block: " << renderable.uboBlockIndex << ", binding: " << renderable.uboBlockBinding << std::endl;
+
+  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex,
+                   renderable.uboId);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), nullptr,
+               GL_DYNAMIC_DRAW);
+}
+
+void initShaderProperties(Renderable &renderable,
+                          const Shader::UniformProperties &properties) {
+  glUseProgram(renderable.program);
+
+  // allocates the MVP matrices on the GPU.
+  initMVPUniformBlock(renderable);
+
+  for (const auto &[name, blockData] : properties) {
+    GLuint uboHandle;
+    glGenBuffers(1, &uboHandle);
+    glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
+
+    GLint blockIndex = glGetUniformBlockIndex(renderable.program, name.c_str());
+    GLint blockBinding;
+    glGetActiveUniformBlockiv(renderable.program, blockIndex,
+                              GL_UNIFORM_BLOCK_BINDING, &blockBinding);
+
+    // is this needed?
+    //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
+
+    glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uboHandle);
+
+    //    std::cout << " --- " << name << " has uboBlockIndex: " << blockIndex
+    //    << std::endl;
+    if (blockIndex == GL_INVALID_INDEX) {
+      std::cerr << "Cannot find ubo block with name '" << name << "' in shader";
+      exit(1);
+    }
+    glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
+
+    ColorBlock c;
+    float rgb[4] = {1.0F, 1.0F, 1.0F, 1.0F};
+    //    glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorBlock), rgb,
+    //    GL_DYNAMIC_DRAW);
+
+    void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    std::memcpy(buff_ptr, rgb, sizeof(ColorBlock));
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
+
+    auto p = reinterpret_cast<ColorBlock *>(blockData.data);
+    std::cout << "   --- Init " << name << " with " << p->color.r << " "
+              << p->color.g << " " << p->color.b << std::endl;
+
+    // store block handle in renderable
+    renderable.userProperties[name] = Renderable_UniformBlockInfo{
+        uboHandle, blockIndex, blockBinding, &blockData};
+  }
+}
+
+void checkError(std::string message) {
   // get error message
   GLenum err;
   if ((err = glGetError()) != GL_NO_ERROR) {
@@ -184,34 +180,12 @@ checkError(std::string message)
   }
 }
 
-}  // namespace
+} // namespace
 
 RenderSystem::RenderSystem(entt::registry &registry)
-    : m_registry{registry}, m_debugSystem(registry)
-{
-}
+    : m_registry{registry}, m_debugSystem(registry) {}
 
-void
-RenderSystem::updateCamera(Renderable &renderable, float time, float dt)
-{
-  auto view = m_registry.view<ecs::Camera, ecs::Transform>();
-  if (view.size() <= 0) {
-    std::cout << "No active camera in scene" << std::endl;
-    return;
-  }
-
-  // from camera take the position and perspective transformation
-  auto &activeCamera = m_registry.get<ecs::Camera>(*view.begin());
-  auto &transform = m_registry.get<ecs::Transform>(*view.begin());
-
-  renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
-  renderable.uniformBlock.proj = glm::perspective(activeCamera.fovx, activeCamera.aspect,
-                                                  activeCamera.zNear, activeCamera.zFar);
-}
-
-void
-initCurveBuffers(Renderable &renderable, const shp::Curve &curve)
-{
+void initCurveBuffers(Renderable &renderable, const shp::Curve &curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
   glBufferData(GL_ARRAY_BUFFER, curve.vertices.size() * sizeof(float),
@@ -229,9 +203,7 @@ initCurveBuffers(Renderable &renderable, const shp::Curve &curve)
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 }
 
-void
-initMeshBuffers(Renderable &renderable, const shp::Mesh &mesh)
-{
+void initMeshBuffers(Renderable &renderable, const shp::Mesh &mesh) {
   GLuint vertexSize = mesh.vertices.size() * sizeof(float);
   GLuint normalSize = mesh.normals.size() * sizeof(float);
   GLuint uvSize = mesh.uvs.size() * sizeof(float);
@@ -240,13 +212,13 @@ initMeshBuffers(Renderable &renderable, const shp::Mesh &mesh)
   glGenBuffers(1, &renderable.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
   glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr,
-               GL_STATIC_DRAW);  // allocate buffer data only
+               GL_STATIC_DRAW); // allocate buffer data only
   glBufferSubData(GL_ARRAY_BUFFER, 0, vertexSize,
-                  mesh.vertices.data());  // fill partial data - vertices
+                  mesh.vertices.data()); // fill partial data - vertices
   glBufferSubData(GL_ARRAY_BUFFER, vertexSize, normalSize,
-                  mesh.normals.data());  // fill partial data - normals
+                  mesh.normals.data()); // fill partial data - normals
   glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize, uvSize,
-                  mesh.uvs.data());  // fill partial data - normals
+                  mesh.uvs.data()); // fill partial data - normals
 
   glGenBuffers(1, &renderable.index_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
@@ -271,9 +243,7 @@ initMeshBuffers(Renderable &renderable, const shp::Mesh &mesh)
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0,
                         BUFFER_OFFSET(vertexSize + normalSize));
 }
-GLuint
-compileShader(const Shader &shader, const Renderable &renderable)
-{
+GLuint compileShader(const Shader &shader, const Renderable &renderable) {
   auto vertexShaderBuffer = readFile(shader.vertexShaderFile);
   auto fragmentShaderBuffer = readFile(shader.fragmentShaderFile);
 
@@ -313,9 +283,21 @@ compileShader(const Shader &shader, const Renderable &renderable)
   return program;
 }
 
-void
-RenderSystem::init()
-{
+void RenderSystem::init() {
+  // Initialization of the rendersystem encompasses the following steps.
+  // Take into account the vocabulary.
+  // * init: sets up the buffers, do precomputations and store parameters in
+  // renderable component.
+  // * update: reflect or synchronize the state of the system in the renderable
+  // component.
+  // * push: Reflect the changes to the GPU.
+  //
+  // * Synchronize the model view projection matrices into the renderable
+  // component.
+  // * Update the renderable component: allocate buffers and load mesh data in
+  // GPU
+  // * Push the remaining uniform parameter values to the shader.
+
   // handling curves
   auto curveView = m_registry.view<shp::Curve, Renderable>();
   for (auto entity : curveView) {
@@ -340,44 +322,70 @@ RenderSystem::init()
     initShaderProperties(renderable, shader.properties);
   }
 
-#ifndef NDEBUG
-  m_debugSystem.init();
-#endif //NDEBUG
+  //
+
+  // #ifndef NDEBUG
+  //   m_debugSystem.init();
+  // #endif //NDEBUG
 }
 
-void
-RenderSystem::update(float time, float dt)
-{
+void RenderSystem::update(float /*time*/, float /*dt*/) {
+  // synchronizes the transformation for the entity into the renderable
+  // component.
+  synchMvpMatrices();
+}
+
+void RenderSystem::synchMvpMatrices() {
+  // Updates the
+  // Render system updates the model view projection matrix for each of the
+  // The camera
   auto view = m_registry.view<Renderable>();
   for (auto entity : view) {
     auto &renderable = m_registry.get<Renderable>(entity);
-    auto transform = m_registry.try_get<ecs::Transform>(entity);
-    if (transform != nullptr) {
-      renderable.uniformBlock.model = transform->worldTransform;
-    } else {
-      renderable.uniformBlock.model = glm::mat4(1.0F);
-    }
 
-    // update uniform parameters
-    updateCamera(renderable, time, dt);
+    updateModelMatrix(entity);
+    updateCamera(renderable);
   }
 }
 
-void
-RenderSystem::addSubsystem(std::shared_ptr<IRenderSubsystem> system)
-{
+void RenderSystem::updateModelMatrix(entt::entity e) {
+  auto &renderable = m_registry.get<Renderable>(e);
+
+  // if the transformation matrix exists, apply it, otherwise take identity
+  // matrix.
+  // TODO: enforce that all entities do have a transform.
+  auto transform = m_registry.try_get<ecs::Transform>(e);
+
+  renderable.uniformBlock.model =
+      transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
+}
+
+void RenderSystem::updateCamera(Renderable &renderable) {
+  auto view = m_registry.view<ecs::Camera, ecs::Transform>();
+  if (view.size() <= 0) {
+    std::cout << "No active camera in scene" << std::endl;
+    return;
+  }
+
+  // from camera take the position and perspective transformation
+  auto &activeCamera = m_registry.get<ecs::Camera>(*view.begin());
+  auto &transform = m_registry.get<ecs::Transform>(*view.begin());
+
+  renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
+  renderable.uniformBlock.proj =
+      glm::perspective(activeCamera.fovx, activeCamera.aspect,
+                       activeCamera.zNear, activeCamera.zFar);
+}
+
+void RenderSystem::addSubsystem(std::shared_ptr<IRenderSubsystem> system) {
   m_renderSubsystems.emplace_back(system);
 }
 
-void
-RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system)
-{
+void RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system) {
   // todo
 }
 
-void
-RenderSystem::render()
-{
+void RenderSystem::render() {
   auto view = m_registry.view<const Renderable>();
 
   for (auto entity : view) {
@@ -385,6 +393,13 @@ RenderSystem::render()
 
     // activate shader program
     glUseProgram(renderable.program);
+
+    // TODO: disable in release
+    if (renderable.isWireframe) {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    } else {
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
     // bind the vertex buffers
     glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
@@ -404,8 +419,10 @@ RenderSystem::render()
     }
 
     // TODO: check if shader is dirty
+    // Updates the uniform shader properties
     pushUniforms(renderable);
 
+    // updates the MVP matrix
     pushModelViewProjection(renderable);
 
     if (renderable.primitiveType == GL_TRIANGLES) {

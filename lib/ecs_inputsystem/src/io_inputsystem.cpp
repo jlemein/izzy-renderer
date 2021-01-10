@@ -22,6 +22,7 @@ InputSystem::InputSystem(GLFWwindow* window, int screenWidth, int screenHeight)
 }
 
 void InputSystem::init() {
+  // hide mouse cursor and reset to center screen
   glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwGetCursorPos(m_window, &m_currentMouseX, &m_currentMouseY);
 

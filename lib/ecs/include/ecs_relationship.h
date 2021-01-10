@@ -9,8 +9,9 @@
 #include <vector>
 
 struct Relationship {
-  entt::entity parent;
-  std::vector<entt::entity> children;
+  entt::entity parent {entt::null};
+  std::vector<entt::entity> children {};
+  int depth {0}; // assume root
 
   inline bool hasParent() const {
     return parent != entt::null;

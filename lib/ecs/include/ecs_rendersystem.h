@@ -42,7 +42,21 @@ class RenderSystem
  private:
   entt::registry &m_registry;
 
-  void updateCamera(Renderable &renderable, float time, float dt);
+  // groups for performance considerations
+//  entt::group<Renderable> m_renderables;
+//  entt::group<Renderable, Debug> m_debuggables;
+
+  /// makes sure the transformations applied to meshes and cameras are reflected
+  /// in the renderable component.
+  void synchMvpMatrices();
+
+  /**!
+   * @brief Updates the model matrix of the renderable object. After the call
+   * the renderable object reflects the current model transformation state.
+   * @param renderable
+   */
+  void updateModelMatrix(entt::entity e);
+  void updateCamera(Renderable &renderable);
 
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
   ecs::DebugSystem m_debugSystem;

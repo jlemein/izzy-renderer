@@ -1,3 +1,7 @@
 .idea/
 cmake-build-*/
 build/
+.atom-build.yaml
+.vscode/
+CMakeLists.txt.user
+

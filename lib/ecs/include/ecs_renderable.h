@@ -42,8 +42,8 @@ struct UniformBlockData {
 struct Shader {
   using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
 
-  std::string vertexShaderFile{""}, fragmentShaderFile{""};
-
+  std::string vertexShaderFile{""};
+  std::string fragmentShaderFile{""};
   UniformProperties properties;
 
   template <typename T>
@@ -92,9 +92,12 @@ struct Renderable {
   GLuint drawElementCount;
 
   /* shader specific details */
-//  GLuint vertex_shader, fragment_shader;
-  GLint uboBlockIndex;  // stores MVP uniform data
-  GLuint ubo_handle;
+  GLuint uboId;  // id of the buffer object
+  GLint uboBlockIndex;  // arbitrary location in the shader (decided upon by GLSL compiler)
+  GLint uboBlockBinding; //
+
+  // TODO: check if we can only include this property in debug mode (for performance reasons)
+  bool isWireframe {false};
 
   std::unordered_map<std::string, Renderable_UniformBlockInfo> userProperties;
 

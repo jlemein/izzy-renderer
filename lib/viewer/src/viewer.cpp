@@ -3,18 +3,18 @@
 //
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
-#include <viewer.h>
-#include <viewer_windowinputlistener.h>
 #include <ecs_camerasystem.h>
-#include <ecs_transformsystem.h>
 #include <ecs_interactable.h>
-#include <shp_mesh.h>
 #include <ecs_rendersystem.h>
-#include <io_inputsystem.h>
+#include <ecs_transformsystem.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
+#include <io_inputsystem.h>
 #include <iostream>
+#include <shp_mesh.h>
 #include <vector>
+#include <viewer.h>
+#include <viewer_windowinputlistener.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
@@ -23,28 +23,21 @@ using namespace std;
 using namespace artifax;
 using namespace artifax::viewer;
 
-namespace
-{
-static void
-error_callback(int error, const char *description)
-{
+namespace {
+static void error_callback(int error, const char *description) {
   fprintf(stderr, "Error: %s\n", description);
 }
-}  // namespace
+} // namespace
 
 Viewer::Viewer()
     : m_renderSystem{make_shared<ecs::RenderSystem>(m_registry)},
       m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)},
-      m_transformSystem{make_shared<ecs::TransformSystem>(m_registry)}
-
-{
-}
+      m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)},
+      m_transformSystem{make_shared<ecs::TransformSystem>(m_registry)} {}
 
 Viewer::~Viewer() {}
 
-int
-Viewer::run()
-{
+int Viewer::run() {
   GLFWwindow *window;
 
   glfwSetErrorCallback(error_callback);
@@ -61,7 +54,7 @@ Viewer::run()
   m_genericInputListener = std::make_shared<WindowInputListener>(window);
   m_inputSystem->registerInputListener(m_genericInputListener);
   m_firstPersonSystem = std::make_shared<ecs::FirstPersonMovementSystem>(
-    m_registry, m_inputSystem.get());
+      m_registry, m_inputSystem.get());
 
   if (!window) {
     glfwTerminate();
@@ -76,7 +69,6 @@ Viewer::run()
   glfwSwapInterval(1);
 
   // NOTE: OpenGL error checks have been omitted for brevity
-
   init();
 
   float prevTime = 0.0F;
@@ -88,7 +80,7 @@ Viewer::run()
     prevTime = time;
 
     glfwGetFramebufferSize(window, &width, &height);
-//    ratio = width / (float)height;
+    //    ratio = width / (float)height;
     //    m_renderSystem->setMovementVector(movementVector);
     //    m_renderSystem->setPerspective(
     //        glm::perspective(45.0F, ratio, 0.01F, 1000.0F));
@@ -123,9 +115,7 @@ Viewer::run()
   return 0;
 }
 
-void
-Viewer::init()
-{
+void Viewer::init() {
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
   glCullFace(GL_BACK);
@@ -133,6 +123,8 @@ Viewer::init()
   glClearColor(0.25F, 0.25F, 0.35F, 0.0F);
 
   m_cameraSystem->init();
+  m_debugSystem->init();  // for debug visualizations
+                          // should be called before render system.
   m_renderSystem->init();
   m_inputSystem->init();
   m_firstPersonSystem->init();
@@ -142,20 +134,14 @@ Viewer::init()
   }
 }
 
-void
-Viewer::registerExtension(std::shared_ptr<ecs::IViewerInteractable> interactable)
-{
+void Viewer::registerExtension(
+    std::shared_ptr<ecs::IViewerInteractable> interactable) {
   mmInteractables.emplace_back(move(interactable));
 }
 
-void
-Viewer::registerRenderSubsystem(std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem)
-{
+void Viewer::registerRenderSubsystem(
+    std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem) {
   m_renderSystem->addSubsystem(renderSubsystem);
 }
 
-Viewer::SceneGraph &
-Viewer::getRegistry()
-{
-  return m_registry;
-}
+Viewer::SceneGraph &Viewer::getRegistry() { return m_registry; }

@@ -5,5 +5,8 @@ gtest/1.10.0
 entt/3.5.2
 glfw/3.3.2
 
+[options]
+gtest:build_gmock=True
+
 [generators]
 cmake

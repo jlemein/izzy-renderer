@@ -1,5 +1,9 @@
 #add_library(camerasystem STATIC src/ecs_camerasystem.cpp include/ecs_camerasystem.h)
 
+# already included in parent directory. Once libraries are separated this is needed.
+#include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+#conan_basic_setup(TARGETS)
+
 add_library(ecs_system STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrol.h
         include/ecs_moveable.h
@@ -25,11 +29,16 @@ add_library(ecs_system STATIC include/ecs_camera.h
         src/ecs_firstpersoncontrolsystem.t.cpp src/ecs_transformutil.cpp
         include/ecs_debug.h
         include/ecs_debugsystem.h
-        src/ecs_debugSystem.cpp
+        src/ecs_debugsystem.cpp
         include/ecs_debugshapefactory.h
-        include/ecs_meshtransform.h)
+        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp)
 
-target_link_libraries(ecs_system PUBLIC shp)
+target_link_libraries(ecs_system PUBLIC shp CONAN_PKG::entt)
+
+message("Packages in conan: ${CONAN_PKG}")
+
+add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
+target_link_libraries(ecsu_test PUBLIC ecs_system CONAN_PKG::gtest)
 
 #add_library(test_ecs_system STATIC
 #        src/ecs_firstpersoncontrolsystem.t.cpp)
@@ -59,4 +68,4 @@ target_include_directories(ecs_system
         PRIVATE src ${PROJECT_SOURCE_DIR}/thirdparty/stb)
 
 target_link_libraries(ecs_system
-PUBLIC CONAN_PKG::entt CONAN_PKG::glm inputsystem)
+        PUBLIC CONAN_PKG::entt CONAN_PKG::glm inputsystem)

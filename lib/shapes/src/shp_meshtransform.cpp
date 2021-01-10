@@ -4,19 +4,21 @@
 #include <shp_meshtransform.h>
 #include <shp_mesh.h>
 #include <shp_curve.h>
+#include <shp_shapeutil.h>
+
 using namespace artifax;
 using namespace artifax::shp;
 
 void MeshTransform::scaleToUniformSize(Mesh &mesh, float size) {
-  const auto& bb = mesh.getBoundingBox();
+  auto bb = ShapeUtil::computeBoundingBox(mesh);
   auto scaleX = bb.xMax - bb.xMin;
   auto scaleY = bb.yMax - bb.yMin;
   auto scaleZ = bb.zMax - bb.zMin;
 
   auto maxSize = std::max(std::max(scaleX, scaleY), scaleZ);
   auto correctionScale = size / maxSize;
-  std::cout << "Correction scale: " << correctionScale << " size: " << size << " maxsize: " << scaleX << " " << scaleY << " " << scaleZ << std::endl;
-  std::cout << "bbox: " << "[" << bb.xMin << " x " << bb.xMax << " ], [" << bb.yMin << " x " << bb.yMax << " ], [" << bb.zMin << " x " << bb.zMax << " ]\n";
+//  std::cout << "Correction scale: " << correctionScale << " size: " << size << " maxsize: " << scaleX << " " << scaleY << " " << scaleZ << std::endl;
+//  std::cout << "bbox: " << "[" << bb.xMin << " x " << bb.xMax << " ], [" << bb.yMin << " x " << bb.yMax << " ], [" << bb.zMin << " x " << bb.zMax << " ]\n";
 
   // make sure model is on ground plane
   for (unsigned int i=0; i<mesh.vertices.size(); i+=3) {
@@ -24,7 +26,7 @@ void MeshTransform::scaleToUniformSize(Mesh &mesh, float size) {
     auto& vy = mesh.vertices[i+1];
     auto& vz = mesh.vertices[i+2];
 
-    vy -= bb.yMin;
+//    vy -= bb.yMin;
 
     vx *= correctionScale;
     vy *= correctionScale;
@@ -33,7 +35,7 @@ void MeshTransform::scaleToUniformSize(Mesh &mesh, float size) {
 }
 
 void MeshTransform::scaleToUniformSize(Curve &curve, float size) {
-  const auto& bb = curve.getBoundingBox();
+  auto bb = ShapeUtil::computeBoundingBox(curve);
   auto scaleX = bb.xMax - bb.xMin;
   auto scaleY = bb.yMax - bb.yMin;
   auto scaleZ = bb.zMax - bb.zMin;
