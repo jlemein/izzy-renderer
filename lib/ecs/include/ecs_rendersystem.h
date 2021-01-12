@@ -41,6 +41,13 @@ class RenderSystem
 
  private:
   entt::registry &m_registry;
+  std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
+  ecs::DebugSystem m_debugSystem;
+
+  /// Lighting parameters needed for the uniform buffer object in the shader.
+  /// These lighting properties are for forward lighting (not deferred).
+  UniformLighting m_uLightData;
+  //UniformDeferredLighting m_uDeferredLightData;
 
   // groups for performance considerations
 //  entt::group<Renderable> m_renderables;
@@ -57,9 +64,8 @@ class RenderSystem
    */
   void updateModelMatrix(entt::entity e);
   void updateCamera(Renderable &renderable);
+  void updateLightProperties();
 
-  std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
-  ecs::DebugSystem m_debugSystem;
 };
 
 }  // namespace ecs

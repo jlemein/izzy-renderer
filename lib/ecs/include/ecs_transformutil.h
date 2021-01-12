@@ -21,11 +21,15 @@ struct TransformUtil {
   static void Scale(Transform &transform, const glm::vec3 &scale);
   static void Scale(Transform &transform, float scale);
 
+  static void RotateEuler(Transform& transform, const glm::vec3& axis, float radians);
+
   /// @brief Translates transformation matrix 'transform' by a 3D translation
   /// vector 't'. Transformation matrix is not reset or reinitialized. It is up
   /// to the user of the function to make sure the operation keeps the transform
   /// in a consistent state.
   static void Translate(Transform &transform, const glm::vec3 &t);
+
+  static void SetWorldPosition(Transform &transform, const glm::vec3 &position);
 };
 
 } // namespace ecs

@@ -5,6 +5,9 @@
 
 #include <cstring>
 #include <ecs_camera.h>
+#include <ecs_light.h>
+#include <ecs_name.h>
+#include <ecs_relationship.h>
 #include <ecs_transform.h>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
@@ -52,10 +55,11 @@ constexpr void *BUFFER_OFFSET(unsigned int offset) {
   return pAddress + offset;
 }
 
-void pushUniforms(const Renderable &r) {
+void pushShaderProperties(const Renderable &r) {
   for (const auto &[name, uniformBlock] : r.userProperties) {
 
-    // TODO problem here
+    // TODO problem here: multiple shaders with same parameters (but they should
+    // be different).
     glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
     glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding,
                      uniformBlock.bufferId);
@@ -68,16 +72,14 @@ void pushUniforms(const Renderable &r) {
     std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
     glUnmapBuffer(GL_UNIFORM_BUFFER);
 
-    auto colors = reinterpret_cast<ColorBlock *>(uniformBlock.pData->data);
-    //    std::cout << r.name << ": pushing " << colors->color.r << " - " <<
-    //    colors->color.g
-    //              << " - " << colors->color.b << std::endl;
+    //    auto colors = reinterpret_cast<ColorBlock
+    //    *>(uniformBlock.pData->data); std::cout << r.name << ": pushing " <<
+    //    colors->color.r << " - "
+    //              << colors->color.g << " - " << colors->color.b << std::endl;
   }
 }
 
 void pushModelViewProjection(const Renderable &renderable) {
-  glUseProgram(renderable.program);
-
   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockBinding,
                    renderable.uboId);
@@ -92,8 +94,23 @@ void pushModelViewProjection(const Renderable &renderable) {
   glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
 
+void pushLightingData(const Renderable &renderable,
+                      const UniformLighting &lightingData) {
+  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
+  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding,
+                   renderable.uboLightingId);
+
+  // is this needed?
+  glUniformBlockBinding(renderable.program, renderable.uboLightingIndex,
+                        renderable.uboLightingBinding);
+
+  void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+  std::memcpy(buff_ptr, &lightingData, sizeof(UniformLighting));
+  glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
 void initMVPUniformBlock(Renderable &renderable) {
-  glUseProgram(renderable.program);
+  glUseProgram(renderable.program); // TODO: remove line
   renderable.uboBlockIndex =
       glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
   if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
@@ -114,12 +131,47 @@ void initMVPUniformBlock(Renderable &renderable) {
   }
 
   glGetActiveUniformBlockiv(renderable.program, blockIndex,
-                            GL_UNIFORM_BLOCK_BINDING, &renderable.uboBlockBinding);
-  std::cout << "Renderable " << renderable.name << " | block: " << renderable.uboBlockIndex << ", binding: " << renderable.uboBlockBinding << std::endl;
+                            GL_UNIFORM_BLOCK_BINDING,
+                            &renderable.uboBlockBinding);
+  std::cout << "Renderable " << renderable.name
+            << " | block: " << renderable.uboBlockIndex
+            << ", binding: " << renderable.uboBlockBinding << std::endl;
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex,
                    renderable.uboId);
   glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), nullptr,
+               GL_DYNAMIC_DRAW);
+}
+
+void initLightingUbo(Renderable &renderable) {
+  renderable.uboLightingIndex =
+      glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
+  if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
+    std::cout << "Cannot find ubo block index with name "
+              << UniformLighting::PARAM_NAME << " for " << renderable.name
+              << std::endl;
+    //    exit(1);
+    renderable.isLightingSupported = false;
+  } else {
+    renderable.isLightingSupported = true;
+  }
+
+  glGenBuffers(1, &renderable.uboLightingId);
+
+  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
+  GLint blockIndex =
+      glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
+
+  glGetActiveUniformBlockiv(renderable.program, blockIndex,
+                            GL_UNIFORM_BLOCK_BINDING,
+                            &renderable.uboLightingBinding);
+  std::cout << "Renderable " << renderable.name
+            << " | block: " << renderable.uboLightingIndex
+            << ", binding: " << renderable.uboLightingBinding << std::endl;
+
+  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingIndex,
+                   renderable.uboLightingId);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformLighting), nullptr,
                GL_DYNAMIC_DRAW);
 }
 
@@ -129,6 +181,7 @@ void initShaderProperties(Renderable &renderable,
 
   // allocates the MVP matrices on the GPU.
   initMVPUniformBlock(renderable);
+  initLightingUbo(renderable);
 
   for (const auto &[name, blockData] : properties) {
     GLuint uboHandle;
@@ -284,6 +337,8 @@ GLuint compileShader(const Shader &shader, const Renderable &renderable) {
 }
 
 void RenderSystem::init() {
+  glShadeModel(GL_SMOOTH);
+
   // Initialization of the rendersystem encompasses the following steps.
   // Take into account the vocabulary.
   // * init: sets up the buffers, do precomputations and store parameters in
@@ -321,18 +376,13 @@ void RenderSystem::init() {
     renderable.program = compileShader(shader, renderable);
     initShaderProperties(renderable, shader.properties);
   }
-
-  //
-
-  // #ifndef NDEBUG
-  //   m_debugSystem.init();
-  // #endif //NDEBUG
 }
 
 void RenderSystem::update(float /*time*/, float /*dt*/) {
   // synchronizes the transformation for the entity into the renderable
   // component.
   synchMvpMatrices();
+  updateLightProperties();
 }
 
 void RenderSystem::synchMvpMatrices() {
@@ -345,6 +395,28 @@ void RenderSystem::synchMvpMatrices() {
 
     updateModelMatrix(entity);
     updateCamera(renderable);
+  }
+}
+
+void RenderSystem::updateLightProperties() {
+  auto view = m_registry.view<Transform, Light>();
+
+  m_uLightData.numberLights = view.size();
+
+  if (view.size() > 4) {
+    throw std::runtime_error(
+        "Too many lights in the scene. Max supported is 4");
+  }
+
+  unsigned int i = 0U;
+  for (auto e : view) {
+    const auto &light = view.get<Light>(e);
+    const auto &transform = view.get<Transform>(e);
+
+    m_uLightData.colors[i] = glm::vec4(light.color, 1.0F);
+    m_uLightData.intensities[i] = glm::vec4(light.intensity, 1.0F);
+    m_uLightData.positions[i] = transform.worldTransform[3];
+    ++i;
   }
 }
 
@@ -419,11 +491,16 @@ void RenderSystem::render() {
     }
 
     // TODO: check if shader is dirty
-    // Updates the uniform shader properties
-    pushUniforms(renderable);
+    pushShaderProperties(renderable);
 
-    // updates the MVP matrix
     pushModelViewProjection(renderable);
+
+    // TODO this one needs to change per glUseProgram, which is the case right
+    //  now. In future we might optimize changing of glUseProgram in that case,
+    //  this function should be called once per set of glUseProgram.
+    if (renderable.isLightingSupported) {
+      pushLightingData(renderable, m_uLightData);
+    }
 
     if (renderable.primitiveType == GL_TRIANGLES) {
       glDrawElements(renderable.primitiveType, renderable.drawElementCount,

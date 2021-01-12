@@ -1,11 +1,15 @@
 #version 460
 
-//layout(binding = 0)
-//buffer UniformBufferBlock {
-//    mat4 model;
-//    mat4 view;
-//    mat4 proj;
-//} ubo;
+#define MAX_LIGHTS 4
+
+layout(std140, binding=2)
+uniform Lighting {
+// Positions in world space
+    vec4 uPositions[MAX_LIGHTS];
+    vec4 uIntensities[MAX_LIGHTS];
+    vec4 uColors[MAX_LIGHTS];
+    int uNumberLights;
+};
 
 layout(binding = 1)
 uniform UniformBufferBlock {
@@ -21,12 +25,20 @@ layout(location = 2) in vec2 uv;
 layout(location = 0) out vec4 normalOut;
 layout(location = 1) out vec2 out_uv;
 
+layout(location = 2) out vec3 light_direction[MAX_LIGHTS];
+
 void main() {
     mat4 MVP = proj * view * model;
     mat4 MV = view * model;
-    mat4 transposedMV = transpose(MV);
+    mat4 invTranspose = inverse(transpose(model));
 
-    normalOut = transposedMV * vec4(normal, 1.0);
+    vec4 world_position = model * vec4(position, 1.0F);
+
     gl_Position = MVP * vec4(position, 1.0);
     out_uv = uv;
+
+    for (int i=0; i<uNumberLights; i++) {
+        light_direction[i] = (uPositions[i] - world_position).xyz;
+    }
+    normalOut = invTranspose * vec4(normal, 1.0);
 }

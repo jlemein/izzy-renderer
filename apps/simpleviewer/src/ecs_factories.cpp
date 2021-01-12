@@ -149,18 +149,3 @@ entt::entity EcsFactory::makeRectangularGrid(float size, float spacing) {
 
   return e;
 }
-
-entt::entity EcsFactory::makeDebugVisualization(entt::entity target) {
-#ifndef NDEBUG
-  std::cout << "We are in debug mode" << std::endl;
-
-  // only add when in debug mode
-  auto e = m_registry.create();
-  ecs::Shader &shader = m_registry.emplace<ecs::Shader>(e);
-  ecs::Renderable &renderable = m_registry.emplace<ecs::Renderable>(e);
-  ecs::Debug &debug = m_registry.emplace<ecs::Debug>(e, ecs::Debug{.target = target});
-
-  return e;
-
-#endif // NDEBUG
-}

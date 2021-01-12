@@ -12,9 +12,9 @@ namespace artifax {
 namespace ecs {
 enum class DebugShape {
   kBox = 0,  /// @brief Box shape.
+  kEulerArrow, /// @brief Euler arrow visualization
   kSphere,   /// @brief Spherical debug shape.
   kCamera,   /// @brief Simple camera look-a-like box representation
-  kWireframe /// @brief Changes the attached mesh into wireframe mode
 };
 
 /**
@@ -22,14 +22,11 @@ enum class DebugShape {
  * orientation, the bounding box dimensions and more.
  */
 struct Debug {
-  /// Attached target to show debug information for.
-  entt::entity target{entt::null};
-
   /// Shape for the debug representation.
   DebugShape shape{DebugShape::kBox};
 
   /// Increases size of shape when size < 0.25.
-  double minShapeSize{0.25};
+  double minShapeSize{0.10};
 
   // Hides the debugged entity
   bool hideTarget{true};

@@ -21,6 +21,14 @@ void TransformUtil::Scale(Transform &transform, const glm::vec3 &scale) {
   transform.localTransform[2][2] *= scale.z;
 }
 
+void TransformUtil::RotateEuler(Transform &transform, const glm::vec3& axis, float radians) {
+  transform.localTransform = glm::rotate(transform.localTransform, radians, axis);
+}
+
 void TransformUtil::Translate(Transform &transform, const glm::vec3 &translate) {
   transform.localTransform[3] += glm::vec4(translate, 0.0f);
+}
+
+void TransformUtil::SetWorldPosition(Transform &transform, const glm::vec3 &position) {
+  transform.localTransform[3] += glm::vec4(position, 0.0f);
 }

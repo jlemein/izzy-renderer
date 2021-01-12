@@ -11,17 +11,11 @@
 #include <shp_curve.h>
 #include <shp_mesh.h>
 
+#include "ecs_debugmodel.h"
 #include <unordered_map>
 
 namespace artifax {
 namespace ecs {
-
-struct DebugPrefab {
-  Renderable renderable;
-  Shader shader;
-  shp::Mesh mesh;
-//  shp::Curve curve;
-};
 
 /**!
  * @brief Responsible for showing debug shapes for renderable objects
@@ -36,8 +30,6 @@ public:
 
 private:
   entt::registry &m_registry;
-  entt::entity m_eulerAngleShape;
-  std::unordered_map<DebugShape, DebugPrefab> m_debugPrefabs;
 };
 
 } // namespace ecs

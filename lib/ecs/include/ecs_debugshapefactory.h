@@ -2,30 +2,38 @@
 // Created by jlemein on 01-12-20.
 //
 
-#ifndef GLVIEWER_ECS_DEBUGSHAPEFACTORY_H
-#define GLVIEWER_ECS_DEBUGSHAPEFACTORY_H
+#ifndef ARTIFAX_ECS_DEBUGSHAPEFACTORY_H
+#define ARTIFAX_ECS_DEBUGSHAPEFACTORY_H
 
+#include <ecs_debug.h>
+
+namespace artifax {
+
+namespace shp {
+struct Mesh;
+}
+
+namespace ecs {
+
+struct DebugModel;
+
+/**!
+ * Debug shape factory creates, different to @PrimitiveShapeFactory, specific
+ * shapes for use in debug visualization. Examples are bounding boxes, axis
+ * visualization, gizmo visualizations, etcetera. These shapes are built on top
+ * of the @see PrimitiveShapeFactory functionality.
+ */
+ // TODO consider a DebugResources class instead of this shape factory
+//   resources can facilitate sharing of instances
 class DebugShapeFactory {
 public:
-  static shp::Mesh makeBoundingBox() {
-    //    PrimitiveFactory
-  }
+  static DebugModel MakeBoundingBox(entt::registry& registry, entt::entity target);
 
-  static shp::Mesh makeEulerArrow() {
-    //    PrimitiveFactory
-  }
+  static DebugModel MakeEulerArrow(entt::registry& registry, entt::entity target);
 
-  static shp::Mesh makeShapeFromDebugMode(DebugShape shape) {
-    switch (shape) {
-    case DebugShape::kBox:
-      return makeBoundingBox();
-
-    case DebugShape::kEulerArrow:
-      return makeEulerArrow();
-
-    default:
-      throw std::runtime_error("Unsupported debug shape");
-    }
-  }
+  static DebugModel MakeModel(DebugShape shape, entt::registry& registry, entt::entity target);
 };
-#endif // GLVIEWER_ECS_DEBUGSHAPEFACTORY_H
+
+}
+}
+#endif // ARTIFAX_ECS_DEBUGSHAPEFACTORY_H

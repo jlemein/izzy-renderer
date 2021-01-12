@@ -1,9 +1,20 @@
 #version 460
 #extension GL_ARB_separate_shader_objects : enable
 
+#define MAX_LIGHTS 4
+
 layout(std140, binding=0)
 uniform ColorBlock {
     vec4 uColor;
+};
+
+layout(std140, binding=1)
+uniform Lighting {
+    // Positions in world space
+    vec4 positions[MAX_LIGHTS];
+    vec4 intensities[MAX_LIGHTS];
+    vec4 colors[MAX_LIGHTS];
+    int numberLights;
 };
 
 layout(location = 0) in vec4 inNormal;

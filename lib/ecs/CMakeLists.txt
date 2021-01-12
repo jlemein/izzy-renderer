@@ -31,7 +31,7 @@ add_library(ecs_system STATIC include/ecs_camera.h
         include/ecs_debugsystem.h
         src/ecs_debugsystem.cpp
         include/ecs_debugshapefactory.h
-        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp)
+        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h ../debutl/include/debughelper.h ../ecs_sg/include/SceneGraph.h ../res/include/res_resourcemanager.h ../res/src/res_resourcemanager.t.cpp)
 
 target_link_libraries(ecs_system PUBLIC shp CONAN_PKG::entt)
 

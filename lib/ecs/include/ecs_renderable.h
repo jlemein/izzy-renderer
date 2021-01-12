@@ -28,6 +28,16 @@ struct ColorBlock {
   glm::vec4 color;
 };
 
+struct UniformLighting {
+  glm::vec4 positions[4];
+  glm::vec4 intensities[4];
+  glm::vec4 colors[4];
+
+  /// MAX = 4
+  uint32_t numberLights {0U};
+  static inline const char* PARAM_NAME = "Lighting";
+};
+
 struct VertexAttribArray {
   GLint size;
   GLuint buffer_offset;
@@ -40,22 +50,29 @@ struct UniformBlockData {
 };
 
 struct Shader {
+  //TODO copying Shaders should be forbidden or fixed.
+
   using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
 
   std::string vertexShaderFile{""};
   std::string fragmentShaderFile{""};
   UniformProperties properties;
 
+
   template <typename T>
   void setProperty(const char* name, const T& data) {
     if (properties.count(name) > 0) {
       memcpy(properties.at(name).data, &data, sizeof(T));
-      properties.at(name).size = sizeof(T);
+
     } else {
 //      properties[name].data = std::unique_ptr<T>{new T, std::default_delete<T>()};
       properties[name].data = new T();
       memcpy(properties[name].data, &data, sizeof(T));
+    }
+    try {
       properties.at(name).size = sizeof(T);
+    } catch (std::out_of_range&) {
+      throw std::runtime_error("Out OF RANGE");
     }
   }
 
@@ -92,9 +109,15 @@ struct Renderable {
   GLuint drawElementCount;
 
   /* shader specific details */
-  GLuint uboId;  // id of the buffer object
-  GLint uboBlockIndex;  // arbitrary location in the shader (decided upon by GLSL compiler)
-  GLint uboBlockBinding; //
+  GLuint uboId {0};  // id of the buffer object
+  GLint uboBlockIndex {-1};  // arbitrary location in the shader (decided upon by GLSL compiler)
+  GLint uboBlockBinding {-1}; //
+
+  // stores simple lighting properties
+  bool isLightingSupported{false};
+  GLuint uboLightingId {0};     // id as returned from glGenBuffers(GL_UNIFORM,...)
+  GLint uboLightingIndex {-1};   // index as determined by GLSL compiler
+  GLint uboLightingBinding {-1}; // binding as specified in shader (binding = x)
 
   // TODO: check if we can only include this property in debug mode (for performance reasons)
   bool isWireframe {false};

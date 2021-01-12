@@ -19,10 +19,13 @@
 
 #include <memory>
 
+#include <ecs_light.h>
+#include <ecs_name.h>
 #include <glm/gtx/transform.hpp>
 #include <shp_shapeutil.h>
 
 entt::entity makeBunny(entt::registry &registry);
+entt::entity makeLight(entt::registry &registry, const glm::vec3& color, float intensity);
 entt::entity makeSierpinskiTriangle(entt::registry &registry);
 entt::entity makePenroseTiling(entt::registry &registry);
 
@@ -52,7 +55,7 @@ int main() {
   auto bunny = makeBunny(sceneGraph);
   auto &transform = sceneGraph.get<Transform>(bunny);
   TransformUtil::Translate(transform, glm::vec3(4.0F, 1.0F, 1.0F));
-  sceneGraph.emplace<Debug>(bunny);
+  sceneGraph.emplace<Debug>(bunny, Debug{.shape = DebugShape::kEulerArrow});
 
   // ShaderResources resources;
   // resources.init(); // loads shader files
@@ -61,9 +64,16 @@ int main() {
                        "assets/shaders/diffuse-color.frag.spv"};
   shader.setProperty("ColorBlock", ColorBlock{glm::vec4{1.0F, 0.0F, 0.0F, 1.0F}});
 
-  auto cylinder =
-      EcsFactory(sceneGraph)
-          .makeRenderable(shp::PrimitiveFactory::MakeCylinder(1.0F, 12.0F), shader);
+//  auto cylinder =
+//      EcsFactory(sceneGraph)
+//          .makeRenderable(shp::PrimitiveFactory::MakeCylinder(1.0F, 12.0F), shader);
+
+  // add lighting to scene
+  auto light = makeLight(sceneGraph, glm::vec3(1.0F, 1.0F, 0.7F), 5.0F);
+  sceneGraph.emplace<Name>(light, "PointLight");
+  sceneGraph.emplace<Debug>(light);
+  auto& lightTransform = sceneGraph.get<Transform>(light);
+  TransformUtil::Translate(lightTransform, glm::vec3(-2.0F, 3.0F, 0.0F));
 
   //  sceneGraph.emplace<ecs::Debug>(bunny);
   //  sceneGraph.emplace<FirstPersonControl>(bunny);
@@ -78,6 +88,13 @@ int main() {
   viewer.run();
 
   return 0;
+}
+
+entt::entity makeLight(entt::registry &registry, const glm::vec3& color, float intensity) {
+  auto e = registry.create();
+  registry.emplace<Transform>(e);
+  registry.emplace<ecs::Light>(e, ecs::Light{glm::vec3{intensity}, color, false});
+  return e;
 }
 
 entt::entity makePenroseTiling(entt::registry &registry) {
@@ -121,7 +138,7 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
 }
 
 entt::entity makeBunny(entt::registry &registry) {
-  auto e = EcsFactory(registry).makeMesh("./assets/models/bunny.fbx");
+  auto e = EcsFactory(registry).makeMesh("./assets/models/bunny2.fbx");
   shp::MeshTransform::scaleToUniformSize(registry.get<Mesh>(e));
 
   // auto rotate = glm::rotate(glm::radians(-180.0F), glm::vec3(0.0F, 1.0F,

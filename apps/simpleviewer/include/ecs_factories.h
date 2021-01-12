@@ -34,6 +34,8 @@ public:
   entt::entity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);
 
   entt::entity makeDebugVisualization(entt::entity target);
+
+
 };
 } // namespace artifax
 #endif // ARTIFAX_ECSFACTORY_H

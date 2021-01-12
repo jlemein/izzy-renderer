@@ -1,0 +1,10 @@
+//
+// Created by jlemein on 12-01-21.
+//
+
+#ifndef ARTIFAX_DEBUTL_DEBUGHELPER_H
+#define ARTIFAX_DEBUTL_DEBUGHELPER_H
+
+
+
+#endif // ARTIFAX_DEBUTL_DEBUGHELPER_H
