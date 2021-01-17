@@ -8,5 +8,5 @@ find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 target_include_directories(simpleviewer PUBLIC include
         PRIVATE src ${PROJECT_SOURCE_DIR}/thirdparty/stb)
-target_link_libraries(simpleviewer PUBLIC CONAN_PKG::entt CONAN_PKG::glfw OpenGL::GL GLEW::GLEW CONAN_PKG::glm inputsystem ecs_system
+target_link_libraries(simpleviewer PUBLIC CONAN_PKG::entt CONAN_PKG::glfw OpenGL::GL GLEW::GLEW CONAN_PKG::glm inputsystem ecs
         )

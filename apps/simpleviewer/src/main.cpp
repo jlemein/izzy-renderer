@@ -34,7 +34,13 @@ using namespace artifax::ecs;
 using namespace artifax::shp;
 using namespace artifax::viewer;
 
+#include <res_resourcemanager.h>
+
 int main() {
+  afxx::res::ResourceManager resourceManager;
+  resourceManager.getResource<shp::Mesh>("mesh.fbx");
+
+
   Viewer viewer;
 
   Viewer::SceneGraph &sceneGraph = viewer.getRegistry();

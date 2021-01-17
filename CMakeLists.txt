@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16.3)
-project(glviewer)
+project(Renderer)
 
 add_definitions("-std=c++11")
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)

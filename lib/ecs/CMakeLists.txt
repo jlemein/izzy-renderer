@@ -4,7 +4,7 @@
 #include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 #conan_basic_setup(TARGETS)
 
-add_library(ecs_system STATIC include/ecs_camera.h
+add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrol.h
         include/ecs_moveable.h
         include/ecs_relationship.h
@@ -31,14 +31,14 @@ add_library(ecs_system STATIC include/ecs_camera.h
         include/ecs_debugsystem.h
         src/ecs_debugsystem.cpp
         include/ecs_debugshapefactory.h
-        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h ../debutl/include/debughelper.h ../ecs_sg/include/SceneGraph.h ../res/include/res_resourcemanager.h ../res/src/res_resourcemanager.t.cpp)
+        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h include/ecs_scenegraph.h include/ecs_scenegraphentity.h)
 
-target_link_libraries(ecs_system PUBLIC shp CONAN_PKG::entt)
+target_link_libraries(ecs PUBLIC shp CONAN_PKG::entt)
 
 message("Packages in conan: ${CONAN_PKG}")
 
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
-target_link_libraries(ecsu_test PUBLIC ecs_system CONAN_PKG::gtest)
+target_link_libraries(ecsu_test PUBLIC ecs CONAN_PKG::gtest)
 
 #add_library(test_ecs_system STATIC
 #        src/ecs_firstpersoncontrolsystem.t.cpp)
@@ -63,9 +63,9 @@ target_link_libraries(ecsu_test PUBLIC ecs_system CONAN_PKG::gtest)
 #
 #add_library(viewer-textures STATIC src/ecs_texturesystem.cpp include/ecs_texturesystem.h)
 #
-target_include_directories(ecs_system
+target_include_directories(ecs
         PUBLIC include
         PRIVATE src ${PROJECT_SOURCE_DIR}/thirdparty/stb)
 
-target_link_libraries(ecs_system
+target_link_libraries(ecs
         PUBLIC CONAN_PKG::entt CONAN_PKG::glm inputsystem)
