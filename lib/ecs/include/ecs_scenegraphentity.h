@@ -9,7 +9,7 @@
 #include <memory>
 #include <entt/entt.h>
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 class SceneGraphEntity {

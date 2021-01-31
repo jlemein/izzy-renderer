@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecsw {
 
 using Transform = glm::mat4;

@@ -8,7 +8,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <entt/entt.hpp>
 
-using namespace artifax;
+using namespace affx;
 
 ecs::CameraSystem::CameraSystem(entt::registry &registry)
     : m_registry(registry) {}

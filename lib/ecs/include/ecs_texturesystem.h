@@ -9,7 +9,7 @@
 #include <ecs_rendersubsystem.h>
 #include <entt/entt.hpp>
 
-class TextureSystem : public artifax::ecs::IViewerInteractable, public artifax::ecs::IRenderSubsystem {
+class TextureSystem : public affx::ecs::IViewerInteractable, public affx::ecs::IRenderSubsystem {
 public:
 
   virtual ~TextureSystem() override = default;

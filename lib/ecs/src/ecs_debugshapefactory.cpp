@@ -7,12 +7,12 @@
 
 #include <ecs_transformutil.h>
 #include <entt/entt.hpp>
-#include <shp_mesh.h>
-#include <shp_primitivefactory.h>
-#include <shp_shapeutil.h>
+#include <geo_mesh.h>
+#include <geo_primitivefactory.h>
+#include <geo_shapeutil.h>
 
-using namespace artifax::ecs;
-using namespace artifax;
+using namespace affx::ecs;
+using namespace affx;
 
 DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry& registry, entt::entity target) {
   DebugModel box;
@@ -25,7 +25,7 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry& registry, entt::en
   }
 
 
-  box.mesh.push_back(shp::PrimitiveFactory::MakeBox(1.0F, 1.0F, 1.0F));
+  box.mesh.push_back(geo::PrimitiveFactory::MakeBox(1.0F, 1.0F, 1.0F));
   box.shader.push_back(Shader{.vertexShaderFile = "assets/shaders/debug.vert.spv",
       .fragmentShaderFile = "assets/shaders/debug.frag.spv"});
 
@@ -36,13 +36,13 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry& registry, entt::en
   glm::vec3 size(1.0F);
   glm::vec3 center {0.0F};
 
-  if (registry.has<shp::Mesh>(target)) {
+  if (registry.has<geo::Mesh>(target)) {
     // if the target entity has a mesh component,
     // then place the bounding box around the mesh
-    auto targetMesh = registry.get<shp::Mesh>(target);
-    auto bb = shp::ShapeUtil::computeBoundingBox(targetMesh);
-    auto size = shp::BoundingBoxUtil::getSize(bb);
-    auto center = shp::BoundingBoxUtil::getCenter(bb);
+    auto targetMesh = registry.get<geo::Mesh>(target);
+    auto bb = geo::ShapeUtil::computeBoundingBox(targetMesh);
+    auto size = geo::BoundingBoxUtil::getSize(bb);
+    auto center = geo::BoundingBoxUtil::getCenter(bb);
   } else {
     // if there is no mesh, then add a bounding box around the
     // world position with size determined by debug component.
@@ -61,9 +61,9 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry& registry, entt::en
 DebugModel DebugShapeFactory::MakeEulerArrow(entt::registry& registry, entt::entity target) {
   DebugModel eulerArrow;
 
-  auto xAxis = shp::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
-  auto yAxis = shp::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
-  auto zAxis = shp::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
+  auto xAxis = geo::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
+  auto yAxis = geo::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
+  auto zAxis = geo::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
   eulerArrow.mesh.push_back(xAxis);
   eulerArrow.mesh.push_back(yAxis);
   eulerArrow.mesh.push_back(zAxis);

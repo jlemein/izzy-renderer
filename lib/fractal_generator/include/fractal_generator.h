@@ -5,16 +5,16 @@
 #ifndef GLVIEWER_FRACTAL_GENERATOR_H
 #define GLVIEWER_FRACTAL_GENERATOR_H
 
-#include <shp_mesh.h>
-#include <shp_curve.h>
+#include <geo_curve.h>
+#include <geo_mesh.h>
 
-namespace artifax {
+namespace affx {
 namespace fractal {
 class FractalGenerator {
 public:
   FractalGenerator(unsigned int seed);
 
-  artifax::shp::Curve makeSierpinskiTriangle(unsigned int iterations);
+  affx::geo::Curve makeSierpinskiTriangle(unsigned int iterations);
 
 private:
   unsigned int m_seed;

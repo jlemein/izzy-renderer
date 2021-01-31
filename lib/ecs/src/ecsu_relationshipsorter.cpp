@@ -5,13 +5,13 @@
 #include <ecsu_relationshipsorter.h>
 #include <iostream>
 
-using namespace artifax::ecsu;
+using namespace affx::ecsu;
 
 void RelationshipSorter::sort(entt::registry &registry) {
-  registry.sort<Relationship>(
+  registry.sort<ecs::Relationship>(
       [&registry](const entt::entity lhs, const entt::entity rhs) {
-        const auto &clhs = registry.get<Relationship>(lhs);
-        const auto &crhs = registry.get<Relationship>(rhs);
+        const auto &clhs = registry.get<ecs::Relationship>(lhs);
+        const auto &crhs = registry.get<ecs::Relationship>(rhs);
 
         bool isLeftSibling = clhs.parent == crhs.parent && &clhs < &crhs;
         bool isParentEarlier = (clhs.parent != crhs.parent) && (clhs.depth == crhs.depth) && (&clhs < &crhs);

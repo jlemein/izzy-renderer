@@ -5,7 +5,7 @@
 #ifndef ARTIFAX_ECS_NAME_H
 #define ARTIFAX_ECS_NAME_H
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 struct Name {

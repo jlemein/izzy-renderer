@@ -11,39 +11,39 @@
 #include <ecs_transformutil.h>
 #include <fractal_generator.h>
 #include <fractal_penrosetiling.h>
-#include <shp_curve.h>
-#include <shp_mesh.h>
-#include <shp_meshloader.h>
-#include <shp_meshtransform.h>
-#include <shp_primitivefactory.h>
+#include <geo_curve.h>
+#include <geo_mesh.h>
+#include <geo_meshloader.h>
+#include <geo_meshtransform.h>
+#include <geo_primitivefactory.h>
+#include <geo_sceneloader.h>
 
 #include <memory>
 
 #include <ecs_light.h>
 #include <ecs_name.h>
+#include <geo_shapeutil.h>
 #include <glm/gtx/transform.hpp>
-#include <shp_shapeutil.h>
 
 entt::entity makeBunny(entt::registry &registry);
 entt::entity makeLight(entt::registry &registry, const glm::vec3& color, float intensity);
 entt::entity makeSierpinskiTriangle(entt::registry &registry);
 entt::entity makePenroseTiling(entt::registry &registry);
 
-using namespace artifax;
-using namespace artifax::ecs;
-using namespace artifax::shp;
-using namespace artifax::viewer;
+using namespace affx;
+using namespace affx::ecs;
+using namespace affx::viewer;
 
 #include <res_resourcemanager.h>
 
 int main() {
   afxx::res::ResourceManager resourceManager;
-  resourceManager.getResource<shp::Mesh>("mesh.fbx");
+  resourceManager.addFactory<geo::Scene>(std::make_unique<geo::SceneLoader>());
+//  resourceManager.getResource<geo::Scene>("assets/models/living_room.fbx");
 
-
-  Viewer viewer;
-
-  Viewer::SceneGraph &sceneGraph = viewer.getRegistry();
+  auto sceneGraph = make_shared<ecs::SceneGraph>();
+  auto resourceManager = make_shared<afxx::res::ResourceManager>(sceneGraph);
+  Viewer viewer(sceneGraph, resourceManager);
 
   auto e = sceneGraph.create();
   sceneGraph.emplace<Camera>(e);
@@ -72,7 +72,7 @@ int main() {
 
 //  auto cylinder =
 //      EcsFactory(sceneGraph)
-//          .makeRenderable(shp::PrimitiveFactory::MakeCylinder(1.0F, 12.0F), shader);
+//          .makeRenderable(geo::PrimitiveFactory::MakeCylinder(1.0F, 12.0F), shader);
 
   // add lighting to scene
   auto light = makeLight(sceneGraph, glm::vec3(1.0F, 1.0F, 0.7F), 5.0F);
@@ -116,7 +116,7 @@ entt::entity makePenroseTiling(entt::registry &registry) {
   PenroseTiling tiling(10.0F);
   tiling.decompose();
   tiling.decompose();
-  auto &curve = registry.emplace<shp::Curve>(e);
+  auto &curve = registry.emplace<geo::Curve>(e);
   tiling.fillVertices(curve.vertices);
 
   return e;
@@ -128,9 +128,9 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
   auto &rr = registry.emplace<Renderable>(e);
   rr.name = "FractalTree";
 
-  Curve &fractalCurve = registry.emplace<Curve>(
-      e, artifax::fractal::FractalGenerator(0).makeSierpinskiTriangle(8));
-  shp::MeshTransform::scaleToUniformSize(fractalCurve);
+  geo::Curve &fractalCurve = registry.emplace<geo::Curve>(
+      e, affx::fractal::FractalGenerator(0).makeSierpinskiTriangle(8));
+  geo::MeshTransform::scaleToUniformSize(fractalCurve);
   auto &shader = registry.emplace<Shader>(
       e, Shader{.vertexShaderFile = "assets/shaders/default_curve.vert.spv",
                 .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
@@ -145,7 +145,7 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
 
 entt::entity makeBunny(entt::registry &registry) {
   auto e = EcsFactory(registry).makeMesh("./assets/models/bunny2.fbx");
-  shp::MeshTransform::scaleToUniformSize(registry.get<Mesh>(e));
+  geo::MeshTransform::scaleToUniformSize(registry.get<geo::Mesh>(e));
 
   // auto rotate = glm::rotate(glm::radians(-180.0F), glm::vec3(0.0F, 1.0F,
   // 0.0F)); auto translate = glm::translate(glm::mat4(1.0F), glm::vec3(0.0F,

@@ -5,11 +5,11 @@
 #ifndef ARTIFAX_ECS_DEBUGMODEL_H
 #define ARTIFAX_ECS_DEBUGMODEL_H
 
-#include <ecs_transform.h>
 #include <ecs_renderable.h>
-#include <shp_mesh.h>
+#include <ecs_transform.h>
+#include <geo_mesh.h>
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 /**!
@@ -20,9 +20,9 @@ namespace ecs {
 struct DebugModel {
   std::vector<Renderable> renderable;
   std::vector<Shader> shader;
-  std::vector<shp::Mesh> mesh;
+  std::vector<geo::Mesh> mesh;
   std::vector<ecs::Transform> transformations;
-//  shp::Curve curve;
+//  geo::Curve curve;
 };
 
 } // end of package

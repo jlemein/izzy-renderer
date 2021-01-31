@@ -1,5 +1,6 @@
 #include <ecs_relationshiputil.h>
 #include <ecs_relationship.h>
+using namespace affx::ecs;
 
 void RelationshipUtil::MakeChild(entt::registry& registry, entt::entity parent, entt::entity child) {
   if (!registry.has<Relationship>(parent)) {

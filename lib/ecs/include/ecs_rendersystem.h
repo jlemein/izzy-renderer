@@ -12,7 +12,7 @@
 
 #include <glm/glm.hpp>
 
-namespace artifax
+namespace affx
 {
 namespace ecs
 {
@@ -69,6 +69,6 @@ class RenderSystem
 };
 
 }  // namespace ecs
-}  // namespace artifax
+}  // namespace affx
 
 #endif  // GLVIEWER_VIEWER_RENDERSYSTEM_H

@@ -7,7 +7,7 @@
 
 #include <entt/fwd.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecsw {
 class Scene;
 }
@@ -21,7 +21,7 @@ public:
   /**!
    * Adds a scene object to the registry.
    * @param registry The registry to add the scene contents too
-   */
+   */`
   static void addToScene(entt::registry& registry, ecsw::Scene& model);
 
   static void makeLight();

@@ -11,7 +11,7 @@
 #include <memory>
 #include <list>
 
-namespace artifax
+namespace affx
 {
 namespace io
 {
@@ -52,6 +52,6 @@ class InputSystem
 };
 
 }  // namespace io
-}  // namespace artifax
+}  // namespace affx
 
 #endif  // GLVIEWER_IO_INPUTSYSTEM_H

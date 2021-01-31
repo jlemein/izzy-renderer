@@ -8,7 +8,7 @@
 #include <entt/entity/entity.hpp>
 #include <entt/entity/fwd.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 enum class DebugShape {
   kBox = 0,  /// @brief Box shape.
@@ -37,6 +37,6 @@ struct Debug {
 };
 
 } // namespace ecs
-} // namespace artifax
+} // namespace affx
 
 #endif // ARTIFAX_ECS_DEBUG_H

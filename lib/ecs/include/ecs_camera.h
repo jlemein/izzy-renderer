@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_ECS_CAMERA_H
 #define GLVIEWER_ECS_CAMERA_H
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 struct Camera {

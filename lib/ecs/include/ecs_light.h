@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_ECS_LIGHT_H
 #define GLVIEWER_ECS_LIGHT_H
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 /**!

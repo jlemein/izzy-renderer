@@ -7,8 +7,8 @@
 
 #include <memory>
 
-namespace artifax {
-namespace shp {
+namespace affx {
+namespace geo {
 struct Mesh;
 }
 
@@ -17,7 +17,7 @@ namespace ecsw {
 class Material;
 
 class MeshInstance {
-  std::shared_ptr<shp::Mesh> m_mesh;
+  std::shared_ptr<geo::Mesh> m_mesh;
   std::shared_ptr<Material> m_material;
   std::string m_name;
 };

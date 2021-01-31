@@ -2,15 +2,15 @@
 // Created by jlemein on 09-11-20.
 //
 
-#ifndef GLVIEWER_VIEWER_CURVE_H
-#define GLVIEWER_VIEWER_CURVE_H
+#ifndef AFFX_GEO_CURVE_H
+#define AFFX_GEO_CURVE_H
 
-#include <shp_boundingbox.h>
+#include <geo_boundingbox.h>
 #include <vector>
 
-namespace artifax
+namespace affx
 {
-namespace shp
+namespace geo
 {
 struct Curve {
   std::vector<float> vertices;
@@ -24,4 +24,4 @@ struct Curve {
 } // end package
 } // end enterprise
 
-#endif // GLVIEWER_VIEWER_CURVE_H
+#endif // AFFX_GEO_CURVE_H

@@ -1,6 +1,10 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(Renderer)
 
+include(CTest)
+enable_testing()
+include(GoogleTest)
+
 add_definitions("-std=c++11")
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup(TARGETS)

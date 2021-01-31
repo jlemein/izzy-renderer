@@ -7,12 +7,12 @@
 
 #include <glm/glm.hpp>
 
-namespace artifax {
+namespace affx {
 
-namespace shp
+namespace geo
 {
-class Mesh;
-class Curve;
+struct Mesh;
+struct Curve;
 
 
 /**!
@@ -28,6 +28,7 @@ struct MeshTransform {
   static void Rotate(Mesh& mesh, const glm::quat& quaternion);
 };
 
-}
-}
+} // end of package
+} // end of enterprise
+
 #endif  // GLVIEWER_MESH_MESHTRANSFORM_H

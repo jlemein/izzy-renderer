@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 struct Transform {

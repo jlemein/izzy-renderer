@@ -4,8 +4,8 @@
 #include <viewer_windowinputlistener.h>
 #include <io_inputsystem.h>
 #include <io_keyconstants.h>
-using namespace artifax;
-using namespace artifax::viewer;
+using namespace affx;
+using namespace affx::viewer;
 
 WindowInputListener::WindowInputListener(GLFWwindow *window)
 : m_window(window)

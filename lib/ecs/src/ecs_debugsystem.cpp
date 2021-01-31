@@ -6,10 +6,10 @@
 #include <ecs_relationship.h>
 #include <ecs_renderable.h>
 #include <ecs_transform.h>
-#include <shp_curve.h>
-#include <shp_mesh.h>
-#include <shp_primitivefactory.h>
-#include <shp_shapeutil.h>
+#include <geo_curve.h>
+#include <geo_mesh.h>
+#include <geo_primitivefactory.h>
+#include <geo_shapeutil.h>
 
 // TODO: does not belong in this package
 #include <ecs_debugshapefactory.h>
@@ -19,8 +19,8 @@
 #include <ecs_transformutil.h>
 #include <entt/entt.hpp>
 
-using namespace artifax;
-using namespace artifax::ecs;
+using namespace affx;
+using namespace affx::ecs;
 
 DebugSystem::DebugSystem(entt::registry &registry) : m_registry{registry} {}
 
@@ -50,7 +50,7 @@ void DebugSystem::init() {
       std::string debugName = std::string{"Debug#"} + std::to_string(i) + " " + name;
       m_registry.emplace<Name>(debugEntity, debugName);
       m_registry.emplace<Renderable>(debugEntity, model.renderable[i]);
-      m_registry.emplace<shp::Mesh>(debugEntity, model.mesh[i]);
+      m_registry.emplace<geo::Mesh>(debugEntity, model.mesh[i]);
       m_registry.emplace<Shader>(debugEntity, model.shader[i]);
       m_registry.emplace<Transform>(debugEntity, model.transformations[i]);
       RelationshipUtil::MakeChild(m_registry, e, debugEntity);

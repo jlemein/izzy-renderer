@@ -11,21 +11,41 @@
 #include <unordered_map>
 #include <iostream>
 
-#include <shp_boundingbox.h>
+#include <geo_boundingbox.h>
 
-namespace artifax {
-namespace shp {
+namespace affx {
+namespace geo {
 
 enum class PolygonMode {
   kTriangles,
   kQuads
 };
 
+struct Material {
+  std::string name;
+
+  // colors
+  glm::vec3 diffuse;
+  glm::vec3 emissive;
+  glm::vec3 ambient;
+  glm::vec3 specular;
+  glm::vec3 transparent;
+
+  // material
+  float shininess;
+  float opacity;
+
+};
+
+
 struct Mesh {
+  std::string name;
   std::vector<float> vertices;
   std::vector<float> normals;
   std::vector<float> uvs;
   std::vector<uint32_t> indices;
+
+  Material material;
 
   // describes the data
   PolygonMode polygonMode {PolygonMode::kTriangles};

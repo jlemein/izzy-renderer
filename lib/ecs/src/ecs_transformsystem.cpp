@@ -8,7 +8,7 @@
 #include <ecs_renderable.h>
 #include <entt/entt.hpp>
 
-using namespace artifax::ecs;
+using namespace affx::ecs;
 
 namespace {
 

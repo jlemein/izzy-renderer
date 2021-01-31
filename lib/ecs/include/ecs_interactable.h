@@ -8,7 +8,7 @@
 #include <entt/entt.hpp>
 #include <entt/entity/registry.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecs
 {
 class IViewerInteractable

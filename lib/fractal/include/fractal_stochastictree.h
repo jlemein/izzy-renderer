@@ -12,7 +12,7 @@
 #include <iosfwd>
 #include <random>
 
-namespace artifax {
+namespace affx {
 namespace fractal {
 
 struct StochasticRule {

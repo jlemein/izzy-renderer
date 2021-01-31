@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_FRACTAL_CURVEGENERATOR_H
 #define GLVIEWER_FRACTAL_CURVEGENERATOR_H
 
-namespace artifax {
+namespace affx {
 namespace fractal {
 
 class CurveGenerator {
@@ -14,5 +14,5 @@ public:
 };
 
 } // namespace fractal
-} // namespace artifax
+} // namespace affx
 #endif // GLVIEWER_FRACTAL_CURVEGENERATOR_H

@@ -8,7 +8,7 @@
 #include <entt/fwd.hpp>
 #include <glm/glm.hpp>
 
-namespace artifax
+namespace affx
 {
 namespace io
 {
@@ -25,7 +25,7 @@ class FirstPersonMovementSystem
 {
  public:
   FirstPersonMovementSystem(entt::registry &registry,
-                            artifax::io::InputSystem *inputSystem);
+                            affx::io::InputSystem *inputSystem);
 
   void init();
   void update(float dt);
@@ -38,6 +38,6 @@ class FirstPersonMovementSystem
 };
 
 }  // namespace ecs
-}  // namespace artifax
+}  // namespace affx
 
 #endif  // GLVIEWER_ECS_FIRSTPERSONCONTROLSYSTEM_H

@@ -8,6 +8,9 @@
 #include <entt/entt.hpp>
 #include <vector>
 
+namespace affx {
+namespace ecs {
+
 struct Relationship {
   entt::entity parent {entt::null};
   std::vector<entt::entity> children {};
@@ -21,4 +24,8 @@ struct Relationship {
     return !children.empty();
   }
 };
+
+} // enf of package
+} // end of enterprise
+
 #endif // GLVIEWER_ECS_RELATIONSHIP_H

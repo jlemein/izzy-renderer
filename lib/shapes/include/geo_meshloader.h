@@ -7,11 +7,11 @@
 
 #include <string>
 
-namespace artifax
+namespace affx
 {
-namespace shp
+namespace geo
 {
-class Mesh;
+struct Mesh;
 
 class MeshLoader
 {

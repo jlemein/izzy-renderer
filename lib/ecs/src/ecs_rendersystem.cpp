@@ -10,11 +10,11 @@
 #include <ecs_relationship.h>
 #include <ecs_transform.h>
 #include <fstream>
+#include <geo_curve.h>
+#include <geo_mesh.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <shp_curve.h>
-#include <shp_mesh.h>
-using namespace artifax;
-using namespace artifax::ecs;
+using namespace affx;
+using namespace affx::ecs;
 
 namespace {
 std::vector<char> readFile(const std::string &filename) {
@@ -238,7 +238,7 @@ void checkError(std::string message) {
 RenderSystem::RenderSystem(entt::registry &registry)
     : m_registry{registry}, m_debugSystem(registry) {}
 
-void initCurveBuffers(Renderable &renderable, const shp::Curve &curve) {
+void initCurveBuffers(Renderable &renderable, const geo::Curve &curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
   glBufferData(GL_ARRAY_BUFFER, curve.vertices.size() * sizeof(float),
@@ -256,7 +256,7 @@ void initCurveBuffers(Renderable &renderable, const shp::Curve &curve) {
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
 }
 
-void initMeshBuffers(Renderable &renderable, const shp::Mesh &mesh) {
+void initMeshBuffers(Renderable &renderable, const geo::Mesh &mesh) {
   GLuint vertexSize = mesh.vertices.size() * sizeof(float);
   GLuint normalSize = mesh.normals.size() * sizeof(float);
   GLuint uvSize = mesh.uvs.size() * sizeof(float);
@@ -354,9 +354,9 @@ void RenderSystem::init() {
   // * Push the remaining uniform parameter values to the shader.
 
   // handling curves
-  auto curveView = m_registry.view<shp::Curve, Renderable>();
+  auto curveView = m_registry.view<geo::Curve, Renderable>();
   for (auto entity : curveView) {
-    auto &curve = m_registry.get<shp::Curve>(entity);
+    auto &curve = m_registry.get<geo::Curve>(entity);
     auto &renderable = m_registry.get<Renderable>(entity);
     auto &shader = m_registry.get<Shader>(entity);
 
@@ -366,9 +366,9 @@ void RenderSystem::init() {
   }
 
   // handling meshes
-  auto view = m_registry.view<shp::Mesh, Shader, Renderable>();
+  auto view = m_registry.view<geo::Mesh, Shader, Renderable>();
   for (auto entity : view) {
-    auto &mesh = m_registry.get<shp::Mesh>(entity);
+    auto &mesh = m_registry.get<geo::Mesh>(entity);
     auto &renderable = m_registry.get<Renderable>(entity);
     auto &shader = m_registry.get<Shader>(entity);
 

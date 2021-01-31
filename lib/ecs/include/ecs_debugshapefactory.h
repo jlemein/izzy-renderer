@@ -7,9 +7,9 @@
 
 #include <ecs_debug.h>
 
-namespace artifax {
+namespace affx {
 
-namespace shp {
+namespace geo {
 struct Mesh;
 }
 

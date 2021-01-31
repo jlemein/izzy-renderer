@@ -11,7 +11,7 @@
 
 #include <entt/entt.hpp>
 
-namespace artifax {
+namespace affx {
 
 namespace ecs {
 class TransformSystem;
@@ -61,4 +61,4 @@ private:
 };
 
 } // namespace viewer
-} // namespace artifax
+} // namespace affx

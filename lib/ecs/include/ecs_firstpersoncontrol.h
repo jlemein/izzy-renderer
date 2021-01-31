@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_ECS_FIRSTPERSONCONTROL_H
 #define GLVIEWER_ECS_FIRSTPERSONCONTROL_H
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 struct FirstPersonControl {

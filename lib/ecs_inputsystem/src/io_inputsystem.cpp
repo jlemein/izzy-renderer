@@ -7,7 +7,7 @@
 #include <io_inputlistener.h>
 
 #include <unordered_map>
-using namespace artifax::io;
+using namespace affx::io;
 
 namespace {
 std::unordered_map<Key, int> toGlfwKey = {

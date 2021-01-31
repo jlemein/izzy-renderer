@@ -8,7 +8,7 @@
 //#include <viewer_interactable.h>
 #include <entt/entt.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 class TransformSystem { //: public IViewerInteractable {

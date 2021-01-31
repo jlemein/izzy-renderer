@@ -1,13 +1,13 @@
 //
 // Created by jlemein on 10-11-20.
 //
-#include <shp_meshtransform.h>
-#include <shp_mesh.h>
-#include <shp_curve.h>
-#include <shp_shapeutil.h>
+#include <geo_curve.h>
+#include <geo_mesh.h>
+#include <geo_meshtransform.h>
+#include <geo_shapeutil.h>
 
-using namespace artifax;
-using namespace artifax::shp;
+using namespace affx;
+using namespace affx::geo;
 
 void MeshTransform::scaleToUniformSize(Mesh &mesh, float size) {
   auto bb = ShapeUtil::computeBoundingBox(mesh);

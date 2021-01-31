@@ -7,7 +7,7 @@
 
 #include <entt/fwd.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecsu {
 
 /**!

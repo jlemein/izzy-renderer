@@ -15,7 +15,7 @@
 #include <fractal_rule.h>
 #include <fractal_state.h>
 
-namespace artifax {
+namespace affx {
 namespace fractal {
 
 /**!

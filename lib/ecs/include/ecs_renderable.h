@@ -14,7 +14,7 @@
 #include <string>
 #include <iostream>
 
-namespace artifax
+namespace affx
 {
 namespace ecs
 {

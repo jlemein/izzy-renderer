@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 struct Transform;
@@ -33,6 +33,6 @@ struct TransformUtil {
 };
 
 } // namespace ecs
-} // namespace artifax
+} // namespace affx
 
 #endif // ARTIFAX_ECS_TRANSFORMUTIL_H

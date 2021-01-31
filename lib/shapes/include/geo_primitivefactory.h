@@ -5,11 +5,11 @@
 #ifndef ARTIFAX_MESH_PRIMITIVEFACTORY_H
 #define ARTIFAX_MESH_PRIMITIVEFACTORY_H
 
-namespace artifax {
-namespace shp {
+namespace affx {
+namespace geo {
 
-class Curve;
-class Mesh;
+struct Curve;
+struct Mesh;
 
 /**!
  * Collection of primitive types.
@@ -49,6 +49,7 @@ public:
   static Mesh MakeTeapot(float size);
 };
 
-} // namespace shp
-} // namespace artifax
+} // end of package
+} // end of enterprise
+
 #endif // GLVIEWER_MESH_PRIMITIVEFACTORY_H

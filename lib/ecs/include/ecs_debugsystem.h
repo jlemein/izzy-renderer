@@ -8,13 +8,13 @@
 #include <ecs_debug.h>
 #include <ecs_renderable.h>
 #include <entt/entity/registry.hpp>
-#include <shp_curve.h>
-#include <shp_mesh.h>
+#include <geo_curve.h>
+#include <geo_mesh.h>
 
 #include "ecs_debugmodel.h"
 #include <unordered_map>
 
-namespace artifax {
+namespace affx {
 namespace ecs {
 
 /**!
@@ -33,6 +33,6 @@ private:
 };
 
 } // namespace ecs
-} // namespace artifax
+} // namespace affx
 
 #endif // ARTIFAX_ECS_DEBUGSYSTEM_H

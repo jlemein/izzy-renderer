@@ -15,10 +15,10 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtx/quaternion.hpp>
 
+#include <geo_mesh.h>
 #include <iostream>
-#include <shp_mesh.h>
 
-using namespace artifax;
+using namespace affx;
 
 namespace
 {

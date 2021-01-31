@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-namespace artifax {
+namespace affx {
 namespace fractal {
 
 #include <fractal_tree.h>

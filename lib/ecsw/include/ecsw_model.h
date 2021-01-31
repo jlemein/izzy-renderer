@@ -12,7 +12,7 @@
 #include <memory>
 #include <vector>
 
-namespace artifax {
+namespace affx {
 namespace ecsw {
 
 class Model_Node {

@@ -7,7 +7,7 @@
 
 #include <entt/entt.hpp>
 
-namespace artifax {
+namespace affx {
 namespace ecs
 {
 class IRenderSubsystem
@@ -18,6 +18,6 @@ class IRenderSubsystem
 };
 
 } // end package
-} // namespace artifax
+} // namespace affx
 
 #endif  // GLVIEWER_ECS_RENDERSUBSYSTEM_H

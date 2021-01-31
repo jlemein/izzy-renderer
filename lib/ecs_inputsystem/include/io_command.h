@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_IO_COMMAND_H
 #define GLVIEWER_IO_COMMAND_H
 
-namespace artifax {
+namespace affx {
 namespace io {
 
 class Command {

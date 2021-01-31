@@ -1,8 +1,8 @@
 ////
 //// Created by jlemein on 09-01-21.
 ////
-//#include <shp_boundingbox.h>
-//using namespace artifax::shp;
+//#include <geo_boundingbox.h>
+//using namespace affx::geo;
 //
 //std::ostream &operator<<(std::ostream &os, const BoundingBox &bb) {
 //  os << "[" << bb.xMin << ", " << bb.xMax << "] x [" << bb.yMin << ", "

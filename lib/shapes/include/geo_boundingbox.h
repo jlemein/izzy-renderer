@@ -2,14 +2,14 @@
 // Created by jlemein on 01-12-20.
 //
 
-#ifndef GLVIEWER_SHP_BOUNDINGBOX_H
-#define GLVIEWER_SHP_BOUNDINGBOX_H
+#ifndef AFFX_GEO_BOUNDINGBOX_H
+#define AFFX_GEO_BOUNDINGBOX_H
 
 #include <ostream>
 #include <glm/glm.hpp>
 
-namespace artifax {
-namespace shp {
+namespace affx {
+namespace geo {
 struct BoundingBox {
   float xMin{.0F}, yMin{.0F}, zMin{.0F};
   float xMax{.0F}, yMax{.0F}, zMax{.0F};
@@ -28,6 +28,7 @@ public:
     return glm::vec3{bb.xMin, bb.yMin, bb.zMin} + 0.5F * getSize(bb);
   }
 };
-} // namespace shp
-} // namespace artifax
-#endif // GLVIEWER_SHP_BOUNDINGBOX_H
+} // end of package
+} // end of enterprise
+
+#endif // AFFX_GEO_BOUNDINGBOX_H

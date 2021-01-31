@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_IO_KEYCONSTANTS_H
 #define GLVIEWER_IO_KEYCONSTANTS_H
 
-namespace artifax
+namespace affx
 {
 namespace io
 {

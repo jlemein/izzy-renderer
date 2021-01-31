@@ -3,13 +3,13 @@
 //
 #include <fractal_generator.h>
 #include <fractal_treefactory.h>
-using namespace artifax;
-using namespace artifax::fractal;
+using namespace affx;
+using namespace affx::fractal;
 
 FractalGenerator::FractalGenerator(unsigned int seed) : m_seed(seed) {}
 
-shp::Curve FractalGenerator::makeSierpinskiTriangle(unsigned int iterations) {
-  shp::Curve curve;
+geo::Curve FractalGenerator::makeSierpinskiTriangle(unsigned int iterations) {
+  geo::Curve curve;
   curve.width = 1.0F;
 
   auto tree = FractalTreeFactory::makeSierpinskiTriangle(iterations);

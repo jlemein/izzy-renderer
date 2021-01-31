@@ -1,9 +1,8 @@
 //
 // Created by jlemein on 07-11-20.
 //
-#include <shp_meshloader.h>
-
-#include <shp_mesh.h>
+#include <geo_meshloader.h>
+#include <geo_mesh.h>
 
 #include <iostream>
 #include <vector>
@@ -14,9 +13,9 @@
 #include <assimp/postprocess.h>
 
 using namespace std;
-using namespace artifax::shp;
+using namespace affx::geo;
 
-void MeshLoader::loadSceneFile(const std::string &name, shp::Mesh& mesh) {
+void MeshLoader::loadSceneFile(const std::string &name, Mesh& mesh) {
   Assimp::Importer importer;
   const aiScene *pScene = importer.ReadFile(name, aiProcess_Triangulate);
   if (!pScene) {
@@ -90,7 +89,7 @@ void MeshLoader::loadSceneFile(const std::string &name, shp::Mesh& mesh) {
   //    pScene->mMeshes[0]->mNumVertices * sizeof(float) * 3);
 }
 
-void MeshLoader::createSimpleTriangles(shp::Mesh &mesh) {
+void MeshLoader::createSimpleTriangles(Mesh &mesh) {
   std::vector<float> vertices = {-0.5, -0.5, 0.0, 0.5, -0.5,
                                  0.0,  0.0,  0.5, 0.0};
   mesh.vertices = vertices;

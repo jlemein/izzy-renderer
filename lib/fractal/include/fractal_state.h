@@ -9,7 +9,7 @@
 #include <vector>
 #include <stack>
 
-namespace artifax {
+namespace affx {
 namespace fractal {
 
 struct State {

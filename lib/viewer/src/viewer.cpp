@@ -7,11 +7,11 @@
 #include <ecs_interactable.h>
 #include <ecs_rendersystem.h>
 #include <ecs_transformsystem.h>
+#include <geo_mesh.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <io_inputsystem.h>
 #include <iostream>
-#include <shp_mesh.h>
 #include <vector>
 #include <viewer.h>
 #include <viewer_windowinputlistener.h>
@@ -20,8 +20,8 @@
 #include <stb_image.h>
 
 using namespace std;
-using namespace artifax;
-using namespace artifax::viewer;
+using namespace affx;
+using namespace affx::viewer;
 
 namespace {
 static void error_callback(int error, const char *description) {

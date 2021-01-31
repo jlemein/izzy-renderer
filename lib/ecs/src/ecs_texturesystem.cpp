@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-using namespace artifax::ecs;
+using namespace affx::ecs;
 
 namespace {
 void setupTextures(Texture &texture) {

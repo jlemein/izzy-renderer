@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_ECSW_CAMERA_H
 #define GLVIEWER_ECSW_CAMERA_H
 
-namespace artifax
+namespace affx
 {
 namespace ecsw
 {

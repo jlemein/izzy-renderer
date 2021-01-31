@@ -1,13 +1,16 @@
 //
 // Created by jlemein on 01-12-20.
 //
-#include <shp_curve.h>
-#include <shp_mesh.h>
-#include <shp_primitivefactory.h>
-using namespace artifax;
-using namespace artifax::shp;
+#include <geo_curve.h>
+#include <geo_mesh.h>
+#include <geo_primitivefactory.h>
+using namespace affx;
+using namespace affx::geo;
 
-Mesh PrimitiveFactory::MakePlane(float width, float height) { return Mesh(); }
+Mesh PrimitiveFactory::MakePlane(float width, float height) {
+  return Mesh();
+}
+
 Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
   float vertices[] = {
       -.5F, -.5F, -.5F, // v0

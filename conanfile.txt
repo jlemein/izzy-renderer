@@ -4,13 +4,13 @@ glm/0.9.9.8
 gtest/1.10.0
 entt/3.5.2
 glfw/3.3.2
-fmt/7.1.3
-
+#fmt/7.1.3
+spdlog/1.8.2
 resourcemanager/0.1
 
 [options]
 gtest:build_gmock=True
-fmt:header_only=True
+#fmt:header_only=True
 
 [generators]
 cmake

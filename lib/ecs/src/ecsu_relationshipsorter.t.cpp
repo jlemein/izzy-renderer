@@ -7,8 +7,9 @@
 #include <entt/entt.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-using namespace artifax;
+using namespace affx;
 using namespace testing;
+using namespace affx::ecs;
 
 class RelationshipSorterTest : public ::testing::Test {};
 

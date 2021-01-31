@@ -2,7 +2,7 @@
 // Created by jlemein on 14-11-20.
 //
 #include <fractal_stochastictree.h>
-using namespace artifax::fractal;
+using namespace affx::fractal;
 
 StochasticFractalTree::StochasticFractalTree(const std::string &initiator,
                                              State &state, unsigned int seed)

@@ -4,10 +4,10 @@
 
 #ifndef GLVIEWER_SHP_SHAPEUTIL_H
 #define GLVIEWER_SHP_SHAPEUTIL_H
-#include "shp_boundingbox.h"
+#include "geo_boundingbox.h"
 
-namespace artifax {
-namespace shp {
+namespace affx {
+namespace geo {
 
 class ShapeUtil {
 public:
@@ -36,7 +36,7 @@ public:
   }
 };
 
-} // namespace shp
-} // namespace artifax
+} // end of package
+} // end of enterprise
 
 #endif // GLVIEWER_SHP_SHAPEUTIL_H
