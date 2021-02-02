@@ -13,12 +13,17 @@
 
 namespace affx {
 
+namespace res {
+class ResourceManager;
+}
+
 namespace ecs {
 class TransformSystem;
 class RenderSystem;
 class CameraSystem;
 class DebugSystem;
 class IViewerInteractable;
+class SceneGraph;
 } // namespace ecs
 
 namespace io {
@@ -32,7 +37,14 @@ class Viewer {
 public:
   typedef entt::registry SceneGraph;
 
-  Viewer();
+  /**!
+   * A viewer needs a scene graph and a resource manager to operate.
+   * @param sceneGraph Contains the scene composition to render.
+   * @param resourceManager Used to deallocate objects. (possible viewer does
+   * not need this data).
+   */
+  Viewer(ecs::SceneGraph& sceneGraph, res::ResourceManager& resourceManager);
+
   ~Viewer();
 
   SceneGraph &getRegistry();
@@ -47,7 +59,10 @@ public:
 private:
   void init();
 
-  entt::registry m_registry;
+  ecs::SceneGraph& m_sceneGraph;
+  res::ResourceManager& m_resourceManager;
+  entt::registry& m_registry;
+
   std::list<std::shared_ptr<ecs::IViewerInteractable>> mmInteractables;
 
   std::shared_ptr<ecs::RenderSystem> m_renderSystem;

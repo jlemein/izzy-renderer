@@ -20,9 +20,9 @@ struct Curve;
  * matrix.
  */
 struct MeshTransform {
-  static void scaleToUniformSize(Mesh &mesh, float size = 1.0F);
-  static void scaleToUniformSize(Curve &curve, float size = 1.0F);
-  static void centerMeshToWorldOrigin(Mesh &mesh);
+  static void ScaleToUniformSize(Mesh &mesh, float size = 1.0F);
+  static void ScaleToUniformSize(Curve &curve, float size = 1.0F);
+  static void CenterMeshToWorldOrigin(Mesh &mesh);
 
   static void Translate(Mesh& mesh, const glm::vec3& translation);
   static void Rotate(Mesh& mesh, const glm::quat& quaternion);

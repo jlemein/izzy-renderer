@@ -9,7 +9,7 @@
 using namespace affx;
 using namespace affx::geo;
 
-void MeshTransform::scaleToUniformSize(Mesh &mesh, float size) {
+void MeshTransform::ScaleToUniformSize(Mesh &mesh, float size) {
   auto bb = ShapeUtil::computeBoundingBox(mesh);
   auto scaleX = bb.xMax - bb.xMin;
   auto scaleY = bb.yMax - bb.yMin;
@@ -34,7 +34,7 @@ void MeshTransform::scaleToUniformSize(Mesh &mesh, float size) {
   }
 }
 
-void MeshTransform::scaleToUniformSize(Curve &curve, float size) {
+void MeshTransform::ScaleToUniformSize(Curve &curve, float size) {
   auto bb = ShapeUtil::computeBoundingBox(curve);
   auto scaleX = bb.xMax - bb.xMin;
   auto scaleY = bb.yMax - bb.yMin;
@@ -57,7 +57,7 @@ void MeshTransform::scaleToUniformSize(Curve &curve, float size) {
   }
 }
 
-void MeshTransform::centerMeshToWorldOrigin(Mesh &mesh) {
+void MeshTransform::CenterMeshToWorldOrigin(Mesh &mesh) {
 //
 }
 

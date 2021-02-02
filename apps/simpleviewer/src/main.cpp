@@ -17,16 +17,27 @@
 #include <geo_meshtransform.h>
 #include <geo_primitivefactory.h>
 #include <geo_sceneloader.h>
+//#include <geo_scene.h>
+
+#include <res_resource.h>
+#include <res_resourcemanager.h>
 
 #include <memory>
 
 #include <ecs_light.h>
 #include <ecs_name.h>
+#include <ecs_scenegraph.h>
 #include <geo_shapeutil.h>
 #include <glm/gtx/transform.hpp>
 
-entt::entity makeBunny(entt::registry &registry);
-entt::entity makeLight(entt::registry &registry, const glm::vec3& color, float intensity);
+namespace {
+affx::res::ResourceManager resourceManager;
+affx::ecs::SceneGraph sceneGraph;
+} // namespace
+
+// entt::entity makeBunny(entt::registry &registry, );
+entt::entity makeLight(entt::registry &registry, const glm::vec3 &color,
+                       float intensity);
 entt::entity makeSierpinskiTriangle(entt::registry &registry);
 entt::entity makePenroseTiling(entt::registry &registry);
 
@@ -34,52 +45,52 @@ using namespace affx;
 using namespace affx::ecs;
 using namespace affx::viewer;
 
-#include <res_resourcemanager.h>
-
 int main() {
-  afxx::res::ResourceManager resourceManager;
   resourceManager.addFactory<geo::Scene>(std::make_unique<geo::SceneLoader>());
-//  resourceManager.getResource<geo::Scene>("assets/models/living_room.fbx");
 
-  auto sceneGraph = make_shared<ecs::SceneGraph>();
-  auto resourceManager = make_shared<afxx::res::ResourceManager>(sceneGraph);
   Viewer viewer(sceneGraph, resourceManager);
 
-  auto e = sceneGraph.create();
-  sceneGraph.emplace<Camera>(e);
-  auto &t = sceneGraph.emplace<Transform>(e);
-  //  TransformUtil::SetPosition(t, {0.0F, 1.60, -1.0F});
-  t.localTransform = glm::inverse(glm::lookAt(glm::vec3(0.0F, -10.60F, -1.0F),
-                                              glm::vec3(0.0F, 0.0F, 0.0F),
-                                              glm::vec3(0.0F, 1.0F, 0.0F)));
+  // Camera
+  auto cameraTransform = glm::inverse(
+      glm::lookAt(glm::vec3(0.0F, -10.60F, -1.0F), glm::vec3(0.0F, 0.0F, 0.0F),
+                  glm::vec3(0.0F, 1.0F, 0.0F)));
+  auto camera = sceneGraph.makeCamera(cameraTransform, "Camera");
+  camera.add<FirstPersonControl>();
 
-  //  sceneGraph.emplace<Orientation>(e);
-  //  sceneGraph.emplace<Position>(e);
-  sceneGraph.emplace<FirstPersonControl>(e);
+  // Grid
+  sceneGraph.makeRectangularGrid();
 
-  EcsFactory(sceneGraph).makeRectangularGrid();
-  auto bunny = makeBunny(sceneGraph);
-  auto &transform = sceneGraph.get<Transform>(bunny);
-  TransformUtil::Translate(transform, glm::vec3(4.0F, 1.0F, 1.0F));
-  sceneGraph.emplace<Debug>(bunny, Debug{.shape = DebugShape::kEulerArrow});
+  auto sceneResource = resourceManager.getResource<geo::Scene>("assets/models/three_instanced_cubes_one_sphere.fbx");
+  sceneGraph.makeScene(**sceneResource);
+
+  // Bunny
+  auto bunnyScene =
+      resourceManager.getResource<geo::Scene>("assets/models/bunny.fbx");
+  auto bunnyMesh = bunnyScene->meshes()[0];
+  auto bunny = sceneGraph.makeMesh(*bunnyMesh);
+  geo::MeshTransform::ScaleToUniformSize(bunny.get<geo::Mesh>());
+  TransformUtil::Translate(bunny.get<Transform>(), glm::vec3(4.0F, 1.0F, 1.0F));
+  bunny.add<Debug>(Debug{.shape = DebugShape::kEulerArrow});
 
   // ShaderResources resources;
   // resources.init(); // loads shader files
   // ShaderResources.getNamedShader("diffuse-color");
   auto shader = Shader{"assets/shaders/diffuse-color.vert.spv",
                        "assets/shaders/diffuse-color.frag.spv"};
-  shader.setProperty("ColorBlock", ColorBlock{glm::vec4{1.0F, 0.0F, 0.0F, 1.0F}});
+  shader.setProperty("ColorBlock",
+                     ColorBlock{glm::vec4{1.0F, 0.0F, 0.0F, 1.0F}});
 
-//  auto cylinder =
-//      EcsFactory(sceneGraph)
-//          .makeRenderable(geo::PrimitiveFactory::MakeCylinder(1.0F, 12.0F), shader);
+  //  auto cylinder =
+  //      EcsFactory(sceneGraph)
+  //          .makeRenderable(geo::PrimitiveFactory::MakeCylinder(1.0F, 12.0F),
+  //          shader);
 
   // add lighting to scene
-  auto light = makeLight(sceneGraph, glm::vec3(1.0F, 1.0F, 0.7F), 5.0F);
-  sceneGraph.emplace<Name>(light, "PointLight");
-  sceneGraph.emplace<Debug>(light);
-  auto& lightTransform = sceneGraph.get<Transform>(light);
-  TransformUtil::Translate(lightTransform, glm::vec3(-2.0F, 3.0F, 0.0F));
+  auto light = sceneGraph.makePointLight(
+      glm::vec3{5.0F}, glm::vec3(1.0F, 1.0F, 0.7F), "PointLight");
+  light.add<Debug>();
+  TransformUtil::Translate(light.get<Transform>(),
+                           glm::vec3(-2.0F, 3.0F, 0.0F));
 
   //  sceneGraph.emplace<ecs::Debug>(bunny);
   //  sceneGraph.emplace<FirstPersonControl>(bunny);
@@ -94,13 +105,6 @@ int main() {
   viewer.run();
 
   return 0;
-}
-
-entt::entity makeLight(entt::registry &registry, const glm::vec3& color, float intensity) {
-  auto e = registry.create();
-  registry.emplace<Transform>(e);
-  registry.emplace<ecs::Light>(e, ecs::Light{glm::vec3{intensity}, color, false});
-  return e;
 }
 
 entt::entity makePenroseTiling(entt::registry &registry) {
@@ -130,7 +134,7 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
 
   geo::Curve &fractalCurve = registry.emplace<geo::Curve>(
       e, affx::fractal::FractalGenerator(0).makeSierpinskiTriangle(8));
-  geo::MeshTransform::scaleToUniformSize(fractalCurve);
+  geo::MeshTransform::ScaleToUniformSize(fractalCurve);
   auto &shader = registry.emplace<Shader>(
       e, Shader{.vertexShaderFile = "assets/shaders/default_curve.vert.spv",
                 .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
@@ -140,16 +144,5 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
   registry.emplace<ecs::Transform>(
       e, ecs::Transform{.worldTransform = glm::rotate(
                             glm::radians(0.0F), glm::vec3(0.0F, 0.0F, 1.0F))});
-  return e;
-}
-
-entt::entity makeBunny(entt::registry &registry) {
-  auto e = EcsFactory(registry).makeMesh("./assets/models/bunny2.fbx");
-  geo::MeshTransform::scaleToUniformSize(registry.get<geo::Mesh>(e));
-
-  // auto rotate = glm::rotate(glm::radians(-180.0F), glm::vec3(0.0F, 1.0F,
-  // 0.0F)); auto translate = glm::translate(glm::mat4(1.0F), glm::vec3(0.0F,
-  // 0.0F, 0.0F));
-  //  registry.get<ecs::Transform>(e).localTransform = translate * rotate;
   return e;
 }

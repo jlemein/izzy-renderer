@@ -22,7 +22,6 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
   // - 1 instance is named: IcoSphere
   SceneLoader loader;
-  //auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/lib/shapes/testdata/bunny.fbx"));
   auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/lib/shapes/testdata/three_instanced_cubes_one_sphere.fbx");
   Scene* scene = reinterpret_cast<Scene*>(pScene.get());
 
@@ -45,18 +44,17 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   EXPECT_EQ(sphere->name, std::string{"Icosphere"});
 
   // materials assigned
-  EXPECT_EQ(cube->material.name, std::string{"RedMaterial"});
-  EXPECT_EQ(cube->material.diffuse.r, 1.0F);
-  EXPECT_EQ(cube->material.diffuse.g, 0.0F);
-  EXPECT_EQ(cube->material.diffuse.b, 0.0F);
+  EXPECT_EQ(cube->material->name, std::string{"RedMaterial"});
+  EXPECT_EQ(cube->material->diffuse.r, 1.0F);
+  EXPECT_EQ(cube->material->diffuse.g, 0.0F);
+  EXPECT_EQ(cube->material->diffuse.b, 0.0F);
 
-  EXPECT_EQ(cube1->material.name, std::string{"BlueMaterial"});
-  EXPECT_EQ(cube1->material.diffuse.r, 0.0F);
-  EXPECT_EQ(cube1->material.diffuse.g, 0.0F);
-  EXPECT_EQ(cube1->material.diffuse.b, 1.0F);
+  EXPECT_EQ(cube1->material->name, std::string{"BlueMaterial"});
+  EXPECT_EQ(cube1->material->diffuse.r, 0.0F);
+  EXPECT_EQ(cube1->material->diffuse.g, 0.0F);
+  EXPECT_EQ(cube1->material->diffuse.b, 1.0F);
 
-  EXPECT_EQ(sphere->material.name, std::string{"DefaultMaterial"});
-
+  EXPECT_EQ(sphere->material->name, std::string{"DefaultMaterial"});
 }
 
 //TEST_F(SceneLoaderTest, ShouldLoadSimpleScene) {

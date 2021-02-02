@@ -14,6 +14,24 @@
 using namespace affx;
 using namespace affx::geo;
 
+void SceneLoader::readMaterials(const aiScene *scene_p, Scene &scene) {
+  for (int i=0; i<scene_p->mNumMaterials; ++i) {
+    aiMaterial *mat_p = scene_p->mMaterials[i];
+
+    auto material = std::make_shared<Material>();
+    material->name = mat_p->GetName().C_Str();
+
+    aiColor3D color (0.f,0.f,0.f);
+    mat_p->Get(AI_MATKEY_COLOR_DIFFUSE,color);
+    material->diffuse.r = color.r;
+    material->diffuse.g = color.g;
+    material->diffuse.b = color.b;
+
+    scene.m_materials.emplace_back(std::move(material));
+  }
+}
+
+
 void SceneLoader::readMeshes(const aiScene *scene_p, Scene &scene) {
   scene.m_meshes.reserve(scene_p->mNumMeshes);
 
@@ -36,15 +54,7 @@ void SceneLoader::readMeshes(const aiScene *scene_p, Scene &scene) {
       mesh->normals.push_back(pNormal.y);
       mesh->normals.push_back(pNormal.z);
 
-      // TODO: make shared material
-      aiMaterial *mat_p = scene_p->mMaterials[mesh_p->mMaterialIndex];
-      mesh->material.name = mat_p->GetName().C_Str();
-
-      aiColor3D color (0.f,0.f,0.f);
-      mat_p->Get(AI_MATKEY_COLOR_DIFFUSE,color);
-      mesh->material.diffuse.r = color.r;
-      mesh->material.diffuse.g = color.g;
-      mesh->material.diffuse.b = color.b;
+      mesh->material = scene.m_materials[mesh_p->mMaterialIndex];
 
       aiVector3D ZERO3D = {0, 0, 0};
       auto uv =
@@ -74,7 +84,8 @@ void SceneLoader::readInstances(const aiScene *scene_p, Scene &scene) {
 
     SceneNode newNode;
     newNode.name = node_p->mName.C_Str();
-    std::memcpy(newNode.transform.matrix, &node_p->mTransformation.a1,
+
+    std::memcpy(&newNode.transform[0][0], &node_p->mTransformation.a1,
                 16 * sizeof(ai_real));
 
     // loops through all mesh instances of this node
@@ -101,8 +112,16 @@ void SceneLoader::readInstances(const aiScene *scene_p, Scene &scene) {
     scene.m_nodeHierarchy.emplace_back(newNode);
   }
 }
-void readLights() {}
-void readTextures() {}
+void readLights() {
+}
+
+void readTextures(const aiScene *scene_p, Scene &scene) {
+  for (int i=0; i<scene_p->mNumTextures; ++i) {
+    auto aiTexture = scene_p->mTextures[i];
+    std::cerr << "Could not load texture: " << aiTexture->mFilename.C_Str() << ": not yet implemented\n";
+  }
+
+}
 void readCameras() {}
 
 std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
@@ -115,6 +134,9 @@ std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
     throw std::runtime_error(
         fmt::format("Failed to load scene file: {}", path));
   }
+
+  readMaterials(aiScene_p, scene);
+  readTextures(aiScene_p, scene);
 
   readMeshes(aiScene_p, scene);
   readInstances(aiScene_p, scene);

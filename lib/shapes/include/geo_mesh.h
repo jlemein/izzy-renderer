@@ -10,6 +10,7 @@
 #include <string>
 #include <unordered_map>
 #include <iostream>
+#include <memory>
 
 #include <geo_boundingbox.h>
 
@@ -45,7 +46,7 @@ struct Mesh {
   std::vector<float> uvs;
   std::vector<uint32_t> indices;
 
-  Material material;
+  std::shared_ptr<Material> material {nullptr};
 
   // describes the data
   PolygonMode polygonMode {PolygonMode::kTriangles};

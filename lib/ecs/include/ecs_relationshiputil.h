@@ -8,6 +8,9 @@
 #include <entt/fwd.hpp>
 #include <vector>
 
+namespace affx {
+namespace ecs {
+
 /**!
  * @brief Utility methods to set data on a @see Relationship component.
  * It is recommended to set data via the utility methods. They keep the
@@ -30,4 +33,8 @@ public:
    */
 //  static void DetachEntity();
 };
+
+} // end of package
+} // end of enterprise
+
 #endif // GLVIEWER_ECS_RELATIONSHIPUTIL_H

@@ -6,8 +6,11 @@
 #include <ecs_camerasystem.h>
 #include <ecs_interactable.h>
 #include <ecs_rendersystem.h>
+#include <ecs_scenegraph.h>
 #include <ecs_transformsystem.h>
 #include <geo_mesh.h>
+#include <res_resourcemanager.h>
+
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <io_inputsystem.h>
@@ -29,8 +32,11 @@ static void error_callback(int error, const char *description) {
 }
 } // namespace
 
-Viewer::Viewer()
-    : m_renderSystem{make_shared<ecs::RenderSystem>(m_registry)},
+Viewer::Viewer(ecs::SceneGraph& sceneGraph, res::ResourceManager& resourceManager)
+    : m_sceneGraph{sceneGraph},
+      m_resourceManager{resourceManager},
+      m_registry(sceneGraph.getRegistry()),
+      m_renderSystem{make_shared<ecs::RenderSystem>(m_registry)},
       m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)},
       m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)},
       m_transformSystem{make_shared<ecs::TransformSystem>(m_registry)} {}

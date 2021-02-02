@@ -16,7 +16,7 @@ target_link_libraries(shp PRIVATE CONAN_PKG::assimp CONAN_PKG::glm
         PUBLIC CONAN_PKG::assimp CONAN_PKG::resourcemanager)
 
 if (BUILD_TESTING)
-    add_executable(geo_test src/geo_sceneloader.t.cpp)
+    add_executable(geo_test src/geo_sceneloader.t.cpp include/geo_scene.h)
     target_link_libraries(geo_test PRIVATE shp CONAN_PKG::gtest)
     target_include_directories(geo_test PRIVATE include)
 #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)
