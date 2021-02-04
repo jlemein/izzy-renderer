@@ -58,8 +58,6 @@ constexpr void *BUFFER_OFFSET(unsigned int offset) {
 void pushShaderProperties(const Renderable &r) {
   for (const auto &[name, uniformBlock] : r.userProperties) {
 
-    // TODO problem here: multiple shaders with same parameters (but they should
-    // be different).
     glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
     glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding,
                      uniformBlock.bufferId);
@@ -71,11 +69,6 @@ void pushShaderProperties(const Renderable &r) {
     void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
     glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-    //    auto colors = reinterpret_cast<ColorBlock
-    //    *>(uniformBlock.pData->data); std::cout << r.name << ": pushing " <<
-    //    colors->color.r << " - "
-    //              << colors->color.g << " - " << colors->color.b << std::endl;
   }
 }
 
@@ -169,12 +162,17 @@ void initLightingUbo(Renderable &renderable) {
             << " | block: " << renderable.uboLightingIndex
             << ", binding: " << renderable.uboLightingBinding << std::endl;
 
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingIndex,
+  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding,
                    renderable.uboLightingId);
   glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformLighting), nullptr,
                GL_DYNAMIC_DRAW);
 }
 
+/**
+ *
+ * @param renderable
+ * @param properties
+ */
 void initShaderProperties(Renderable &renderable,
                           const Shader::UniformProperties &properties) {
   glUseProgram(renderable.program);
@@ -183,6 +181,8 @@ void initShaderProperties(Renderable &renderable,
   initMVPUniformBlock(renderable);
   initLightingUbo(renderable);
 
+  // every shader usually has custom attributes
+  // they are processed here
   for (const auto &[name, blockData] : properties) {
     GLuint uboHandle;
     glGenBuffers(1, &uboHandle);
@@ -193,31 +193,23 @@ void initShaderProperties(Renderable &renderable,
     glGetActiveUniformBlockiv(renderable.program, blockIndex,
                               GL_UNIFORM_BLOCK_BINDING, &blockBinding);
 
+    std::cout << name << " has blockbining " << blockBinding << std::endl;
+
     // is this needed?
     //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
 
-    glBindBufferBase(GL_UNIFORM_BUFFER, blockIndex, uboHandle);
+    glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
 
-    //    std::cout << " --- " << name << " has uboBlockIndex: " << blockIndex
-    //    << std::endl;
     if (blockIndex == GL_INVALID_INDEX) {
       std::cerr << "Cannot find ubo block with name '" << name << "' in shader";
       exit(1);
     }
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
-    ColorBlock c;
-    float rgb[4] = {1.0F, 1.0F, 1.0F, 1.0F};
-    //    glBufferData(GL_UNIFORM_BUFFER, sizeof(ColorBlock), rgb,
-    //    GL_DYNAMIC_DRAW);
 
-    void *buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    std::memcpy(buff_ptr, rgb, sizeof(ColorBlock));
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
-
-    auto p = reinterpret_cast<ColorBlock *>(blockData.data);
-    std::cout << "   --- Init " << name << " with " << p->color.r << " "
-              << p->color.g << " " << p->color.b << std::endl;
+    auto p = reinterpret_cast<UberMaterialData *>(blockData.data);
+    std::cout << "   --- Init " << renderable.name << ">" << name << " with " << p->diffuse.r << " "
+              << p->diffuse.g << " " << p->diffuse.b << std::endl;
 
     // store block handle in renderable
     renderable.userProperties[name] = Renderable_UniformBlockInfo{

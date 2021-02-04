@@ -8,6 +8,8 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 
+#include <ecs_shader.h>
+
 #include <cstring>
 #include <memory>
 #include <unordered_map>
@@ -43,50 +45,6 @@ struct VertexAttribArray {
   GLuint buffer_offset;
 };
 
-struct UniformBlockData {
-//  std::unique_ptr<void> data;
-  void* data;
-  std::size_t size;
-};
-
-struct Shader {
-  //TODO copying Shaders should be forbidden or fixed.
-
-  using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
-
-  std::string vertexShaderFile{""};
-  std::string fragmentShaderFile{""};
-  UniformProperties properties;
-
-
-  template <typename T>
-  void setProperty(const char* name, const T& data) {
-    if (properties.count(name) > 0) {
-      memcpy(properties.at(name).data, &data, sizeof(T));
-
-    } else {
-//      properties[name].data = std::unique_ptr<T>{new T, std::default_delete<T>()};
-      properties[name].data = new T();
-      memcpy(properties[name].data, &data, sizeof(T));
-    }
-    try {
-      properties.at(name).size = sizeof(T);
-    } catch (std::out_of_range&) {
-      throw std::runtime_error("Out OF RANGE");
-    }
-  }
-
-  void* getProperty(const char* name) {
-    try {
-      return properties.at(name).data;
-    } catch (std::out_of_range&) {
-      std::cerr << "Cannot find shader property " << name << " in shader.";
-      exit(1);
-    }
-  }
-
-
-};
 
 struct Renderable_UniformBlockInfo {
   GLuint bufferId;

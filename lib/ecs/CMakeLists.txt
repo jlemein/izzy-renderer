@@ -26,12 +26,12 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrolsystem.h
         include/ecs_rendersystem.h
         src/ecs_rendersystem.cpp
-        src/ecs_firstpersoncontrolsystem.t.cpp src/ecs_transformutil.cpp
+        src/ecs_transformutil.cpp
         include/ecs_debug.h
         include/ecs_debugsystem.h
         src/ecs_debugsystem.cpp
         include/ecs_debugshapefactory.h
-        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h include/ecs_scenegraph.h include/ecs_scenegraphentity.h ../core/include/core_exceptions.h src/ecs_scenegraph.cpp src/ecs_scenegraphentity.cpp)
+        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h include/ecs_scenegraph.h include/ecs_scenegraphentity.h ../core/include/core_exceptions.h src/ecs_scenegraph.cpp src/ecs_scenegraphentity.cpp include/ecs_shader.h)
 
 target_link_libraries(ecs PUBLIC shp CONAN_PKG::entt)
 
@@ -40,10 +40,8 @@ message("Packages in conan: ${CONAN_PKG}")
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
 target_link_libraries(ecsu_test PUBLIC ecs CONAN_PKG::gtest)
 
-#add_library(test_ecs_system STATIC
-#        src/ecs_firstpersoncontrolsystem.t.cpp)
-
-# target_link_libraries(test_ecs_system PRIVATE ecs_system gtest gtest_main)
+add_executable(ecs_test src/ecs_shader.t.cpp src/ecs_firstpersoncontrolsystem.t.cpp)
+target_link_libraries(ecs_test PRIVATE ecs CONAN_PKG::gtest)
 
 #
 #target_include_directories(camerasystem

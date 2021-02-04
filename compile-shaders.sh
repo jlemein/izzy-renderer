@@ -6,6 +6,9 @@ echo "Outputting shaders in directory: $OUTPUT_DIR"
 
 mkdir -p "$OUTPUT_DIR/assets/shaders"
 
+glslc assets/shaders/uber.vert -o "$OUTPUT_DIR/assets/shaders/uber.vert.spv"
+glslc assets/shaders/uber.frag -o "$OUTPUT_DIR/assets/shaders/uber.frag.spv"
+
 glslc assets/shaders/debug.vert -o "$OUTPUT_DIR/assets/shaders/debug.vert.spv"
 glslc assets/shaders/debug.frag -o "$OUTPUT_DIR/assets/shaders/debug.frag.spv"
 glslc assets/shaders/shader.vert -o "$OUTPUT_DIR/assets/shaders/shader.vert.spv"

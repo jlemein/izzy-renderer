@@ -20,12 +20,24 @@ void SceneLoader::readMaterials(const aiScene *scene_p, Scene &scene) {
 
     auto material = std::make_shared<Material>();
     material->name = mat_p->GetName().C_Str();
+//    mat_p->GetTexture(aiTextureType_DIFFUSE)
 
     aiColor3D color (0.f,0.f,0.f);
     mat_p->Get(AI_MATKEY_COLOR_DIFFUSE,color);
     material->diffuse.r = color.r;
     material->diffuse.g = color.g;
     material->diffuse.b = color.b;
+    std::cout << material->name << " has diffuse: " << color.r << " " << color.g << " " << color.b << std::endl;
+
+    mat_p->Get(AI_MATKEY_COLOR_SPECULAR,color);
+    material->specular.r = color.r;
+    material->specular.g = color.g;
+    material->specular.b = color.b;
+
+    mat_p->Get(AI_MATKEY_COLOR_AMBIENT, color);
+    material->ambient.r = color.r;
+    material->ambient.g = color.g;
+    material->ambient.b = color.b;
 
     scene.m_materials.emplace_back(std::move(material));
   }
@@ -85,15 +97,21 @@ void SceneLoader::readInstances(const aiScene *scene_p, Scene &scene) {
     SceneNode newNode;
     newNode.name = node_p->mName.C_Str();
 
+    // assimp stores the transformations in
     std::memcpy(&newNode.transform[0][0], &node_p->mTransformation.a1,
                 16 * sizeof(ai_real));
+    newNode.transform = glm::transpose(newNode.transform);
 
     // loops through all mesh instances of this node
     newNode.meshInstances.reserve(node_p->mNumMeshes);
     for (int i = 0U; i < node_p->mNumMeshes; ++i) {
       auto meshInstance = std::make_shared<MeshInstance>();
-      meshInstance->mMesh = scene.m_meshes[node_p->mMeshes[i]];
-      meshInstance->mMaterial = nullptr;
+
+      auto mesh = scene.m_meshes[node_p->mMeshes[i]];
+      meshInstance->mesh = mesh;
+      meshInstance->name = std::string{node_p->mName.C_Str()};
+      meshInstance->material = mesh->material;
+
       newNode.meshInstances.push_back(meshInstance);
 
       // is it needed to explicitly store the mesh instances

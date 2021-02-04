@@ -4,6 +4,7 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <ecs_scenegraphentity.h>
+#include <res_resource.h>
 
 namespace affx {
 
@@ -36,12 +37,14 @@ public:
                         std::string name = "#Light#");
 
   SceneGraphEntity makeMesh(const geo::Mesh &mesh);
+  SceneGraphEntity makeEmptyMesh(const geo::Mesh &mesh);
   SceneGraphEntity makeCurve();
 
   SceneGraphEntity makeRenderable(geo::Mesh &&mesh, const ecs::Shader &shader);
   SceneGraphEntity makeRenderable(geo::Curve &&curve, const ecs::Shader &shader);
 
   SceneGraphEntity makeScene(geo::Scene &);
+  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource);
 
   SceneGraphEntity makeTexture();
   SceneGraphEntity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);

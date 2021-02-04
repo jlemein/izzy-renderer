@@ -60,8 +60,9 @@ int main() {
   // Grid
   sceneGraph.makeRectangularGrid();
 
-  auto sceneResource = resourceManager.getResource<geo::Scene>("assets/models/three_instanced_cubes_one_sphere.fbx");
-  sceneGraph.makeScene(**sceneResource);
+//  auto sceneResource = resourceManager.getResource<geo::Scene>("assets/models/three_instanced_cubes_one_sphere.fbx");
+//  sceneGraph.makeScene(**sceneResource);
+  auto scene = sceneGraph.makeScene(resourceManager.getResource<geo::Scene>("testassets/models/3objects.fbx"));
 
   // Bunny
   auto bunnyScene =

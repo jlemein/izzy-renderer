@@ -26,7 +26,6 @@ struct SceneNode;
  */
 struct SceneNode {
   std::string name;
-//  Transform<float> transform;
   glm::mat4 transform;
   std::vector<std::shared_ptr<MeshInstance>> meshInstances {};
   std::vector<unsigned int> children {};
@@ -44,11 +43,11 @@ public:
   MeshIterable& meshes() { return m_meshes; }
   MeshInstanceIterable meshInstances() { return m_instances; }
 //  TextureIterable textures() { return m_textures; }
-//  MaterialIterable materials() { return m_materials; }
+  MaterialIterable materials() { return m_materials; }
   NodeHierarchy nodeHierarchy() {return m_nodeHierarchy; }
 
 private:
-  MaterialIterable  m_materials{};
+  MaterialIterable m_materials{};
   MeshIterable m_meshes {};
   MeshInstanceIterable m_instances{};
   NodeHierarchy m_nodeHierarchy {};

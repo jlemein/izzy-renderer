@@ -48,9 +48,10 @@ public:
    * it's parent scene graph entity.
    * @param transform Local transformation matrix.
    */
-  void setTransform(glm::mat4 transform);
+  void setTransform(const glm::mat4& transform);
 
   const glm::mat4& getTransform() const;
+  glm::mat4& getTransform();
 
   /**!
    * Removes this entity from the parent's list of children.
@@ -91,12 +92,12 @@ Component & SceneGraphEntity::get(){
 
 template <typename Component>
 Component& SceneGraphEntity::add() {
-  return m_registry.emplace<Component>(handle());
+  return m_registry.emplace_or_replace<Component>(handle());
 }
 
 template <typename Component>
 Component& SceneGraphEntity::add(Component&& comp) {
-  return m_registry.emplace<Component>(handle(), std::forward<Component>(comp));
+  return m_registry.emplace_or_replace<Component>(handle(), std::forward<Component>(comp));
 }
 
 } // end of package

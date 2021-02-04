@@ -8,11 +8,8 @@
 #include <ecs_rendersystem.h>
 #include <ecs_scenegraph.h>
 #include <ecs_transformsystem.h>
-#include <geo_mesh.h>
 #include <res_resourcemanager.h>
 
-#include <glm/glm.hpp>
-#include <glm/gtx/transform.hpp>
 #include <io_inputsystem.h>
 #include <iostream>
 #include <vector>

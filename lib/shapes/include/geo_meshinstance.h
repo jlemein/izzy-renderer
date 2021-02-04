@@ -15,8 +15,10 @@ struct Mesh;
 struct Material;
 
 struct MeshInstance {
-  std::shared_ptr<Mesh> mMesh;
-  std::shared_ptr<Material> mMaterial;
+  std::string name;
+  std::shared_ptr<Mesh> mesh;
+  std::shared_ptr<Material> material;
+  glm::mat4 transform;
 };
 
 } // end of package

@@ -30,11 +30,6 @@ class RenderSystem
   void update(float time, float dt);
   void render();
 
-  // TODO: we need a scene graph so that render system can query all active cameras,
-  // lights, etcetera.
-  //  void setPerspective(const glm::mat4 &perspective);
-  //  void setMovementVector(const glm::vec3 &movementVector);
-
   // register as part of the render pipeline
   void addSubsystem(std::shared_ptr<IRenderSubsystem> system);
   void removeSubsystem(std::shared_ptr<IRenderSubsystem> system);

@@ -5,14 +5,15 @@
 #include <ecs_name.h>
 #include <ecs_relationship.h>
 #include <ecs_renderable.h>
+#include <ecs_scenegraphentity.h>
 #include <ecs_texture.h>
 #include <ecs_transform.h>
 #include <geo_curve.h>
 #include <geo_mesh.h>
 #include <geo_meshinstance.h>
-#include <geo_sceneloader.h>
-#include <ecs_scenegraphentity.h>
 #include <geo_meshtransform.h>
+#include <geo_sceneloader.h>
+#include <res_resource.h>
 using namespace affx;
 using namespace affx::ecs;
 
@@ -56,14 +57,40 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
       e, ecs::Shader{"assets/shaders/diffuse.vert.spv",
                           "assets/shaders/diffuse.frag.spv"});
 
-//  m_registry.get<Transform>(e).worldTransform =
-//      glm::translate(glm::mat4(1.0F), glm::vec3(1.0F, 0.0F, 1.0F));
-
   Texture &texture = m_registry.emplace<Texture>(e);
   texture.diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg";
 
   return sge;
 }
+
+SceneGraphEntity SceneGraph::makeEmptyMesh(const geo::Mesh &mesh) {
+  auto sge = makeEntity(mesh.name);
+  auto e = sge.id();
+
+  auto &renderable = m_registry.emplace<ecs::Renderable>(e);
+  renderable.name = mesh.name;
+
+  m_registry.emplace<geo::Mesh>(e, mesh);
+  return sge;
+}
+
+//SceneGraphEntity SceneGraph::makeMeshInstance(const geo::Mesh &mesh) {
+//  auto sge = makeEntity(mesh.name);
+//  auto e = sge.id();
+//
+//  auto &renderable = m_registry.emplace<ecs::Renderable>(e);
+//  renderable.name = mesh.name;
+//
+//  m_registry.emplace<geo::Mesh>(e, mesh);
+//  m_registry.emplace<ecs::Shader>(
+//      e, ecs::Shader{"assets/shaders/diffuse.vert.spv",
+//                     "assets/shaders/diffuse.frag.spv"});
+//
+//  Texture &texture = m_registry.emplace<Texture>(e);
+//  texture.diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg";
+//
+//  return sge;
+//}
 
 SceneGraphEntity SceneGraph::makeCurve() {
   auto e = m_registry.create();
@@ -89,9 +116,44 @@ SceneGraphEntity SceneGraph::makeScene(geo::Scene &scene) {
 
   for (const auto& n : scene.nodeHierarchy()) {
     for (const auto& m : n.meshInstances) {
-      auto instance = makeMesh(*m->mMesh);
+      auto instance = makeEmptyMesh(*m->mesh);
       geo::MeshTransform::ScaleToUniformSize(instance.get<geo::Mesh>());
       instance.setTransform(n.transform);
+      rootScene.addChild(instance);
+    }
+  }
+//  for(const auto& m : scene.meshes()) {
+//    rootScene.addChild(makeMesh(*m));
+//  }
+
+  return rootScene;
+}
+
+SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene) {
+  auto rootScene = makeEntity();
+
+  for (const auto& n : scene->nodeHierarchy()) {
+    for (const auto& m : n.meshInstances) {
+      auto instance = makeMesh(*m->mesh);
+      instance.setTransform(n.transform);
+
+      // TODO make use of a material system, registered at resource manager.
+      // For now we just use Uber shader
+
+      ecs::UberMaterialData uber {
+          .diffuse = m->material->diffuse,
+          .specular = m->material->specular,
+          .ambient = m->material->ambient
+      };
+
+      std::cout << "BEFORE Shader is " << uber.diffuse.r << " " << uber.diffuse.g << " " << uber.diffuse.b << std::endl;
+      instance.add<ecs::Shader>({"assets/shaders/uber.vert.spv", "assets/shaders/uber.frag.spv"});
+      instance.get<ecs::Shader>().setProperty(ecs::UberMaterialData::PARAM_NAME, uber);
+
+      Shader& shader = instance.get<ecs::Shader>();
+      auto* data = shader.getProperty<UberMaterialData>();
+      std::cout << "Shader is " << data->diffuse.r << " " << data->diffuse.g << " " << data->diffuse.b << std::endl;
+
       rootScene.addChild(instance);
     }
   }
