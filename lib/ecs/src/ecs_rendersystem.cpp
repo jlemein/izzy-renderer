@@ -107,9 +107,7 @@ void initMVPUniformBlock(Renderable &renderable) {
   renderable.uboBlockIndex =
       glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
   if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
-    std::cerr << "Invalid ubo block index for renderable " << renderable.name
-              << std::endl;
-    exit(1);
+    throw std::runtime_error("Invalid uniform buffer object block index");
   }
 
   glGenBuffers(1, &renderable.uboId);
@@ -126,9 +124,9 @@ void initMVPUniformBlock(Renderable &renderable) {
   glGetActiveUniformBlockiv(renderable.program, blockIndex,
                             GL_UNIFORM_BLOCK_BINDING,
                             &renderable.uboBlockBinding);
-  std::cout << "Renderable " << renderable.name
-            << " | block: " << renderable.uboBlockIndex
-            << ", binding: " << renderable.uboBlockBinding << std::endl;
+//  std::cout << "Renderable " << renderable.name
+//            << " | block: " << renderable.uboBlockIndex
+//            << ", binding: " << renderable.uboBlockBinding << std::endl;
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex,
                    renderable.uboId);
@@ -141,7 +139,7 @@ void initLightingUbo(Renderable &renderable) {
       glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
   if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
     std::cout << "Cannot find ubo block index with name "
-              << UniformLighting::PARAM_NAME << " for " << renderable.name
+              << UniformLighting::PARAM_NAME << " for <name>"
               << std::endl;
     //    exit(1);
     renderable.isLightingSupported = false;
@@ -158,9 +156,9 @@ void initLightingUbo(Renderable &renderable) {
   glGetActiveUniformBlockiv(renderable.program, blockIndex,
                             GL_UNIFORM_BLOCK_BINDING,
                             &renderable.uboLightingBinding);
-  std::cout << "Renderable " << renderable.name
-            << " | block: " << renderable.uboLightingIndex
-            << ", binding: " << renderable.uboLightingBinding << std::endl;
+//  std::cout << "Renderable " << renderable.name
+//            << " | block: " << renderable.uboLightingIndex
+//            << ", binding: " << renderable.uboLightingBinding << std::endl;
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding,
                    renderable.uboLightingId);
@@ -206,22 +204,14 @@ void initShaderProperties(Renderable &renderable,
     }
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
-
     auto p = reinterpret_cast<UberMaterialData *>(blockData.data);
-    std::cout << "   --- Init " << renderable.name << ">" << name << " with " << p->diffuse.r << " "
-              << p->diffuse.g << " " << p->diffuse.b << std::endl;
+//    std::cout << "   --- Init " << renderable.name << ">" << name << " with "
+//              << p->diffuse.r << " " << p->diffuse.g << " " << p->diffuse.b
+//              << std::endl;
 
     // store block handle in renderable
     renderable.userProperties[name] = Renderable_UniformBlockInfo{
         uboHandle, blockIndex, blockBinding, &blockData};
-  }
-}
-
-void checkError(std::string message) {
-  // get error message
-  GLenum err;
-  if ((err = glGetError()) != GL_NO_ERROR) {
-    std::cerr << message << " Error occurred: " << err << std::endl;
   }
 }
 
@@ -352,9 +342,18 @@ void RenderSystem::init() {
     auto &renderable = m_registry.get<Renderable>(entity);
     auto &shader = m_registry.get<Shader>(entity);
 
-    initCurveBuffers(renderable, curve);
-    renderable.program = compileShader(shader, renderable);
-    initShaderProperties(renderable, shader.properties);
+    try {
+      initCurveBuffers(renderable, curve);
+      renderable.program = compileShader(shader, renderable);
+      initShaderProperties(renderable, shader.properties);
+    } catch (std::exception &e) {
+      auto name = m_registry.has<Name>(entity)
+                      ? m_registry.get<Name>(entity).name
+                      : "Unnamed";
+
+      std::cerr << "Failed initializing curve '" << name << "': " << e.what();
+      exit(1);
+    }
   }
 
   // handling meshes
@@ -364,9 +363,19 @@ void RenderSystem::init() {
     auto &renderable = m_registry.get<Renderable>(entity);
     auto &shader = m_registry.get<Shader>(entity);
 
-    initMeshBuffers(renderable, mesh);
-    renderable.program = compileShader(shader, renderable);
-    initShaderProperties(renderable, shader.properties);
+    try {
+      initMeshBuffers(renderable, mesh);
+      renderable.program = compileShader(shader, renderable);
+      initShaderProperties(renderable, shader.properties);
+
+    } catch (std::exception &e) {
+      auto name = m_registry.has<Name>(entity)
+                      ? m_registry.get<Name>(entity).name
+                      : "Unnamed";
+
+      std::cerr << "Failed initializing mesh '" << name << "': " << e.what();
+      exit(1);
+    }
   }
 }
 
@@ -483,13 +492,14 @@ void RenderSystem::render() {
     }
 
     // TODO: check if shader is dirty
+    //  reason: if we push properties every frame (Except for MVP), we might unnecessary
+    //  spend time doing that while we can immediately just render.
     pushShaderProperties(renderable);
-
     pushModelViewProjection(renderable);
 
     // TODO this one needs to change per glUseProgram, which is the case right
-    //  now. In future we might optimize changing of glUseProgram in that case,
-    //  this function should be called once per set of glUseProgram.
+    //  now. In future we might optimize changing of glUseProgram in that
+    //  case, this function should be called once per set of glUseProgram.
     if (renderable.isLightingSupported) {
       pushLightingData(renderable, m_uLightData);
     }
@@ -502,7 +512,15 @@ void RenderSystem::render() {
     }
 
     // handle debug
+    checkError(entity);
+  }
+}
 
-    checkError("after render " + renderable.name);
+void RenderSystem::checkError(entt::entity e) {
+  // get error message
+  GLenum err;
+  if ((err = glGetError()) != GL_NO_ERROR) {
+    auto name = m_registry.has<Name>(e) ? m_registry.get<Name>(e).name : std::string{"Unnamed"};
+    std::cerr << " Render error occurred for " << name << ": " << err << std::endl;
   }
 }

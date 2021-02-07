@@ -32,9 +32,12 @@ void main() {
         vec3 nn_normal = normalize(inNormal).xyz;
         float dot_normal_light = dot(nn_light_direction, nn_normal);
 
+        float d = length(light_direction[i]);
+        float attenuation = 2.0 / (1.0 + d*d);
+
         vec3 material_color = uDiffuse;
         vec3 light_contribution = (uIntensities[i] * uColors[i]).xyz;
 
-        outColor += dot_normal_light * vec4(material_color * light_contribution, 1.0);
+        outColor += dot_normal_light * attenuation * vec4(material_color * light_contribution, 1.0);
     }
 }

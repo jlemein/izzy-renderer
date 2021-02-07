@@ -5,6 +5,8 @@
 #ifndef ARTIFAX_ECS_NAME_H
 #define ARTIFAX_ECS_NAME_H
 
+#include <string>
+
 namespace affx {
 namespace ecs {
 

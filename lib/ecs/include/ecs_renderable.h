@@ -56,7 +56,7 @@ struct Renderable_UniformBlockInfo {
 struct Renderable {
   //storage of user defined shader properties
 
-  std::string name{"Unnamed"};
+//  std::string name{"Unnamed"};
   GLuint program;
   GLuint vertex_buffer{0U}, index_buffer{0U};
   GLuint vertex_array_object;

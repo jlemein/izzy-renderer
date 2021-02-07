@@ -27,6 +27,7 @@ public:
 
   template <typename Component>  Component& add();
   template <typename Component>  Component& add(Component&&);
+  template <typename Component>  Component& add(const Component&);
   template <typename Component>  Component& get();
 
 
@@ -98,6 +99,11 @@ Component& SceneGraphEntity::add() {
 template <typename Component>
 Component& SceneGraphEntity::add(Component&& comp) {
   return m_registry.emplace_or_replace<Component>(handle(), std::forward<Component>(comp));
+}
+
+template <typename Component>
+Component& SceneGraphEntity::add(const Component& comp) {
+  return m_registry.emplace_or_replace<Component>(handle(), comp);
 }
 
 } // end of package

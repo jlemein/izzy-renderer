@@ -61,6 +61,8 @@ class RenderSystem
   void updateCamera(Renderable &renderable);
   void updateLightProperties();
 
+  void checkError(entt::entity e);
+
 };
 
 }  // namespace ecs

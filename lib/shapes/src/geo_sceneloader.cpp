@@ -86,48 +86,54 @@ void SceneLoader::readMeshes(const aiScene *scene_p, Scene &scene) {
   }
 }
 
-void SceneLoader::readInstances(const aiScene *scene_p, Scene &scene) {
-  std::deque<aiNode *> queue;
-  queue.push_back(scene_p->mRootNode);
+void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
+  using ChildParent = std::pair<aiNode*, std::shared_ptr<SceneNode>>;
+  std::deque<ChildParent> queue;
+
+  queue.push_back(std::make_pair<>(scene_p->mRootNode, nullptr));
+
+  std::cout << "Mesh count in scene: " << scene.m_meshes.size() << std::endl;
+  // Queue is filled with entities, starting with root node.
+  // Every time a node is processed.
 
   while (!queue.empty()) {
-    auto node_p = queue.front();
+    auto [node_p, parent_p] = queue.front();
     queue.pop_front();
 
-    SceneNode newNode;
-    newNode.name = node_p->mName.C_Str();
+    auto node = std::make_shared<SceneNode>();
+    if (parent_p != nullptr) {
+      parent_p->children.push_back(node);
+    } else {
+      scene.m_rootNode = node;
+    }
+
+    node->name = std::string{node_p->mName.C_Str()};
+    std::cout << "@@@: " << node->name << " has " << node_p->mNumChildren << " children, and " << node_p->mNumMeshes << " Mesh instances" << std::endl;
 
     // assimp stores the transformations in
-    std::memcpy(&newNode.transform[0][0], &node_p->mTransformation.a1,
+    std::memcpy(&node->transform[0][0], &node_p->mTransformation.a1,
                 16 * sizeof(ai_real));
-    newNode.transform = glm::transpose(newNode.transform);
+    node->transform = glm::transpose(node->transform);
 
     // loops through all mesh instances of this node
-    newNode.meshInstances.reserve(node_p->mNumMeshes);
+    node->meshInstances.reserve(node_p->mNumMeshes);
     for (int i = 0U; i < node_p->mNumMeshes; ++i) {
       auto meshInstance = std::make_shared<MeshInstance>();
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
+      std::cout << "\tM@@@: " << mesh->name << std::endl;
       meshInstance->mesh = mesh;
       meshInstance->name = std::string{node_p->mName.C_Str()};
       meshInstance->material = mesh->material;
+      meshInstance->transform = glm::mat4(1.0F);
 
-      newNode.meshInstances.push_back(meshInstance);
-
-      // is it needed to explicitly store the mesh instances
-      scene.m_instances.emplace_back(meshInstance);
+      node->meshInstances.push_back(meshInstance);
     }
-
-    //
-    unsigned int childOffset = scene.m_nodeHierarchy.size() + queue.size();
 
     // add the children for the next round
     for (int i = 0; i < node_p->mNumChildren; ++i) {
-      newNode.children.push_back(childOffset + i + 1);
-      queue.push_back(node_p->mChildren[i]);
+      queue.push_back(std::make_pair<>(node_p->mChildren[i], node));
     }
-
-    scene.m_nodeHierarchy.emplace_back(newNode);
   }
 }
 void readLights() {
@@ -157,7 +163,7 @@ std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
   readTextures(aiScene_p, scene);
 
   readMeshes(aiScene_p, scene);
-  readInstances(aiScene_p, scene);
+  readHierarchy(aiScene_p, scene);
 
   return std::make_shared<Scene>(std::move(scene));
 }

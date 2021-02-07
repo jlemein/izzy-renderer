@@ -131,6 +131,7 @@ void Viewer::init() {
   m_renderSystem->init();
   m_inputSystem->init();
   m_firstPersonSystem->init();
+  m_transformSystem->init();
 
   for (auto &interactables : mmInteractables) {
     interactables->init(m_registry);

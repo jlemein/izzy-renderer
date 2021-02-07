@@ -4,25 +4,13 @@
 
 #include <deque>
 #include <ecs_dirty.h>
+#include <ecs_name.h>
 #include <ecs_relationship.h>
 #include <ecs_renderable.h>
+#include <ecsu_relationshipsorter.h>
 #include <entt/entt.hpp>
 
 using namespace affx::ecs;
-
-namespace {
-
-void sortTransforms(entt::registry &registry) {
-  registry.sort<Relationship>(
-      [&registry](const entt::entity lhs, const entt::entity rhs) {
-        const auto &clhs = registry.get<Relationship>(lhs);
-        const auto &crhs = registry.get<Relationship>(rhs);
-
-        // if true, then lhs denotes a smaller (or equal) value than rhs
-        return crhs.parent == lhs || lhs <= rhs;
-      });
-}
-} // namespace
 
 //
 // Created by jlemein on 10-11-20.
@@ -31,10 +19,12 @@ TransformSystem::TransformSystem(entt::registry &registry)
     : m_registry{registry} {}
 
 void TransformSystem::init() {
-  //  registry.on_construct<Transform>().connect<&TransformSystem::onConstruct>();
+  // sort the transforms, so that the root transform is first, followed by
+  // children of the root, followed by children of their children, etc.
+  // leaf transforms are to the right of the transform system.
 
-  // sort the transforms, starting with root, followed by
-  //  m_registry.sort<Relationship>
+  ecsu::RelationshipSorter::Sort<Transform>(m_registry);
+
 }
 
 void TransformSystem::onConstruct(entt::entity e) {}
@@ -67,22 +57,20 @@ void updateChildTransform(entt::registry &registry,
 }
 
 void TransformSystem::update(float time, float dt) {
-  // assume that the graph is sorted in breadth first
-  auto view = m_registry.view<Transform>();
+
+  auto view = m_registry.view<Transform, Relationship>();
   for (auto e : view) {
-    auto &transform = view.get<Transform>(e);
-    transform.worldTransform = transform.localTransform;
-  }
-
-  auto view2 = m_registry.view<Transform, Relationship>();
-  for (auto e : view2) {
     auto relationship = m_registry.get<Relationship>(e);
+    auto &transform = view.get<Transform>(e);
 
-    if (relationship.parent != entt::null) {
+    if (relationship.parent == entt::null) {
+      transform.worldTransform = transform.localTransform;
+    }
+    else
+    {
       const auto &parentTransform =
           m_registry.get<Transform>(relationship.parent);
 
-      // update transform with
       auto &transform = view.get<Transform>(e);
       transform.worldTransform =
           parentTransform.worldTransform * transform.localTransform;

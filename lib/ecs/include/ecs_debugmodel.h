@@ -7,6 +7,7 @@
 
 #include <ecs_renderable.h>
 #include <ecs_transform.h>
+#include <ecs_name.h>
 #include <geo_mesh.h>
 
 namespace affx {
@@ -20,6 +21,7 @@ namespace ecs {
 struct DebugModel {
   std::vector<Renderable> renderable;
   std::vector<Shader> shader;
+  std::vector<Name> names;
   std::vector<geo::Mesh> mesh;
   std::vector<ecs::Transform> transformations;
 //  geo::Curve curve;

@@ -5,9 +5,11 @@
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include <geo_mesh.h>
+#include <geo_meshinstance.h>
 using namespace affx::geo;
 
 class SceneLoaderTest : public testing::Test {
+public:
 };
 
 TEST_F(SceneLoaderTest, ShouldFailIfResourceNotExist) {
@@ -22,7 +24,7 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
   // - 1 instance is named: IcoSphere
   SceneLoader loader;
-  auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/lib/shapes/testdata/three_instanced_cubes_one_sphere.fbx");
+  auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
   Scene* scene = reinterpret_cast<Scene*>(pScene.get());
 
   for (auto mesh : scene->meshes()) {
@@ -32,7 +34,7 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   // TODO: it is impossible for assimp for instances to have their own materials.
   //  that's why meshes is 3 (versus 2 - cube and icosphere)
   EXPECT_EQ(scene->meshes().size(), 3U);
-  EXPECT_EQ(scene->meshInstances().size(), 4U);
+//  EXPECT_EQ(scene->meshInstances().size(), 4U);
 
   auto cube = scene->meshes()[0];
   auto cube1 = scene->meshes()[1];
@@ -55,6 +57,26 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   EXPECT_EQ(cube1->material->diffuse.b, 1.0F);
 
   EXPECT_EQ(sphere->material->name, std::string{"DefaultMaterial"});
+}
+
+TEST_F(SceneLoaderTest, PrintHierarchy) {
+  // Loads a scene with 4 instances
+  // - 3 instances are cubes named: Cube, Cube.001, Cube.002.
+  // - All 3 cubes share the same mesh data. So there is 1 cube mesh.
+  // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
+  // - 1 instance is named: IcoSphere
+  SceneLoader loader;
+  auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
+  Scene* scene = reinterpret_cast<Scene*>(pScene.get());
+
+  EXPECT_EQ(scene->rootNode()->name, "RootNode");
+  EXPECT_EQ(scene->rootNode()->children.front()->transform[3].x, 0.0F);
+  EXPECT_EQ(scene->rootNode()->children.front()->transform[3].y, 0.0F);
+  EXPECT_EQ(scene->rootNode()->children.front()->transform[3].z, 0.0F);
+  EXPECT_EQ(scene->rootNode()->children.front()->meshInstances[0]->transform[3].x, 0.0F);
+  EXPECT_EQ(scene->rootNode()->children.front()->meshInstances[0]->transform[3].y, 0.0F);
+  EXPECT_EQ(scene->rootNode()->children.front()->meshInstances[0]->transform[3].z, 0.0F);
+
 }
 
 //TEST_F(SceneLoaderTest, ShouldLoadSimpleScene) {

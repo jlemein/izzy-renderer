@@ -111,7 +111,8 @@ int main() {
 entt::entity makePenroseTiling(entt::registry &registry) {
   auto e = registry.create();
   auto &rr = registry.emplace<Renderable>(e);
-  rr.name = "Penrose";
+  registry.emplace<Name>(e, "Penrose");
+
   auto &shader = registry.emplace<Shader>(
       e, Shader{.vertexShaderFile = "assets/shaders/default_curve.vert.spv",
                 .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
@@ -131,7 +132,7 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
   auto e = registry.create();
 
   auto &rr = registry.emplace<Renderable>(e);
-  rr.name = "FractalTree";
+  registry.emplace<Name>(e, "FractalTree");
 
   geo::Curve &fractalCurve = registry.emplace<geo::Curve>(
       e, affx::fractal::FractalGenerator(0).makeSierpinskiTriangle(8));

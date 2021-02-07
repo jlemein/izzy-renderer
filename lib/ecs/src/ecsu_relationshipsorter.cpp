@@ -7,17 +7,18 @@
 
 using namespace affx::ecsu;
 
-void RelationshipSorter::sort(entt::registry &registry) {
-  registry.sort<ecs::Relationship>(
-      [&registry](const entt::entity lhs, const entt::entity rhs) {
-        const auto &clhs = registry.get<ecs::Relationship>(lhs);
-        const auto &crhs = registry.get<ecs::Relationship>(rhs);
+bool RelationshipSorter::Compare(const entt::registry& registry, const entt::entity lhs, const entt::entity rhs) {
+  const auto &clhs = registry.get<ecs::Relationship>(lhs);
+  const auto &crhs = registry.get<ecs::Relationship>(rhs);
 
-        bool isLeftSibling = clhs.parent == crhs.parent && &clhs < &crhs;
-        bool isParentEarlier = (clhs.parent != crhs.parent) && (clhs.depth == crhs.depth) && (&clhs < &crhs);
-        bool isLeftHigherInHierarchy = clhs.depth < crhs.depth;
+  return Compare(clhs, crhs);
+}
 
-        // the order when different parents
-        return isLeftHigherInHierarchy || isLeftSibling || isParentEarlier;
-      });
+bool RelationshipSorter::Compare(const ecs::Relationship& lhs, const ecs::Relationship& rhs) {
+  bool isLeftSibling = lhs.parent == rhs.parent && &lhs < &rhs;
+  bool isParentEarlier = (lhs.parent != rhs.parent) && (lhs.depth == rhs.depth) && (&lhs < &rhs);
+  bool isLeftHigherInHierarchy = lhs.depth < rhs.depth;
+
+  // the order when different parents
+  return isLeftHigherInHierarchy || isLeftSibling || isParentEarlier;
 }

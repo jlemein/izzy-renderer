@@ -40,7 +40,7 @@ message("Packages in conan: ${CONAN_PKG}")
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
 target_link_libraries(ecsu_test PUBLIC ecs CONAN_PKG::gtest)
 
-add_executable(ecs_test src/ecs_shader.t.cpp src/ecs_firstpersoncontrolsystem.t.cpp)
+add_executable(ecs_test src/ecs_shader.t.cpp src/ecs_firstpersoncontrolsystem.t.cpp src/ecs_transformsystem.t.cpp)
 target_link_libraries(ecs_test PRIVATE ecs CONAN_PKG::gtest)
 
 #

@@ -12,6 +12,7 @@ namespace geo {
 struct Mesh;
 struct Curve;
 struct Scene;
+struct SceneNode;
 }; // namespace geo
 
 namespace ecs {
@@ -38,9 +39,10 @@ public:
 
   SceneGraphEntity makeMesh(const geo::Mesh &mesh);
   SceneGraphEntity makeEmptyMesh(const geo::Mesh &mesh);
-  SceneGraphEntity makeCurve();
+  SceneGraphEntity makeCurve(std::string name);
 
   SceneGraphEntity makeRenderable(geo::Mesh &&mesh, const ecs::Shader &shader);
+  SceneGraphEntity makeRenderable(const geo::Mesh &mesh, glm::mat4 transform, ecs::Shader&& shader);
   SceneGraphEntity makeRenderable(geo::Curve &&curve, const ecs::Shader &shader);
 
   SceneGraphEntity makeScene(geo::Scene &);
@@ -53,6 +55,8 @@ public:
 private:
   /// Uses EnTT in the background for scene management
   entt::registry m_registry;
+
+  void processChildren(std::shared_ptr<const geo::SceneNode> node, SceneGraphEntity* parent_p = nullptr);
 };
 
 //====================================

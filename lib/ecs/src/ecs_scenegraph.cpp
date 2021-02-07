@@ -18,15 +18,15 @@ using namespace affx;
 using namespace affx::ecs;
 
 SceneGraphEntity SceneGraph::makeEntity(std::string name) {
-  auto e { m_registry.create() };
+  auto e{m_registry.create()};
   m_registry.emplace<Name>(e, name);
   m_registry.emplace<Transform>(e);
   m_registry.emplace<ecs::Relationship>(e);
-  return SceneGraphEntity { m_registry, e };
+  return SceneGraphEntity{m_registry, e};
 }
 
 SceneGraphEntity SceneGraph::makeCamera(const glm::mat4 &transform,
-                                          std::string name) {
+                                        std::string name) {
   auto sge = this->makeEntity(std::move(name));
   auto e = sge.id();
   m_registry.emplace<ecs::Camera>(e);
@@ -36,8 +36,8 @@ SceneGraphEntity SceneGraph::makeCamera(const glm::mat4 &transform,
   return sge;
 }
 
-SceneGraphEntity SceneGraph::makePointLight(glm::vec3 intensity, glm::vec3 color,
-                                              std::string name) {
+SceneGraphEntity SceneGraph::makePointLight(glm::vec3 intensity,
+                                            glm::vec3 color, std::string name) {
   auto sge = this->makeEntity(std::move(name));
   auto e = sge.id();
   m_registry.emplace<ecs::Light>(
@@ -50,12 +50,11 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
   auto e = sge.id();
 
   auto &renderable = m_registry.emplace<ecs::Renderable>(e);
-  renderable.name = mesh.name;
 
   m_registry.emplace<geo::Mesh>(e, mesh);
   m_registry.emplace<ecs::Shader>(
       e, ecs::Shader{"assets/shaders/diffuse.vert.spv",
-                          "assets/shaders/diffuse.frag.spv"});
+                     "assets/shaders/diffuse.frag.spv"});
 
   Texture &texture = m_registry.emplace<Texture>(e);
   texture.diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg";
@@ -68,13 +67,12 @@ SceneGraphEntity SceneGraph::makeEmptyMesh(const geo::Mesh &mesh) {
   auto e = sge.id();
 
   auto &renderable = m_registry.emplace<ecs::Renderable>(e);
-  renderable.name = mesh.name;
 
   m_registry.emplace<geo::Mesh>(e, mesh);
   return sge;
 }
 
-//SceneGraphEntity SceneGraph::makeMeshInstance(const geo::Mesh &mesh) {
+// SceneGraphEntity SceneGraph::makeMeshInstance(const geo::Mesh &mesh) {
 //  auto sge = makeEntity(mesh.name);
 //  auto e = sge.id();
 //
@@ -87,113 +85,109 @@ SceneGraphEntity SceneGraph::makeEmptyMesh(const geo::Mesh &mesh) {
 //                     "assets/shaders/diffuse.frag.spv"});
 //
 //  Texture &texture = m_registry.emplace<Texture>(e);
-//  texture.diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg";
+//  texture.diffuseTextureFilepath =
+//  "assets/textures/textures/castle_normal.jpg";
 //
 //  return sge;
 //}
 
-SceneGraphEntity SceneGraph::makeCurve() {
-  auto e = m_registry.create();
+SceneGraphEntity SceneGraph::makeCurve(std::string name) {
+  auto curve = makeEntity(std::move(name));
 
-  auto &curve = m_registry.emplace<geo::Curve>(e);
-  auto &r = m_registry.emplace<ecs::Renderable>(e);
-  auto &t = m_registry.emplace<ecs::Transform>(e);
-  auto &s = m_registry.emplace<ecs::Shader>(
-      e, ecs::Shader{
-             .vertexShaderFile = "assets/shaders/default_curve.vert.spv",
-             .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
+  curve.add<geo::Curve>();
+  curve.add<ecs::Renderable>();
+  auto &s = curve.add<ecs::Shader>(
+      {.vertexShaderFile = "assets/shaders/default_curve.vert.spv",
+       .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
 
   ecs::ColorBlock block;
   block.color = glm::vec4(1.0F, 0.35F, 1.0F, 0.0F);
   s.setProperty("ColorBlock", block);
 
-  return SceneGraphEntity { m_registry, e };
+  return curve;
 }
 
-SceneGraphEntity SceneGraph::makeScene(geo::Scene &scene) {
-  std::cout << "WARN: copying a scene, very tricky" << std::endl;
-  auto rootScene = makeEntity();
+void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node,
+                                 SceneGraphEntity *parent_p) {
+  auto root = makeEntity(node->name);
+  root.setTransform(node->transform);
 
-  for (const auto& n : scene.nodeHierarchy()) {
-    for (const auto& m : n.meshInstances) {
-      auto instance = makeEmptyMesh(*m->mesh);
-      geo::MeshTransform::ScaleToUniformSize(instance.get<geo::Mesh>());
-      instance.setTransform(n.transform);
-      rootScene.addChild(instance);
-    }
+  if (parent_p != nullptr) {
+    parent_p->addChild(root);
   }
-//  for(const auto& m : scene.meshes()) {
-//    rootScene.addChild(makeMesh(*m));
-//  }
 
-  return rootScene;
+  // add mesh instances for this root
+  for (auto &instance : node->meshInstances) {
+    // make shader from material
+    // TODO: make a material system that loads a default
+    Shader shader{"assets/shaders/uber.vert.spv",
+                  "assets/shaders/uber.frag.spv"};
+    shader.setProperty<UberMaterialData>(
+        {.diffuse = instance->material->diffuse,
+         .specular = instance->material->specular,
+         .ambient = instance->material->ambient});
+
+    // create mesh instance mesh data
+    // TODO: make mesh instance instead of copy mesh
+    auto e =
+        makeRenderable(*instance->mesh, instance->transform, std::move(shader));
+    root.addChild(e);
+  }
+
+  for (auto &child : node->children) {
+    processChildren(child, &root);
+  }
 }
 
 SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene) {
   auto rootScene = makeEntity();
 
-  for (const auto& n : scene->nodeHierarchy()) {
-    for (const auto& m : n.meshInstances) {
-      auto instance = makeMesh(*m->mesh);
-      instance.setTransform(n.transform);
-
-      // TODO make use of a material system, registered at resource manager.
-      // For now we just use Uber shader
-
-      ecs::UberMaterialData uber {
-          .diffuse = m->material->diffuse,
-          .specular = m->material->specular,
-          .ambient = m->material->ambient
-      };
-
-      std::cout << "BEFORE Shader is " << uber.diffuse.r << " " << uber.diffuse.g << " " << uber.diffuse.b << std::endl;
-      instance.add<ecs::Shader>({"assets/shaders/uber.vert.spv", "assets/shaders/uber.frag.spv"});
-      instance.get<ecs::Shader>().setProperty(ecs::UberMaterialData::PARAM_NAME, uber);
-
-      Shader& shader = instance.get<ecs::Shader>();
-      auto* data = shader.getProperty<UberMaterialData>();
-      std::cout << "Shader is " << data->diffuse.r << " " << data->diffuse.g << " " << data->diffuse.b << std::endl;
-
-      rootScene.addChild(instance);
-    }
-  }
-//  for(const auto& m : scene.meshes()) {
-//    rootScene.addChild(makeMesh(*m));
-//  }
+  processChildren(scene->rootNode(), &rootScene);
 
   return rootScene;
 }
 
+SceneGraphEntity SceneGraph::makeRenderable(const geo::Mesh &mesh,
+                                            glm::mat4 transform,
+                                            ecs::Shader &&shader) {
+  auto e = makeEntity(mesh.name);
+  e.setTransform(std::move(transform));
+
+  e.add<ecs::Renderable>();
+  e.add<geo::Mesh>(mesh);
+  e.add<ecs::Shader>(std::forward<ecs::Shader>(shader));
+
+  return e;
+}
+
 SceneGraphEntity SceneGraph::makeRenderable(geo::Mesh &&mesh,
-                                              const ecs::Shader &shader) {
+
+                                            const ecs::Shader &shader) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<ecs::Renderable>(e);
   m_registry.emplace<geo::Mesh>(e, std::move(mesh));
   m_registry.emplace<ecs::Shader>(e, shader);
 
-  return SceneGraphEntity { m_registry, e };
+  return SceneGraphEntity{m_registry, e};
 }
 
 SceneGraphEntity SceneGraph::makeRenderable(geo::Curve &&curve,
-                                              const ecs::Shader &shader) {
+                                            const ecs::Shader &shader) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<ecs::Renderable>(e);
   m_registry.emplace<geo::Curve>(e, std::move(curve));
   m_registry.emplace<ecs::Shader>(e, shader);
 
-  return SceneGraphEntity { m_registry, e };
+  return SceneGraphEntity{m_registry, e};
 }
 
 entt::entity makeTexture();
 
 SceneGraphEntity SceneGraph::makeRectangularGrid(float size, float spacing) {
-  auto sge = makeCurve();
-  auto e = sge.id();
-  auto &curve = m_registry.get<geo::Curve>(e);
-  auto &r = m_registry.get<ecs::Renderable>(e);
-  r.name = "RectangularGrid";
+  auto sge = makeCurve("RectangularGrid");
+  auto &curve = sge.get<geo::Curve>();
 
   float z = 0.0F;
 

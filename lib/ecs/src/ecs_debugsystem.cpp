@@ -31,10 +31,6 @@ void DebugSystem::init() {
 
     Renderable *renderable_p = m_registry.try_get<Renderable>(e);
     std::string name = "Unnamed";
-    if (renderable_p) {
-      std::cout << "*Name of renderable is " << renderable_p->name << std::endl;
-      name = renderable_p->name;
-    }
 
     if(m_registry.has<Name>(e)) {
       std::cout << "Adding debugger for " << m_registry.get<Name>(e).name << std::endl;
