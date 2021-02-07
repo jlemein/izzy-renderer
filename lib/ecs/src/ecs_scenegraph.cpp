@@ -10,6 +10,7 @@
 #include <ecs_transform.h>
 #include <geo_curve.h>
 #include <geo_mesh.h>
+#include <geo_light.h>
 #include <geo_meshinstance.h>
 #include <geo_meshtransform.h>
 #include <geo_sceneloader.h>
@@ -36,13 +37,43 @@ SceneGraphEntity SceneGraph::makeCamera(const glm::mat4 &transform,
   return sge;
 }
 
-SceneGraphEntity SceneGraph::makePointLight(glm::vec3 intensity,
-                                            glm::vec3 color, std::string name) {
-  auto sge = this->makeEntity(std::move(name));
-  auto e = sge.id();
-  m_registry.emplace<ecs::Light>(
-      e, ecs::Light{std::move(intensity), std::move(color), false});
-  return sge;
+SceneGraphEntity SceneGraph::makeLight(const geo::Light&geoLight) {
+  auto lightEntity = makeEntity(geoLight.name);
+  ecs::Light light;
+
+  light.color = geoLight.diffuseColor;
+  light.specular = geoLight.specularColor;
+  light.ambient = geoLight.ambientColor;
+  light.intensity = glm::vec3{geoLight.intensity};
+
+  auto &position = lightEntity.get<Transform>().localTransform[3];
+  position = glm::vec4(geoLight.position, 1.0F);
+  if (geoLight.type == geo::Light::Type::DIRECTIONAL_LIGHT) {
+    position *= -1;
+    position.w = 0.0F;
+  }
+
+  lightEntity.add<ecs::Light>(std::move(light));
+
+  return lightEntity;
+}
+
+SceneGraphEntity SceneGraph::makePointLight(std::string name, glm::vec3 position) {
+  auto lightEntity = makeEntity(std::move(name));
+  lightEntity.add<ecs::Light>();
+
+  // different between point and directional light is in the w component.
+  lightEntity.get<Transform>().localTransform[3] = glm::vec4(position, 1.0F);
+  return lightEntity;
+}
+
+SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 position) {
+  auto lightEntity = makeEntity(std::move(name));
+  lightEntity.add<Light>();
+
+  // different between point and directional light is in the w component.
+  lightEntity.get<Transform>().localTransform[3] = glm::vec4(position, 0.0F);
+  return lightEntity;
 }
 
 SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
@@ -101,7 +132,7 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
        .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
 
   ecs::ColorBlock block;
-  block.color = glm::vec4(1.0F, 0.35F, 1.0F, 0.0F);
+  block.color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
   s.setProperty("ColorBlock", block);
 
   return curve;
@@ -142,7 +173,14 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node,
 SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene) {
   auto rootScene = makeEntity();
 
+  // for geometry and mesh data
   processChildren(scene->rootNode(), &rootScene);
+
+  // add lights to the scene
+  for (auto& light : scene->lights()) {
+    auto lightEntity = makeLight(*light);
+    rootScene.addChild(lightEntity);
+  }
 
   return rootScene;
 }
@@ -209,7 +247,7 @@ SceneGraphEntity SceneGraph::makeRectangularGrid(float size, float spacing) {
   curve.vertices.push_back(0.0F);
   curve.vertices.push_back(size);
 
-  while (z < size) {
+  while (z-spacing < size) {
     // positive side horizontal
     curve.vertices.push_back(-size);
     curve.vertices.push_back(0.0F);

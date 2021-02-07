@@ -61,7 +61,7 @@ TEST_F(RelationshipSorterTest, SortParents) {
   RelationshipUtil::MakeChild(r, entities[1], entities[2]);
   RelationshipUtil::MakeChildren(r, entities[3], {entities[4], entities[5]});
 
-  ecsu::RelationshipSorter::sort(r);
+  ecsu::RelationshipSorter::Sort<Relationship>(r);
 
   auto view = r.view<Relationship>();
   auto expectedOrder =
@@ -102,7 +102,7 @@ TEST_F(RelationshipSorterTest, SortParents2) {
   auto expectedOrder = std::vector<entt::entity>{
       entities[0], entities[9], entities[1], entities[3], entities[2],
       entities[4], entities[5], entities[6], entities[7], entities[8]};
-  ecsu::RelationshipSorter::sort(r);
+  ecsu::RelationshipSorter::Sort<Relationship>(r);
 
   auto view = r.view<Relationship>();
 

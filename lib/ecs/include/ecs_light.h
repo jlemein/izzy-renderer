@@ -16,12 +16,14 @@ namespace ecs {
 struct Light {
   glm::vec3 intensity {1.0F};
   glm::vec3 color{1.0F};
+  glm::vec3 ambient {0.0F};
+  glm::vec3 specular {0.0F};
 
   /**!
    * If set to true, then the light point is assumed to be directional.
    * If false, then it is assumed to be a point light.
    */
-  bool isDirectional {false};
+//  bool isDirectional {false};
 };
 
 }

@@ -401,7 +401,6 @@ void RenderSystem::synchMvpMatrices() {
 
 void RenderSystem::updateLightProperties() {
   auto view = m_registry.view<Transform, Light>();
-
   m_uLightData.numberLights = view.size();
 
   if (view.size() > 4) {

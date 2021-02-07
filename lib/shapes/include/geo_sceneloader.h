@@ -18,6 +18,7 @@ namespace geo {
 struct Mesh;
 struct MeshInstance;
 struct Texture;
+struct Light;
 struct Material;
 struct SceneNode;
 
@@ -36,20 +37,24 @@ class Scene {
   friend class SceneLoader;
 public:
   using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
-  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
+//  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
   using TextureIterable = std::vector<std::shared_ptr<Texture>>;
   using MaterialIterable = std::vector<std::shared_ptr<Material>>;
+  using LightIterable = std::vector<std::shared_ptr<Light>>;
 
   MeshIterable& meshes() { return m_meshes; }
 //  MeshInstanceIterable meshInstances() { return m_instances; }
 //  TextureIterable textures() { return m_textures; }
   MaterialIterable materials() { return m_materials; }
+  LightIterable lights() { return m_lights; }
   std::shared_ptr<SceneNode> rootNode() {return m_rootNode; }
 
 private:
+  std::shared_ptr<SceneNode> m_rootNode {nullptr};
   MaterialIterable m_materials{};
   MeshIterable m_meshes {};
-  std::shared_ptr<SceneNode> m_rootNode {nullptr};
+  LightIterable m_lights{};
+
 
   //TODO write custom iterator to iterate over mesh instances
   //  MeshInstanceIterable m_instances{};
@@ -63,7 +68,7 @@ private:
   void readMaterials(const aiScene* aiScene, geo::Scene& scene);
   void readMeshes(const aiScene* aiScene, geo::Scene& scene);
   void readHierarchy(const aiScene* aiScene, geo::Scene& scene);
-//  void readLights(const aiScene* aiScene, geo::Scene& scene);
+  void readLights(const aiScene* aiScene, geo::Scene& scene);
 //  void readTextures(const aiScene* aiScene, geo::Scene& scene);
 //  void readCameras(const aiScene* aiScene, geo::Scene& scene);
 };

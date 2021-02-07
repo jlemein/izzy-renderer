@@ -9,6 +9,7 @@
 #include <deque>
 #include <geo_meshinstance.h>
 #include <geo_transform.h>
+#include <geo_light.h>
 #include <spdlog/spdlog.h>
 
 using namespace affx;
@@ -136,7 +137,45 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
     }
   }
 }
-void readLights() {
+void SceneLoader::readLights(const aiScene* aiScene, geo::Scene& scene) {
+  for (int i=0; i<aiScene->mNumLights; ++i) {
+    auto aiLight = aiScene->mLights[i];
+    auto light = std::make_shared<Light>();
+
+
+    // diffuse color encodes wattage
+    light->diffuseColor = glm::vec3(aiLight->mColorDiffuse.r, aiLight->mColorDiffuse.g, aiLight->mColorDiffuse.b);
+    //TODO: we use blender standard. 1000W is considered intensity 1 - this is chosen arbitrarily.
+    // investigate how to improve, maybe HDR eventually
+    light->intensity = glm::length(light->diffuseColor) / 1000.0F;
+    light->diffuseColor = glm::normalize(light->diffuseColor);
+
+    light->specularColor = glm::vec3(aiLight->mColorSpecular.r, aiLight->mColorSpecular.g, aiLight->mColorSpecular.b);
+    light->ambientColor = glm::vec3(aiLight->mColorAmbient.r, aiLight->mColorAmbient.g, aiLight->mColorAmbient.b);
+
+    light->upVector = glm::vec3{aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z};
+    light->name = std::string{aiLight->mName.C_Str()};
+    light->attenuationQuadratic = aiLight->mAttenuationQuadratic;
+
+    light->position = glm::vec3(aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z);
+
+    switch (aiLight->mType) {
+    case aiLightSource_POINT:
+      light->type = Light::Type::POINT_LIGHT; break;
+
+    case aiLightSource_DIRECTIONAL:
+      light->type = Light::Type::DIRECTIONAL_LIGHT; break;
+
+    case aiLightSource_AMBIENT:
+      light->type = Light::Type::AMBIENT_LIGHT; break;
+
+    default:
+      std::cerr << "Unknown light source type. Ignoring light source type.\n";
+      continue;
+    }
+
+    scene.m_lights.emplace_back(light);
+  }
 }
 
 void readTextures(const aiScene *scene_p, Scene &scene) {
@@ -161,6 +200,7 @@ std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
 
   readMaterials(aiScene_p, scene);
   readTextures(aiScene_p, scene);
+  readLights(aiScene_p, scene);
 
   readMeshes(aiScene_p, scene);
   readHierarchy(aiScene_p, scene);

@@ -21,23 +21,27 @@ uniform UberMaterial {
 
 layout(location = 0) in vec4 inNormal;
 layout(location = 1) in vec2 uv1;
-layout(location = 2) in vec3 light_direction[MAX_LIGHTS];
+layout(location = 2) in vec4 light_direction[MAX_LIGHTS];
 
 layout(location = 0) out vec4 outColor;
 
 
 void main() {
     for (int i=0; i<uNumberLights; i++) {
-        vec3 nn_light_direction = normalize(light_direction[i]);
+        vec3 nn_light_direction = normalize(light_direction[i].xyz);
         vec3 nn_normal = normalize(inNormal).xyz;
         float dot_normal_light = dot(nn_light_direction, nn_normal);
+        float attenuation = 1.0F;
 
-        float d = length(light_direction[i]);
-        float attenuation = 2.0 / (1.0 + d*d);
+        // if is point light
+        if (light_direction[i].w != 0.0) {
+            // point light
+            float d = length(light_direction[i]);
+            attenuation = 2.0 / (1.0 + d*d);
+        }
 
-        vec3 material_color = uDiffuse;
-        vec3 light_contribution = (uIntensities[i] * uColors[i]).xyz;
+        vec3 light_diffuse = (uIntensities[i] * uColors[i]).xyz;
 
-        outColor += dot_normal_light * attenuation * vec4(material_color * light_contribution, 1.0);
+        outColor += dot_normal_light * attenuation * vec4(uDiffuse * light_diffuse, 1.0);
     }
 }

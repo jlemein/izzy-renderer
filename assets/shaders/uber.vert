@@ -32,7 +32,9 @@ layout(location = 2) in vec2 uv;
 layout(location = 0) out vec4 normalOut;
 layout(location = 1) out vec2 out_uv;
 
-layout(location = 2) out vec3 light_direction[MAX_LIGHTS];
+// if direction.w is 0 - directional light
+// otherwise point light
+layout(location = 2) out vec4 light_direction[MAX_LIGHTS];
 
 void main() {
     mat4 MVP = proj * view * model;
@@ -45,7 +47,13 @@ void main() {
     out_uv = uv;
 
     for (int i=0; i<uNumberLights; i++) {
-        light_direction[i] = (uPositions[i] - world_position).xyz;
+        if (uPositions[i].w != 0.0) {
+            // point light
+            light_direction[i] = vec4((uPositions[i] - world_position).xyz, 1.0);
+        } else {
+            // directional light
+            light_direction[i] = uPositions[i];
+        }
     }
     normalOut = invTranspose * vec4(normal, 1.0);
 }

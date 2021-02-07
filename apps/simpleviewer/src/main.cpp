@@ -52,7 +52,7 @@ int main() {
 
   // Camera
   auto cameraTransform = glm::inverse(
-      glm::lookAt(glm::vec3(0.0F, -10.60F, -1.0F), glm::vec3(0.0F, 0.0F, 0.0F),
+      glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F), glm::vec3(0.0F, 1.60F, 0.0F),
                   glm::vec3(0.0F, 1.0F, 0.0F)));
   auto camera = sceneGraph.makeCamera(cameraTransform, "Camera");
   camera.add<FirstPersonControl>();
@@ -62,7 +62,10 @@ int main() {
 
 //  auto sceneResource = resourceManager.getResource<geo::Scene>("assets/models/three_instanced_cubes_one_sphere.fbx");
 //  sceneGraph.makeScene(**sceneResource);
-  auto scene = sceneGraph.makeScene(resourceManager.getResource<geo::Scene>("testassets/models/3objects.fbx"));
+
+  auto loadedScene = resourceManager.getResource<geo::Scene>("testassets/models/3objects.fbx");
+  sceneGraph.makeScene(loadedScene);
+
 
   // Bunny
   auto bunnyScene =
@@ -87,8 +90,8 @@ int main() {
   //          shader);
 
   // add lighting to scene
-  auto light = sceneGraph.makePointLight(
-      glm::vec3{5.0F}, glm::vec3(1.0F, 1.0F, 0.7F), "PointLight");
+  auto light = sceneGraph.makePointLight("MyPointLight", glm::vec3(1.0F, 1.0F, 0.7F));
+  light.get<Light>().intensity = glm::vec3(7.0F);
   light.add<Debug>();
   TransformUtil::Translate(light.get<Transform>(),
                            glm::vec3(-2.0F, 3.0F, 0.0F));

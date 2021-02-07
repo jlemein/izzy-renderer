@@ -2,11 +2,7 @@
 
 #include <ecs_transform.h>
 
-#include <deque>
-#include <ecs_dirty.h>
-#include <ecs_name.h>
 #include <ecs_relationship.h>
-#include <ecs_renderable.h>
 #include <ecsu_relationshipsorter.h>
 #include <entt/entt.hpp>
 
@@ -24,10 +20,7 @@ void TransformSystem::init() {
   // leaf transforms are to the right of the transform system.
 
   ecsu::RelationshipSorter::Sort<Transform>(m_registry);
-
 }
-
-void TransformSystem::onConstruct(entt::entity e) {}
 
 namespace {
 std::vector<entt::entity> getRootNodes(entt::registry &registry) {
