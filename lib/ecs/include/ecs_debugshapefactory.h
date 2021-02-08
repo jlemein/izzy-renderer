@@ -16,6 +16,7 @@ struct Mesh;
 namespace ecs {
 
 struct DebugModel;
+struct SceneGraphEntity;
 
 /**!
  * Debug shape factory creates, different to @PrimitiveShapeFactory, specific
@@ -32,6 +33,9 @@ public:
   static DebugModel MakeEulerArrow(entt::registry& registry, entt::entity target);
 
   static DebugModel MakeModel(DebugShape shape, entt::registry& registry, entt::entity target);
+
+  static DebugModel MakeCameraBox(entt::registry &registry,
+                                  entt::entity target);//SceneGraphEntity& target);
 };
 
 }

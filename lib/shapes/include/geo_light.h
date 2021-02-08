@@ -8,6 +8,17 @@
 namespace affx {
 namespace geo {
 
+//class Light {
+//public:
+//  Light::Type type;
+//  std::string name;
+//  glm::vec3 diffuseColor;
+//  glm::vec3 specularColor;
+//  glm::vec3 ambientColor;
+//
+//  void* LightProperties;
+//};
+
 class PointLight {
 
 };
@@ -46,6 +57,7 @@ public:
   glm::vec3 ambientColor;
   float attenuationQuadratic {1.0F};
   float intensity = 1.0F;
+  glm::vec2 radius{1.0F};
 
   glm::vec3 upVector { 0.0F, 1.0F, 0.0F };
 

@@ -3,13 +3,16 @@
 //
 #include <ecs_debugmodel.h>
 #include <ecs_debugshapefactory.h>
+#include <ecs_scenegraphentity.h>
 #include <ecs_renderable.h>
-
 #include <ecs_transformutil.h>
-#include <entt/entt.hpp>
+
+
 #include <geo_mesh.h>
+#include <geo_meshtransform.h>
 #include <geo_primitivefactory.h>
 #include <geo_shapeutil.h>
+#include <entt/entt.hpp>
 
 using namespace affx::ecs;
 using namespace affx;
@@ -112,6 +115,41 @@ DebugModel DebugShapeFactory::MakeEulerArrow(entt::registry &registry,
   return eulerArrow;
 }
 
+
+DebugModel DebugShapeFactory::MakeCameraBox(entt::registry &registry,
+                                            entt::entity target) {
+  DebugModel cameraBox;
+
+  float cameraFrontHeight = 0.4F;
+  float cameraBoxDepth = 1.0F;
+  float cameraBoxWidth = 0.5F;
+
+  auto cameraBoxMesh = geo::PrimitiveFactory::MakeBox(cameraBoxWidth, cameraBoxWidth, cameraBoxDepth);
+  geo::MeshTransform::Translate(cameraBoxMesh, glm::vec3(0.0F, 0.0F, 0.5F*cameraBoxDepth + cameraFrontHeight));
+  cameraBox.mesh.push_back(cameraBoxMesh);
+  cameraBox.shader.push_back(Shader{.vertexShaderFile = "assets/shaders/debug.vert.spv",
+      .fragmentShaderFile = "assets/shaders/debug.frag.spv"});
+  cameraBox.renderable.push_back(Renderable{.isWireframe = false});
+  cameraBox.transformations.push_back(Transform{});
+
+  auto cameraFront = geo::PrimitiveFactory::MakePyramid(cameraBoxWidth*0.8F, cameraFrontHeight);
+  geo::MeshTransform::RotateX(cameraFront, 90.0F);
+
+  float translate = cameraFrontHeight * 0.5F;
+  geo::MeshTransform::Translate(cameraFront, glm::vec3(0.0F, 0.0F, translate));
+
+  cameraBox.mesh.emplace_back(std::move(cameraFront));
+  auto shader = Shader{.vertexShaderFile = "assets/shaders/debug.vert.spv",
+      .fragmentShaderFile = "assets/shaders/debug.frag.spv"};
+  shader.setProperty<ColorBlock>(ColorBlock{.color = glm::vec4(1.0F, 0.5F, 0.0F, 1.0F), .diffuseShading = true});
+  cameraBox.shader.push_back(std::move(shader));
+
+  cameraBox.renderable.push_back(Renderable{.isWireframe = false});
+  cameraBox.transformations.push_back(Transform{});
+
+  return cameraBox;
+}
+
 DebugModel DebugShapeFactory::MakeModel(DebugShape shape,
                                         entt::registry &registry,
                                         entt::entity target) {
@@ -121,6 +159,9 @@ DebugModel DebugShapeFactory::MakeModel(DebugShape shape,
 
   case DebugShape::kEulerArrow:
     return MakeEulerArrow(registry, target);
+
+  case DebugShape::kCamera:
+    return MakeCameraBox(registry, target);
 
   default:
     throw std::runtime_error("Unsupported debug shape");

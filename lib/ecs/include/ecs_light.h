@@ -14,10 +14,11 @@ namespace ecs {
  * If no transform is attached, then the light source is ambient.
  */
 struct Light {
-  glm::vec3 intensity {1.0F};
-  glm::vec3 color{1.0F};
-  glm::vec3 ambient {0.0F};
-  glm::vec3 specular {0.0F};
+  float intensity {1000.0F}; // by default 1000 W
+  float attenuationQuadratic {0.2F};
+  glm::vec3 diffuseColor{1.0F};
+  glm::vec3 specularColor {0.0F};
+  glm::vec3 ambientColor {0.0F};
 
   /**!
    * If set to true, then the light point is assumed to be directional.

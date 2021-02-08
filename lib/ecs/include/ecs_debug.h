@@ -11,6 +11,7 @@
 namespace affx {
 namespace ecs {
 enum class DebugShape {
+  kUndefined = -1, /// @brief Undefined, let the debug system choose appropriate.
   kBox = 0,  /// @brief Box shape.
   kEulerArrow, /// @brief Euler arrow visualization
   kSphere,   /// @brief Spherical debug shape.
@@ -24,6 +25,8 @@ enum class DebugShape {
 struct Debug {
   /// Shape for the debug representation.
   DebugShape shape{DebugShape::kBox};
+
+//  std::function<DebugShape()> shapeFn;
 
   /// Increases size of shape when size < 0.25.
   double minShapeSize{0.10};

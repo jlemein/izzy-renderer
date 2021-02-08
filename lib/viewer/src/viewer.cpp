@@ -138,6 +138,10 @@ void Viewer::init() {
   }
 }
 
+void Viewer::setActiveCamera(ecs::SceneGraphEntity cameraEntity) {
+  m_renderSystem->setActiveCamera(cameraEntity.handle());
+}
+
 void Viewer::registerExtension(
     std::shared_ptr<ecs::IViewerInteractable> interactable) {
   mmInteractables.emplace_back(move(interactable));

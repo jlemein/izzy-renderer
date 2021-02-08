@@ -124,9 +124,9 @@ void initMVPUniformBlock(Renderable &renderable) {
   glGetActiveUniformBlockiv(renderable.program, blockIndex,
                             GL_UNIFORM_BLOCK_BINDING,
                             &renderable.uboBlockBinding);
-//  std::cout << "Renderable " << renderable.name
-//            << " | block: " << renderable.uboBlockIndex
-//            << ", binding: " << renderable.uboBlockBinding << std::endl;
+  //  std::cout << "Renderable " << renderable.name
+  //            << " | block: " << renderable.uboBlockIndex
+  //            << ", binding: " << renderable.uboBlockBinding << std::endl;
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex,
                    renderable.uboId);
@@ -138,9 +138,8 @@ void initLightingUbo(Renderable &renderable) {
   renderable.uboLightingIndex =
       glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
   if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-    std::cout << "Cannot find ubo block index with name "
-              << UniformLighting::PARAM_NAME << " for <name>"
-              << std::endl;
+//    std::cout << "Cannot find ubo block index with name "
+//              << UniformLighting::PARAM_NAME << " for <name>" << std::endl;
     //    exit(1);
     renderable.isLightingSupported = false;
   } else {
@@ -156,9 +155,9 @@ void initLightingUbo(Renderable &renderable) {
   glGetActiveUniformBlockiv(renderable.program, blockIndex,
                             GL_UNIFORM_BLOCK_BINDING,
                             &renderable.uboLightingBinding);
-//  std::cout << "Renderable " << renderable.name
-//            << " | block: " << renderable.uboLightingIndex
-//            << ", binding: " << renderable.uboLightingBinding << std::endl;
+  //  std::cout << "Renderable " << renderable.name
+  //            << " | block: " << renderable.uboLightingIndex
+  //            << ", binding: " << renderable.uboLightingBinding << std::endl;
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding,
                    renderable.uboLightingId);
@@ -191,8 +190,6 @@ void initShaderProperties(Renderable &renderable,
     glGetActiveUniformBlockiv(renderable.program, blockIndex,
                               GL_UNIFORM_BLOCK_BINDING, &blockBinding);
 
-    std::cout << name << " has blockbining " << blockBinding << std::endl;
-
     // is this needed?
     //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
 
@@ -205,9 +202,11 @@ void initShaderProperties(Renderable &renderable,
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
     auto p = reinterpret_cast<UberMaterialData *>(blockData.data);
-//    std::cout << "   --- Init " << renderable.name << ">" << name << " with "
-//              << p->diffuse.r << " " << p->diffuse.g << " " << p->diffuse.b
-//              << std::endl;
+    //    std::cout << "   --- Init " << renderable.name << ">" << name << "
+    //    with "
+    //              << p->diffuse.r << " " << p->diffuse.g << " " <<
+    //              p->diffuse.b
+    //              << std::endl;
 
     // store block handle in renderable
     renderable.userProperties[name] = Renderable_UniformBlockInfo{
@@ -312,7 +311,7 @@ GLuint compileShader(const Shader &shader, const Renderable &renderable) {
   int linked = 0;
   glGetProgramiv(program, GL_LINK_STATUS, &linked);
   if (linked == GL_FALSE) {
-    std::cout << "Linking failed" << std::endl;
+    std::cout << "Linking failed for vs: " << shader.vertexShaderFile << ", fs: " << shader.fragmentShaderFile << std::endl;
   }
 
   return program;
@@ -403,6 +402,9 @@ void RenderSystem::updateLightProperties() {
   auto view = m_registry.view<Transform, Light>();
   m_uLightData.numberLights = view.size();
 
+  if (view.size() == 0) {
+    std::cout << "WARNING: No active lights in scene." << std::endl;
+  }
   if (view.size() > 4) {
     throw std::runtime_error(
         "Too many lights in the scene. Max supported is 4");
@@ -412,9 +414,11 @@ void RenderSystem::updateLightProperties() {
   for (auto e : view) {
     const auto &light = view.get<Light>(e);
     const auto &transform = view.get<Transform>(e);
+    const auto &name = m_registry.get<Name>(e);
 
-    m_uLightData.colors[i] = glm::vec4(light.color, 1.0F);
-    m_uLightData.intensities[i] = glm::vec4(light.intensity, 1.0F);
+    m_uLightData.diffuseColors[i] = glm::vec4(light.diffuseColor, 1.0F);
+    m_uLightData.intensities[i] = light.intensity;
+    m_uLightData.attenuation[i] = light.attenuationQuadratic;
     m_uLightData.positions[i] = transform.worldTransform[3];
     ++i;
   }
@@ -432,16 +436,21 @@ void RenderSystem::updateModelMatrix(entt::entity e) {
       transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
 }
 
+void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
+  if (!m_registry.has<Camera>(cameraEntity)) {
+    throw std::runtime_error("Only entities with a Camera component can be set as active camera");
+  }
+  m_activeCamera = cameraEntity;
+}
+
 void RenderSystem::updateCamera(Renderable &renderable) {
-  auto view = m_registry.view<ecs::Camera, ecs::Transform>();
-  if (view.size() <= 0) {
-    std::cout << "No active camera in scene" << std::endl;
-    return;
+
+  if (m_activeCamera == entt::null) {
+    throw std::runtime_error("No active camera in scene");
   }
 
-  // from camera take the position and perspective transformation
-  auto &activeCamera = m_registry.get<ecs::Camera>(*view.begin());
-  auto &transform = m_registry.get<ecs::Transform>(*view.begin());
+  auto &transform = m_registry.get<ecs::Transform>(m_activeCamera);
+  auto& activeCamera = m_registry.get<Camera>(m_activeCamera);
 
   renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
   renderable.uniformBlock.proj =
@@ -491,8 +500,8 @@ void RenderSystem::render() {
     }
 
     // TODO: check if shader is dirty
-    //  reason: if we push properties every frame (Except for MVP), we might unnecessary
-    //  spend time doing that while we can immediately just render.
+    //  reason: if we push properties every frame (Except for MVP), we might
+    //  unnecessary spend time doing that while we can immediately just render.
     pushShaderProperties(renderable);
     pushModelViewProjection(renderable);
 
@@ -519,7 +528,9 @@ void RenderSystem::checkError(entt::entity e) {
   // get error message
   GLenum err;
   if ((err = glGetError()) != GL_NO_ERROR) {
-    auto name = m_registry.has<Name>(e) ? m_registry.get<Name>(e).name : std::string{"Unnamed"};
-    std::cerr << " Render error occurred for " << name << ": " << err << std::endl;
+    auto name = m_registry.has<Name>(e) ? m_registry.get<Name>(e).name
+                                        : std::string{"Unnamed"};
+    std::cerr << " Render error occurred for " << name << ": " << err
+              << std::endl;
   }
 }

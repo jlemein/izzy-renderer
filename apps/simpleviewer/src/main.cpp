@@ -50,12 +50,16 @@ int main() {
 
   Viewer viewer(sceneGraph, resourceManager);
 
-  // Camera
-  auto cameraTransform = glm::inverse(
-      glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F), glm::vec3(0.0F, 1.60F, 0.0F),
-                  glm::vec3(0.0F, 1.0F, 0.0F)));
-  auto camera = sceneGraph.makeCamera(cameraTransform, "Camera");
-  camera.add<FirstPersonControl>();
+//  viewer.getInputHandler().addCommand(SWITCH_CAMERA, [](SceneGraph& scenegraph) {
+//    auto cameras = scenegraph.getCameras();
+//    auto camera = scenegraph.getActiveCamera();
+//    scenegraph.setActiveCamera(nextCamera);
+//  });
+//  viewer.getEventHandler().addHandler(EVT_ENEMY_DOWN, [](SceneGraph& scenegraph) {
+//    auto cameras = scenegraph.getCameras();
+//    auto camera = scenegraph.getActiveCamera();
+//    scenegraph.setActiveCamera(nextCamera);
+//  });
 
   // Grid
   sceneGraph.makeRectangularGrid();
@@ -64,8 +68,20 @@ int main() {
 //  sceneGraph.makeScene(**sceneResource);
 
   auto loadedScene = resourceManager.getResource<geo::Scene>("testassets/models/3objects.fbx");
-  sceneGraph.makeScene(loadedScene);
+  auto sg = sceneGraph.makeScene(loadedScene);
 
+  // Camera
+  auto cameraTransform = glm::inverse(
+      glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F), glm::vec3(0.0F, 1.60F, 0.0F),
+                  glm::vec3(0.0F, 1.0F, 0.0F)));
+  auto camera = sceneGraph.makeCamera("CodeCamera");
+  camera.setTransform(cameraTransform);
+  camera.add<FirstPersonControl>();
+  viewer.setActiveCamera(camera);
+
+  auto fakeCamera = sceneGraph.makeCamera("FakeCamera");
+  fakeCamera.setTransform(cameraTransform);
+  fakeCamera.add<Debug>({.shape = ecs::DebugShape::kCamera});
 
   // Bunny
   auto bunnyScene =
@@ -79,10 +95,10 @@ int main() {
   // ShaderResources resources;
   // resources.init(); // loads shader files
   // ShaderResources.getNamedShader("diffuse-color");
-  auto shader = Shader{"assets/shaders/diffuse-color.vert.spv",
-                       "assets/shaders/diffuse-color.frag.spv"};
-  shader.setProperty("ColorBlock",
-                     ColorBlock{glm::vec4{1.0F, 0.0F, 0.0F, 1.0F}});
+//  auto shader = Shader{"assets/shaders/diffuse-color.vert.spv",
+//                       "assets/shaders/diffuse-color.frag.spv"};
+//  shader.setProperty("ColorBlock",
+//                     ColorBlock{glm::vec4{1.0F, 0.0F, 0.0F, 1.0F}});
 
   //  auto cylinder =
   //      EcsFactory(sceneGraph)
@@ -91,7 +107,7 @@ int main() {
 
   // add lighting to scene
   auto light = sceneGraph.makePointLight("MyPointLight", glm::vec3(1.0F, 1.0F, 0.7F));
-  light.get<Light>().intensity = glm::vec3(7.0F);
+  light.get<Light>().intensity = 1000.0F;
   light.add<Debug>();
   TransformUtil::Translate(light.get<Transform>(),
                            glm::vec3(-2.0F, 3.0F, 0.0F));

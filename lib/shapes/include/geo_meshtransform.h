@@ -17,7 +17,8 @@ struct Curve;
 
 /**!
  * @brief transforms the mesh data directly instead of applying it to the transformation
- * matrix.
+ * matrix. This can be more efficient, since you are not manipuling the scene
+ * hierarchy
  */
 struct MeshTransform {
   static void ScaleToUniformSize(Mesh &mesh, float size = 1.0F);
@@ -26,6 +27,9 @@ struct MeshTransform {
 
   static void Translate(Mesh& mesh, const glm::vec3& translation);
   static void Rotate(Mesh& mesh, const glm::quat& quaternion);
+  static void RotateX(Mesh& mesh, float degrees);
+  static void RotateY(Mesh& mesh, float degrees);
+  static void RotateZ(Mesh& mesh, float degrees);
 };
 
 } // end of package

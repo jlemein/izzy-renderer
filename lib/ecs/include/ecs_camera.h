@@ -9,7 +9,7 @@ namespace affx {
 namespace ecs {
 
 struct Camera {
-  float fovy {120.0F}, fovx {120.0};
+  float fovx {120.0F};
   float aspect {1.0};
   float zNear {0.1F}, zFar {1000.0F};
 };

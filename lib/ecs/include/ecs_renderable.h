@@ -28,12 +28,18 @@ struct UniformBlock {
 
 struct ColorBlock {
   glm::vec4 color;
+  bool diffuseShading {false};
+
+  static inline const char* PARAM_NAME = "ColorBlock";
 };
 
 struct UniformLighting {
   glm::vec4 positions[4];
-  glm::vec4 intensities[4];
-  glm::vec4 colors[4];
+  glm::vec4 diffuseColors[4];
+  float intensities[4];
+  glm::vec4 _padding1[3];
+  float attenuation[4];
+  glm::vec4 _padding2[3];
 
   /// MAX = 4
   uint32_t numberLights {0U};

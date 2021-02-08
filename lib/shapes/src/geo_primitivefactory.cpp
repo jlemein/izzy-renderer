@@ -7,9 +7,7 @@
 using namespace affx;
 using namespace affx::geo;
 
-Mesh PrimitiveFactory::MakePlane(float width, float height) {
-  return Mesh();
-}
+Mesh PrimitiveFactory::MakePlane(float width, float height) { return Mesh(); }
 
 Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
   float vertices[] = {
@@ -116,7 +114,37 @@ Mesh PrimitiveFactory::MakeCylinder(float radius, float height, int numSides) {
   return mesh;
 }
 
-Mesh PrimitiveFactory::MakePyramid(float size, float height) { return Mesh(); }
+Mesh PrimitiveFactory::MakePyramid(float baseWidth, float height) {
+  float vertices[] = {
+      -.5F, -.5F, -.5F, // v0
+      .5F,  -.5F, -.5F, // v1
+      .5F,  -.5F, .5F,  // v2
+      -.5F, -.5F, .5F,  // v3
+      .0F,  .5F,  .0F   // v4 - top of pyramid
+  };
+
+  uint32_t indices[] = {
+      0, 2, 1, 0, 3, 1, // Base
+      0, 4, 3,          // Left
+      0, 1, 4,          // Front
+      1, 2, 4,          // Right
+      2, 3, 4,          // Back
+  };
+  Mesh mesh;
+  mesh.vertices =
+      std::vector<float>{vertices, vertices + sizeof(vertices) / sizeof(float)};
+  mesh.indices = std::vector<uint32_t>{indices, indices + sizeof(indices) /
+                                                              sizeof(uint32_t)};
+
+  // scale the box to requested size
+  for (unsigned int i = 0U; i < mesh.vertices.size(); i += 3) {
+    mesh.vertices[i] *= baseWidth;
+    mesh.vertices[i + 1] *= height;
+    mesh.vertices[i + 2] *= baseWidth;
+  }
+
+  return mesh;
+}
 Mesh PrimitiveFactory::MakeSphere(float radius) { return Mesh(); }
 Mesh PrimitiveFactory::MakeDonut(float innerRadius, float outerRadius) {
   return Mesh();

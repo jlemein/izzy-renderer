@@ -10,7 +10,7 @@
 #include <string>
 
 #include <entt/entt.hpp>
-
+#include <ecs_scenegraphentity.h>
 namespace affx {
 
 namespace res {
@@ -50,6 +50,8 @@ public:
   SceneGraph &getRegistry();
 
   int run();
+
+  void setActiveCamera(ecs::SceneGraphEntity cameraEntity);
 
   void
   registerExtension(std::shared_ptr<ecs::IViewerInteractable> interactable);

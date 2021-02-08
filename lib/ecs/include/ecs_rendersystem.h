@@ -34,10 +34,14 @@ class RenderSystem
   void addSubsystem(std::shared_ptr<IRenderSubsystem> system);
   void removeSubsystem(std::shared_ptr<IRenderSubsystem> system);
 
+  void setActiveCamera(entt::entity cameraEntity);
+
  private:
   entt::registry &m_registry;
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
   ecs::DebugSystem m_debugSystem;
+
+  entt::entity m_activeCamera {entt::null};
 
   /// Lighting parameters needed for the uniform buffer object in the shader.
   /// These lighting properties are for forward lighting (not deferred).

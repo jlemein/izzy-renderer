@@ -3,13 +3,15 @@
 //
 #include <geo_mesh.h>
 #include <geo_sceneloader.h>
-
-#include <assimp/Importer.hpp>
-#include <assimp/postprocess.h>
-#include <deque>
+#include <geo_camera.h>
+#include <geo_light.h>
 #include <geo_meshinstance.h>
 #include <geo_transform.h>
-#include <geo_light.h>
+
+#include <deque>
+#include <assimp/Importer.hpp>
+#include <assimp/postprocess.h>
+
 #include <spdlog/spdlog.h>
 
 using namespace affx;
@@ -109,6 +111,7 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
     }
 
     node->name = std::string{node_p->mName.C_Str()};
+
     std::cout << "@@@: " << node->name << " has " << node_p->mNumChildren << " children, and " << node_p->mNumMeshes << " Mesh instances" << std::endl;
 
     // assimp stores the transformations in
@@ -123,6 +126,10 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
       std::cout << "\tM@@@: " << mesh->name << std::endl;
+      std::cout << "\tM## metadata: \n";
+      for (int k=0; k< node_p->mMetaData->mNumProperties; ++k) {
+        std::cout << "\t\t" << node_p->mMetaData->mKeys[k].C_Str() << std::endl;
+      }
       meshInstance->mesh = mesh;
       meshInstance->name = std::string{node_p->mName.C_Str()};
       meshInstance->material = mesh->material;
@@ -131,40 +138,91 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
       node->meshInstances.push_back(meshInstance);
     }
 
+    // register name
+    scene.registerSceneNode(node);
+
     // add the children for the next round
     for (int i = 0; i < node_p->mNumChildren; ++i) {
       queue.push_back(std::make_pair<>(node_p->mChildren[i], node));
     }
   }
 }
+
+Scene::SceneNodeIterable Scene::getSceneNodesByName(const std::string& name) {
+  return m_sceneNodes.count(name) > 0 ? m_sceneNodes.at(name) : SceneNodeIterable {};
+}
+
+void Scene::registerSceneNode(std::shared_ptr<SceneNode> node) {
+  m_sceneNodes[node->name].push_back(node);
+
+  if (m_sceneNodes.at(node->name).size() > 1) {
+    std::cout << "WARNING: " << node->name << " has more than 1 entry. Is this correct?\n";
+  }
+}
+
+void SceneLoader::readCameras(const aiScene *scene_p, Scene &scene) {
+  for (int i=0; i<scene_p->mNumCameras; ++i) {
+    auto aiCamera_p = scene_p->mCameras[i];
+
+    auto camera = std::make_shared<geo::Camera>();
+    camera->name = aiCamera_p->mName.C_Str();
+    camera->fovx = aiCamera_p->mHorizontalFOV;
+    camera->aspect = aiCamera_p->mAspect;
+    camera->position = glm::vec3(aiCamera_p->mPosition.x, aiCamera_p->mPosition.y, aiCamera_p->mPosition.z);
+    camera->lookAt = glm::vec3(aiCamera_p->mLookAt.x, aiCamera_p->mLookAt.y, aiCamera_p->mLookAt.z);
+    camera->up = glm::vec3(aiCamera_p->mUp.x, aiCamera_p->mUp.y, aiCamera_p->mUp.z);
+    camera->near = aiCamera_p->mClipPlaneNear;
+    camera->far = aiCamera_p->mClipPlaneFar;
+    // not sure about this
+    camera->fovy = camera->fovx / camera->aspect;
+
+    auto cameraNodes = scene.getSceneNodesByName(camera->name);
+    if (cameraNodes.empty()) {
+      scene.m_rootNode->cameras.emplace_back(camera);
+    } else {
+      for (auto node : cameraNodes) {
+        node->cameras.emplace_back(camera);
+      }
+    }
+
+    scene.cameras().emplace_back(camera);
+  }
+}
+
+
 void SceneLoader::readLights(const aiScene* aiScene, geo::Scene& scene) {
+
   for (int i=0; i<aiScene->mNumLights; ++i) {
     auto aiLight = aiScene->mLights[i];
     auto light = std::make_shared<Light>();
-
+    light->name = std::string{aiLight->mName.C_Str()};
 
     // diffuse color encodes wattage
     light->diffuseColor = glm::vec3(aiLight->mColorDiffuse.r, aiLight->mColorDiffuse.g, aiLight->mColorDiffuse.b);
     //TODO: we use blender standard. 1000W is considered intensity 1 - this is chosen arbitrarily.
     // investigate how to improve, maybe HDR eventually
-    light->intensity = glm::length(light->diffuseColor) / 1000.0F;
+    light->intensity = glm::length(light->diffuseColor);
     light->diffuseColor = glm::normalize(light->diffuseColor);
 
     light->specularColor = glm::vec3(aiLight->mColorSpecular.r, aiLight->mColorSpecular.g, aiLight->mColorSpecular.b);
     light->ambientColor = glm::vec3(aiLight->mColorAmbient.r, aiLight->mColorAmbient.g, aiLight->mColorAmbient.b);
 
     light->upVector = glm::vec3{aiLight->mUp.x, aiLight->mUp.y, aiLight->mUp.z};
-    light->name = std::string{aiLight->mName.C_Str()};
     light->attenuationQuadratic = aiLight->mAttenuationQuadratic;
-
-    light->position = glm::vec3(aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z);
+    light->position = glm::vec3(aiLight->mPosition.x, aiLight->mPosition.y, aiLight->mPosition.z);
+    light->radius = glm::vec2(aiLight->mSize.x, aiLight->mSize.y);
 
     switch (aiLight->mType) {
     case aiLightSource_POINT:
       light->type = Light::Type::POINT_LIGHT; break;
 
     case aiLightSource_DIRECTIONAL:
-      light->type = Light::Type::DIRECTIONAL_LIGHT; break;
+      std::cout << "Directional light source '" << light->name << "' has p: " << aiLight->mPosition.x << ", " << aiLight->mPosition.y << ", " << aiLight->mPosition.z
+  << " and d: " << aiLight->mDirection.x << ", " << aiLight->mDirection.y << ", " << aiLight->mDirection.z << std::endl;
+      light->type = Light::Type::DIRECTIONAL_LIGHT;
+      light->position = glm::vec3(aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z);
+      light->position *= -1;
+      break;
 
     case aiLightSource_AMBIENT:
       light->type = Light::Type::AMBIENT_LIGHT; break;
@@ -172,6 +230,16 @@ void SceneLoader::readLights(const aiScene* aiScene, geo::Scene& scene) {
     default:
       std::cerr << "Unknown light source type. Ignoring light source type.\n";
       continue;
+    }
+
+    // light belongs to a transform node
+    auto lightNodes = scene.getSceneNodesByName(light->name);
+    if (lightNodes.empty()) {
+      scene.m_rootNode->lights.emplace_back(light);
+    } else {
+      for (auto node : lightNodes) {
+        node->lights.emplace_back(light);
+      }
     }
 
     scene.m_lights.emplace_back(light);
@@ -185,7 +253,6 @@ void readTextures(const aiScene *scene_p, Scene &scene) {
   }
 
 }
-void readCameras() {}
 
 std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
   geo::Scene scene;
@@ -200,10 +267,13 @@ std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
 
   readMaterials(aiScene_p, scene);
   readTextures(aiScene_p, scene);
-  readLights(aiScene_p, scene);
 
   readMeshes(aiScene_p, scene);
   readHierarchy(aiScene_p, scene);
+
+  // should come after reading of hierarchy
+  readLights(aiScene_p, scene);
+  readCameras(aiScene_p, scene);
 
   return std::make_shared<Scene>(std::move(scene));
 }

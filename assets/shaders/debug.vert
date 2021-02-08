@@ -7,9 +7,10 @@
 //    mat4 proj;
 //} ubo;
 
-layout(std140, binding=0)
+layout(std140, binding = 0)
 uniform ColorBlock {
     vec4 uColor;
+    bool uDiffuseShading;
 };
 
 layout(std140, binding = 2)

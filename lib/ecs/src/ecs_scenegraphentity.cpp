@@ -1,9 +1,10 @@
 //
 // Created by jlemein on 01-02-21.
 //
-#include <ecs_scenegraphentity.h>
+#include <ecs_name.h>
 #include <ecs_relationship.h>
 #include <ecs_relationshiputil.h>
+#include <ecs_scenegraphentity.h>
 #include <ecs_transform.h>
 #include <iostream>
 using namespace affx::ecs;
@@ -12,20 +13,20 @@ SceneGraphEntity::SceneGraphEntity(entt::registry& registry, entt::entity handle
   : m_registry{registry}
   , m_handle {handle} {}
 
-entt::entity SceneGraphEntity::id() {
-  return m_handle;
+uint64_t SceneGraphEntity::id() const {
+  return static_cast<uint64_t>(m_handle);
 }
 
 entt::entity SceneGraphEntity::handle() {
   return m_handle;
 }
 
-void SceneGraphEntity::addChild(SceneGraphEntity child) {
-  RelationshipUtil::MakeChild(m_registry, m_handle, child.handle());
+std::string SceneGraphEntity::getName() const {
+  return m_registry.get<Name>(m_handle).name;
 }
 
-void SceneGraphEntity::setTransform(const glm::mat4& transform) {
-  m_registry.get<Transform>(m_handle).localTransform = transform;
+void SceneGraphEntity::setName(std::string name) {
+  m_registry.emplace_or_replace<Name>(m_handle, ecs::Name{name});
 }
 
 glm::mat4& SceneGraphEntity::getTransform() {
@@ -34,4 +35,12 @@ glm::mat4& SceneGraphEntity::getTransform() {
 
 const glm::mat4& SceneGraphEntity::getTransform() const {
   return m_registry.get<Transform>(m_handle).localTransform;
+}
+
+void SceneGraphEntity::setTransform(const glm::mat4& transform) {
+  m_registry.get<Transform>(m_handle).localTransform = transform;
+}
+
+void SceneGraphEntity::addChild(SceneGraphEntity child) {
+  RelationshipUtil::MakeChild(m_registry, m_handle, child.handle());
 }

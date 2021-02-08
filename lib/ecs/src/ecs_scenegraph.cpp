@@ -9,8 +9,8 @@
 #include <ecs_texture.h>
 #include <ecs_transform.h>
 #include <geo_curve.h>
-#include <geo_mesh.h>
 #include <geo_light.h>
+#include <geo_mesh.h>
 #include <geo_meshinstance.h>
 #include <geo_meshtransform.h>
 #include <geo_sceneloader.h>
@@ -26,31 +26,47 @@ SceneGraphEntity SceneGraph::makeEntity(std::string name) {
   return SceneGraphEntity{m_registry, e};
 }
 
-SceneGraphEntity SceneGraph::makeCamera(const glm::mat4 &transform,
-                                        std::string name) {
-  auto sge = this->makeEntity(std::move(name));
-  auto e = sge.id();
-  m_registry.emplace<ecs::Camera>(e);
-  auto &t = m_registry.get<Transform>(e);
-  t.localTransform = transform;
-  //  TransformUtil::SetPosition(t, {0.0F, 1.60, -1.0F});
-  return sge;
+SceneGraphEntity SceneGraph::makeCamera(std::string name, float fovx,
+                                        float aspect, float zNear, float zFar) {
+  auto cameraEntity = makeEntity(std::move(name));
+  ecs::Camera camera{.fovx = fovx,
+                     .aspect = aspect,
+                     .zNear = zNear,
+                     .zFar = zFar};
+  cameraEntity.add<ecs::Camera>(std::move(camera));
+
+  return cameraEntity;
 }
 
-SceneGraphEntity SceneGraph::makeLight(const geo::Light&geoLight) {
+SceneGraphEntity SceneGraph::makeCamera(const geo::Camera &geoCamera) {
+  auto cameraEntity = makeEntity(geoCamera.name);
+  ecs::Camera camera{.fovx = geoCamera.fovx,
+                     .aspect = geoCamera.aspect,
+                     .zNear = geoCamera.near,
+                     .zFar = geoCamera.far};
+  cameraEntity.add<ecs::Camera>(std::move(camera));
+
+  auto &transform = cameraEntity.get<Transform>();
+  transform.localTransform =
+      glm::lookAt(geoCamera.position, geoCamera.lookAt, geoCamera.up);
+
+  return cameraEntity;
+}
+
+SceneGraphEntity SceneGraph::makeLight(const geo::Light &geoLight) {
   auto lightEntity = makeEntity(geoLight.name);
   ecs::Light light;
 
-  light.color = geoLight.diffuseColor;
-  light.specular = geoLight.specularColor;
-  light.ambient = geoLight.ambientColor;
-  light.intensity = glm::vec3{geoLight.intensity};
+  light.diffuseColor = geoLight.diffuseColor;
+  light.specularColor = geoLight.specularColor;
+  light.ambientColor = geoLight.ambientColor;
+  light.intensity = geoLight.intensity;
+  light.attenuationQuadratic = geoLight.attenuationQuadratic;
 
-  auto &position = lightEntity.get<Transform>().localTransform[3];
-  position = glm::vec4(geoLight.position, 1.0F);
+  auto &transform = lightEntity.get<Transform>();
+  transform.localTransform[3] = glm::vec4(geoLight.position, 1.0F);
   if (geoLight.type == geo::Light::Type::DIRECTIONAL_LIGHT) {
-    position *= -1;
-    position.w = 0.0F;
+    transform.localTransform[3].w = 0.0F;
   }
 
   lightEntity.add<ecs::Light>(std::move(light));
@@ -58,7 +74,8 @@ SceneGraphEntity SceneGraph::makeLight(const geo::Light&geoLight) {
   return lightEntity;
 }
 
-SceneGraphEntity SceneGraph::makePointLight(std::string name, glm::vec3 position) {
+SceneGraphEntity SceneGraph::makePointLight(std::string name,
+                                            glm::vec3 position) {
   auto lightEntity = makeEntity(std::move(name));
   lightEntity.add<ecs::Light>();
 
@@ -67,7 +84,8 @@ SceneGraphEntity SceneGraph::makePointLight(std::string name, glm::vec3 position
   return lightEntity;
 }
 
-SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 position) {
+SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name,
+                                                  glm::vec3 position) {
   auto lightEntity = makeEntity(std::move(name));
   lightEntity.add<Light>();
 
@@ -77,25 +95,22 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 po
 }
 
 SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
-  auto sge = makeEntity(mesh.name);
-  auto e = sge.id();
+  auto meshEntity = makeEntity(mesh.name);
 
-  auto &renderable = m_registry.emplace<ecs::Renderable>(e);
+  meshEntity.add<ecs::Renderable>();
+  meshEntity.add<geo::Mesh>(mesh);
+  meshEntity.add<ecs::Shader>(
+      {"assets/shaders/diffuse.vert.spv", "assets/shaders/diffuse.frag.spv"});
+  meshEntity.add<Texture>({
+    .diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg"
+  });
 
-  m_registry.emplace<geo::Mesh>(e, mesh);
-  m_registry.emplace<ecs::Shader>(
-      e, ecs::Shader{"assets/shaders/diffuse.vert.spv",
-                     "assets/shaders/diffuse.frag.spv"});
-
-  Texture &texture = m_registry.emplace<Texture>(e);
-  texture.diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg";
-
-  return sge;
+  return meshEntity;
 }
 
 SceneGraphEntity SceneGraph::makeEmptyMesh(const geo::Mesh &mesh) {
   auto sge = makeEntity(mesh.name);
-  auto e = sge.id();
+  auto e = sge.handle();
 
   auto &renderable = m_registry.emplace<ecs::Renderable>(e);
 
@@ -143,8 +158,22 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node,
   auto root = makeEntity(node->name);
   root.setTransform(node->transform);
 
+  // if current processed scene node is not a root node.
+  // then add it to it's parent.
   if (parent_p != nullptr) {
     parent_p->addChild(root);
+  }
+
+  // Add lights
+  for (auto &light : node->lights) {
+    auto lightEntity = makeLight(*light);
+    root.addChild(lightEntity);
+  }
+
+  // Add cameras
+  for (auto &camera : node->cameras) {
+    auto cameraEntity = makeCamera(*camera);
+    root.addChild(cameraEntity);
   }
 
   // add mesh instances for this root
@@ -175,12 +204,6 @@ SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene) {
 
   // for geometry and mesh data
   processChildren(scene->rootNode(), &rootScene);
-
-  // add lights to the scene
-  for (auto& light : scene->lights()) {
-    auto lightEntity = makeLight(*light);
-    rootScene.addChild(lightEntity);
-  }
 
   return rootScene;
 }
@@ -247,7 +270,7 @@ SceneGraphEntity SceneGraph::makeRectangularGrid(float size, float spacing) {
   curve.vertices.push_back(0.0F);
   curve.vertices.push_back(size);
 
-  while (z-spacing < size) {
+  while (z - spacing < size) {
     // positive side horizontal
     curve.vertices.push_back(-size);
     curve.vertices.push_back(0.0F);

@@ -12,8 +12,9 @@ layout(std140, binding=1)
 uniform Lighting {
     // Positions in world space
     vec4 positions[MAX_LIGHTS];
-    vec4 intensities[MAX_LIGHTS];
     vec4 colors[MAX_LIGHTS];
+    float uInsities[MAX_LIGHTS];
+    float uAttenuation[MAX_LIGHTS];
     int numberLights;
 };
 

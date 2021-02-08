@@ -5,6 +5,7 @@
 #include <geo_mesh.h>
 #include <geo_meshtransform.h>
 #include <geo_shapeutil.h>
+#include <glm/gtx/quaternion.hpp>
 
 using namespace affx;
 using namespace affx::geo;
@@ -70,6 +71,23 @@ void MeshTransform::Translate(Mesh& mesh, const glm::vec3& translation) {
   }
 }
 
-void MeshTransform::Rotate(Mesh& mesh, const glm::quat& quaternion) {
-//
+void MeshTransform::Rotate(Mesh& mesh, const glm::quat& q) {
+  for (unsigned int i=0U; i+2 < mesh.vertices.size(); i+=3) {
+    glm::vec4 transformed = glm::toMat4(q) * glm::vec4(mesh.vertices[i], mesh.vertices[i+1], mesh.vertices[i+2], 1.0F);
+    mesh.vertices[i] = transformed.x;
+    mesh.vertices[i+1] = transformed.y;
+    mesh.vertices[i+2] = transformed.z;
+  }
+}
+
+void MeshTransform::RotateX(Mesh& mesh, float degrees) {
+  return Rotate(mesh, glm::angleAxis(glm::radians(degrees), glm::vec3(1.0F, .0F, .0F)));
+}
+
+void MeshTransform::RotateY(Mesh& mesh, float degrees) {
+  return Rotate(mesh, glm::angleAxis(glm::radians(degrees), glm::vec3(.0F, 1.0F, .0F)));
+}
+
+void MeshTransform::RotateZ(Mesh& mesh, float degrees) {
+  return Rotate(mesh, glm::angleAxis(glm::radians(degrees), glm::vec3(.0F, .0F, 1.0F)));
 }
