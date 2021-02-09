@@ -1,12 +1,10 @@
 //
 // Created by jlemein on 01-02-21.
 //
+#include <ecsg_scenegraphentity.h>
 #include <ecs_name.h>
-#include <ecs_relationship.h>
 #include <ecs_relationshiputil.h>
-#include <ecs_scenegraphentity.h>
 #include <ecs_transform.h>
-#include <iostream>
 using namespace affx::ecs;
 
 SceneGraphEntity::SceneGraphEntity(entt::registry& registry, entt::entity handle)

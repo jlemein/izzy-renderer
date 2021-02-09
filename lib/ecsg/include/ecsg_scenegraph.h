@@ -1,7 +1,7 @@
 #ifndef ARTIFAX_ECS_SCENEGRAPH_H
 #define ARTIFAX_ECS_SCENEGRAPH_H
 
-#include <ecs_scenegraphentity.h>
+#include <ecsg_scenegraphentity.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <res_resource.h>

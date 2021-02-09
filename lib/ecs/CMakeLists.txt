@@ -12,13 +12,10 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecs_texture.h
         include/ecs_transform.h
         include/ecs_transformutil.h
-        include/ecs_interactable.h
 
         # systems
         include/ecs_transformsystem.h
         src/ecs_transformsystem.cpp
-        include/ecs_texturesystem.h
-        src/ecs_texturesystem.cpp
         include/ecs_camerasystem.h
         src/ecs_camerasystem.cpp
         src/ecs_firstpersoncontrolsystem.cpp
@@ -31,9 +28,13 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecs_debugsystem.h
         src/ecs_debugsystem.cpp
         include/ecs_debugshapefactory.h
-        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h include/ecs_scenegraph.h include/ecs_scenegraphentity.h ../core/include/core_exceptions.h src/ecs_scenegraph.cpp src/ecs_scenegraphentity.cpp include/ecs_shader.h)
+        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h
+        include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp
+        include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h
+#        ../core/include/core_exceptions.h
+        include/ecs_shader.h)
 
-target_link_libraries(ecs PUBLIC shp CONAN_PKG::entt)
+target_link_libraries(ecs PUBLIC geo CONAN_PKG::entt)
 
 message("Packages in conan: ${CONAN_PKG}")
 

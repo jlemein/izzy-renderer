@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 29-11-20.
 //
-#include <viewer_windowinputlistener.h>
+#include <vwr_windowinputlistener.h>
 #include <io_inputsystem.h>
 #include <io_keyconstants.h>
 using namespace affx;

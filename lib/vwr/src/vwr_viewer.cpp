@@ -4,20 +4,17 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <ecs_camerasystem.h>
-#include <ecs_interactable.h>
 #include <ecs_rendersystem.h>
-#include <ecs_scenegraph.h>
 #include <ecs_transformsystem.h>
-#include <res_resourcemanager.h>
-
+#include <ecsg_scenegraph.h>
 #include <io_inputsystem.h>
+#include <res_resourcemanager.h>
+#include <vwr_viewer.h>
+#include <vwr_viewerextension.h>
+#include <vwr_windowinputlistener.h>
+
 #include <iostream>
 #include <vector>
-#include <viewer.h>
-#include <viewer_windowinputlistener.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
 
 using namespace std;
 using namespace affx;
@@ -29,9 +26,9 @@ static void error_callback(int error, const char *description) {
 }
 } // namespace
 
-Viewer::Viewer(ecs::SceneGraph& sceneGraph, res::ResourceManager& resourceManager)
-    : m_sceneGraph{sceneGraph},
-      m_resourceManager{resourceManager},
+Viewer::Viewer(ecs::SceneGraph &sceneGraph,
+               res::ResourceManager &resourceManager)
+    : m_sceneGraph{sceneGraph}, m_resourceManager{resourceManager},
       m_registry(sceneGraph.getRegistry()),
       m_renderSystem{make_shared<ecs::RenderSystem>(m_registry)},
       m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)},
@@ -40,8 +37,12 @@ Viewer::Viewer(ecs::SceneGraph& sceneGraph, res::ResourceManager& resourceManage
 
 Viewer::~Viewer() {}
 
-int Viewer::run() {
-  GLFWwindow *window;
+void Viewer::setWindowSize(unsigned int width, unsigned int height) {
+  m_displayDetails.windowWidth = static_cast<int>(width);
+  m_displayDetails.windowHeight = static_cast<int>(height);
+}
+
+void Viewer::initialize() {
 
   glfwSetErrorCallback(error_callback);
 
@@ -51,7 +52,13 @@ int Viewer::run() {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
 
-  window = glfwCreateWindow(640, 640, "Simple Viewer", NULL, NULL);
+  GLFWwindow *window = glfwCreateWindow(m_displayDetails.windowWidth,
+                                        m_displayDetails.windowHeight,
+                                        "Simple Viewer", NULL, NULL);
+
+  m_displayDetails.window = reinterpret_cast<WindowHandle *>(window);
+  m_displayDetails.shadingLanguage = "glsl";
+  m_displayDetails.shadingLanguageVersion = "#version 130";
 
   m_inputSystem = std::make_shared<io::InputSystem>(window, 640, 640);
   m_genericInputListener = std::make_shared<WindowInputListener>(window);
@@ -61,7 +68,7 @@ int Viewer::run() {
 
   if (!window) {
     glfwTerminate();
-    return (EXIT_FAILURE);
+    exit(EXIT_FAILURE);
   }
 
   glfwMakeContextCurrent(window);
@@ -71,8 +78,27 @@ int Viewer::run() {
 
   glfwSwapInterval(1);
 
-  // NOTE: OpenGL error checks have been omitted for brevity
-  init();
+  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CCW);
+  glClearColor(0.25F, 0.25F, 0.35F, 0.0F);
+
+  m_cameraSystem->init();
+  m_debugSystem->init(); // for debug visualizations
+  // should be called before render system.
+  m_renderSystem->init();
+  m_inputSystem->init();
+  m_firstPersonSystem->init();
+  m_transformSystem->init();
+
+  for (auto &extensions : m_viewerExtensions) {
+    extensions->initialize();
+  }
+}
+
+int Viewer::run() {
+  GLFWwindow *window = reinterpret_cast<GLFWwindow *>(m_displayDetails.window);
 
   float prevTime = 0.0F;
   while (!glfwWindowShouldClose(window)) {
@@ -97,16 +123,19 @@ int Viewer::run() {
     m_transformSystem->update(time, dt);
     m_cameraSystem->update(dt);
 
-    for (auto &extensions : mmInteractables) {
-      extensions->update(m_registry, time, dt);
+    for (auto &extensions : m_viewerExtensions) {
+      extensions->update(time, dt);
     }
 
     m_renderSystem->update(time, dt);
 
-    //    for (auto &extensions : mmInteractables) {
-    //      extensions->beforeRender(m_registry);
-    //    }
+    for (auto &extensions : m_viewerExtensions) {
+      extensions->beforeRender();
+    }
     m_renderSystem->render();
+    for (auto &extensions : m_viewerExtensions) {
+      extensions->afterRender();
+    }
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -118,38 +147,20 @@ int Viewer::run() {
   return 0;
 }
 
-void Viewer::init() {
-  glEnable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  glFrontFace(GL_CCW);
-  glClearColor(0.25F, 0.25F, 0.35F, 0.0F);
+ecs::SceneGraph &Viewer::getSceneGraph() { return m_sceneGraph; }
 
-  m_cameraSystem->init();
-  m_debugSystem->init();  // for debug visualizations
-                          // should be called before render system.
-  m_renderSystem->init();
-  m_inputSystem->init();
-  m_firstPersonSystem->init();
-  m_transformSystem->init();
-
-  for (auto &interactables : mmInteractables) {
-    interactables->init(m_registry);
-  }
-}
+DisplayDetails Viewer::getDisplayDetails() { return m_displayDetails; }
 
 void Viewer::setActiveCamera(ecs::SceneGraphEntity cameraEntity) {
   m_renderSystem->setActiveCamera(cameraEntity.handle());
 }
 
 void Viewer::registerExtension(
-    std::shared_ptr<ecs::IViewerInteractable> interactable) {
-  mmInteractables.emplace_back(move(interactable));
+    std::shared_ptr<ecs::IViewerExtension> interactable) {
+  m_viewerExtensions.emplace_back(move(interactable));
 }
 
 void Viewer::registerRenderSubsystem(
     std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem) {
   m_renderSystem->addSubsystem(renderSubsystem);
 }
-
-Viewer::SceneGraph &Viewer::getRegistry() { return m_registry; }

@@ -1,5 +1,5 @@
 // Copyright 2020 Jeffrey Lemein
-#include <viewer.h>
+#include <vwr_viewer.h>
 
 #include <ecs_camera.h>
 #include <ecs_debug.h>
@@ -26,9 +26,10 @@
 
 #include <ecs_light.h>
 #include <ecs_name.h>
-#include <ecs_scenegraph.h>
+#include <ecsg_scenegraph.h>
 #include <geo_shapeutil.h>
 #include <glm/gtx/transform.hpp>
+#include <gui_system.h>
 
 namespace {
 affx::res::ResourceManager resourceManager;
@@ -48,7 +49,13 @@ using namespace affx::viewer;
 int main() {
   resourceManager.addFactory<geo::Scene>(std::make_unique<geo::SceneLoader>());
 
-  Viewer viewer(sceneGraph, resourceManager);
+  auto viewer = std::make_shared<Viewer>(sceneGraph, resourceManager);
+  viewer->setWindowSize(1024, 1024);
+  auto gui = std::make_shared<GuiSystem>(viewer);
+  auto textureSystem = std::make_shared<TextureSystem>(viewer);
+  viewer->registerExtension(gui);
+  viewer->registerExtension(textureSystem);
+  viewer->registerRenderSubsystem(textureSystem);
 
 //  viewer.getInputHandler().addCommand(SWITCH_CAMERA, [](SceneGraph& scenegraph) {
 //    auto cameras = scenegraph.getCameras();
@@ -77,7 +84,7 @@ int main() {
   auto camera = sceneGraph.makeCamera("CodeCamera");
   camera.setTransform(cameraTransform);
   camera.add<FirstPersonControl>();
-  viewer.setActiveCamera(camera);
+  viewer->setActiveCamera(camera);
 
   auto fakeCamera = sceneGraph.makeCamera("FakeCamera");
   fakeCamera.setTransform(cameraTransform);
@@ -117,12 +124,8 @@ int main() {
   //  auto curve = makeSierpinskiTriangle(sceneGraph);
   //  makePenroseTiling(sceneGraph);
 
-  // Setup extended systems to enhance viewer functionality
-  auto textureSystem = std::make_shared<TextureSystem>();
-
-  viewer.registerExtension(textureSystem);
-  viewer.registerRenderSubsystem(textureSystem);
-  viewer.run();
+  viewer->initialize();
+  viewer->run();
 
   return 0;
 }

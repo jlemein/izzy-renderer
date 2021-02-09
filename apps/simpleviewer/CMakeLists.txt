@@ -3,7 +3,7 @@ file(COPY ${PROJECT_SOURCE_DIR}/assets/models DESTINATION ${CMAKE_BINARY_DIR}/as
 file(COPY ${PROJECT_SOURCE_DIR}/testassets DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY ${PROJECT_SOURCE_DIR}/assets/textures DESTINATION ${CMAKE_BINARY_DIR}/assets/textures)
 
-add_executable(simpleviewer-app src/main.cpp include/ecs_factories.h src/ecs_factories.cpp include/ecsw_camera.h include/scenegraph.h)
-target_link_libraries(simpleviewer-app PUBLIC ecs simpleviewer fractal fractalgenerator CONAN_PKG::entt shp
-        CONAN_PKG::resourcemanager CONAN_PKG::glm)
+add_executable(simpleviewer-app src/main.cpp include/ecs_factories.h src/ecs_factories.cpp include/ecsw_camera.h include/scenegraph.h include/gui_system.h src/gui_system.cpp src/imgui_impl_glfw.h src/imgui_impl_glfw.cpp src/imgui_impl_opengl3.h src/imgui_impl_opengl3.cpp)
+target_link_libraries(simpleviewer-app PUBLIC vwr vwrx ecs fractal fractalgenerator CONAN_PKG::entt geo
+        CONAN_PKG::resourcemanager CONAN_PKG::glm CONAN_PKG::imgui CONAN_PKG::glfw)
 target_include_directories(simpleviewer-app PUBLIC include PRIVATE src)

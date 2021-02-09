@@ -3,7 +3,6 @@
 //
 #include <ecs_debugmodel.h>
 #include <ecs_debugshapefactory.h>
-#include <ecs_scenegraphentity.h>
 #include <ecs_renderable.h>
 #include <ecs_transformutil.h>
 

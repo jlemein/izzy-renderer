@@ -1,19 +1,21 @@
-#include <ecs_scenegraph.h>
+#include <ecsg_scenegraph.h>
+#include <ecsg_scenegraphentity.h>
 
 #include <ecs_camera.h>
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_relationship.h>
 #include <ecs_renderable.h>
-#include <ecs_scenegraphentity.h>
 #include <ecs_texture.h>
 #include <ecs_transform.h>
+
 #include <geo_curve.h>
 #include <geo_light.h>
 #include <geo_mesh.h>
 #include <geo_meshinstance.h>
 #include <geo_meshtransform.h>
 #include <geo_sceneloader.h>
+
 #include <res_resource.h>
 using namespace affx;
 using namespace affx::ecs;

@@ -10,7 +10,7 @@
 namespace affx {
 namespace ecs {
 
-class TransformSystem { //: public IViewerInteractable {
+class TransformSystem {
 public:
   TransformSystem(entt::registry& registry);
 

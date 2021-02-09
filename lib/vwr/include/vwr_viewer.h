@@ -2,7 +2,7 @@
 #pragma once
 
 #include <ecs_firstpersoncontrolsystem.h>
-#include <ecs_interactable.h>
+#include <vwr_viewerextension.h>
 #include <ecs_rendersubsystem.h>
 
 #include <list>
@@ -10,7 +10,7 @@
 #include <string>
 
 #include <entt/entt.hpp>
-#include <ecs_scenegraphentity.h>
+#include <ecsg_scenegraphentity.h>
 namespace affx {
 
 namespace res {
@@ -22,7 +22,7 @@ class TransformSystem;
 class RenderSystem;
 class CameraSystem;
 class DebugSystem;
-class IViewerInteractable;
+class IViewerExtension;
 class SceneGraph;
 } // namespace ecs
 
@@ -32,6 +32,16 @@ class InputSystem;
 
 namespace viewer {
 class WindowInputListener;
+
+typedef struct WindowHandle{} WindowHandle;
+
+struct DisplayDetails {
+  WindowHandle* window {nullptr};
+  std::string shadingLanguage {""};
+  std::string shadingLanguageVersion {""};
+  int windowWidth, windowHeight;
+};
+
 
 class Viewer {
 public:
@@ -47,25 +57,28 @@ public:
 
   ~Viewer();
 
-  SceneGraph &getRegistry();
+  ecs::SceneGraph& getSceneGraph();
 
+  DisplayDetails getDisplayDetails();
+
+  void initialize();
   int run();
+
+  void setWindowSize(unsigned int width, unsigned int height);
 
   void setActiveCamera(ecs::SceneGraphEntity cameraEntity);
 
   void
-  registerExtension(std::shared_ptr<ecs::IViewerInteractable> interactable);
+  registerExtension(std::shared_ptr<ecs::IViewerExtension> interactable);
   void registerRenderSubsystem(
       std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem);
 
 private:
-  void init();
-
   ecs::SceneGraph& m_sceneGraph;
   res::ResourceManager& m_resourceManager;
   entt::registry& m_registry;
 
-  std::list<std::shared_ptr<ecs::IViewerInteractable>> mmInteractables;
+  std::list<std::shared_ptr<ecs::IViewerExtension>> m_viewerExtensions;
 
   std::shared_ptr<ecs::RenderSystem> m_renderSystem;
   std::shared_ptr<ecs::TransformSystem> m_transformSystem;
@@ -75,6 +88,8 @@ private:
   std::shared_ptr<ecs::FirstPersonMovementSystem> m_firstPersonSystem;
 
   std::shared_ptr<WindowInputListener> m_genericInputListener;
+
+  DisplayDetails m_displayDetails;
 };
 
 } // namespace viewer

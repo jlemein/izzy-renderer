@@ -5,10 +5,14 @@
 #include <ecs_texturesystem.h>
 #include <ecs_renderable.h>
 #include <ecs_texture.h>
+#include <ecsg_scenegraph.h>
 
 #include <GL/glew.h>
+
+#define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#include <vwr_viewer.h>
 #include <iostream>
 
 using namespace affx::ecs;
@@ -44,7 +48,13 @@ void setupTextures(Texture &texture) {
 
 }
 
-void TextureSystem::init(entt::registry &registry) {
+TextureSystem::TextureSystem(std::shared_ptr<viewer::Viewer> viewer)
+: m_sceneGraph(viewer->getSceneGraph())
+{
+}
+
+void TextureSystem::initialize() {
+  auto& registry = m_sceneGraph.getRegistry();
   auto view = registry.view<Texture>();
 
   for (auto entity : view) {
@@ -61,7 +71,7 @@ void TextureSystem::init(entt::registry &registry) {
   //  auto pTexture = reinterpret_cast<Texture*>(mesh.getComponent("Texture"));
 }
 
-void TextureSystem::update(entt::registry &registry, float time, float dt) {}
+void TextureSystem::update(float time, float dt) {}
 
 void TextureSystem::onRender(const entt::registry &registry,
                              entt::entity entity) {
