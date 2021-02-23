@@ -26,6 +26,9 @@ public:
 
   // @see IViewerExtension
   void initialize() override;
+    // converts geo::Material components into respective entities having an
+    // ecs::Texture component.
+
   void update(float time, float dt) override;
   void beforeRender() override {}
   void afterRender() override {}

@@ -97,7 +97,15 @@ private:
 // INLINE DEFINITIONS
 // ==========================================================
 template <typename Component> Component &SceneGraphEntity::get() {
-  return m_registry.get<Component>(handle());
+#ifndef NDEBUG
+  if (m_registry.has<Component>(handle())) {
+#endif
+    return m_registry.get<Component>(handle());
+#ifndef NDEBUG
+  } else {
+    throw std::runtime_error("Does not have compoentn");
+  }
+#endif
 }
 
 template <typename Component> Component &SceneGraphEntity::add() {

@@ -13,36 +13,55 @@
 #include <assimp/postprocess.h>
 
 #include <spdlog/spdlog.h>
+#include <res_resourcemanager.h>
 
 using namespace affx;
 using namespace affx::geo;
+
+SceneLoader::SceneLoader(std::shared_ptr<res::ResourceManager> resourceManager)
+: m_resourceManager{resourceManager}
+{}
+
+void SceneLoader::readTextures(const aiMaterial *mat_p, Material &material) {
+  // read diffuse textures
+  if (auto texCount = mat_p->GetTextureCount(aiTextureType_DIFFUSE); texCount > 0) {
+    aiString diffuseFilename;
+    aiTextureMapping textureMapping;
+    mat_p->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseFilename, &textureMapping);
+    std::cout << "Material " << material.name << " has diffuse texture '" << diffuseFilename.C_Str() << "'" << std::endl;
+    material.diffuseTexture = m_resourceManager->getResource<geo::Texture>(diffuseFilename.C_Str());
+  }
+}
 
 void SceneLoader::readMaterials(const aiScene *scene_p, Scene &scene) {
   for (int i=0; i<scene_p->mNumMaterials; ++i) {
     aiMaterial *mat_p = scene_p->mMaterials[i];
 
-    auto material = std::make_shared<Material>();
-    material->name = mat_p->GetName().C_Str();
-//    mat_p->GetTexture(aiTextureType_DIFFUSE)
+    std::string name = mat_p->GetName().C_Str();
+    auto material = m_resourceManager->getResource<geo::Material>(name);
+    (*material)->name = mat_p->GetName().C_Str();
 
+    readTextures(mat_p, **material);
+
+    // overwrite settings with scene file properties
     aiColor3D color (0.f,0.f,0.f);
     mat_p->Get(AI_MATKEY_COLOR_DIFFUSE,color);
-    material->diffuse.r = color.r;
-    material->diffuse.g = color.g;
-    material->diffuse.b = color.b;
-    std::cout << material->name << " has diffuse: " << color.r << " " << color.g << " " << color.b << std::endl;
+    (*material)->diffuse.r = color.r;
+    (*material)->diffuse.g = color.g;
+    (*material)->diffuse.b = color.b;
+    std::cout << (*material)->name << " has diffuse: " << color.r << " " << color.g << " " << color.b << std::endl;
 
     mat_p->Get(AI_MATKEY_COLOR_SPECULAR,color);
-    material->specular.r = color.r;
-    material->specular.g = color.g;
-    material->specular.b = color.b;
+    (*material)->specular.r = color.r;
+    (*material)->specular.g = color.g;
+    (*material)->specular.b = color.b;
 
     mat_p->Get(AI_MATKEY_COLOR_AMBIENT, color);
-    material->ambient.r = color.r;
-    material->ambient.g = color.g;
-    material->ambient.b = color.b;
+    (*material)->ambient.r = color.r;
+    (*material)->ambient.g = color.g;
+    (*material)->ambient.b = color.b;
 
-    scene.m_materials.emplace_back(std::move(material));
+    scene.m_materials.push_back(std::move(material));
   }
 }
 
@@ -111,7 +130,6 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
     }
 
     node->name = std::string{node_p->mName.C_Str()};
-
     std::cout << "@@@: " << node->name << " has " << node_p->mNumChildren << " children, and " << node_p->mNumMeshes << " Mesh instances" << std::endl;
 
     // assimp stores the transformations in
@@ -254,7 +272,7 @@ void readTextures(const aiScene *scene_p, Scene &scene) {
 
 }
 
-std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
+std::unique_ptr<res::IResource> SceneLoader::loadResource(const std::string &path) {
   geo::Scene scene;
   Assimp::Importer m_importer;
   const aiScene *aiScene_p{nullptr};
@@ -266,7 +284,7 @@ std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
   }
 
   readMaterials(aiScene_p, scene);
-  readTextures(aiScene_p, scene);
+//  readEmbeddedTextures(aiScene_p, scene);
 
   readMeshes(aiScene_p, scene);
   readHierarchy(aiScene_p, scene);
@@ -275,5 +293,5 @@ std::shared_ptr<void> SceneLoader::loadResource(const std::string &path) {
   readLights(aiScene_p, scene);
   readCameras(aiScene_p, scene);
 
-  return std::make_shared<Scene>(std::move(scene));
+  return std::make_unique<res::Resource<geo::Scene>>(10, std::move(scene));
 }

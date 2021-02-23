@@ -6,6 +6,7 @@
 #define RENDERER_GEO_SCENELOADER_H
 
 #include "geo_camera.h"
+#include "geo_materialloader.h"
 #include <assimp/scene.h>
 #include <geo_transform.h>
 #include <glm/glm.hpp>
@@ -14,6 +15,10 @@
 #include <vector>
 
 namespace affx {
+namespace res {
+class ResourceManager;
+template <typename T> class Resource;
+}
 namespace geo {
 
 struct Mesh;
@@ -43,7 +48,7 @@ public:
   using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
   //  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
   using TextureIterable = std::vector<std::shared_ptr<Texture>>;
-  using MaterialIterable = std::vector<std::shared_ptr<Material>>;
+  using MaterialIterable = std::vector<std::shared_ptr<res::Resource<geo::Material>>>;
   using LightIterable = std::vector<std::shared_ptr<Light>>;
   using CameraIterable = std::vector<std::shared_ptr<Camera>>;
   using SceneNodeIterable = std::vector<std::shared_ptr<SceneNode>>;
@@ -78,16 +83,20 @@ private:
 
 class SceneLoader : public affx::res::ResourceFactory {
 public:
-  std::shared_ptr<void> loadResource(const std::string &path) override;
+  SceneLoader(std::shared_ptr<res::ResourceManager> resourceManager);
+
+  std::unique_ptr<res::IResource> loadResource(const std::string &path) override;
 
 private:
+  std::shared_ptr<res::ResourceManager> m_resourceManager {nullptr};
+
   void readMaterials(const aiScene *aiScene, geo::Scene &scene);
   void readMeshes(const aiScene *aiScene, geo::Scene &scene);
   void readHierarchy(const aiScene *aiScene, geo::Scene &scene);
   void readLights(const aiScene *aiScene, geo::Scene &scene);
   void readCameras(const aiScene *aiScene, geo::Scene &scene);
-  //  void readTextures(const aiScene* aiScene, geo::Scene& scene);
-  //  void readCameras(const aiScene* aiScene, geo::Scene& scene);
+  void readTextures(const aiMaterial* aiMaterial, geo::Material& material);
+//  void readEmbeddedTextures(const aiScene* aiScene, geo::Scene& scene);
 };
 
 } // namespace geo

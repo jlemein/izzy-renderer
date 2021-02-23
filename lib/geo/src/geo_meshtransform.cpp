@@ -10,7 +10,7 @@
 using namespace affx;
 using namespace affx::geo;
 
-void MeshTransform::ScaleToUniformSize(Mesh &mesh, float size) {
+void MeshTransform::ScaleToUniformSize(Mesh& mesh, float size) {
   auto bb = ShapeUtil::computeBoundingBox(mesh);
   auto scaleX = bb.xMax - bb.xMin;
   auto scaleY = bb.yMax - bb.yMin;

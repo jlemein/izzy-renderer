@@ -21,7 +21,7 @@ struct Curve;
  * hierarchy
  */
 struct MeshTransform {
-  static void ScaleToUniformSize(Mesh &mesh, float size = 1.0F);
+  static void ScaleToUniformSize(Mesh& mesh, float size = 1.0F);
   static void ScaleToUniformSize(Curve &curve, float size = 1.0F);
   static void CenterMeshToWorldOrigin(Mesh &mesh);
 

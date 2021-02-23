@@ -13,6 +13,8 @@
 #include <memory>
 
 #include <geo_boundingbox.h>
+#include <geo_material.h>
+#include <res_resource.h>
 
 namespace affx {
 namespace geo {
@@ -20,22 +22,6 @@ namespace geo {
 enum class PolygonMode {
   kTriangles,
   kQuads
-};
-
-struct Material {
-  std::string name;
-
-  // colors
-  glm::vec3 diffuse;
-  glm::vec3 emissive;
-  glm::vec3 ambient;
-  glm::vec3 specular;
-  glm::vec3 transparent;
-
-  // material
-  float shininess;
-  float opacity;
-
 };
 
 
@@ -46,7 +32,7 @@ struct Mesh {
   std::vector<float> uvs;
   std::vector<uint32_t> indices;
 
-  std::shared_ptr<Material> material {nullptr};
+  std::shared_ptr<res::Resource<Material>> material;
 
   // describes the data
   PolygonMode polygonMode {PolygonMode::kTriangles};

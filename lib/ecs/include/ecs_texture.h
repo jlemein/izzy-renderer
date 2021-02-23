@@ -3,12 +3,20 @@
 
 #include <string>
 
+namespace affx {
+namespace ecs {
+
 /**!
  * @brief Exposed component for textures
  */
 struct Texture {
+  std::string name;
+    // parameter name in shader
+
   uint32_t glTextureId;
-  std::string diffuseTextureFilepath;
 };
+
+} // end of package
+} // end of enterprise
 
 #endif // INCLUDED_VIEWER_TEXTURE_H_

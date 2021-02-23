@@ -9,14 +9,18 @@
 #include <glm/glm.hpp>
 #include <iostream>
 #include <unordered_map>
+#include <vector>
+#include <entt/fwd.hpp>
+#include <ecs_texture.h>
 
 namespace affx {
 namespace ecs {
 
 struct UberMaterialData {
-  glm::vec3 diffuse{1.0F, 0.0F, 0.0F};
-  glm::vec3 specular;
-  glm::vec3 ambient;
+  glm::vec4 diffuse{1.0F, 0.0F, 0.0F, 0.0F};
+  glm::vec4 specular;
+  glm::vec4 ambient;
+  bool hasDiffuseTex {false};
 
   static inline const char *PARAM_NAME = "UberMaterial";
 };
@@ -26,13 +30,20 @@ struct UniformBlockData {
   std::size_t size;
 };
 
-struct Shader {
+/**!
+ * @brief A Shader contains all material properties needed to perform a
+ * succesful render pass of, either a mesh, curve or postprocess effect.
+ */
+struct Shader { // alias single RenderPass
   // TODO copying Shaders should be forbidden or fixed.
   using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
 
   std::string vertexShaderFile{""};
   std::string fragmentShaderFile{""};
   UniformProperties properties;
+
+  // a shader is possibly dependent on offscreen render buffers (or file textures).
+  std::vector<ecs::Texture> textures {};
 
   template <typename T> void setProperty(const T &data) {
     setProperty(T::PARAM_NAME, data);

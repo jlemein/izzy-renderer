@@ -24,7 +24,10 @@ uniform UberMaterial {
     vec3 uDiffuse;
     vec3 uSpecular;
     vec3 uAmbient;
+    bool hasDiffuseTex;
 };
+
+layout(binding = 0) uniform sampler2D diffuseTex;
 
 layout(location = 0) in vec4 inNormal;
 layout(location = 1) in vec2 uv1;
@@ -50,6 +53,10 @@ void main() {
             light_diffuse *= 0.001F * uIntensity[i];
         }
 
+        vec3 diffuse = uDiffuse;
+        if (hasDiffuseTex) {
+            diffuse = texture(diffuseTex, vec2(0.5, 0.5)).xyz;
+        }
         outColor += dot_normal_light * attenuation * vec4(uDiffuse * light_diffuse, 1.0);
     }
 }

@@ -294,8 +294,10 @@ GLuint compileShader(const Shader &shader, const Renderable &renderable) {
   glSpecializeShaderARB(fragment_shader, "main", 0, 0, 0);
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fsCompiled);
 
-  if (!fsCompiled)
+  if (!fsCompiled) {
     getShaderLog(fragment_shader);
+//    spdlog::log(spdlog::level::error, "Failed to compile fragment shader")
+  }
 
   if (!vsCompiled)
     getShaderLog(vertex_shader);
@@ -441,6 +443,28 @@ void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
     throw std::runtime_error("Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
+
+  // determine frame buffers
+  if (m_registry.has<PosteffectCollection>(m_activeCamera)) {
+    GLuint framebufferName = 0;
+    glGenFramebuffers(1, &framebufferName);
+    glBindFramebuffer(GL_FRAMEBUFFER, framebufferName);
+
+    // texture we are going to render to
+    GLuint renderedTexture;
+    glGenTextures(1, &renderedTexture);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    // The depth buffer
+    GLuint depthrenderbuffer;
+    glGenRenderbuffers(1, &depthrenderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+  }
 }
 
 void RenderSystem::updateCamera(Renderable &renderable) {
@@ -467,6 +491,8 @@ void RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system) {
 }
 
 void RenderSystem::render() {
+
+  // 1. Select buffer to render into
   auto view = m_registry.view<const Renderable>();
 
   for (auto entity : view) {
@@ -495,6 +521,7 @@ void RenderSystem::render() {
 
     //    glBindVertexArray(renderable.vertex_array_object);
 
+    // assign textures
     for (auto &subsystem : m_renderSubsystems) {
       subsystem->onRender(m_registry, entity);
     }

@@ -30,9 +30,9 @@ TEST_F(ShaderTest, ShouldSetAndGetProperties) {
   entt::registry reg;
   auto e = reg.create();
 
-  ecs::UberMaterialData uber{.diffuse = glm::vec3(0.5F, 0.2F, 1.0F),
-                             .specular = glm::vec3(1.0F, -4.0F, 34.0F),
-                             .ambient = glm::vec3(0.0F, 0.1F, 0.20F)};
+  ecs::UberMaterialData uber{.diffuse = glm::vec4(0.5F, 0.2F, 1.0F, .0F),
+                             .specular = glm::vec4(1.0F, -4.0F, 34.0F, .0F),
+                             .ambient = glm::vec4(0.0F, 0.1F, 0.20F, 0.0F)};
 
   reg.emplace<ecs::Shader>(e, "assets/shaders/uber.vert.spv",
                            "assets/shaders/uber.frag.spv");

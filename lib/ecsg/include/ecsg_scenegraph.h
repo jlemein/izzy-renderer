@@ -5,8 +5,13 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <res_resource.h>
+#include <memory>
 
 namespace affx {
+
+namespace res {
+class ResourceManager;
+}
 
 namespace geo {
 struct Mesh;
@@ -27,7 +32,7 @@ struct Shader;
  */
 class SceneGraph {
 public:
-  SceneGraph() = default;
+  SceneGraph(std::shared_ptr<res::ResourceManager> resourceManager);
 
   //TODO: represent the active camera in the scene graph,
   // probably by flagging the entity with ActiveCamera component.
@@ -88,6 +93,7 @@ public:
 private:
   /// Uses EnTT in the background for scene management
   entt::registry m_registry;
+  std::shared_ptr<res::ResourceManager> m_resourceManager {nullptr};
 
   const SceneGraphEntity* m_activeCamera {nullptr};
 

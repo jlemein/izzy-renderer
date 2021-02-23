@@ -13,7 +13,7 @@ public:
 };
 
 TEST_F(SceneLoaderTest, ShouldFailIfResourceNotExist) {
-  SceneLoader loader;
+  SceneLoader loader(nullptr);
   EXPECT_NO_THROW(loader.loadResource("/home/jlemein/dev/artifax-renderer/lib/shapes/testdata/bunny.fbx"));
 }
 
@@ -23,7 +23,7 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   // - All 3 cubes share the same mesh data. So there is 1 cube mesh.
   // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
   // - 1 instance is named: IcoSphere
-  SceneLoader loader;
+  SceneLoader loader (nullptr);
   auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
   Scene* scene = reinterpret_cast<Scene*>(pScene.get());
 
@@ -46,17 +46,17 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   EXPECT_EQ(sphere->name, std::string{"Icosphere"});
 
   // materials assigned
-  EXPECT_EQ(cube->material->name, std::string{"RedMaterial"});
-  EXPECT_EQ(cube->material->diffuse.r, 1.0F);
-  EXPECT_EQ(cube->material->diffuse.g, 0.0F);
-  EXPECT_EQ(cube->material->diffuse.b, 0.0F);
+  EXPECT_EQ((*cube->material)->name, std::string{"RedMaterial"});
+  EXPECT_EQ((*cube->material)->diffuse.r, 1.0F);
+  EXPECT_EQ((*cube->material)->diffuse.g, 0.0F);
+  EXPECT_EQ((*cube->material)->diffuse.b, 0.0F);
 
-  EXPECT_EQ(cube1->material->name, std::string{"BlueMaterial"});
-  EXPECT_EQ(cube1->material->diffuse.r, 0.0F);
-  EXPECT_EQ(cube1->material->diffuse.g, 0.0F);
-  EXPECT_EQ(cube1->material->diffuse.b, 1.0F);
+  EXPECT_EQ((*cube1->material)->name, std::string{"BlueMaterial"});
+  EXPECT_EQ((*cube1->material)->diffuse.r, 0.0F);
+  EXPECT_EQ((*cube1->material)->diffuse.g, 0.0F);
+  EXPECT_EQ((*cube1->material)->diffuse.b, 1.0F);
 
-  EXPECT_EQ(sphere->material->name, std::string{"DefaultMaterial"});
+  EXPECT_EQ((*sphere->material)->name, std::string{"DefaultMaterial"});
 }
 
 TEST_F(SceneLoaderTest, PrintHierarchy) {
@@ -65,7 +65,7 @@ TEST_F(SceneLoaderTest, PrintHierarchy) {
   // - All 3 cubes share the same mesh data. So there is 1 cube mesh.
   // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
   // - 1 instance is named: IcoSphere
-  SceneLoader loader;
+  SceneLoader loader (nullptr);
   auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
   Scene* scene = reinterpret_cast<Scene*>(pScene.get());
 
@@ -78,6 +78,24 @@ TEST_F(SceneLoaderTest, PrintHierarchy) {
   EXPECT_EQ(scene->rootNode()->children.front()->meshInstances[0]->transform[3].z, 0.0F);
 
 }
+
+//TEST_F(SceneLoaderTest, ShouldLoad2SceneFiles) {
+//  // Loads a scene with 4 instances
+//  // - 3 instances are cubes named: Cube, Cube.001, Cube.002.
+//  // - All 3 cubes share the same mesh data. So there is 1 cube mesh.
+//  // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
+//  // - 1 instance is named: IcoSphere
+//  SceneLoader loader (nullptr);
+//
+//  auto bunnyScene = static_pointer_cast<Scene>(loader.loadResource("assets/models/bunny.fbx"));
+//  auto bunnyMesh = bunnyScene->meshes()[0];
+//  auto bunny = sceneGraph->makeMesh(*bunnyMesh);
+//  bunny.add<FirstPersonControl>();
+////  geo::MeshTransform::ScaleToUniformSize(bunny.get<geo::Mesh>());
+//  TransformUtil::Translate(bunny.get<Transform>(), glm::vec3(4.0F, 1.0F, 1.0F));
+//  bunny.add<Debug>(Debug{.shape = DebugShape::kEulerArrow});
+//
+//}
 
 //TEST_F(SceneLoaderTest, ShouldLoadSimpleScene) {
 //  SceneLoader loader;

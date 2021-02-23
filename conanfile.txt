@@ -8,9 +8,12 @@ glfw/3.3.2
 spdlog/1.8.2
 resourcemanager/0.1
 imgui/1.80
+nlohmann_json/3.9.1
+stb/20200203
 
 [options]
 gtest:build_gmock=True
+nlohmann_json:multiple_headers=True
 #fmt:header_only=True
 
 [generators]

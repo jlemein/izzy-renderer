@@ -32,7 +32,7 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp
         include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h
 #        ../core/include/core_exceptions.h
-        include/ecs_shader.h)
+        include/ecs_shader.h include/ecs_materialsystem.h)
 
 target_link_libraries(ecs PUBLIC geo CONAN_PKG::entt)
 
@@ -64,7 +64,7 @@ target_link_libraries(ecs_test PRIVATE ecs CONAN_PKG::gtest)
 #
 target_include_directories(ecs
         PUBLIC include
-        PRIVATE src ${PROJECT_SOURCE_DIR}/thirdparty/stb)
+        PRIVATE src)
 
 target_link_libraries(ecs
         PUBLIC CONAN_PKG::entt CONAN_PKG::glm inputsystem)

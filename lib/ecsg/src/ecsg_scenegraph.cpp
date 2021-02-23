@@ -17,8 +17,14 @@
 #include <geo_sceneloader.h>
 
 #include <res_resource.h>
+#include <res_resourcemanager.h>
+
 using namespace affx;
 using namespace affx::ecs;
+
+SceneGraph::SceneGraph(std::shared_ptr<res::ResourceManager> resourceManager)
+: m_resourceManager {resourceManager} {
+}
 
 SceneGraphEntity SceneGraph::makeEntity(std::string name) {
   auto e{m_registry.create()};
@@ -101,11 +107,17 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
 
   meshEntity.add<ecs::Renderable>();
   meshEntity.add<geo::Mesh>(mesh);
-  meshEntity.add<ecs::Shader>(
-      {"assets/shaders/diffuse.vert.spv", "assets/shaders/diffuse.frag.spv"});
-  meshEntity.add<Texture>({
-    .diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg"
-  });
+
+  // Watch out here, geo::Material is a value type so we can do this.
+  // It is very tricky, because we ignore the resource itself here, possibly
+  // causing dangling pointers in the end
+  meshEntity.add<geo::Material>(**m_resourceManager->getResource<geo::Material>("DefaultMaterial"));
+
+//  auto& shader = meshEntity.add<ecs::Shader>(
+//      {"assets/shaders/diffuse.vert.spv", "assets/shaders/diffuse.frag.spv"});
+//  shader.textures.emplace_back(Texture{
+//    .diffuseTextureFilepath = "assets/textures/textures/castle_normal.jpg"
+//  };
 
   return meshEntity;
 }
@@ -185,14 +197,17 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node,
     Shader shader{"assets/shaders/uber.vert.spv",
                   "assets/shaders/uber.frag.spv"};
     shader.setProperty<UberMaterialData>(
-        {.diffuse = instance->material->diffuse,
-         .specular = instance->material->specular,
-         .ambient = instance->material->ambient});
+        {.diffuse = glm::vec4((*instance->material)->diffuse, 1.0F),
+         .specular = glm::vec4((*instance->material)->specular, 1.0F),
+         .ambient = glm::vec4((*instance->material)->ambient, 1.0F)});
 
     // create mesh instance mesh data
     // TODO: make mesh instance instead of copy mesh
     auto e =
         makeRenderable(*instance->mesh, instance->transform, std::move(shader));
+    // TODO fix thism by removing shader alltogether and delegating the work to the material system
+    m_registry.emplace<geo::Material>(e.handle(), *(*instance->material));
+
     root.addChild(e);
   }
 

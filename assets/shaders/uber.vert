@@ -33,6 +33,8 @@ layout(location = 2) in vec2 uv;
 layout(location = 0) out vec4 normalOut;
 layout(location = 1) out vec2 out_uv;
 
+layout(binding = 0) uniform sampler2D diffuseTex;
+
 // if direction.w is 0 - directional light
 // otherwise point light
 layout(location = 2) out vec4 light_direction[MAX_LIGHTS];

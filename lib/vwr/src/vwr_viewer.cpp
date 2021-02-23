@@ -26,10 +26,10 @@ static void error_callback(int error, const char *description) {
 }
 } // namespace
 
-Viewer::Viewer(ecs::SceneGraph &sceneGraph,
-               res::ResourceManager &resourceManager)
+Viewer::Viewer(std::shared_ptr<ecs::SceneGraph> sceneGraph,
+               std::shared_ptr<res::ResourceManager> resourceManager)
     : m_sceneGraph{sceneGraph}, m_resourceManager{resourceManager},
-      m_registry(sceneGraph.getRegistry()),
+      m_registry(sceneGraph->getRegistry()),
       m_renderSystem{make_shared<ecs::RenderSystem>(m_registry)},
       m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)},
       m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)},
@@ -147,7 +147,7 @@ int Viewer::run() {
   return 0;
 }
 
-ecs::SceneGraph &Viewer::getSceneGraph() { return m_sceneGraph; }
+ecs::SceneGraph &Viewer::getSceneGraph() { return *m_sceneGraph; }
 
 DisplayDetails Viewer::getDisplayDetails() { return m_displayDetails; }
 

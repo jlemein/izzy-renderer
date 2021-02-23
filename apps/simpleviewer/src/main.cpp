@@ -17,6 +17,8 @@
 #include <geo_meshtransform.h>
 #include <geo_primitivefactory.h>
 #include <geo_sceneloader.h>
+#include <geo_texture.h>
+#include <geo_textureloader.h>
 //#include <geo_scene.h>
 
 #include <res_resource.h>
@@ -27,14 +29,10 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecsg_scenegraph.h>
+#include <geo_materialloader.h>
 #include <geo_shapeutil.h>
 #include <glm/gtx/transform.hpp>
 #include <gui_system.h>
-
-namespace {
-affx::res::ResourceManager resourceManager;
-affx::ecs::SceneGraph sceneGraph;
-} // namespace
 
 // entt::entity makeBunny(entt::registry &registry, );
 entt::entity makeLight(entt::registry &registry, const glm::vec3 &color,
@@ -47,65 +45,63 @@ using namespace affx::ecs;
 using namespace affx::viewer;
 
 int main() {
-  resourceManager.addFactory<geo::Scene>(std::make_unique<geo::SceneLoader>());
+  using namespace std;
 
-  auto viewer = std::make_shared<Viewer>(sceneGraph, resourceManager);
-  viewer->setWindowSize(1024, 1024);
+  auto materialSystem = make_unique<geo::MaterialSystem>("../assets/shaders/materials.json");
+  materialSystem->initialize();
+
+  auto resourceManager = make_shared<res::ResourceManager>();
+  resourceManager->addFactory<geo::Material>(move(materialSystem));
+  resourceManager->addFactory<geo::Scene>(make_unique<geo::SceneLoader>(resourceManager));
+  resourceManager->addFactory<geo::Texture>(make_unique<geo::TextureLoader>());
+
+  auto sceneGraph = make_shared<SceneGraph>(resourceManager);
+
+  auto viewer = make_shared<Viewer>(sceneGraph, resourceManager);
+  viewer->setWindowSize(1024, 768);
   auto gui = std::make_shared<GuiSystem>(viewer);
   auto textureSystem = std::make_shared<TextureSystem>(viewer);
   viewer->registerExtension(gui);
   viewer->registerExtension(textureSystem);
   viewer->registerRenderSubsystem(textureSystem);
 
-//  viewer.getInputHandler().addCommand(SWITCH_CAMERA, [](SceneGraph& scenegraph) {
-//    auto cameras = scenegraph.getCameras();
-//    auto camera = scenegraph.getActiveCamera();
-//    scenegraph.setActiveCamera(nextCamera);
-//  });
-//  viewer.getEventHandler().addHandler(EVT_ENEMY_DOWN, [](SceneGraph& scenegraph) {
-//    auto cameras = scenegraph.getCameras();
-//    auto camera = scenegraph.getActiveCamera();
-//    scenegraph.setActiveCamera(nextCamera);
-//  });
+////  viewer.getInputHandler().addCommand(SWITCH_CAMERA, [](SceneGraph& scenegraph) {
+////    auto cameras = scenegraph.getCameras();
+////    auto camera = scenegraph.getActiveCamera();
+////    scenegraph.setActiveCamera(nextCamera);
+////  });
+////  viewer.getEventHandler().addHandler(EVT_ENEMY_DOWN, [](SceneGraph& scenegraph) {
+////    auto cameras = scenegraph.getCameras();
+////    auto camera = scenegraph.getActiveCamera();
+////    scenegraph.setActiveCamera(nextCamera);
+////  });
 
   // Grid
-  sceneGraph.makeRectangularGrid();
-
-//  auto sceneResource = resourceManager.getResource<geo::Scene>("assets/models/three_instanced_cubes_one_sphere.fbx");
-//  sceneGraph.makeScene(**sceneResource);
-
-  auto loadedScene = resourceManager.getResource<geo::Scene>("testassets/models/3objects.fbx");
-  auto sg = sceneGraph.makeScene(loadedScene);
+  sceneGraph->makeRectangularGrid();
+//  auto loadedScene = resourceManager->getResource<geo::Scene>("testassets/models/3objects.fbx");
+  auto loadedScene = resourceManager->getResource<geo::Scene>("testassets/models/wooden_crate.fbx");
+  sceneGraph->makeScene(*loadedScene);
 
   // Camera
   auto cameraTransform = glm::inverse(
       glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F), glm::vec3(0.0F, 1.60F, 0.0F),
                   glm::vec3(0.0F, 1.0F, 0.0F)));
-  auto camera = sceneGraph.makeCamera("CodeCamera");
+  auto camera = sceneGraph->makeCamera("CodeCamera");
   camera.setTransform(cameraTransform);
   camera.add<FirstPersonControl>();
   viewer->setActiveCamera(camera);
-
-  auto fakeCamera = sceneGraph.makeCamera("FakeCamera");
-  fakeCamera.setTransform(cameraTransform);
-  fakeCamera.add<Debug>({.shape = ecs::DebugShape::kCamera});
+//
+//  auto fakeCamera = sceneGraph->makeCamera("FakeCamera");
+//  fakeCamera.setTransform(cameraTransform);
+//  fakeCamera.add<Debug>({.shape = ecs::DebugShape::kCamera});
 
   // Bunny
   auto bunnyScene =
-      resourceManager.getResource<geo::Scene>("assets/models/bunny.fbx");
-  auto bunnyMesh = bunnyScene->meshes()[0];
-  auto bunny = sceneGraph.makeMesh(*bunnyMesh);
+      resourceManager->getResource<geo::Scene>("assets/models/bunny.fbx");
+  auto bunny = sceneGraph->makeMesh(*(*bunnyScene)->meshes()[0]);
   geo::MeshTransform::ScaleToUniformSize(bunny.get<geo::Mesh>());
   TransformUtil::Translate(bunny.get<Transform>(), glm::vec3(4.0F, 1.0F, 1.0F));
   bunny.add<Debug>(Debug{.shape = DebugShape::kEulerArrow});
-
-  // ShaderResources resources;
-  // resources.init(); // loads shader files
-  // ShaderResources.getNamedShader("diffuse-color");
-//  auto shader = Shader{"assets/shaders/diffuse-color.vert.spv",
-//                       "assets/shaders/diffuse-color.frag.spv"};
-//  shader.setProperty("ColorBlock",
-//                     ColorBlock{glm::vec4{1.0F, 0.0F, 0.0F, 1.0F}});
 
   //  auto cylinder =
   //      EcsFactory(sceneGraph)
@@ -113,7 +109,7 @@ int main() {
   //          shader);
 
   // add lighting to scene
-  auto light = sceneGraph.makePointLight("MyPointLight", glm::vec3(1.0F, 1.0F, 0.7F));
+  auto light = sceneGraph->makePointLight("MyPointLight", glm::vec3(1.0F, 1.0F, 0.7F));
   light.get<Light>().intensity = 1000.0F;
   light.add<Debug>();
   TransformUtil::Translate(light.get<Transform>(),

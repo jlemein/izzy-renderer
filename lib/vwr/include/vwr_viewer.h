@@ -53,7 +53,7 @@ public:
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Viewer(ecs::SceneGraph& sceneGraph, res::ResourceManager& resourceManager);
+  Viewer(std::shared_ptr<ecs::SceneGraph> sceneGraph, std::shared_ptr<res::ResourceManager> resourceManager);
 
   ~Viewer();
 
@@ -74,8 +74,8 @@ public:
       std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem);
 
 private:
-  ecs::SceneGraph& m_sceneGraph;
-  res::ResourceManager& m_resourceManager;
+  std::shared_ptr<ecs::SceneGraph> m_sceneGraph;
+  std::shared_ptr<res::ResourceManager> m_resourceManager;
   entt::registry& m_registry;
 
   std::list<std::shared_ptr<ecs::IViewerExtension>> m_viewerExtensions;

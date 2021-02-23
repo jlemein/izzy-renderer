@@ -44,6 +44,6 @@ void main() {
             light_diffuse *= 0.001F * uIntensity[i];
         }
 
-        outColor += dot_normal_light * attenuation * vec4(material_color * light_diffuse, 1.0);
+        outColor += vec4(1.0, 0.0, 0.0, 0.0) ;//dot_normal_light * attenuation * vec4(material_color * light_diffuse, 1.0);
     }
 }
