@@ -16,7 +16,7 @@ target_include_directories(geo
 target_link_libraries(geo PRIVATE CONAN_PKG::assimp CONAN_PKG::glm
         CONAN_PKG::spdlog
         CONAN_PKG::nlohmann_json
-        PUBLIC CONAN_PKG::assimp CONAN_PKG::resourcemanager CONAN_PKG::stb)
+        PUBLIC CONAN_PKG::assimp CONAN_PKG::resourcemanager CONAN_PKG::stb CONAN_PKG::fmt)
 
 if (BUILD_TESTING)
     add_executable(geo_test src/geo_sceneloader.t.cpp include/geo_scene.h include/geo_light.h include/geo_camera.h)

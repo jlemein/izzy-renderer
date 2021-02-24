@@ -23,8 +23,11 @@ class RenderSystem;
 class CameraSystem;
 class DebugSystem;
 class IViewerExtension;
-class SceneGraph;
 } // namespace ecs
+
+namespace ecsg {
+class SceneGraph;
+} // namespace ecsg
 
 namespace io {
 class InputSystem;
@@ -53,11 +56,11 @@ public:
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Viewer(std::shared_ptr<ecs::SceneGraph> sceneGraph, std::shared_ptr<res::ResourceManager> resourceManager);
+  Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<res::ResourceManager> resourceManager);
 
   ~Viewer();
 
-  ecs::SceneGraph& getSceneGraph();
+  ecsg::SceneGraph& getSceneGraph();
 
   DisplayDetails getDisplayDetails();
 
@@ -66,7 +69,7 @@ public:
 
   void setWindowSize(unsigned int width, unsigned int height);
 
-  void setActiveCamera(ecs::SceneGraphEntity cameraEntity);
+  void setActiveCamera(ecsg::SceneGraphEntity cameraEntity);
 
   void
   registerExtension(std::shared_ptr<ecs::IViewerExtension> interactable);
@@ -74,7 +77,7 @@ public:
       std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem);
 
 private:
-  std::shared_ptr<ecs::SceneGraph> m_sceneGraph;
+  std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
   std::shared_ptr<res::ResourceManager> m_resourceManager;
   entt::registry& m_registry;
 

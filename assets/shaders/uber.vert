@@ -17,6 +17,7 @@ uniform UberMaterial {
     vec3 uDiffuse;
     vec3 uSpecular;
     vec3 uAmbient;
+    bool hasDiffuseTex;
 };
 
 layout(binding = 1)

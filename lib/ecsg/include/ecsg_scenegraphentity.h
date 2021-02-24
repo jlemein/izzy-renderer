@@ -10,7 +10,7 @@
 #include <memory>
 
 namespace affx {
-namespace ecs {
+namespace ecsg {
 
 class SceneGraph;
 

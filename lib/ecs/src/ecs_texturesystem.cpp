@@ -11,15 +11,14 @@
 
 #include <GL/glew.h>
 
-#include <vwr_viewer.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
 
 using namespace affx::ecs;
 using namespace affx;
 
-TextureSystem::TextureSystem(std::shared_ptr<viewer::Viewer> viewer)
-: m_sceneGraph(viewer->getSceneGraph())
+TextureSystem::TextureSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph)
+: m_sceneGraph(sceneGraph)
 {
 }
 
@@ -37,7 +36,7 @@ TextureSystem::TextureSystem(std::shared_ptr<viewer::Viewer> viewer)
 //}
 
 void TextureSystem::initialize() {
-  auto& registry = m_sceneGraph.getRegistry();
+  auto& registry = m_sceneGraph->getRegistry();
   auto view = registry.view<geo::Material>();
 
   for (auto entity : view) {
@@ -75,15 +74,16 @@ void TextureSystem::initialize() {
 
 void TextureSystem::update(float time, float dt) {}
 
-void TextureSystem::onRender(const entt::registry &registry,
-                             entt::entity entity) {
+void TextureSystem::onRender(entt::entity e) {
   //  for (auto entity : view) {
-  if (!registry.has<Renderable, Shader>(entity)) {
+  auto& registry = m_sceneGraph->getRegistry();
+
+  if (!registry.has<Renderable, Shader>(e)) {
     return;
   }
 
-  const auto &renderable = registry.get<Renderable>(entity);
-  const auto& shader = registry.get<Shader>(entity);
+  const auto &renderable = registry.get<Renderable>(e);
+  const auto& shader = registry.get<Shader>(e);
 
   for (int t=0; t<shader.textures.size(); ++t) {
     auto& texture = shader.textures[t];

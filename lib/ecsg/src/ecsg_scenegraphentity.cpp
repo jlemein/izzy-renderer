@@ -5,6 +5,7 @@
 #include <ecs_name.h>
 #include <ecs_relationshiputil.h>
 #include <ecs_transform.h>
+using namespace affx::ecsg;
 using namespace affx::ecs;
 
 SceneGraphEntity::SceneGraphEntity(entt::registry& registry, entt::entity handle)

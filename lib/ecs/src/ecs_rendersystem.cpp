@@ -8,11 +8,15 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_relationship.h>
+#include <ecs_texturesystem.h>
 #include <ecs_transform.h>
+#include <ecs_texturesystem.h>
+#include <ecsg_scenegraph.h>
 #include <fstream>
 #include <geo_curve.h>
 #include <geo_mesh.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <spdlog/spdlog.h>
 using namespace affx;
 using namespace affx::ecs;
 
@@ -48,6 +52,20 @@ void getShaderLog(GLint shader) {
 
   std::string log(buffer.begin(), buffer.end());
   std::cout << log << std::endl;
+}
+
+void printLinkingLog(GLint program) {
+  spdlog::log(spdlog::level::err, "Failed to link shader");
+
+  GLint reqBufferSize;
+  glGetProgramiv(program, GL_INFO_LOG_LENGTH, &reqBufferSize);
+
+  std::vector<char> buffer;
+  buffer.resize(reqBufferSize);
+  glGetProgramInfoLog(program, reqBufferSize, nullptr, buffer.data());
+
+  std::string log(buffer.begin(), buffer.end());
+  spdlog::log(spdlog::level::info, "Program log: {}", log);
 }
 
 constexpr void *BUFFER_OFFSET(unsigned int offset) {
@@ -138,8 +156,9 @@ void initLightingUbo(Renderable &renderable) {
   renderable.uboLightingIndex =
       glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
   if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-//    std::cout << "Cannot find ubo block index with name "
-//              << UniformLighting::PARAM_NAME << " for <name>" << std::endl;
+    //    std::cout << "Cannot find ubo block index with name "
+    //              << UniformLighting::PARAM_NAME << " for <name>" <<
+    //              std::endl;
     //    exit(1);
     renderable.isLightingSupported = false;
   } else {
@@ -216,8 +235,10 @@ void initShaderProperties(Renderable &renderable,
 
 } // namespace
 
-RenderSystem::RenderSystem(entt::registry &registry)
-    : m_registry{registry}, m_debugSystem(registry) {}
+RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph)
+    : m_registry{sceneGraph->getRegistry()},
+      m_debugSystem(sceneGraph->getRegistry()),
+      m_materialSystem(std::make_shared<TextureSystem>(sceneGraph)) {}
 
 void initCurveBuffers(Renderable &renderable, const geo::Curve &curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
@@ -277,9 +298,9 @@ void initMeshBuffers(Renderable &renderable, const geo::Mesh &mesh) {
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0,
                         BUFFER_OFFSET(vertexSize + normalSize));
 }
-GLuint compileShader(const Shader &shader, const Renderable &renderable) {
-  auto vertexShaderBuffer = readFile(shader.vertexShaderFile);
-  auto fragmentShaderBuffer = readFile(shader.fragmentShaderFile);
+GLuint compileShader(const geo::Material &material, const Renderable &renderable) {
+  auto vertexShaderBuffer = readFile(material.vertexShader);
+  auto fragmentShaderBuffer = readFile(material.fragmentShader);
 
   int vsCompiled = 0, fsCompiled = 0;
   auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -295,12 +316,14 @@ GLuint compileShader(const Shader &shader, const Renderable &renderable) {
   glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fsCompiled);
 
   if (!fsCompiled) {
+    spdlog::log(spdlog::level::err, "Failed to compile fragment shader");
     getShaderLog(fragment_shader);
-//    spdlog::log(spdlog::level::error, "Failed to compile fragment shader")
   }
 
-  if (!vsCompiled)
+  if (!vsCompiled) {
+    spdlog::log(spdlog::level::err, "Failed to compile vertex shader");
     getShaderLog(vertex_shader);
+  }
 
   if (!fsCompiled || !vsCompiled) {
     exit(1);
@@ -312,8 +335,11 @@ GLuint compileShader(const Shader &shader, const Renderable &renderable) {
   glLinkProgram(program);
   int linked = 0;
   glGetProgramiv(program, GL_LINK_STATUS, &linked);
+
   if (linked == GL_FALSE) {
-    std::cout << "Linking failed for vs: " << shader.vertexShaderFile << ", fs: " << shader.fragmentShaderFile << std::endl;
+    spdlog::log(spdlog::level::err, "Linking failed for vs: {}, fs: {}",
+                material.vertexShader, material.fragmentShader);
+    printLinkingLog(program);
   }
 
   return program;
@@ -321,6 +347,8 @@ GLuint compileShader(const Shader &shader, const Renderable &renderable) {
 
 void RenderSystem::init() {
   glShadeModel(GL_SMOOTH);
+
+  m_materialSystem->initialize();
 
   // Initialization of the rendersystem encompasses the following steps.
   // Take into account the vocabulary.
@@ -341,12 +369,12 @@ void RenderSystem::init() {
   for (auto entity : curveView) {
     auto &curve = m_registry.get<geo::Curve>(entity);
     auto &renderable = m_registry.get<Renderable>(entity);
-    auto &shader = m_registry.get<Shader>(entity);
+    auto &material = m_registry.get<geo::Material>(entity);
 
     try {
       initCurveBuffers(renderable, curve);
-      renderable.program = compileShader(shader, renderable);
-      initShaderProperties(renderable, shader.properties);
+      renderable.program = compileShader(material, renderable);
+      initShaderProperties(renderable, material.properties);
     } catch (std::exception &e) {
       auto name = m_registry.has<Name>(entity)
                       ? m_registry.get<Name>(entity).name
@@ -380,11 +408,12 @@ void RenderSystem::init() {
   }
 }
 
-void RenderSystem::update(float /*time*/, float /*dt*/) {
+void RenderSystem::update(float time, float dt) {
   // synchronizes the transformation for the entity into the renderable
   // component.
   synchMvpMatrices();
   updateLightProperties();
+  m_materialSystem->update(time, dt);
 }
 
 void RenderSystem::synchMvpMatrices() {
@@ -440,7 +469,8 @@ void RenderSystem::updateModelMatrix(entt::entity e) {
 
 void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
   if (!m_registry.has<Camera>(cameraEntity)) {
-    throw std::runtime_error("Only entities with a Camera component can be set as active camera");
+    throw std::runtime_error(
+        "Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
 
@@ -454,7 +484,8 @@ void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
     GLuint renderedTexture;
     glGenTextures(1, &renderedTexture);
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB,
+                 GL_UNSIGNED_BYTE, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -463,7 +494,8 @@ void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
     glGenRenderbuffers(1, &depthrenderbuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                              GL_RENDERBUFFER, depthrenderbuffer);
   }
 }
 
@@ -474,7 +506,7 @@ void RenderSystem::updateCamera(Renderable &renderable) {
   }
 
   auto &transform = m_registry.get<ecs::Transform>(m_activeCamera);
-  auto& activeCamera = m_registry.get<Camera>(m_activeCamera);
+  auto &activeCamera = m_registry.get<Camera>(m_activeCamera);
 
   renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
   renderable.uniformBlock.proj =
@@ -491,15 +523,19 @@ void RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system) {
 }
 
 void RenderSystem::render() {
-
   // 1. Select buffer to render into
   auto view = m_registry.view<const Renderable>();
 
   for (auto entity : view) {
     const auto &renderable = view.get<const Renderable>(entity);
+    const auto &name = m_registry.get<Name>(entity);
+    spdlog::log(spdlog::level::info, "Rendering {}", name.name);
 
     // activate shader program
     glUseProgram(renderable.program);
+
+    // prepare the materials
+    m_materialSystem->onRender(entity);
 
     // TODO: disable in release
     if (renderable.isWireframe) {

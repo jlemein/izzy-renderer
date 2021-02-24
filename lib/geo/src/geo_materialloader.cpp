@@ -31,8 +31,11 @@ void MaterialSystem::initialize() {
 
   for (auto &material : j["materials"]) {
     auto name = material["name"].get<std::string>();
-    auto materialName = material["material_name"].get<std::string>();
-    m_materials[name] = Material{.name = materialName};
+    m_materials[name] =
+        Material{.name = material["material_name"].get<std::string>(),
+                 .vertexShader = material["vertex_shader"],
+                 .geometryShader = material["geometry_shader"],
+                 .fragmentShader = material["fragment_shader"]};
   }
 
   if (m_materials.count(j["default_material"]) > 0) {
@@ -43,11 +46,16 @@ void MaterialSystem::initialize() {
   }
 }
 
-std::unique_ptr<affx::res::IResource> MaterialSystem::loadResource(const std::string &name) {
-  if (m_materials.count(name) == 0 && m_materials.count(m_defaultMaterial) == 0) {
-    throw std::runtime_error("Cannot load material. Material does not exist and no default material set");
+std::unique_ptr<affx::res::IResource>
+MaterialSystem::loadResource(const std::string &name) {
+  if (m_materials.count(name) == 0 &&
+      m_materials.count(m_defaultMaterial) == 0) {
+    throw std::runtime_error("Cannot load material. Material does not exist "
+                             "and no default material set");
   }
-  auto material = m_materials.count(name) > 0 ? m_materials.at(name) : m_materials.at(m_defaultMaterial);
+  auto material = m_materials.count(name) > 0
+                      ? m_materials.at(name)
+                      : m_materials.at(m_defaultMaterial);
 
   return std::make_unique<affx::res::Resource<geo::Material>>(100, material);
 }

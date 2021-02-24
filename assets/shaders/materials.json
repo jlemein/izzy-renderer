@@ -20,9 +20,9 @@
           "fragment_shader": "assets/shaders/diffuse.frag.spv"
         }
       ],
-      "vertex_shader": "assets/shaders/diffuse.vert.spv",
+      "vertex_shader": "assets/shaders/diffuse.vert.spvvv",
       "geometry_shader": "",
-      "fragment_shader": "assets/shaders/diffuse.frag.spv",
+      "fragment_shader": "assets/shaders/diffuse.frag.spvvv",
       "properties": {
         "diffuseColor": [
           1.0,
@@ -40,6 +40,13 @@
           0.1
         ]
       }
+    },
+    {
+      "name": "UberMaterial",
+      "material_name": "Uber",
+      "vertex_shader": "assets/shaders/uber.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/uber.frag.spv"
     },
     {
       "name": "DMaterial",

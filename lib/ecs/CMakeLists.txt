@@ -22,7 +22,9 @@ add_library(ecs STATIC include/ecs_camera.h
 
         include/ecs_firstpersoncontrolsystem.h
         include/ecs_rendersystem.h
+        include/ecs_texturesystem.h
         src/ecs_rendersystem.cpp
+        src/ecs_texturesystem.cpp
         src/ecs_transformutil.cpp
         include/ecs_debug.h
         include/ecs_debugsystem.h
@@ -34,7 +36,7 @@ add_library(ecs STATIC include/ecs_camera.h
 #        ../core/include/core_exceptions.h
         include/ecs_shader.h include/ecs_materialsystem.h)
 
-target_link_libraries(ecs PUBLIC geo CONAN_PKG::entt)
+target_link_libraries(ecs PUBLIC geo CONAN_PKG::entt CONAN_PKG::spdlog ecsg)
 
 message("Packages in conan: ${CONAN_PKG}")
 

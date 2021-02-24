@@ -14,9 +14,15 @@
 
 namespace affx
 {
+
+namespace ecsg {
+class SceneGraph;
+} // namespace ecsg
+
 namespace ecs
 {
 struct Shader;
+class TextureSystem;
 
 /**!
  * Responsible
@@ -24,7 +30,7 @@ struct Shader;
 class RenderSystem
 {
  public:
-  RenderSystem(entt::registry &registry);
+  RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph);
 
   void init();
   void update(float time, float dt);
@@ -39,6 +45,7 @@ class RenderSystem
  private:
   entt::registry &m_registry;
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
+  std::shared_ptr<TextureSystem> m_materialSystem;
   ecs::DebugSystem m_debugSystem;
 
   entt::entity m_activeCamera {entt::null};

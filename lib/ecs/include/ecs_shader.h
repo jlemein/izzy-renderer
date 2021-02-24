@@ -38,42 +38,40 @@ struct Shader { // alias single RenderPass
   // TODO copying Shaders should be forbidden or fixed.
   using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
 
-  std::string vertexShaderFile{""};
-  std::string fragmentShaderFile{""};
-  UniformProperties properties;
+//  UniformProperties properties;
 
   // a shader is possibly dependent on offscreen render buffers (or file textures).
   std::vector<ecs::Texture> textures {};
 
-  template <typename T> void setProperty(const T &data) {
-    setProperty(T::PARAM_NAME, data);
-  }
-
-  template <typename T> void setProperty(const char *name, const T &data) {
-    if (properties.count(name) > 0) {
-      memcpy(properties.at(name).data, &data, sizeof(T));
-
-    } else {
-      //      properties[name].data = std::unique_ptr<T>{new T,
-      //      std::default_delete<T>()};
-      properties[name].data = new T();
-      memcpy(properties[name].data, &data, sizeof(T));
-    }
-    properties.at(name).size = sizeof(T);
-  }
-
-  void *getProperty(const char *name) {
-    try {
-      return properties.at(name).data;
-    } catch (std::out_of_range &) {
-      std::cerr << "Cannot find shader property " << name << " in shader.";
-      throw std::runtime_error("Cannot find shader property");
-    }
-  }
-
-  template <typename T> T *getProperty() {
-    return reinterpret_cast<T *>(getProperty(T::PARAM_NAME));
-  }
+//  template <typename T> void setProperty(const T &data) {
+//    setProperty(T::PARAM_NAME, data);
+//  }
+//
+//  template <typename T> void setProperty(const char *name, const T &data) {
+//    if (properties.count(name) > 0) {
+//      memcpy(properties.at(name).data, &data, sizeof(T));
+//
+//    } else {
+//      //      properties[name].data = std::unique_ptr<T>{new T,
+//      //      std::default_delete<T>()};
+//      properties[name].data = new T();
+//      memcpy(properties[name].data, &data, sizeof(T));
+//    }
+//    properties.at(name).size = sizeof(T);
+//  }
+//
+//  void *getProperty(const char *name) {
+//    try {
+//      return properties.at(name).data;
+//    } catch (std::out_of_range &) {
+//      std::cerr << "Cannot find shader property " << name << " in shader.";
+//      throw std::runtime_error("Cannot find shader property");
+//    }
+//  }
+//
+//  template <typename T> T *getProperty() {
+//    return reinterpret_cast<T *>(getProperty(T::PARAM_NAME));
+//  }
 };
 
 } // namespace ecs

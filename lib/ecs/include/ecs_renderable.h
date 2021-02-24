@@ -8,7 +8,8 @@
 #include <glm/glm.hpp>
 #include <GL/glew.h>
 
-#include <ecs_shader.h>
+//#include <ecs_shader.h>
+#include <geo_material.h>
 
 #include <cstring>
 #include <memory>
@@ -51,6 +52,10 @@ struct VertexAttribArray {
   GLuint buffer_offset;
 };
 
+struct UniformBlockData {
+  void *data;
+  std::size_t size;
+};
 
 struct Renderable_UniformBlockInfo {
   GLuint bufferId;
@@ -61,6 +66,8 @@ struct Renderable_UniformBlockInfo {
 
 struct Renderable {
   //storage of user defined shader properties
+//  unsigned int materialId;
+  std::shared_ptr<res::Resource<geo::Material>> material;
 
 //  std::string name{"Unnamed"};
   GLuint program;

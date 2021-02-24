@@ -42,6 +42,7 @@ entt::entity makePenroseTiling(entt::registry &registry);
 
 using namespace affx;
 using namespace affx::ecs;
+using namespace affx::ecsg;
 using namespace affx::viewer;
 
 int main() {
@@ -55,15 +56,12 @@ int main() {
   resourceManager->addFactory<geo::Scene>(make_unique<geo::SceneLoader>(resourceManager));
   resourceManager->addFactory<geo::Texture>(make_unique<geo::TextureLoader>());
 
-  auto sceneGraph = make_shared<SceneGraph>(resourceManager);
+  auto sceneGraph = make_shared<ecsg::SceneGraph>(resourceManager);
 
   auto viewer = make_shared<Viewer>(sceneGraph, resourceManager);
   viewer->setWindowSize(1024, 768);
   auto gui = std::make_shared<GuiSystem>(viewer);
-  auto textureSystem = std::make_shared<TextureSystem>(viewer);
   viewer->registerExtension(gui);
-  viewer->registerExtension(textureSystem);
-  viewer->registerRenderSubsystem(textureSystem);
 
 ////  viewer.getInputHandler().addCommand(SWITCH_CAMERA, [](SceneGraph& scenegraph) {
 ////    auto cameras = scenegraph.getCameras();

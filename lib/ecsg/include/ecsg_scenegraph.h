@@ -25,6 +25,9 @@ struct Camera;
 namespace ecs {
 struct Transform;
 struct Shader;
+}
+
+namespace ecsg {
 
 /**!
  * SceneGraph is responsible for managing scene node instances.
