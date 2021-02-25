@@ -47,7 +47,7 @@ void DebugSystem::init() {
       m_registry.emplace<Name>(debugEntity, debugName);
       m_registry.emplace<Renderable>(debugEntity, model.renderable[i]);
       m_registry.emplace<geo::Mesh>(debugEntity, model.mesh[i]);
-      m_registry.emplace<Shader>(debugEntity, model.shader[i]);
+      m_registry.emplace<geo::Material>(debugEntity, model.material[i]);
       m_registry.emplace<Transform>(debugEntity, model.transformations[i]);
       RelationshipUtil::MakeChild(m_registry, e, debugEntity);
     }

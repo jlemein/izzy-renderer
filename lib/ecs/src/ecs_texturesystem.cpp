@@ -41,7 +41,7 @@ void TextureSystem::initialize() {
 
   for (auto entity : view) {
     auto &geoMaterial = view.get<geo::Material>(entity);
-    auto& shader = registry.get_or_emplace<Shader>(entity);
+    auto& renderable = registry.get_or_emplace<Renderable>(entity);
 
     // diffuse texture
     if (geoMaterial.diffuseTexture != nullptr) {
@@ -57,7 +57,9 @@ void TextureSystem::initialize() {
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
       if (!geoTexture_p->data.empty()) {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, geoTexture_p->width, geoTexture_p->height, 0, GL_RGB,
+        GLint texChannel = (*geoMaterial.diffuseTexture)->channels == 3 ? GL_RGB : GL_RGBA;
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, geoTexture_p->width, geoTexture_p->height, 0, texChannel,
                      GL_UNSIGNED_BYTE, geoTexture_p->data.data());
         glGenerateMipmap(GL_TEXTURE_2D);
       } else {
@@ -65,7 +67,7 @@ void TextureSystem::initialize() {
         exit(1);
       }
 
-      shader.textures.emplace_back(diffuseTexture);
+      renderable.textures.emplace_back(diffuseTexture);
 
       spdlog::log(spdlog::level::debug, "Added diffuse texture entity for material {}", geoMaterial.name);
     }
@@ -78,15 +80,15 @@ void TextureSystem::onRender(entt::entity e) {
   //  for (auto entity : view) {
   auto& registry = m_sceneGraph->getRegistry();
 
-  if (!registry.has<Renderable, Shader>(e)) {
+  if (!registry.has<Renderable, geo::Material>(e)) {
     return;
   }
 
   const auto &renderable = registry.get<Renderable>(e);
-  const auto& shader = registry.get<Shader>(e);
+//  const auto& shader = registry.get<Shader>(e);
 
-  for (int t=0; t<shader.textures.size(); ++t) {
-    auto& texture = shader.textures[t];
+  for (int t=0; t<renderable.textures.size(); ++t) {
+    auto& texture = renderable.textures[t];
 
     glActiveTexture(GL_TEXTURE0+t);
     glBindTexture(GL_TEXTURE_2D, texture.glTextureId);

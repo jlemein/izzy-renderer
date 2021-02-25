@@ -20,7 +20,7 @@ namespace ecs {
  //  wrapper that models a generic model.
 struct DebugModel {
   std::vector<Renderable> renderable;
-  std::vector<Shader> shader;
+  std::vector<geo::Material> material;
   std::vector<Name> names;
   std::vector<geo::Mesh> mesh;
   std::vector<ecs::Transform> transformations;

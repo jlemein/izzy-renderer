@@ -1,14 +1,15 @@
 //
 // Created by jlemein on 10-01-21.
 //
-#include <ecs_shader.h>
+#include <geo_material.h>
 
 #include <entt/entt.hpp>
+#include <glm/glm.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 using namespace affx;
 using namespace testing;
-using namespace affx::ecs;
+using namespace affx::geo;
 
 class ShaderTest : public ::testing::Test {};
 
@@ -17,12 +18,14 @@ TEST_F(ShaderTest, ShouldAssignShaderFiles) {
   entt::registry reg;
   auto e = reg.create();
 
-  Shader::UniformProperties props;
-  Shader shader{"fileA.shader", "fragmentShader.shader", props};
-  reg.emplace<Shader>(e, shader);
+  Material::UniformProperties props;
+  Material material{.vertexShader = "fileA.shader",
+                    .fragmentShader = "fragmentShader.shader",
+                    .properties = props};
+  reg.emplace<Material>(e, material);
 
-  EXPECT_STREQ(reg.get<Shader>(e).vertexShaderFile.c_str(), "fileA.shader");
-  EXPECT_STREQ(reg.get<Shader>(e).fragmentShaderFile.c_str(),
+  EXPECT_STREQ(reg.get<Material>(e).vertexShader.c_str(), "fileA.shader");
+  EXPECT_STREQ(reg.get<Material>(e).fragmentShader.c_str(),
                "fragmentShader.shader");
 }
 
@@ -30,15 +33,16 @@ TEST_F(ShaderTest, ShouldSetAndGetProperties) {
   entt::registry reg;
   auto e = reg.create();
 
-  ecs::UberMaterialData uber{.diffuse = glm::vec4(0.5F, 0.2F, 1.0F, .0F),
-                             .specular = glm::vec4(1.0F, -4.0F, 34.0F, .0F),
-                             .ambient = glm::vec4(0.0F, 0.1F, 0.20F, 0.0F)};
+  UberMaterialData uber{.diffuse = glm::vec4(0.5F, 0.2F, 1.0F, .0F),
+                        .specular = glm::vec4(1.0F, -4.0F, 34.0F, .0F),
+                        .ambient = glm::vec4(0.0F, 0.1F, 0.20F, 0.0F)};
 
-  reg.emplace<ecs::Shader>(e, "assets/shaders/uber.vert.spv",
-                           "assets/shaders/uber.frag.spv");
-  reg.get<ecs::Shader>(e).setProperty(ecs::UberMaterialData::PARAM_NAME, uber);
+  reg.emplace<Material>(
+      e, Material{.vertexShader = "assets/shaders/uber.vert.spv",
+                  .fragmentShader = "assets/shaders/uber.frag.spv"});
+  reg.get<Material>(e).setProperty(UberMaterialData::PARAM_NAME, uber);
 
-  auto data = reg.get<ecs::Shader>(e).getProperty<UberMaterialData>();
+  auto data = reg.get<Material>(e).getProperty<UberMaterialData>();
 
   EXPECT_EQ(data->diffuse.r, uber.diffuse.r);
   EXPECT_EQ(data->diffuse.g, uber.diffuse.g);

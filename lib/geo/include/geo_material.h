@@ -9,6 +9,7 @@
 #include <geo_texture.h>
 #include <memory>
 #include <res_resource.h>
+#include <glm/glm.hpp>
 
 namespace affx {
 namespace geo {
@@ -26,6 +27,16 @@ namespace geo {
 //  // a shader is possibly dependent on offscreen render buffers (or file textures).
 //  std::vector<ecs::Texture> textures {};
 //};
+
+//TODO: this is implementation specific for OpenGL, remove it from here.
+struct UberMaterialData {
+  glm::vec4 diffuse{1.0F, 0.0F, 0.0F, 0.0F};
+  glm::vec4 specular;
+  glm::vec4 ambient;
+  bool hasDiffuseTex {false};
+
+  static inline const char *PARAM_NAME = "UberMaterial";
+};
 
 struct UniformBlockData {
   void *data;

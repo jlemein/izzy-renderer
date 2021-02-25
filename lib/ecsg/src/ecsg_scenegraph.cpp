@@ -110,8 +110,7 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
   // Watch out here, geo::Material is a value type so we can do this.
   // It is very tricky, because we ignore the resource itself here, possibly
   // causing dangling pointers in the end
-  auto &mat =
-      **m_resourceManager->getResource<geo::Material>("DefaultMaterial");
+  auto mat = **m_resourceManager->getResource<geo::Material>("DefaultMaterial");
   meshEntity.add<geo::Material>(mat);
 
   //  auto& shader = meshEntity.add<ecs::Shader>(
@@ -197,19 +196,19 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node,
   for (auto &instance : node->meshInstances) {
     // make shader from material
     // TODO: make a material system that loads a default
-    auto material = m_resourceManager->getResource<geo::Material>("UberMaterial");
-    (*material)->setProperty<UberMaterialData>(
+    auto material =
+        m_resourceManager->getResource<geo::Material>("UberMaterial");
+    (*material)->diffuseTexture = (*instance->material)->diffuseTexture;
+
+    (*material)->setProperty<geo::UberMaterialData>(
         {.diffuse = glm::vec4((*instance->material)->diffuse, 1.0F),
          .specular = glm::vec4((*instance->material)->specular, 1.0F),
-         .ambient = glm::vec4((*instance->material)->ambient, 1.0F)});
+         .ambient = glm::vec4((*instance->material)->ambient, 1.0F),
+         .hasDiffuseTex = (*instance->material)->diffuseTexture != nullptr});
 
     // create mesh instance mesh data
     // TODO: make mesh instance instead of copy mesh
-    auto e =
-        makeRenderable(*instance->mesh, instance->transform, std::move(material));
-    // TODO fix thism by removing shader alltogether and delegating the work to
-    // the material system
-    m_registry.emplace<geo::Material>(e.handle(), *(*instance->material));
+    auto e = makeRenderable(*instance->mesh, instance->transform, **material);
 
     root.addChild(e);
   }
@@ -230,37 +229,37 @@ SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene) {
 
 SceneGraphEntity SceneGraph::makeRenderable(const geo::Mesh &mesh,
                                             glm::mat4 transform,
-                                            std::string materialName) {
+                                            geo::Material &material) {
   auto e = makeEntity(mesh.name);
   e.setTransform(std::move(transform));
 
-  auto materialId = m_resourceManager->getResource<geo::Material>(materialName)->id();
-  e.add<ecs::Renderable>({.materialId = materialId});
+  //  auto materialId =
+  //  m_resourceManager->getResource<geo::Material>(materialName)->id();
+  e.add<ecs::Renderable>();
   e.add<geo::Mesh>(mesh);
-//  e.add<ecs::Shader>(std::forward<ecs::Shader>(shader));
+  e.add<geo::Material>(material);
 
   return e;
 }
 
 SceneGraphEntity SceneGraph::makeRenderable(geo::Mesh &&mesh,
-
-                                            const ecs::Shader &shader) {
+                                            const geo::Material &material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<ecs::Renderable>(e);
   m_registry.emplace<geo::Mesh>(e, std::move(mesh));
-  m_registry.emplace<geo::Material>(e, shader);
+  m_registry.emplace<geo::Material>(e, material);
 
   return SceneGraphEntity{m_registry, e};
 }
 
 SceneGraphEntity SceneGraph::makeRenderable(geo::Curve &&curve,
-                                            const ecs::Shader &shader) {
+                                            const geo::Material &material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<ecs::Renderable>(e);
   m_registry.emplace<geo::Curve>(e, std::move(curve));
-  m_registry.emplace<ecs::Shader>(e, shader);
+  m_registry.emplace<geo::Material>(e, material);
 
   return SceneGraphEntity{m_registry, e};
 }

@@ -11,11 +11,12 @@
 //#include <ecs_shader.h>
 #include <geo_material.h>
 
+#include "ecs_texture.h"
 #include <cstring>
-#include <memory>
-#include <unordered_map>
-#include <string>
 #include <iostream>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
 namespace affx
 {
@@ -52,16 +53,16 @@ struct VertexAttribArray {
   GLuint buffer_offset;
 };
 
-struct UniformBlockData {
-  void *data;
-  std::size_t size;
-};
+//struct UniformBlockData {
+//  void *data;
+//  std::size_t size;
+//};
 
 struct Renderable_UniformBlockInfo {
   GLuint bufferId;
   GLint blockIndex;
   GLint blockBinding;
-  const UniformBlockData* pData {nullptr};
+  const geo::UniformBlockData* pData {nullptr};
 };
 
 struct Renderable {
@@ -92,6 +93,8 @@ struct Renderable {
 
   // TODO: check if we can only include this property in debug mode (for performance reasons)
   bool isWireframe {false};
+
+  std::vector<ecs::Texture> textures;
 
   std::unordered_map<std::string, Renderable_UniformBlockInfo> userProperties;
 

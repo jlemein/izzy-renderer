@@ -16,19 +16,19 @@
 namespace affx {
 namespace ecs {
 
-struct UberMaterialData {
-  glm::vec4 diffuse{1.0F, 0.0F, 0.0F, 0.0F};
-  glm::vec4 specular;
-  glm::vec4 ambient;
-  bool hasDiffuseTex {false};
+//struct UberMaterialData {
+//  glm::vec4 diffuse{1.0F, 0.0F, 0.0F, 0.0F};
+//  glm::vec4 specular;
+//  glm::vec4 ambient;
+//  bool hasDiffuseTex {false};
+//
+//  static inline const char *PARAM_NAME = "UberMaterial";
+//};
 
-  static inline const char *PARAM_NAME = "UberMaterial";
-};
-
-struct UniformBlockData {
-  void *data;
-  std::size_t size;
-};
+//struct UniformBlockData {
+//  void *data;
+//  std::size_t size;
+//};
 
 /**!
  * @brief A Shader contains all material properties needed to perform a
@@ -36,12 +36,12 @@ struct UniformBlockData {
  */
 struct Shader { // alias single RenderPass
   // TODO copying Shaders should be forbidden or fixed.
-  using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
+//  using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
 
 //  UniformProperties properties;
 
   // a shader is possibly dependent on offscreen render buffers (or file textures).
-  std::vector<ecs::Texture> textures {};
+//  std::vector<ecs::Texture> textures {};
 
 //  template <typename T> void setProperty(const T &data) {
 //    setProperty(T::PARAM_NAME, data);

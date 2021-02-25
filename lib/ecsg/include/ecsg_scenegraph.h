@@ -20,6 +20,7 @@ struct Scene;
 struct SceneNode;
 struct Light;
 struct Camera;
+struct Material;
 }; // namespace geo
 
 namespace ecs {
@@ -68,11 +69,11 @@ public:
   SceneGraphEntity makeEmptyMesh(const geo::Mesh &mesh);
   SceneGraphEntity makeCurve(std::string name);
 
-  SceneGraphEntity makeRenderable(geo::Mesh &&mesh, const ecs::Shader &shader);
+  SceneGraphEntity makeRenderable(geo::Mesh &&mesh, const geo::Material &material);
   SceneGraphEntity makeRenderable(const geo::Mesh &mesh, glm::mat4 transform,
-                                  ecs::Shader &&shader);
+                                  geo::Material &material);
   SceneGraphEntity makeRenderable(geo::Curve &&curve,
-                                  const ecs::Shader &shader);
+                                  const geo::Material &shader);
 
   /**!
    * Loads a complete scene and adds it to the scene graph.

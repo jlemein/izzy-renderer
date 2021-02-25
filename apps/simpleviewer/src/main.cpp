@@ -48,12 +48,14 @@ using namespace affx::viewer;
 int main() {
   using namespace std;
 
-  auto materialSystem = make_unique<geo::MaterialSystem>("../assets/shaders/materials.json");
+  auto materialSystem =
+      make_unique<geo::MaterialSystem>("../assets/shaders/materials.json");
   materialSystem->initialize();
 
   auto resourceManager = make_shared<res::ResourceManager>();
   resourceManager->addFactory<geo::Material>(move(materialSystem));
-  resourceManager->addFactory<geo::Scene>(make_unique<geo::SceneLoader>(resourceManager));
+  resourceManager->addFactory<geo::Scene>(
+      make_unique<geo::SceneLoader>(resourceManager));
   resourceManager->addFactory<geo::Texture>(make_unique<geo::TextureLoader>());
 
   auto sceneGraph = make_shared<ecsg::SceneGraph>(resourceManager);
@@ -63,35 +65,35 @@ int main() {
   auto gui = std::make_shared<GuiSystem>(viewer);
   viewer->registerExtension(gui);
 
-////  viewer.getInputHandler().addCommand(SWITCH_CAMERA, [](SceneGraph& scenegraph) {
-////    auto cameras = scenegraph.getCameras();
-////    auto camera = scenegraph.getActiveCamera();
-////    scenegraph.setActiveCamera(nextCamera);
-////  });
-////  viewer.getEventHandler().addHandler(EVT_ENEMY_DOWN, [](SceneGraph& scenegraph) {
-////    auto cameras = scenegraph.getCameras();
-////    auto camera = scenegraph.getActiveCamera();
-////    scenegraph.setActiveCamera(nextCamera);
-////  });
+  ////  viewer.getInputHandler().addCommand(SWITCH_CAMERA, [](SceneGraph&
+  /// scenegraph) { /    auto cameras = scenegraph.getCameras(); /    auto
+  /// camera = scenegraph.getActiveCamera(); /
+  ///scenegraph.setActiveCamera(nextCamera); /  }); /
+  ///viewer.getEventHandler().addHandler(EVT_ENEMY_DOWN, [](SceneGraph&
+  /// scenegraph) { /    auto cameras = scenegraph.getCameras(); /    auto
+  /// camera = scenegraph.getActiveCamera(); /
+  ///scenegraph.setActiveCamera(nextCamera); /  });
 
   // Grid
   sceneGraph->makeRectangularGrid();
-//  auto loadedScene = resourceManager->getResource<geo::Scene>("testassets/models/3objects.fbx");
-  auto loadedScene = resourceManager->getResource<geo::Scene>("testassets/models/wooden_crate.fbx");
+  //  auto loadedScene =
+  //  resourceManager->getResource<geo::Scene>("testassets/models/3objects.fbx");
+  auto loadedScene = resourceManager->getResource<geo::Scene>(
+      "testassets/models/wooden_crate.fbx");
   sceneGraph->makeScene(*loadedScene);
 
   // Camera
-  auto cameraTransform = glm::inverse(
-      glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F), glm::vec3(0.0F, 1.60F, 0.0F),
-                  glm::vec3(0.0F, 1.0F, 0.0F)));
+  auto cameraTransform = glm::inverse(glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F),
+                                                  glm::vec3(0.0F, 1.60F, 0.0F),
+                                                  glm::vec3(0.0F, 1.0F, 0.0F)));
   auto camera = sceneGraph->makeCamera("CodeCamera");
   camera.setTransform(cameraTransform);
   camera.add<FirstPersonControl>();
   viewer->setActiveCamera(camera);
-//
-//  auto fakeCamera = sceneGraph->makeCamera("FakeCamera");
-//  fakeCamera.setTransform(cameraTransform);
-//  fakeCamera.add<Debug>({.shape = ecs::DebugShape::kCamera});
+  //
+  //  auto fakeCamera = sceneGraph->makeCamera("FakeCamera");
+  //  fakeCamera.setTransform(cameraTransform);
+  //  fakeCamera.add<Debug>({.shape = ecs::DebugShape::kCamera});
 
   // Bunny
   auto bunnyScene =
@@ -107,7 +109,8 @@ int main() {
   //          shader);
 
   // add lighting to scene
-  auto light = sceneGraph->makePointLight("MyPointLight", glm::vec3(1.0F, 1.0F, 0.7F));
+  auto light =
+      sceneGraph->makePointLight("MyPointLight", glm::vec3(1.0F, 1.0F, 0.7F));
   light.get<Light>().intensity = 1000.0F;
   light.add<Debug>();
   TransformUtil::Translate(light.get<Transform>(),
@@ -129,10 +132,11 @@ entt::entity makePenroseTiling(entt::registry &registry) {
   auto &rr = registry.emplace<Renderable>(e);
   registry.emplace<Name>(e, "Penrose");
 
-  auto &shader = registry.emplace<Shader>(
-      e, Shader{.vertexShaderFile = "assets/shaders/default_curve.vert.spv",
-                .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
-  shader.setProperty("ColorBlock",
+  auto &material = registry.emplace<geo::Material>(
+      e,
+      geo::Material{.vertexShader = "assets/shaders/default_curve.vert.spv",
+                    .fragmentShader = "assets/shaders/default_curve.frag.spv"});
+  material.setProperty("ColorBlock",
                      ColorBlock{glm::vec4(1.0F, 0.5F, 0.0F, 0.0F)});
 
   PenroseTiling tiling(10.0F);
@@ -153,9 +157,10 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
   geo::Curve &fractalCurve = registry.emplace<geo::Curve>(
       e, affx::fractal::FractalGenerator(0).makeSierpinskiTriangle(8));
   geo::MeshTransform::ScaleToUniformSize(fractalCurve);
-  auto &shader = registry.emplace<Shader>(
-      e, Shader{.vertexShaderFile = "assets/shaders/default_curve.vert.spv",
-                .fragmentShaderFile = "assets/shaders/default_curve.frag.spv"});
+  auto &shader = registry.emplace<geo::Material>(
+      e,
+      geo::Material{.vertexShader = "assets/shaders/default_curve.vert.spv",
+                    .fragmentShader = "assets/shaders/default_curve.frag.spv"});
   shader.setProperty("ColorBlock",
                      ColorBlock{glm::vec4(1.0F, 1.0F, 1.0F, 0.0F)});
 

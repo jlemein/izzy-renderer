@@ -27,8 +27,7 @@ std::vector<char> readFile(const std::string &filename) {
   std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
   if (!file.is_open()) {
-    std::cerr << "Failed to open file '" << filename << "'" << std::endl;
-    throw std::runtime_error("failed to open file!");
+    throw std::runtime_error(fmt::format("failed to read file '{}'", filename));
   }
 
   size_t fileSize = (size_t)file.tellg();
@@ -190,7 +189,7 @@ void initLightingUbo(Renderable &renderable) {
  * @param properties
  */
 void initShaderProperties(Renderable &renderable,
-                          const Shader::UniformProperties &properties) {
+                          const geo::Material::UniformProperties &properties) {
   glUseProgram(renderable.program);
 
   // allocates the MVP matrices on the GPU.
@@ -220,7 +219,7 @@ void initShaderProperties(Renderable &renderable,
     }
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
-    auto p = reinterpret_cast<UberMaterialData *>(blockData.data);
+    auto p = reinterpret_cast<geo::UberMaterialData *>(blockData.data);
     //    std::cout << "   --- Init " << renderable.name << ">" << name << "
     //    with "
     //              << p->diffuse.r << " " << p->diffuse.g << " " <<
@@ -386,16 +385,16 @@ void RenderSystem::init() {
   }
 
   // handling meshes
-  auto view = m_registry.view<geo::Mesh, Shader, Renderable>();
+  auto view = m_registry.view<geo::Mesh, geo::Material, Renderable>();
   for (auto entity : view) {
     auto &mesh = m_registry.get<geo::Mesh>(entity);
     auto &renderable = m_registry.get<Renderable>(entity);
-    auto &shader = m_registry.get<Shader>(entity);
+    auto &material = m_registry.get<geo::Material>(entity);
 
     try {
       initMeshBuffers(renderable, mesh);
-      renderable.program = compileShader(shader, renderable);
-      initShaderProperties(renderable, shader.properties);
+      renderable.program = compileShader(material, renderable);
+      initShaderProperties(renderable, material.properties);
 
     } catch (std::exception &e) {
       auto name = m_registry.has<Name>(entity)
@@ -529,7 +528,6 @@ void RenderSystem::render() {
   for (auto entity : view) {
     const auto &renderable = view.get<const Renderable>(entity);
     const auto &name = m_registry.get<Name>(entity);
-    spdlog::log(spdlog::level::info, "Rendering {}", name.name);
 
     // activate shader program
     glUseProgram(renderable.program);
