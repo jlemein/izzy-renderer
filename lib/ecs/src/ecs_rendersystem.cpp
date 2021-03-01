@@ -141,9 +141,6 @@ void initMVPUniformBlock(Renderable &renderable) {
   glGetActiveUniformBlockiv(renderable.program, blockIndex,
                             GL_UNIFORM_BLOCK_BINDING,
                             &renderable.uboBlockBinding);
-  //  std::cout << "Renderable " << renderable.name
-  //            << " | block: " << renderable.uboBlockIndex
-  //            << ", binding: " << renderable.uboBlockBinding << std::endl;
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex,
                    renderable.uboId);
@@ -155,10 +152,7 @@ void initLightingUbo(Renderable &renderable) {
   renderable.uboLightingIndex =
       glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
   if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-    //    std::cout << "Cannot find ubo block index with name "
-    //              << UniformLighting::PARAM_NAME << " for <name>" <<
-    //              std::endl;
-    //    exit(1);
+    spdlog::debug("Lighting disabled, cannot find ubo block index with name {}",  UniformLighting::PARAM_NAME);
     renderable.isLightingSupported = false;
   } else {
     renderable.isLightingSupported = true;
@@ -173,9 +167,6 @@ void initLightingUbo(Renderable &renderable) {
   glGetActiveUniformBlockiv(renderable.program, blockIndex,
                             GL_UNIFORM_BLOCK_BINDING,
                             &renderable.uboLightingBinding);
-  //  std::cout << "Renderable " << renderable.name
-  //            << " | block: " << renderable.uboLightingIndex
-  //            << ", binding: " << renderable.uboLightingBinding << std::endl;
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding,
                    renderable.uboLightingId);

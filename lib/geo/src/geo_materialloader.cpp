@@ -30,52 +30,52 @@ void MaterialSystem::initialize() {
   input >> j;
 
   for (auto &material : j["materials"]) {
+    Material m;
+
     auto name = material["name"].get<std::string>();
-    auto materialName = material["material_name"].get<std::string>();
+    m.name = material["material_name"].get<std::string>();
 
     // pass shader info
-    std::string vertexShader, geometryShader, fragmentShader;
     try {
-      vertexShader = material["vertex_shader"].get<std::string>();
-      geometryShader = material["geometry_shader"].get<std::string>();
-      fragmentShader = material["fragment_shader"].get<std::string>();
+      m.vertexShader = material["vertex_shader"].get<std::string>();
+      m.geometryShader = material["geometry_shader"].get<std::string>();
+      m.fragmentShader = material["fragment_shader"].get<std::string>();
     } catch (nlohmann::detail::exception e) {
       throw std::runtime_error(
           fmt::format("Failed parsing shader names: {}", e.what()));
     }
 
-    // load generic attributes
-    glm::vec3 diffuse {0.0}, ambient {0.0}, specular{0.0};
-    auto &properties = material["properties"];
-    auto diffuseProperty = properties["diffuse_color"];
-    if (diffuseProperty.size() >= 3) {
-      diffuse = glm::vec3(diffuseProperty[0].get<float>(),
-                          diffuseProperty[1].get<float>(),
-                          diffuseProperty[2].get<float>());
-    }
-    auto specularProperty = properties["specular_color"];
-    if (specularProperty.size() >= 3) {
-      specular = glm::vec3(specularProperty[0].get<float>(),
-                           specularProperty[1].get<float>(),
-                           specularProperty[2].get<float>());
-    }
-    auto ambientProperty = properties["ambient_color"];
-    if (ambientProperty.is_array()) {
-      ambient = glm::vec3(ambientProperty[0].get<float>(),
-                          ambientProperty[1].get<float>(),
-                          ambientProperty[2].get<float>());
+    try {
+      // load generic attributes
+      auto &properties = material["properties"];
+      auto diffuse = properties["diffuse_color"];
+      if (diffuse.size() >= 3) {
+        m.diffuse = glm::vec3(diffuse[0].get<float>(),
+                              diffuse[1].get<float>(),
+                              diffuse[2].get<float>());
+        m.hasDiffuse = true;
+      }
+      auto specular = properties["specular_color"];
+      if (specular.size() >= 3) {
+        m.specular = glm::vec3(specular[0].get<float>(),
+                               specular[1].get<float>(),
+                               specular[2].get<float>());
+        m.hasSpecular = true;
+      }
+      auto ambient = properties["ambient_color"];
+      if (ambient.size() >= 3) {
+        m.ambient = glm::vec3(ambient[0], ambient[1], ambient[2]);
+        m.hasAmbient = true;
+      }
+
+      spdlog::info("Material {} with ambient color {}, {}, {}", name, m.ambient.r, m.ambient.g, m.ambient.b);
+    } catch (nlohmann::detail::exception e) {
+      throw std::runtime_error(
+          fmt::format("Failed reading standard material color (diffuse, specular or ambient): {}", e.what()));
     }
 
-    spdlog::info("Material {} with ambient color {}, {}, {} -- size {}", name, ambient.r, ambient.g, ambient.b, ambientProperty.count());
-
-    m_materials[name] = Material{.name = materialName,
-                                 .vertexShader = vertexShader,
-                                 .geometryShader = geometryShader,
-                                 .fragmentShader = fragmentShader,
-                                 .diffuse = diffuse,
-                                 .ambient = ambient,
-                                 .specular = specular};
-    spdlog::info("Loaded shader with name {}", vertexShader);
+    m_materials[name] = m;
+    spdlog::info("Loaded material with name {} mapped to {}", name, m.name);
   }
 
   if (m_materials.count(j["default_material"]) > 0) {

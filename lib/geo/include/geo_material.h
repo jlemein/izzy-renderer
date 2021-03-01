@@ -57,6 +57,12 @@ struct Material {
   glm::vec3 specular;
   glm::vec3 transparent;
 
+  bool hasDiffuse {false};
+  bool hasEmissive {false};
+  bool hasSpecular {false};
+  bool hasTransparent {false};
+  bool hasAmbient {false};
+
   std::shared_ptr<res::Resource<geo::Texture>> diffuseTexture {nullptr};
   std::shared_ptr<res::Resource<geo::Texture>> specularTexture {nullptr};
   std::shared_ptr<res::Resource<geo::Texture>> normalTexture {nullptr};

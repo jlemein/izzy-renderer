@@ -45,22 +45,31 @@ void SceneLoader::readMaterials(const aiScene *scene_p, Scene &scene) {
 
     // overwrite settings with scene file properties
     aiColor3D color (0.f,0.f,0.f);
-    mat_p->Get(AI_MATKEY_COLOR_DIFFUSE,color);
-    (*material)->diffuse.r = color.r;
-    (*material)->diffuse.g = color.g;
-    (*material)->diffuse.b = color.b;
+
+    auto mat = *material;
+    if (!mat->hasDiffuse) {
+      mat_p->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+      mat->diffuse.r = color.r;
+      mat->diffuse.g = color.g;
+      mat->diffuse.b = color.b;
+    }
     std::cout << (*material)->name << " has diffuse: " << color.r << " " << color.g << " " << color.b << std::endl;
 
-    mat_p->Get(AI_MATKEY_COLOR_SPECULAR,color);
-    (*material)->specular.r = color.r;
-    (*material)->specular.g = color.g;
-    (*material)->specular.b = color.b;
+    if (!mat->hasSpecular) {
+      mat_p->Get(AI_MATKEY_COLOR_SPECULAR, color);
+      mat->specular.r = color.r;
+      mat->specular.g = color.g;
+      mat->specular.b = color.b;
+    }
+    std::cout << (*material)->name << " has specular: " << color.r << " "
+              << color.g << " " << color.b << std::endl;
 
-    mat_p->Get(AI_MATKEY_COLOR_AMBIENT, color);
-    (*material)->ambient.r = color.r;
-    (*material)->ambient.g = color.g;
-    (*material)->ambient.b = color.b;
-
+    if (!mat->hasAmbient) {
+      mat_p->Get(AI_MATKEY_COLOR_AMBIENT, color);
+      mat->ambient.r = color.r;
+      mat->ambient.g = color.g;
+      mat->ambient.b = color.b;
+    }
     scene.m_materials.push_back(std::move(material));
   }
 }
@@ -130,7 +139,6 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
     }
 
     node->name = std::string{node_p->mName.C_Str()};
-    std::cout << "@@@: " << node->name << " has " << node_p->mNumChildren << " children, and " << node_p->mNumMeshes << " Mesh instances" << std::endl;
 
     // assimp stores the transformations in
     std::memcpy(&node->transform[0][0], &node_p->mTransformation.a1,
@@ -143,8 +151,7 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
       auto meshInstance = std::make_shared<MeshInstance>();
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
-      std::cout << "\tM@@@: " << mesh->name << std::endl;
-      std::cout << "\tM## metadata: \n";
+
       for (int k=0; k< node_p->mMetaData->mNumProperties; ++k) {
         std::cout << "\t\t" << node_p->mMetaData->mKeys[k].C_Str() << std::endl;
       }
@@ -174,7 +181,7 @@ void Scene::registerSceneNode(std::shared_ptr<SceneNode> node) {
   m_sceneNodes[node->name].push_back(node);
 
   if (m_sceneNodes.at(node->name).size() > 1) {
-    std::cout << "WARNING: " << node->name << " has more than 1 entry. Is this correct?\n";
+    spdlog::warn("Node with name '{}' has more than 1 entry. Is this correct?", node->name);
   }
 }
 

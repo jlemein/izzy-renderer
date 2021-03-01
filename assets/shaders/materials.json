@@ -34,7 +34,7 @@
           1.0,
           1.0
         ],
-        "ambient_color:": [
+        "ambient_color": [
           0.6,
           0.1,
           0.1
@@ -58,10 +58,10 @@
           1.0,
           1.0
         ],
-        "ambient_color:": [
-          0.6,
-          0.1,
-          0.1
+        "ambient_color": [
+          0.2,
+          0.2,
+          0.2
         ]
       }
     },
@@ -82,7 +82,7 @@
           1.0,
           1.0
         ],
-        "ambient_color:": [
+        "ambient_color": [
           0.1,
           0.1,
           0.1

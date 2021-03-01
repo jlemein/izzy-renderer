@@ -54,11 +54,9 @@ void main() {
         }
 
         vec3 diffuse = uDiffuse;
-        //if (hasDiffuseTex) {
+        if (hasDiffuseTex) {
             diffuse = texture(diffuseTex, inUv).xyz;
-        //}
+        }
         outColor += (dot_normal_light * attenuation + vec4(uAmbient, 1.0)) * vec4(diffuse * light_diffuse, 1.0);
     }
-
-//    outColor = vec4(inUv, 0.5, 0.0);
 }
