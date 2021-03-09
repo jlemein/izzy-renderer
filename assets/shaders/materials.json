@@ -1,9 +1,14 @@
 {
   "default_material": "DefaultMaterial",
+  "material_mapping": [
+    {
+      "from": "WoodCrate",
+      "to": "UberMaterial"
+    }
+  ],
   "materials": [
     {
       "name": "DefaultMaterial",
-      "material_name": "Diffuse",
       "render_passes": [
         {
           "name": "",
@@ -23,47 +28,126 @@
       "vertex_shader": "assets/shaders/diffuse.vert.spv",
       "geometry_shader": "",
       "fragment_shader": "assets/shaders/diffuse.frag.spv",
-      "properties": {
-        "diffuse_color": [
-          1.0,
-          0.5,
-          0.0
-        ],
-        "specular_color": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "ambient_color": [
-          0.6,
-          0.1,
-          0.1
-        ]
-      }
+      "properties": [
+        {
+          "name": "diffuse_color",
+          "value": [
+            1.0,
+            0.5,
+            0.0
+          ]
+        },
+        {
+          "name": "specular_color",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ambient_color",
+          "value": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      ]
     },
     {
       "name": "UberMaterial",
-      "material_name": "Uber",
       "vertex_shader": "assets/shaders/uber.vert.spv",
       "geometry_shader": "",
       "fragment_shader": "assets/shaders/uber.frag.spv",
-      "properties": {
-        "diffuse_color": [
-          1.0,
-          0.5,
-          0.0
-        ],
-        "specular_color": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "ambient_color": [
-          0.2,
-          0.2,
-          0.2
-        ]
-      }
+      "properties": [
+        {
+          "type": "float",
+          "name": "iteration_count",
+          "value": 13.0
+        },
+        {
+          "type": "texture",
+          "name": "diffuseTex",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+        },
+        {
+          "type": "texture",
+          "name": "noiseTex",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+        },
+        {
+          "name": "diffuse_color",
+          "value": [
+            0.0,
+            0.5,
+            0.0
+          ]
+        },
+        {
+          "name": "specular_color",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ambient_color",
+          "value": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "CobbleStone",
+      "vertex_shader": "assets/shaders/uber.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/uber.frag.spv",
+      "properties": [
+        {
+          "type": "float",
+          "name": "iteration_count",
+          "value": 13.0
+        },
+        {
+          "type": "texture",
+          "name": "noise",
+          "value": "perlin_noise.png"
+        },
+        {
+          "type": "texture",
+          "name": "diffuse_texture",
+          "value": "wood.png"
+        },
+        {
+          "name": "diffuse_color",
+          "value": [
+            0.0,
+            0.5,
+            0.0
+          ]
+        },
+        {
+          "name": "specular_color",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ambient_color",
+          "value": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      ]
     },
     {
       "name": "DMaterial",
@@ -71,23 +155,32 @@
       "vertex_shader": "assets/shaders/uber.vert.spv",
       "geometry_shader": "",
       "fragment_shader": "assets/shaders/uber.frag.spv",
-      "properties": {
-        "diffuse_color": [
-          1.0,
-          0.5,
-          0.0
-        ],
-        "specular_color": [
-          1.0,
-          1.0,
-          1.0
-        ],
-        "ambient_color": [
-          0.1,
-          0.1,
-          0.1
-        ]
-      }
+      "properties": [
+        {
+          "name": "diffuse_color",
+          "value": [
+            1.0,
+            0.5,
+            0.0
+          ]
+        },
+        {
+          "name": "specular_color",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ambient_color",
+          "value": [
+            0.1,
+            0.1,
+            0.1
+          ]
+        }
+      ]
     }
   ]
 }

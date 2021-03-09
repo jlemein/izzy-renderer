@@ -14,9 +14,9 @@ uniform Lighting {
 
 layout(std140, binding=4)
 uniform UberMaterial {
-    vec3 uDiffuse;
-    vec3 uSpecular;
-    vec3 uAmbient;
+    vec4 uDiffuse;
+    vec4 uSpecular;
+    vec4 uAmbient;
     bool hasDiffuseTex;
 };
 

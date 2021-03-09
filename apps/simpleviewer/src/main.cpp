@@ -28,11 +28,13 @@
 
 #include <ecs_light.h>
 #include <ecs_name.h>
+#include <ecs_relationship.h>
 #include <ecsg_scenegraph.h>
 #include <geo_materialloader.h>
 #include <geo_shapeutil.h>
 #include <glm/gtx/transform.hpp>
 #include <gui_system.h>
+#include <spdlog/spdlog.h>
 
 // entt::entity makeBunny(entt::registry &registry, );
 entt::entity makeLight(entt::registry &registry, const glm::vec3 &color,
@@ -80,7 +82,7 @@ int main() {
   //  resourceManager->getResource<geo::Scene>("testassets/models/3objects.fbx");
   auto loadedScene = resourceManager->getResource<geo::Scene>(
       "testassets/models/wooden_crate.fbx");
-  sceneGraph->makeScene(*loadedScene);
+  auto woodenCrate = sceneGraph->makeScene(*loadedScene, SceneLoaderFlags{.lights=false});
 
   // Camera
   auto cameraTransform = glm::inverse(glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F),
@@ -96,12 +98,12 @@ int main() {
   //  fakeCamera.add<Debug>({.shape = ecs::DebugShape::kCamera});
 
   // Bunny
-  auto bunnyScene =
-      resourceManager->getResource<geo::Scene>("assets/models/bunny.fbx");
-  auto bunny = sceneGraph->makeMesh(*(*bunnyScene)->meshes()[0]);
-  geo::MeshTransform::ScaleToUniformSize(bunny.get<geo::Mesh>());
-  TransformUtil::Translate(bunny.get<Transform>(), glm::vec3(4.0F, 1.0F, 1.0F));
-  bunny.add<Debug>(Debug{.shape = DebugShape::kEulerArrow});
+//  auto bunnyScene =
+//      resourceManager->getResource<geo::Scene>("assets/models/bunny.fbx");
+//  auto bunny = sceneGraph->makeMesh(*(*bunnyScene)->meshes()[0]);
+//  geo::MeshTransform::ScaleToUniformSize(bunny.get<geo::Mesh>());
+//  TransformUtil::Translate(bunny.get<Transform>(), glm::vec3(4.0F, 1.0F, 1.0F));
+//  bunny.add<Debug>(Debug{.shape = DebugShape::kEulerArrow});
 
   //  auto cylinder =
   //      EcsFactory(sceneGraph)
@@ -111,7 +113,7 @@ int main() {
   // add lighting to scene
   auto light =
       sceneGraph->makePointLight("MyPointLight", glm::vec3(1.0F, 1.0F, 0.7F));
-  light.get<Light>().intensity = 1000.0F;
+  light.get<Light>().intensity = 2000.0F;
   light.add<Debug>();
   TransformUtil::Translate(light.get<Transform>(),
                            glm::vec3(-2.0F, 3.0F, 0.0F));

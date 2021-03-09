@@ -13,6 +13,7 @@
 #include <list>
 #include <res_resourcefactory.h>
 #include <vector>
+#include <memory>
 
 namespace affx {
 namespace res {
@@ -27,6 +28,7 @@ struct Texture;
 struct Light;
 struct Material;
 struct SceneNode;
+class MaterialSystem;
 
 /**!
  * @brief A scene node is either representing an intermediate transform node,
@@ -95,7 +97,21 @@ private:
   void readHierarchy(const aiScene *aiScene, geo::Scene &scene);
   void readLights(const aiScene *aiScene, geo::Scene &scene);
   void readCameras(const aiScene *aiScene, geo::Scene &scene);
+
+  /**
+   * @brief Reads the textures associated to the material. If material system
+   * contains an entry for the material, they take precedence over the textures
+   * defined in the scene file.
+   * @param aiMaterial
+   * @param material
+   */
   void readTextures(const aiMaterial* aiMaterial, geo::Material& material);
+
+  std::shared_ptr<res::Resource<geo::Texture>> readDiffuseTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<res::Resource<geo::Texture>> readSpecularTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<res::Resource<geo::Texture>> readNormalTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<res::Resource<geo::Texture>> readRoughnessTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
+
 //  void readEmbeddedTextures(const aiScene* aiScene, geo::Scene& scene);
 };
 

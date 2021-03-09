@@ -28,16 +28,6 @@ namespace geo {
 //  std::vector<ecs::Texture> textures {};
 //};
 
-//TODO: this is implementation specific for OpenGL, remove it from here.
-struct UberMaterialData {
-  glm::vec4 diffuse{1.0F, 0.0F, 0.0F, 0.0F};
-  glm::vec4 specular;
-  glm::vec4 ambient;
-  bool hasDiffuseTex {false};
-
-  static inline const char *PARAM_NAME = "UberMaterial";
-};
-
 struct UniformBlockData {
   void *data;
   std::size_t size;
@@ -68,6 +58,57 @@ struct Material {
   std::shared_ptr<res::Resource<geo::Texture>> normalTexture {nullptr};
   std::shared_ptr<res::Resource<geo::Texture>> roughnessTexture {nullptr};
   std::shared_ptr<res::Resource<geo::Texture>> opacityTexture {nullptr};
+
+  std::unordered_map<std::string, float> floatValues;
+  std::unordered_map<std::string, std::vector<float>> floatArrayValues;
+
+  std::string diffuseTexturePath {""};
+  std::string specularTexturePath {""};
+  std::string normalTexturePath {""};
+  std::string roughnessTexturePath {""};
+
+  // TODO: move in separate class or struct
+  std::unordered_map<std::string, std::string> texturePaths {};
+  std::unordered_map<std::string, std::shared_ptr<res::Resource<geo::Texture>>> textures {};
+
+  void setFloat(const std::string& name, float value) {
+    floatValues[name] = value;
+  }
+  void setFloatArray(const std::string& name, std::vector<float> floatArray) {
+    floatArrayValues[name] = floatArray;
+  }
+
+  void setTexture(const std::string& textureName, std::string filePath) {
+    if (filePath != texturePaths[textureName]) {
+      texturePaths[textureName] = filePath;
+      textures[textureName] = nullptr;
+    }
+  }
+
+  float getFloat(const std::string& key) const {
+    if (floatValues.count(key) > 0 ) {
+      return floatValues.at(key);
+    } else {
+      throw std::runtime_error(fmt::format("Property {} (float) does not exist for material {}", key, name));
+    }
+  }
+
+  std::vector<float> getFloatArray(const std::string& key) const {
+    if (floatArrayValues.count(key) > 0 ) {
+      return floatArrayValues.at(key);
+    } else {
+      throw std::runtime_error(fmt::format("Property {} (float[]) does not exist for material {}", key, name));
+    }
+  }
+
+  std::string getTexture(const std::string& key) const {
+    if (texturePaths.count(key) > 0 ) {
+      return texturePaths.at(key);
+    } else {
+      return "";
+//      throw std::runtime_error(fmt::format("Property {} (texture) does not exist for material {}", key, name));
+    }
+  }
 
   // geo::ShadingMode shadingMode
 

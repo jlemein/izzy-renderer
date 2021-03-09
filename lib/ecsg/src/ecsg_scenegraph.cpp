@@ -170,6 +170,7 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
 }
 
 void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node,
+                                 SceneLoaderFlags flags,
                                  SceneGraphEntity *parent_p) {
   auto root = makeEntity(node->name);
   root.setTransform(node->transform);
@@ -181,48 +182,60 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node,
   }
 
   // Add lights
-  for (auto &light : node->lights) {
-    auto lightEntity = makeLight(*light);
-    root.addChild(lightEntity);
+  if (flags.lights) {
+    for (auto &light : node->lights) {
+      auto lightEntity = makeLight(*light);
+      root.addChild(lightEntity);
+    }
   }
 
   // Add cameras
-  for (auto &camera : node->cameras) {
-    auto cameraEntity = makeCamera(*camera);
-    root.addChild(cameraEntity);
+  if (flags.cameras) {
+    for (auto &camera : node->cameras) {
+      auto cameraEntity = makeCamera(*camera);
+      root.addChild(cameraEntity);
+    }
   }
 
-  // add mesh instances for this root
-  for (auto &instance : node->meshInstances) {
-    // make shader from material
-    // TODO: make a material system that loads a default
-    auto material =
-        m_resourceManager->getResource<geo::Material>("UberMaterial");
-    (*material)->diffuseTexture = (*instance->material)->diffuseTexture;
+  if (flags.geometry) {
+    // add mesh instances for this root
+    for (auto &instance : node->meshInstances) {
+      // make shader from material
+      // TODO: make a material system that loads a default
+      //    auto material =
+      //        m_resourceManager->getResource<geo::Material>("UberMaterial");
+      //
+      //    (*material)->diffuseTexture = (*instance->material)->diffuseTexture;
+      //
+      //    (*material)->setProperty<geo::UberMaterialData>(
+      //        {.diffuse = glm::vec4((*instance->material)->diffuse, 1.0F),
+      //         .specular = glm::vec4((*instance->material)->specular, 1.0F),
+      //         .ambient = glm::vec4((*instance->material)->ambient, 1.0F),
+      //         .hasDiffuseTex = (*instance->material)->diffuseTexture !=
+      //         nullptr});
 
-    (*material)->setProperty<geo::UberMaterialData>(
-        {.diffuse = glm::vec4((*instance->material)->diffuse, 1.0F),
-         .specular = glm::vec4((*instance->material)->specular, 1.0F),
-         .ambient = glm::vec4((*instance->material)->ambient, 1.0F),
-         .hasDiffuseTex = (*instance->material)->diffuseTexture != nullptr});
+      // create mesh instance mesh data
+      // TODO: make mesh instance instead of copy mesh
+      //    auto e = makeRenderable(*instance->mesh, instance->transform,
+      //    **material);
+      auto e = makeRenderable(*instance->mesh, instance->transform,
+                              **instance->material);
 
-    // create mesh instance mesh data
-    // TODO: make mesh instance instead of copy mesh
-    auto e = makeRenderable(*instance->mesh, instance->transform, **material);
-
-    root.addChild(e);
+      root.addChild(e);
+    }
   }
 
   for (auto &child : node->children) {
-    processChildren(child, &root);
+    processChildren(child, flags, &root);
   }
 }
 
-SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene) {
+SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene,
+                                       SceneLoaderFlags flags) {
   auto rootScene = makeEntity();
 
   // for geometry and mesh data
-  processChildren(scene->rootNode(), &rootScene);
+  processChildren(scene->rootNode(), flags, &rootScene);
 
   return rootScene;
 }

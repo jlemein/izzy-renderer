@@ -30,6 +30,22 @@ struct Shader;
 
 namespace ecsg {
 
+/**
+ * @brief Specify what scene information to use for scene instantiation.
+ * @details It is possible to skip loading
+ */
+struct SceneLoaderFlags {
+  bool animations {true};
+  bool cameras {false};
+  bool geometry {true};
+  bool lights {false};
+  bool materials {true};
+
+  static inline SceneLoaderFlags All() {
+    return SceneLoaderFlags{true, true, true, true, true};
+  }
+};
+
 /**!
  * SceneGraph is responsible for managing scene node instances.
  *
@@ -83,8 +99,8 @@ public:
    * as well. By default everything is loaded.
    * @return
    */
-  SceneGraphEntity makeScene(geo::Scene &);
-  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource);
+  SceneGraphEntity makeScene(geo::Scene &, SceneLoaderFlags flags = SceneLoaderFlags{});
+  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource, SceneLoaderFlags flags = SceneLoaderFlags{});
 
   SceneGraphEntity makeTexture();
   SceneGraphEntity makeRectangularGrid(float size = 10.0F,
@@ -102,6 +118,7 @@ private:
   const SceneGraphEntity* m_activeCamera {nullptr};
 
   void processChildren(std::shared_ptr<const geo::SceneNode> node,
+                       SceneLoaderFlags flags,
                        SceneGraphEntity *parent_p = nullptr);
 };
 

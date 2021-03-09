@@ -34,6 +34,41 @@ TextureSystem::TextureSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph)
 //
 //  //  auto pTexture = reinterpret_cast<Texture*>(mesh.getComponent("Texture"));
 //}
+namespace {
+/**!
+ * @brief Creates a texture buffer and sends the data over to the GPU. This
+ * method therefore converts a texture resource to GPU ready representation.
+ * @param geoTexture
+ * @param name
+ * @return
+ */
+ecs::Texture makeGlTexture(const geo::Texture &geoTexture,
+                           const std::string &name) {
+  ecs::Texture texture{.name = name};
+  glGenTextures(1, &texture.glTextureId);
+  glBindTexture(GL_TEXTURE_2D, texture.glTextureId);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  if (!geoTexture.data.empty()) {
+    GLint texChannel = geoTexture.channels == 3 ? GL_RGB : GL_RGBA;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, geoTexture.width, geoTexture.height,
+                 0, texChannel, GL_UNSIGNED_BYTE, geoTexture.data.data());
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cout << "Failed to load texture" << std::endl;
+    exit(1);
+  }
+
+  spdlog::log(spdlog::level::debug, "Loaded GL texture for texture '{}'", name);
+  return texture;
+}
+}
+
 
 void TextureSystem::initialize() {
   auto& registry = m_sceneGraph->getRegistry();
@@ -43,33 +78,29 @@ void TextureSystem::initialize() {
     auto &geoMaterial = view.get<geo::Material>(entity);
     auto& renderable = registry.get_or_emplace<Renderable>(entity);
 
+    for (auto& [name, path] : geoMaterial.texturePaths) {
+      // TODO: check if name is used in shader object
+
+      renderable.textures.emplace_back(makeGlTexture(**geoMaterial.textures[name], name));
+    }
+
+    // A material is parsed in two ways
+    // - A material has standard textures assigned in the scene file, such as
+    //   diffuse, normal, transparency maps. They map to predefined variable names.
+    // - A material requires a specific texture, such as noise, or any other texture of specific use for this material only.
+    //   In that case,
     // diffuse texture
     if (geoMaterial.diffuseTexture != nullptr) {
-      auto geoTexture_p = *geoMaterial.diffuseTexture;
-
-      Texture diffuseTexture {.name = "diffuseTex" };
-      glGenTextures(1, &diffuseTexture.glTextureId);
-      glBindTexture(GL_TEXTURE_2D, diffuseTexture.glTextureId);
-
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-      if (!geoTexture_p->data.empty()) {
-        GLint texChannel = (*geoMaterial.diffuseTexture)->channels == 3 ? GL_RGB : GL_RGBA;
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, geoTexture_p->width, geoTexture_p->height, 0, texChannel,
-                     GL_UNSIGNED_BYTE, geoTexture_p->data.data());
-        glGenerateMipmap(GL_TEXTURE_2D);
-      } else {
-        std::cout << "Failed to load texture" << std::endl;
-        exit(1);
-      }
-
-      renderable.textures.emplace_back(diffuseTexture);
-
-      spdlog::log(spdlog::level::debug, "Added diffuse texture entity for material {}", geoMaterial.name);
+      renderable.textures.emplace_back(makeGlTexture(**geoMaterial.diffuseTexture, "diffuseTex"));
+    }
+    if (geoMaterial.specularTexture != nullptr) {
+      renderable.textures.emplace_back(makeGlTexture(**geoMaterial.specularTexture, "specularTex"));
+    }
+    if (geoMaterial.normalTexture != nullptr) {
+      renderable.textures.emplace_back(makeGlTexture(**geoMaterial.normalTexture, "normalTex"));
+    }
+    if (geoMaterial.roughnessTexture != nullptr) {
+      renderable.textures.emplace_back(makeGlTexture(**geoMaterial.roughnessTexture, "roughTex"));
     }
   }
 }

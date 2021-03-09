@@ -25,7 +25,7 @@ TextureLoader::loadResource(const std::string &name) {
 
   if (pixelData == nullptr) {
     throw std::runtime_error(
-        fmt::format("Cannot load texture from file {}: data is empty", name));
+        fmt::format("Cannot load texture from file {}. Are you sure the filename and extension are correct?", name));
   }
 
   if (width * height == 0) {

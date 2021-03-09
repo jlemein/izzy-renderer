@@ -10,11 +10,11 @@
 #include <ecs_relationship.h>
 #include <ecs_texturesystem.h>
 #include <ecs_transform.h>
-#include <ecs_texturesystem.h>
 #include <ecsg_scenegraph.h>
 #include <fstream>
 #include <geo_curve.h>
 #include <geo_mesh.h>
+#include <geo_ubermaterialdata.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <spdlog/spdlog.h>
 using namespace affx;
@@ -211,6 +211,7 @@ void initShaderProperties(Renderable &renderable,
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
     auto p = reinterpret_cast<geo::UberMaterialData *>(blockData.data);
+    std::cout << "Ubermaterial: hasDiffuse " << std::boolalpha << p->hasDiffuseTex << std::endl;
     //    std::cout << "   --- Init " << renderable.name << ">" << name << "
     //    with "
     //              << p->diffuse.r << " " << p->diffuse.g << " " <<
@@ -338,7 +339,13 @@ GLuint compileShader(const geo::Material &material, const Renderable &renderable
 void RenderSystem::init() {
   glShadeModel(GL_SMOOTH);
 
+  // convert material descriptions to openGL specific material data.
   m_materialSystem->initialize();
+
+  // small summary
+  spdlog::info("Render system initialized\n"
+               "Number of material in use {}\n"
+               "Number of active lights: {}", "Unknown", m_registry.view<Light>().size());
 
   // Initialization of the rendersystem encompasses the following steps.
   // Take into account the vocabulary.
@@ -382,9 +389,14 @@ void RenderSystem::init() {
     auto &renderable = m_registry.get<Renderable>(entity);
     auto &material = m_registry.get<geo::Material>(entity);
 
+    auto name = m_registry.has<Name>(entity)
+                ? m_registry.get<Name>(entity).name
+                : "Unnamed";
+
     try {
       initMeshBuffers(renderable, mesh);
       renderable.program = compileShader(material, renderable);
+      spdlog::info("Init shader properties for {}, mtl name: {} -> vs: {}", name, material.name, material.vertexShader);
       initShaderProperties(renderable, material.properties);
 
     } catch (std::exception &e) {

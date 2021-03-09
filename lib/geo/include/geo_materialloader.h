@@ -10,6 +10,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <nlohmann/json.hpp>
 
 namespace affx {
 namespace geo {
@@ -21,7 +22,15 @@ public:
 
   void initialize();
 
+  /// @brief Loads the material associated with the specified material name.
+  /// @details the material is loaded based on material name. There are four possibilities:
+  ///  1. The provided material name is mapped to a different material name (based on material mapping).
+  ///  2. If the provided material name is not a key in the material map, a direct material lookup is performed.
+  ///  3. If not found, then the default material is used.
+  ///  4. If there is no default material, an exception is thrown.
   std::unique_ptr<res::IResource> loadResource(const std::string &name) override;
+
+  bool isMaterialDefined(const std::string& materialName);
 
   //void setDefaultMaterial(std::shared_ptr<Material> material);
   void setDefaultMaterial(const std::string& name);
@@ -32,7 +41,14 @@ private:
   std::string m_materialConfigUri;
   std::unordered_map<std::string, geo::Material> m_materials;
 
+  /// @brief Fbx specific material names are mapped to canonical material names
+  /// that are defined in a material definition.
+  std::unordered_map<std::string, std::string> m_materialMappings;
+
   std::string m_defaultMaterial {""};
+
+  void readMaterialMappings(nlohmann::json& json);
+  void readMaterialDefinitions(nlohmann::json& json);
 };
 
 } // end of package

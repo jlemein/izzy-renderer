@@ -7,6 +7,7 @@
 #include <geo_light.h>
 #include <geo_meshinstance.h>
 #include <geo_transform.h>
+#include <geo_materialloader.h>
 
 #include <deque>
 #include <assimp/Importer.hpp>
@@ -22,14 +23,93 @@ SceneLoader::SceneLoader(std::shared_ptr<res::ResourceManager> resourceManager)
 : m_resourceManager{resourceManager}
 {}
 
-void SceneLoader::readTextures(const aiMaterial *mat_p, Material &material) {
-  // read diffuse textures
-  if (auto texCount = mat_p->GetTextureCount(aiTextureType_DIFFUSE); texCount > 0) {
-    aiString diffuseFilename;
+std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readDiffuseTexture(const aiMaterial *aiMaterial_p, const Material &material) const {
+  std::string diffusePath = material.diffuseTexturePath;
+
+  if (diffusePath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
+    aiString aiDiffusePath;
     aiTextureMapping textureMapping;
-    mat_p->GetTexture(aiTextureType_DIFFUSE, 0, &diffuseFilename, &textureMapping);
-    std::cout << "Material " << material.name << " has diffuse texture '" << diffuseFilename.C_Str() << "'" << std::endl;
-    material.diffuseTexture = m_resourceManager->getResource<geo::Texture>(diffuseFilename.C_Str());
+    aiMaterial_p->GetTexture(aiTextureType_DIFFUSE, 0, &aiDiffusePath, &textureMapping);
+    diffusePath = aiDiffusePath.C_Str();
+  }
+
+  std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
+  if (!diffusePath.empty()) {
+    texture = m_resourceManager->getResource<geo::Texture>(diffusePath);
+    spdlog::info("Material {}: loaded diffuse texture {}", material.name, diffusePath);
+  }
+
+  return texture;
+}
+
+std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readSpecularTexture(const aiMaterial* aiMaterial_p, const geo::Material& material) const {
+  std::string specularPath = material.specularTexturePath;
+
+  if (specularPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_SPECULAR) > 0) {
+    aiString aiSpecularPath;
+    aiTextureMapping textureMapping;
+    aiMaterial_p->GetTexture(aiTextureType_SPECULAR, 0, &aiSpecularPath, &textureMapping);
+    specularPath = aiSpecularPath.C_Str();
+  }
+
+  std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
+  if (!specularPath.empty()) {
+    texture = m_resourceManager->getResource<geo::Texture>(specularPath);
+    spdlog::info("Material {}: loaded specular texture {}", material.name,
+                 specularPath);
+  }
+
+  return texture;
+}
+
+std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readNormalTexture(const aiMaterial* aiMaterial_p, const geo::Material& material) const {
+  std::string normalPath = material.normalTexturePath;
+
+  if (normalPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_NORMALS) > 0) {
+    aiString aiNormalPath;
+    aiTextureMapping textureMapping;
+    aiMaterial_p->GetTexture(aiTextureType_NORMALS, 0, &aiNormalPath, &textureMapping);
+    normalPath = aiNormalPath.C_Str();
+  }
+
+  std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
+  if (!normalPath.empty()) {
+    texture = m_resourceManager->getResource<geo::Texture>(normalPath);
+    spdlog::info("Material {}: loaded specular texture {}", material.name,
+                 normalPath);
+  }
+
+  return texture;
+}
+std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readRoughnessTexture(const aiMaterial* aiMaterial_p, const geo::Material& material) const {
+  std::string roughnessPath = material.roughnessTexturePath;
+
+  if (roughnessPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0) {
+    aiString aiNormalPath;
+    aiTextureMapping textureMapping;
+    aiMaterial_p->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &aiNormalPath, &textureMapping);
+    roughnessPath = aiNormalPath.C_Str();
+  }
+
+  std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
+  if (!roughnessPath.empty()) {
+    texture = m_resourceManager->getResource<geo::Texture>(roughnessPath);
+    spdlog::info("Material {}: loaded roughness texture {}", material.name,
+                 roughnessPath);
+  }
+
+  return texture;
+}
+
+void SceneLoader::readTextures(const aiMaterial *aiMaterial_p, Material &material) {
+  material.diffuseTexture = readDiffuseTexture(aiMaterial_p, material);
+  material.normalTexture = readNormalTexture(aiMaterial_p, material);
+  material.specularTexture = readSpecularTexture(aiMaterial_p, material);
+  material.roughnessTexture = readRoughnessTexture(aiMaterial_p, material);
+
+  // TODO: read remaining generic textures
+  for (auto& [name, path] : material.texturePaths) {
+    material.textures[name] = m_resourceManager->getResource<geo::Texture>(path);
   }
 }
 
@@ -40,6 +120,8 @@ void SceneLoader::readMaterials(const aiScene *scene_p, Scene &scene) {
     std::string name = mat_p->GetName().C_Str();
     auto material = m_resourceManager->getResource<geo::Material>(name);
     (*material)->name = mat_p->GetName().C_Str();
+
+    spdlog::info("Read material {} -- mapped to {} (vertex shader: {})", name, (*material)->name, (*material)->vertexShader);
 
     readTextures(mat_p, **material);
 
@@ -81,10 +163,12 @@ void SceneLoader::readMeshes(const aiScene *scene_p, Scene &scene) {
   for (unsigned int n = 0U; n < scene_p->mNumMeshes; ++n) {
     auto mesh = std::make_shared<Mesh>();
     const aiMesh *mesh_p = scene_p->mMeshes[n];
-    spdlog::debug("Reading mesh {}: {}", n, mesh_p->mName.C_Str());
 
     mesh->name = mesh_p->mName.C_Str();
     mesh->polygonMode = PolygonMode::kTriangles;
+
+    mesh->material = scene.m_materials[mesh_p->mMaterialIndex];
+    spdlog::error("Reading mesh {}: {} has material {} - {}", n, mesh_p->mName.C_Str(), (*mesh->material)->name, (*mesh->material)->vertexShader);
 
     for (int i = 0; i < mesh_p->mNumVertices; ++i) {
       auto pVertex = mesh_p->mVertices[i];
@@ -96,8 +180,6 @@ void SceneLoader::readMeshes(const aiScene *scene_p, Scene &scene) {
       mesh->normals.push_back(pNormal.x);
       mesh->normals.push_back(pNormal.y);
       mesh->normals.push_back(pNormal.z);
-
-      mesh->material = scene.m_materials[mesh_p->mMaterialIndex];
 
       aiVector3D ZERO3D = {0, 0, 0};
       auto uv =
@@ -123,7 +205,6 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
 
   queue.push_back(std::make_pair<>(scene_p->mRootNode, nullptr));
 
-  std::cout << "Mesh count in scene: " << scene.m_meshes.size() << std::endl;
   // Queue is filled with entities, starting with root node.
   // Every time a node is processed.
 
@@ -158,6 +239,7 @@ void SceneLoader::readHierarchy(const aiScene *scene_p, Scene &scene) {
       meshInstance->mesh = mesh;
       meshInstance->name = std::string{node_p->mName.C_Str()};
       meshInstance->material = mesh->material;
+      spdlog::info("Mesh with name {}, has material {} -- vs: {}", mesh->name, (*mesh->material)->name, (*mesh->material)->vertexShader);
       meshInstance->transform = glm::mat4(1.0F);
 
       node->meshInstances.push_back(meshInstance);

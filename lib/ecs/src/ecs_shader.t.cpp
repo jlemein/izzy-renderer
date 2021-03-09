@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include <geo_ubermaterialdata.h>
 using namespace affx;
 using namespace testing;
 using namespace affx::geo;
