@@ -1,9 +1,4 @@
-# use the official gcc image, based on debian
-# can use verions as well, like gcc:5.2
-# see https://hub.docker.com/_/gcc/
-#image: gcc
-image: jlemein/gcc-cmake-gl:latest
-#image: rikorose/gcc-cmake:gcc-10
+image: jlemein/ubuntu:20.04
 
 build:
   stage: build
@@ -12,11 +7,12 @@ build:
   # before_script:
   #   - apt update && apt -y install make autoconf
   script:
+    - conan remote add package_server ${CONAN_REMOTE_URL}
+    - conan user ${CONAN_USER} -r package_server -p ${CONAN_PASSWORD}
     - conan profile new default --detect
     - conan profile update settings.compiler.libcxx=libstdc++11 default
     - conan install . -if build
-    - cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -B build
-    - cmake --build ./build --config Release -j2
+    - conan build . -bf build
   artifacts:
     paths:
       - build/bin
