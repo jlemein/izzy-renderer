@@ -8,7 +8,8 @@ include(GoogleTest)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(conan)
 conan_cmake_run(CONANFILE conanfile.txt
-        BASIC_SETUP CMAKE_TARGETS)
+        BASIC_SETUP CMAKE_TARGETS
+        BUILD missing)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
