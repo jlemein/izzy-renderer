@@ -9,8 +9,6 @@ build:
   script:
     - conan remote add package_server "$CONAN_REMOTE_URL"
     - conan user --remote package_server --password
-    - conan profile new default --detect
-    - conan profile update settings.compiler.libcxx=libstdc++11 default
     - conan install . -if build
     - conan build . -bf build
   artifacts:
