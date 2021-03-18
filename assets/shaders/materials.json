@@ -3,7 +3,7 @@
   "material_mapping": [
     {
       "from": "WoodCrate",
-      "to": "UberMaterial"
+      "to": "ParallaxExample"
     }
   ],
   "materials": [
@@ -103,49 +103,30 @@
       ]
     },
     {
-      "name": "CobbleStone",
-      "vertex_shader": "assets/shaders/uber.vert.spv",
+      "name": "ParallaxExample",
+      "vertex_shader": "assets/shaders/parallax.vert.spv",
       "geometry_shader": "",
-      "fragment_shader": "assets/shaders/uber.frag.spv",
+      "fragment_shader": "assets/shaders/parallax.frag.spv",
       "properties": [
         {
           "type": "float",
-          "name": "iteration_count",
-          "value": 13.0
+          "name": "strength",
+          "value": 2.0
         },
         {
           "type": "texture",
-          "name": "noise",
-          "value": "perlin_noise.png"
+          "name": "height_map",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_height.png"
         },
         {
           "type": "texture",
-          "name": "diffuse_texture",
-          "value": "wood.png"
+          "name": "albedo_map",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
         },
         {
-          "name": "diffuse_color",
-          "value": [
-            0.0,
-            0.5,
-            0.0
-          ]
-        },
-        {
-          "name": "specular_color",
-          "value": [
-            1.0,
-            1.0,
-            1.0
-          ]
-        },
-        {
-          "name": "ambient_color",
-          "value": [
-            0.2,
-            0.2,
-            0.2
-          ]
+          "type": "texture",
+          "name": "normal_map",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
         }
       ]
     },

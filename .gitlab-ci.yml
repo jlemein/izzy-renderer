@@ -2,23 +2,16 @@ image: jlemein/ubuntu:20.04
 
 build:
   stage: build
-  # instead of calling g++ directly you can also use some build toolkit like make
-  # install the necessary build tools when needed
-  # before_script:
-  #   - apt update && apt -y install make autoconf
   script:
     - conan remote add package_server "$CONAN_REMOTE_URL"
     - conan user --remote package_server --password
-    - conan install . -if build --build=nlohmann_json --build=resourcemanager
-    - conan build . -bf build
+    - cmake . -B build -DCMAKE_BUILD_TYPE=Release
+    - cmake --build build
+
   artifacts:
     paths:
       - build/bin
       - build/assets
-      # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
-      # cache:
-      #   paths:
-      #     - "*.o"
 
 # run tests using the binary built before
 # test:
