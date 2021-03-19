@@ -19,7 +19,9 @@ target_link_libraries(geo PRIVATE CONAN_PKG::assimp CONAN_PKG::glm
 
 #if (BUILD_TESTING)
     add_executable(geo_test src/geo_sceneloader.t.cpp include/geo_scene.h include/geo_light.h include/geo_camera.h src/geo_materialloader.t.cpp)
-    target_link_libraries(geo_test PRIVATE geo CONAN_PKG::gtest CONAN_PKG::nlohmann_json)
+    target_link_libraries(geo_test PRIVATE
+            CONAN_PKG::glm
+            geo CONAN_PKG::gtest CONAN_PKG::nlohmann_json)
     target_include_directories(geo_test PRIVATE include)
 #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)
     gtest_discover_tests(geo_test)
