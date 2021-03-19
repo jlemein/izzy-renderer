@@ -1,4 +1,4 @@
-image: jlemein/ubuntu:20.04
+image: jlemein/ubuntu_20.04:latest
 
 build:
   stage: build
