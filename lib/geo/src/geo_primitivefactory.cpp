@@ -145,7 +145,11 @@ Mesh PrimitiveFactory::MakePyramid(float baseWidth, float height) {
 
   return mesh;
 }
-Mesh PrimitiveFactory::MakeSphere(float radius) { return Mesh(); }
+Mesh PrimitiveFactory::MakeSphere(float radius) {
+  return Mesh();
+}
+
+
 Mesh PrimitiveFactory::MakeDonut(float innerRadius, float outerRadius) {
   return Mesh();
 }

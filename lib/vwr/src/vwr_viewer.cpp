@@ -42,6 +42,10 @@ void Viewer::setWindowSize(unsigned int width, unsigned int height) {
   m_displayDetails.windowHeight = static_cast<int>(height);
 }
 
+void Viewer::setTitle(const std::string &title) {
+
+}
+
 void Viewer::initialize() {
 
   glfwSetErrorCallback(error_callback);
@@ -54,7 +58,7 @@ void Viewer::initialize() {
 
   GLFWwindow *window = glfwCreateWindow(m_displayDetails.windowWidth,
                                         m_displayDetails.windowHeight,
-                                        "Simple Viewer", NULL, NULL);
+                                        m_title.c_str(), NULL, NULL);
 
   m_displayDetails.window = reinterpret_cast<WindowHandle *>(window);
   m_displayDetails.shadingLanguage = "glsl";

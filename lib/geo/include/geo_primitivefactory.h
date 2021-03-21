@@ -12,13 +12,27 @@ struct Curve;
 struct Mesh;
 
 /**!
- * Collection of primitive types.
+ * @brief
+ * Factory for creating primitive types. Primitive types are elementary and
+ * useful 3d shapes that are created based on the defined properties. These
+ * shapes are therefore not loaded from a scene file format (such as *.fbx).
+ *
+ * @details
  * All primitive types are created with xz plane taken as the ground plane.
  * Width goes to positive X-axis, height to positive Y-axis and depth to
  * negative Z-axis.
+ * The center of the shapes is always at the origin. This means everything else
+ * except shapes on the flat XZ plane, need to be elevated up by half the height
+ * if you want them to be aligned on the ground plane y = 0.
  */
 class PrimitiveFactory {
 public:
+  /**
+   * Creates a plane made of two triangles with the specified width and height.
+   * @param width The width of the plane.
+   * @param height The height of the plane.
+   * @returns a plane wt
+   */
   static Mesh MakePlane(float width, float height);
 
   /**!
@@ -28,7 +42,7 @@ public:
    * @param depth Depth along the Z axis.
    * @return A mesh object.
    */
-  static Mesh MakeBox(float width, float height, float depth);
+  static Mesh MakeBox(float width = 1.0F, float height = 1.0F, float depth = 1.0F);
 
   /**!
    * Creates a simple cylinder centered at origin, e.g. (0,0,0).
@@ -36,14 +50,19 @@ public:
    * @param height The height of the cylinder in the Y axis.
    * @param numSegments The number of sides for the cylinder. Increasing the
    * number of segments make a smoother result at the cost of more vertex data.
-   * @return
+   * @returns a cylinder object
    */
-  static Mesh MakeCylinder(float radius, float height, int numSides = 12);
+  static Mesh MakeCylinder(float radius = 1.0F, float height = 1.0F, int numSides = 12);
 
-//  static Mesh MakeBoxWireframe(float width, float height, float depth);
-  /// returns a box modeled as a curve, representing a wireframe model
+  /**!
+   * Creates a pyramid with a defined base and height.
+   * @param base Base size of the pyramid, which corresponds to the width and height.
+   * @param height The height of the pyramid from the base to the tip of the pyramid.
+   * @return a mesh object
+   */
+  static Mesh MakePyramid(float base = 1.0F, float height = 1.0F);
 
-  static Mesh MakePyramid(float size, float height);
+
   static Mesh MakeSphere(float radius);
   static Mesh MakeDonut(float innerRadius, float outerRadius);
   static Mesh MakeTeapot(float size);

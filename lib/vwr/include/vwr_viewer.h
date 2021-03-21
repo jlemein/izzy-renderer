@@ -68,6 +68,7 @@ public:
   int run();
 
   void setWindowSize(unsigned int width, unsigned int height);
+  void setTitle(const std::string& title);
 
   void setActiveCamera(ecsg::SceneGraphEntity cameraEntity);
 
@@ -93,6 +94,7 @@ private:
   std::shared_ptr<WindowInputListener> m_genericInputListener;
 
   DisplayDetails m_displayDetails;
+  const std::string m_title = "Hello LSW Renderer";
 };
 
 } // namespace viewer

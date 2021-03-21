@@ -1,14 +1,22 @@
 
-add_library(rm STATIC src/rm_resourcemanager.cpp
-        include/rm_resourcemanager.h)
+add_library(georm STATIC
+        src/georm_resourcemanager.cpp
+        include/georm_resourcemanager.h)
 
-target_include_directories(rm
+target_include_directories(georm
         PUBLIC include
         PRIVATE src)
 
-target_link_libraries(rm PRIVATE CONAN_PKG::spdlog geo
-        CONAN_PKG::nlohmann_json
-        PUBLIC CONAN_PKG::assimp CONAN_PKG::resourcemanager CONAN_PKG::stb CONAN_PKG::fmt)
+target_link_libraries(georm
+        PRIVATE
+            geo
+            CONAN_PKG::spdlog
+            CONAN_PKG::nlohmann_json
+            CONAN_PKG::resourcemanager
+            CONAN_PKG::assimp
+            CONAN_PKG::stb
+            CONAN_PKG::fmt
+        )
 
 #if (BUILD_TESTING)
 #    add_executable(geo_test src/geo_sceneloader.t.cpp include/geo_scene.h include/geo_light.h include/geo_camera.h)

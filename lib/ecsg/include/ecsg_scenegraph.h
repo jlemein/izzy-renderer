@@ -46,6 +46,7 @@ struct SceneLoaderFlags {
   }
 };
 
+
 /**!
  * SceneGraph is responsible for managing scene node instances.
  *
@@ -80,6 +81,12 @@ public:
   SceneGraphEntity makeDirectionalLight(std::string name, glm::vec3 direction);
   // SceneGraphEntity makeAreaLight(std::string name, SceneGraphEntity
   // lightBody); SceneGraphEntity makeSpotLight(std::string name);
+
+  /**!
+   * @brief Creates a geometry
+   * @return
+   */
+  SceneGraphEntity addGeometry(const geo::Mesh&, const geo::Material&);
 
   SceneGraphEntity makeMesh(const geo::Mesh &mesh);
   SceneGraphEntity makeEmptyMesh(const geo::Mesh &mesh);

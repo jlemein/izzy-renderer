@@ -78,6 +78,22 @@ struct Material {
     floatArrayValues[name] = floatArray;
   }
 
+  void setDiffuseMap(const std::string& path) {
+    diffuseTexturePath = path;
+  }
+
+  void setNormalMap(const std::string& path) {
+    normalTexturePath = path;
+  }
+
+  void setRoughnessMap(const std::string& path) {
+    roughnessTexturePath = path;
+  }
+
+  void setSpecularMap(const std::string& path) {
+    specularTexturePath = path;
+  }
+
   void setTexture(const std::string& textureName, std::string filePath) {
     if (filePath != texturePaths[textureName]) {
       texturePaths[textureName] = filePath;

@@ -101,6 +101,15 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name,
   return lightEntity;
 }
 
+SceneGraphEntity SceneGraph::addGeometry(const geo::Mesh& mesh, const geo::Material& mat) {
+  auto e = makeEntity(mesh.name);
+  e.add<ecs::Renderable>();
+  e.add<geo::Mesh>(mesh);
+  e.add<geo::Material>(mat);
+
+  return e;
+}
+
 SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
   auto meshEntity = makeEntity(mesh.name);
 
