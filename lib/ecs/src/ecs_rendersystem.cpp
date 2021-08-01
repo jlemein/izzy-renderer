@@ -17,8 +17,8 @@
 #include <geo_ubermaterialdata.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <spdlog/spdlog.h>
-using namespace affx;
-using namespace affx::ecs;
+using namespace lsw;
+using namespace lsw::ecs;
 
 namespace {
 std::vector<char> readFile(const std::string &filename) {
@@ -152,7 +152,8 @@ void initLightingUbo(Renderable &renderable) {
   renderable.uboLightingIndex =
       glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
   if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-    spdlog::debug("Lighting disabled, cannot find ubo block index with name {}",  UniformLighting::PARAM_NAME);
+    spdlog::debug("Lighting disabled, cannot find ubo block index with name {}",
+                  UniformLighting::PARAM_NAME);
     renderable.isLightingSupported = false;
   } else {
     renderable.isLightingSupported = true;
@@ -211,7 +212,8 @@ void initShaderProperties(Renderable &renderable,
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
     auto p = reinterpret_cast<geo::UberMaterialData *>(blockData.data);
-    std::cout << "Ubermaterial: hasDiffuse " << std::boolalpha << p->hasDiffuseTex << std::endl;
+    std::cout << "Ubermaterial: hasDiffuse " << std::boolalpha
+              << p->hasDiffuseTex << std::endl;
     //    std::cout << "   --- Init " << renderable.name << ">" << name << "
     //    with "
     //              << p->diffuse.r << " " << p->diffuse.g << " " <<
@@ -289,7 +291,8 @@ void initMeshBuffers(Renderable &renderable, const geo::Mesh &mesh) {
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0,
                         BUFFER_OFFSET(vertexSize + normalSize));
 }
-GLuint compileShader(const geo::Material &material, const Renderable &renderable) {
+GLuint compileShader(const geo::Material &material,
+                     const Renderable &renderable) {
   auto vertexShaderBuffer = readFile(material.vertexShader);
   auto fragmentShaderBuffer = readFile(material.fragmentShader);
 
@@ -335,17 +338,32 @@ GLuint compileShader(const geo::Material &material, const Renderable &renderable
 
   return program;
 }
+//
+class ABC {
+public:
+  ABC() = default;
+  ABC(ABC &&) = default;
+  ABC(const ABC &) = delete;
+  ABC &operator=(const ABC &) = delete;
+  ABC &operator=(ABC &&) = default;
+
+  char a;
+};
 
 void RenderSystem::init() {
+  const geo::Material &mat =
+      m_registry.get<geo::Material>(static_cast<const entt::entity>(0U));
+  spdlog::error("Material ({}) name of e0: {}", (void *)&mat, mat.vertexShader);
   glShadeModel(GL_SMOOTH);
 
   // convert material descriptions to openGL specific material data.
   m_materialSystem->initialize();
 
   // small summary
-  spdlog::info("Render system initialized\n"
-               "Number of material in use {}\n"
-               "Number of active lights: {}", "Unknown", m_registry.view<Light>().size());
+  spdlog::info("Render system initialized | "
+               "Number of material in use {} | "
+               "Number of active lights: {}",
+               "Unknown", m_registry.view<Light>().size());
 
   // Initialization of the rendersystem encompasses the following steps.
   // Take into account the vocabulary.
@@ -373,7 +391,7 @@ void RenderSystem::init() {
       renderable.program = compileShader(material, renderable);
       initShaderProperties(renderable, material.properties);
     } catch (std::exception &e) {
-      auto name = m_registry.has<Name>(entity)
+      auto name = m_registry.all_of<Name>(entity)
                       ? m_registry.get<Name>(entity).name
                       : "Unnamed";
 
@@ -385,22 +403,31 @@ void RenderSystem::init() {
   // handling meshes
   auto view = m_registry.view<geo::Mesh, geo::Material, Renderable>();
   for (auto entity : view) {
-    auto &mesh = m_registry.get<geo::Mesh>(entity);
-    auto &renderable = m_registry.get<Renderable>(entity);
     auto &material = m_registry.get<geo::Material>(entity);
+    spdlog::info("E: {} -- Material load shaders mtlname '{}' -- vs: {} fs: {}",
+                 entity, material.name, material.vertexShader,
+                 material.fragmentShader);
 
-    auto name = m_registry.has<Name>(entity)
-                ? m_registry.get<Name>(entity).name
-                : "Unnamed";
+    auto name = m_registry.all_of<Name>(entity)
+                    ? m_registry.get<Name>(entity).name
+                    : "Unnamed";
 
     try {
+      auto &renderable = m_registry.get<Renderable>(entity);
+      auto &mesh = m_registry.get<geo::Mesh>(entity);
       initMeshBuffers(renderable, mesh);
+
+      auto &material = m_registry.get<geo::Material>(entity);
+      spdlog::info(
+          "Material load shaders name '{}' ; mtlname '{}' -- vs: {} fs: {}",
+          name, material.name, material.vertexShader, material.fragmentShader);
       renderable.program = compileShader(material, renderable);
-      spdlog::info("Init shader properties for {}, mtl name: {} -> vs: {}", name, material.name, material.vertexShader);
+      spdlog::info("Init shader properties for {}, mtl name: {} -> vs: {}",
+                   name, material.name, material.vertexShader);
       initShaderProperties(renderable, material.properties);
 
     } catch (std::exception &e) {
-      auto name = m_registry.has<Name>(entity)
+      auto name = m_registry.all_of<Name>(entity)
                       ? m_registry.get<Name>(entity).name
                       : "Unnamed";
 
@@ -433,12 +460,12 @@ void RenderSystem::synchMvpMatrices() {
 
 void RenderSystem::updateLightProperties() {
   auto view = m_registry.view<Transform, Light>();
-  m_uLightData.numberLights = view.size();
+  m_uLightData.numberLights = view.size_hint();
 
-  if (view.size() == 0) {
+  if (view.size_hint() == 0) {
     std::cout << "WARNING: No active lights in scene." << std::endl;
   }
-  if (view.size() > 4) {
+  if (view.size_hint() > 4) {
     throw std::runtime_error(
         "Too many lights in the scene. Max supported is 4");
   }
@@ -470,14 +497,14 @@ void RenderSystem::updateModelMatrix(entt::entity e) {
 }
 
 void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
-  if (!m_registry.has<Camera>(cameraEntity)) {
+  if (!m_registry.all_of<Camera>(cameraEntity)) {
     throw std::runtime_error(
         "Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
 
   // determine frame buffers
-  if (m_registry.has<PosteffectCollection>(m_activeCamera)) {
+  if (m_registry.all_of<PosteffectCollection>(m_activeCamera)) {
     GLuint framebufferName = 0;
     glGenFramebuffers(1, &framebufferName);
     glBindFramebuffer(GL_FRAMEBUFFER, framebufferName);
@@ -592,8 +619,8 @@ void RenderSystem::checkError(entt::entity e) {
   // get error message
   GLenum err;
   if ((err = glGetError()) != GL_NO_ERROR) {
-    auto name = m_registry.has<Name>(e) ? m_registry.get<Name>(e).name
-                                        : std::string{"Unnamed"};
+    auto name = m_registry.all_of<Name>(e) ? m_registry.get<Name>(e).name
+                                           : std::string{"Unnamed"};
     std::cerr << " Render error occurred for " << name << ": " << err
               << std::endl;
   }

@@ -11,7 +11,7 @@
 #include <memory>
 #include <list>
 
-namespace affx
+namespace lsw
 {
 namespace io
 {
@@ -52,6 +52,6 @@ class InputSystem
 };
 
 }  // namespace io
-}  // namespace affx
+}  // namespace lsw
 
 #endif  // GLVIEWER_IO_INPUTSYSTEM_H

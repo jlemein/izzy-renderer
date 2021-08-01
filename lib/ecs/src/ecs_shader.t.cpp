@@ -8,9 +8,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <geo_ubermaterialdata.h>
-using namespace affx;
+using namespace lsw;
 using namespace testing;
-using namespace affx::geo;
+using namespace lsw::geo;
 
 class ShaderTest : public ::testing::Test {};
 

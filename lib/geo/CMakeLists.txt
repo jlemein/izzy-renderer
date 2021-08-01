@@ -18,7 +18,10 @@ target_link_libraries(geo PRIVATE CONAN_PKG::assimp CONAN_PKG::glm
         PUBLIC CONAN_PKG::assimp CONAN_PKG::resourcemanager CONAN_PKG::stb CONAN_PKG::fmt CONAN_PKG::nlohmann_json)
 
 #if (BUILD_TESTING)
-    add_executable(geo_test src/geo_sceneloader.t.cpp include/geo_scene.h include/geo_light.h include/geo_camera.h src/geo_materialloader.t.cpp)
+    add_executable(geo_test
+            src/geo_sceneloader.t.cpp
+            src/geo_material.t.cpp
+            include/geo_scene.h include/geo_light.h include/geo_camera.h src/geo_materialloader.t.cpp)
     target_link_libraries(geo_test PRIVATE
             CONAN_PKG::glm
             geo CONAN_PKG::gtest CONAN_PKG::nlohmann_json)

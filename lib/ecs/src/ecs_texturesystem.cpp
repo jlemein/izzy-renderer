@@ -14,8 +14,8 @@
 #include <iostream>
 #include <spdlog/spdlog.h>
 
-using namespace affx::ecs;
-using namespace affx;
+using namespace lsw::ecs;
+using namespace lsw;
 
 TextureSystem::TextureSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph)
 : m_sceneGraph(sceneGraph)
@@ -75,8 +75,8 @@ void TextureSystem::initialize() {
   auto view = registry.view<geo::Material>();
 
   for (auto entity : view) {
-    auto &geoMaterial = view.get<geo::Material>(entity);
     auto& renderable = registry.get_or_emplace<Renderable>(entity);
+    auto &geoMaterial = view.get<geo::Material>(entity);
 
     for (auto& [name, path] : geoMaterial.texturePaths) {
       // TODO: check if name is used in shader object
@@ -111,7 +111,7 @@ void TextureSystem::onRender(entt::entity e) {
   //  for (auto entity : view) {
   auto& registry = m_sceneGraph->getRegistry();
 
-  if (!registry.has<Renderable, geo::Material>(e)) {
+  if (!registry.all_of<Renderable, geo::Material>(e)) {
     return;
   }
 

@@ -7,7 +7,7 @@
 
 #include <entt/fwd.hpp>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 struct Relationship;
 }

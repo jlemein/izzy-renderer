@@ -8,7 +8,7 @@
 #include <assimp/scene.h>
 #include <assimp/material.h>
 #include <assimp/postprocess.h>
-using namespace affx::ecsw;
+using namespace lsw::ecsw;
 
 Scene::Scene() {
 }

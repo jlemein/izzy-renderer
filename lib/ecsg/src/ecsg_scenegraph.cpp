@@ -20,12 +20,25 @@
 #include <res_resource.h>
 #include <res_resourcemanager.h>
 
-using namespace affx;
-using namespace affx::ecsg;
-using namespace affx::ecs;
+using namespace lsw;
+using namespace lsw::ecsg;
+using namespace lsw::ecs;
 
-SceneGraph::SceneGraph(std::shared_ptr<res::ResourceManager> resourceManager)
-    : m_resourceManager{resourceManager} {}
+SceneGraph::SceneGraph() {}
+
+void SceneGraph::setDefaultMaterial(geo::Material &material) {
+  m_defaultMaterial = &material;
+}
+
+SceneGraphEntity SceneGraph::addGeometry(const geo::Mesh &mesh,
+                                         const geo::Material &mat) {
+  auto e = makeEntity(mesh.name);
+  e.add<ecs::Renderable>();
+  e.add<geo::Mesh>(mesh);
+  e.add<geo::Material>(mat);
+
+  return e;
+}
 
 SceneGraphEntity SceneGraph::makeEntity(std::string name) {
   auto e{m_registry.create()};
@@ -101,15 +114,6 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name,
   return lightEntity;
 }
 
-SceneGraphEntity SceneGraph::addGeometry(const geo::Mesh& mesh, const geo::Material& mat) {
-  auto e = makeEntity(mesh.name);
-  e.add<ecs::Renderable>();
-  e.add<geo::Mesh>(mesh);
-  e.add<geo::Material>(mat);
-
-  return e;
-}
-
 SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
   auto meshEntity = makeEntity(mesh.name);
 
@@ -119,8 +123,10 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
   // Watch out here, geo::Material is a value type so we can do this.
   // It is very tricky, because we ignore the resource itself here, possibly
   // causing dangling pointers in the end
-  auto mat = **m_resourceManager->getResource<geo::Material>("DefaultMaterial");
-  meshEntity.add<geo::Material>(mat);
+  if (m_defaultMaterial == nullptr) {
+    throw std::runtime_error("No default material set, cannot create mesh");
+  }
+  meshEntity.add<geo::Material>(*m_defaultMaterial);
 
   //  auto& shader = meshEntity.add<ecs::Shader>(
   //      {"assets/shaders/diffuse.vert.spv",

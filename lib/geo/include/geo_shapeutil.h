@@ -6,7 +6,7 @@
 #define GLVIEWER_SHP_SHAPEUTIL_H
 #include "geo_boundingbox.h"
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 class ShapeUtil {

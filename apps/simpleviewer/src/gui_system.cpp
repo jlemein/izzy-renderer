@@ -8,9 +8,9 @@
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
-using namespace affx;
+using namespace lsw;
 
-GuiSystem::GuiSystem(std::shared_ptr<affx::viewer::Viewer> viewer)
+GuiSystem::GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer)
 : m_viewer(viewer)
 {
 }

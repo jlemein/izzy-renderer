@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 struct Transform;
@@ -33,6 +33,6 @@ struct TransformUtil {
 };
 
 } // namespace ecs
-} // namespace affx
+} // namespace lsw
 
 #endif // ARTIFAX_ECS_TRANSFORMUTIL_H

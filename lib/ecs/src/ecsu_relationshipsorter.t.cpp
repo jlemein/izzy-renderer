@@ -7,9 +7,9 @@
 #include <entt/entt.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-using namespace affx;
+using namespace lsw;
 using namespace testing;
-using namespace affx::ecs;
+using namespace lsw::ecs;
 
 class RelationshipSorterTest : public ::testing::Test {};
 

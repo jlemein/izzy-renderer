@@ -7,7 +7,7 @@
 
 #include <entt/entt.hpp>
 
-namespace affx {
+namespace lsw {
 namespace ecs
 {
 class IRenderSubsystem
@@ -18,6 +18,6 @@ class IRenderSubsystem
 };
 
 } // end package
-} // namespace affx
+} // namespace lsw
 
 #endif  // GLVIEWER_ECS_RENDERSUBSYSTEM_H

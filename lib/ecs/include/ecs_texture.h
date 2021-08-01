@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 /**!

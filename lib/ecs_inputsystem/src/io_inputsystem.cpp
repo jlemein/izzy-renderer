@@ -7,7 +7,7 @@
 #include <io_inputlistener.h>
 
 #include <unordered_map>
-using namespace affx::io;
+using namespace lsw::io;
 
 namespace {
 std::unordered_map<Key, int> toGlfwKey = {

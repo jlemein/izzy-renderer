@@ -8,16 +8,16 @@
 #include <vwr_viewerextension.h>
 #include <imgui.h>
 
-namespace affx {
+namespace lsw {
 namespace viewer {
 class Viewer;
 struct DisplayDetails;
 }
 }
 
-class GuiSystem : public affx::ecs::IViewerExtension {
+class GuiSystem : public lsw::ecs::IViewerExtension {
 public:
-  GuiSystem(std::shared_ptr<affx::viewer::Viewer> viewer);
+  GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer);
 
   void initialize() override;
   void update(float time, float dt) override;
@@ -26,7 +26,7 @@ public:
   void cleanup() override;
 
 private:
-  std::shared_ptr<affx::viewer::Viewer> m_viewer {nullptr};
+  std::shared_ptr<lsw::viewer::Viewer> m_viewer {nullptr};
   void* m_windowHandle {nullptr};
   std::string m_shadingLanguage {""};
   std::string m_shadingVersion {""};

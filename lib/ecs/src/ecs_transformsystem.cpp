@@ -6,7 +6,7 @@
 #include <ecsu_relationshipsorter.h>
 #include <entt/entt.hpp>
 
-using namespace affx::ecs;
+using namespace lsw::ecs;
 
 //
 // Created by jlemein on 10-11-20.
@@ -28,7 +28,7 @@ std::vector<entt::entity> getRootNodes(entt::registry &registry) {
 
   auto view = registry.view<Transform>();
   for (auto e : view) {
-    if (registry.has<Relationship>(e) ||
+    if (registry.all_of<Relationship>(e) ||
         registry.get<Relationship>(e).parent == entt::null) {
       rootEntities.push_back(e);
     }

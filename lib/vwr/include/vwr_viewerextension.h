@@ -8,7 +8,7 @@
 #include <entt/entt.hpp>
 #include <entt/entity/registry.hpp>
 
-namespace affx {
+namespace lsw {
 namespace viewer {
 class Viewer;
 }

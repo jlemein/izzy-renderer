@@ -5,7 +5,7 @@
 #ifndef RENDERER_GEO_TRANSFORM_H
 #define RENDERER_GEO_TRANSFORM_H
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 template <typename T>

@@ -3,7 +3,7 @@
 //
 #include <geo_ubermaterialdata.h>
 #include <geo_material.h>
-using namespace affx::geo;
+using namespace lsw::geo;
 
 UberMaterialData UberMaterialData::FromMaterial(const geo::Material &material) {
   UberMaterialData data;

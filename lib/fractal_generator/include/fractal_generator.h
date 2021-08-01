@@ -8,13 +8,13 @@
 #include <geo_curve.h>
 #include <geo_mesh.h>
 
-namespace affx {
+namespace lsw {
 namespace fractal {
 class FractalGenerator {
 public:
   FractalGenerator(unsigned int seed);
 
-  affx::geo::Curve makeSierpinskiTriangle(unsigned int iterations);
+  lsw::geo::Curve makeSierpinskiTriangle(unsigned int iterations);
 
 private:
   unsigned int m_seed;

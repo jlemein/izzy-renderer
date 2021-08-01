@@ -16,8 +16,8 @@
 #include <spdlog/spdlog.h>
 #include <res_resourcemanager.h>
 
-using namespace affx;
-using namespace affx::geo;
+using namespace lsw;
+using namespace lsw::geo;
 
 SceneLoader::SceneLoader(std::shared_ptr<res::ResourceManager> resourceManager)
 : m_resourceManager{resourceManager}
@@ -361,7 +361,7 @@ void readTextures(const aiScene *scene_p, Scene &scene) {
 
 }
 
-std::unique_ptr<res::IResource> SceneLoader::loadResource(const std::string &path) {
+std::unique_ptr<res::IResource> SceneLoader::createResource(const std::string &path) {
   geo::Scene scene;
   Assimp::Importer m_importer;
   const aiScene *aiScene_p{nullptr};

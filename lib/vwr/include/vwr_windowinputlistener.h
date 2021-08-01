@@ -10,7 +10,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-namespace affx
+namespace lsw
 {
 namespace io
 {
@@ -33,5 +33,5 @@ class WindowInputListener : public io::InputListener
 };
 
 }  // namespace viewer
-}  // namespace affx
+}  // namespace lsw
 #endif  // GLVIEWER_VIEWER_WINDOWINPUTLISTENER_H

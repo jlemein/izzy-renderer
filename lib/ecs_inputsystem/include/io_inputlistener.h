@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_IO_INPUTLISTENER_H
 #define GLVIEWER_IO_INPUTLISTENER_H
 
-namespace affx
+namespace lsw
 {
 namespace io
 {

@@ -8,7 +8,7 @@
 #include <entt/entity/entity.hpp>
 #include <entt/entity/fwd.hpp>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 enum class DebugShape {
   kUndefined = -1, /// @brief Undefined, let the debug system choose appropriate.
@@ -40,6 +40,6 @@ struct Debug {
 };
 
 } // namespace ecs
-} // namespace affx
+} // namespace lsw
 
 #endif // ARTIFAX_ECS_DEBUG_H

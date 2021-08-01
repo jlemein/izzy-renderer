@@ -3,7 +3,7 @@
 //
 #include <gtest/gtest.h>
 #include <nlohmann/json.hpp>
-//using namespace affx::geo;
+//using namespace lsw::geo;
 using json = nlohmann::json;
 
 class MaterialLoaderTest : public testing::Test {

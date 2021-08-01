@@ -7,7 +7,7 @@
 
 #include <ecs_debug.h>
 
-namespace affx {
+namespace lsw {
 
 namespace geo {
 struct Mesh;

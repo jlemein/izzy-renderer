@@ -12,11 +12,11 @@
 #include <unordered_map>
 #include <nlohmann/json.hpp>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 
-class MaterialSystem : public affx::res::ResourceFactory {
+class MaterialSystem : public lsw::res::ResourceFactory {
 public:
   MaterialSystem(const std::string& path);
 
@@ -28,7 +28,8 @@ public:
   ///  2. If the provided material name is not a key in the material map, a direct material lookup is performed.
   ///  3. If not found, then the default material is used.
   ///  4. If there is no default material, an exception is thrown.
-  std::unique_ptr<res::IResource> loadResource(const std::string &name) override;
+  /// @returns a unique ptr
+  std::unique_ptr<res::IResource> createResource(const std::string &name) override;
 
   bool isMaterialDefined(const std::string& materialName);
 

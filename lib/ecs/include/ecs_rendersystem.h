@@ -12,7 +12,7 @@
 
 #include <glm/glm.hpp>
 
-namespace affx
+namespace lsw
 {
 
 namespace ecsg {
@@ -77,6 +77,6 @@ class RenderSystem
 };
 
 }  // namespace ecs
-}  // namespace affx
+}  // namespace lsw
 
 #endif  // GLVIEWER_VIEWER_RENDERSYSTEM_H

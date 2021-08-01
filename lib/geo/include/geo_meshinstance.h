@@ -8,7 +8,7 @@
 #include <memory>
 #include <geo_transform.h>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 struct Mesh;

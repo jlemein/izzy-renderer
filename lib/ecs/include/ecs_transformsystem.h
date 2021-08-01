@@ -7,7 +7,7 @@
 
 #include <entt/entt.hpp>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 class TransformSystem {

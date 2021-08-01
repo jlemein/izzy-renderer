@@ -8,7 +8,7 @@
 #include <ostream>
 #include <glm/glm.hpp>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 struct BoundingBox {
   float xMin{.0F}, yMin{.0F}, zMin{.0F};

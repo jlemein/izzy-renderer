@@ -8,7 +8,7 @@
 #include <entt/fwd.hpp>
 #include <glm/glm.hpp>
 
-namespace affx
+namespace lsw
 {
 namespace io
 {
@@ -25,7 +25,7 @@ class FirstPersonMovementSystem
 {
  public:
   FirstPersonMovementSystem(entt::registry &registry,
-                            affx::io::InputSystem *inputSystem);
+                            lsw::io::InputSystem *inputSystem);
 
   void init();
   void update(float dt);
@@ -38,6 +38,6 @@ class FirstPersonMovementSystem
 };
 
 }  // namespace ecs
-}  // namespace affx
+}  // namespace lsw
 
 #endif  // GLVIEWER_ECS_FIRSTPERSONCONTROLSYSTEM_H

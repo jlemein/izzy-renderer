@@ -18,7 +18,7 @@
 #include <geo_mesh.h>
 #include <iostream>
 
-using namespace affx;
+using namespace lsw;
 
 namespace
 {
@@ -123,7 +123,7 @@ ecs::FirstPersonMovementSystem::update(float dt)
     auto cameraOrientation = glm::toMat4(qy);
 
     // adjust position
-    auto velocity = m_registry.has<Moveable>(e) ? m_registry.get<Moveable>(e).velocity
+    auto velocity = m_registry.all_of<Moveable>(e) ? m_registry.get<Moveable>(e).velocity
                                                 : fpActor.defaultVelocity;
     if (m_inputSystem->isKeyPressed(io::Key::kLEFT_SHIFT)) {
       velocity *= 3.0F;

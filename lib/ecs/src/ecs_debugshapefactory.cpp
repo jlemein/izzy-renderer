@@ -12,8 +12,8 @@
 #include <geo_primitivefactory.h>
 #include <geo_shapeutil.h>
 
-using namespace affx::ecs;
-using namespace affx;
+using namespace lsw::ecs;
+using namespace lsw;
 
 DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry &registry,
                                               entt::entity target) {
@@ -33,7 +33,7 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry &registry,
   glm::vec3 size(1.0F);
   glm::vec3 center{0.0F};
 
-  if (registry.has<geo::Mesh>(target)) {
+  if (registry.all_of<geo::Mesh>(target)) {
     // if the target entity has a mesh component,
     // then place the bounding box around the mesh
     auto targetMesh = registry.get<geo::Mesh>(target);

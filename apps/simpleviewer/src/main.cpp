@@ -42,10 +42,10 @@ entt::entity makeLight(entt::registry &registry, const glm::vec3 &color,
 entt::entity makeSierpinskiTriangle(entt::registry &registry);
 entt::entity makePenroseTiling(entt::registry &registry);
 
-using namespace affx;
-using namespace affx::ecs;
-using namespace affx::ecsg;
-using namespace affx::viewer;
+using namespace lsw;
+using namespace lsw::ecs;
+using namespace lsw::ecsg;
+using namespace lsw::viewer;
 
 int main() {
   using namespace std;
@@ -60,7 +60,10 @@ int main() {
       make_unique<geo::SceneLoader>(resourceManager));
   resourceManager->addFactory<geo::Texture>(make_unique<geo::TextureLoader>());
 
-  auto sceneGraph = make_shared<ecsg::SceneGraph>(resourceManager);
+  auto sceneGraph = make_shared<ecsg::SceneGraph>();
+  // BUGGED: getResource returns a pointer that you directly dereference - guaranteed dangling pointer
+  throw std::runtime_error("// BUGGED: getResource returns a pointer that you directly dereference - guaranteed dangling pointer");
+  sceneGraph->setDefaultMaterial(**resourceManager->getResource<geo::Material>("Default"));
 
   auto viewer = make_shared<Viewer>(sceneGraph, resourceManager);
   viewer->setWindowSize(1024, 768);
@@ -157,7 +160,7 @@ entt::entity makeSierpinskiTriangle(entt::registry &registry) {
   registry.emplace<Name>(e, "FractalTree");
 
   geo::Curve &fractalCurve = registry.emplace<geo::Curve>(
-      e, affx::fractal::FractalGenerator(0).makeSierpinskiTriangle(8));
+      e, lsw::fractal::FractalGenerator(0).makeSierpinskiTriangle(8));
   geo::MeshTransform::ScaleToUniformSize(fractalCurve);
   auto &shader = registry.emplace<geo::Material>(
       e,

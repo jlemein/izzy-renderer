@@ -14,7 +14,7 @@
 #include "ecs_debugmodel.h"
 #include <unordered_map>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 /**!
@@ -33,6 +33,6 @@ private:
 };
 
 } // namespace ecs
-} // namespace affx
+} // namespace lsw
 
 #endif // ARTIFAX_ECS_DEBUGSYSTEM_H

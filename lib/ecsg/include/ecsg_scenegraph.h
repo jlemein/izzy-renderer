@@ -4,14 +4,11 @@
 #include <ecsg_scenegraphentity.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
-#include <res_resource.h>
 #include <memory>
+#include <res_resource.h>
+#include <geo_material.h>
 
-namespace affx {
-
-namespace res {
-class ResourceManager;
-}
+namespace lsw {
 
 namespace geo {
 struct Mesh;
@@ -25,7 +22,6 @@ struct Material;
 
 namespace ecs {
 struct Transform;
-struct Shader;
 }
 
 namespace ecsg {
@@ -48,12 +44,15 @@ struct SceneLoaderFlags {
 
 
 /**!
- * SceneGraph is responsible for managing scene node instances.
+ * SceneGraph is the central authority to deal with the scene hierarchy.
+ * The scene grap deals with storing entities and their relationship.
  *
  */
 class SceneGraph {
 public:
-  SceneGraph(std::shared_ptr<res::ResourceManager> resourceManager);
+  SceneGraph();
+
+  void setDefaultMaterial(geo::Material& material);
 
   //TODO: represent the active camera in the scene graph,
   // probably by flagging the entity with ActiveCamera component.
@@ -61,6 +60,14 @@ public:
   void setActiveCamera(SceneGraph camera);
 
   entt::registry &getRegistry();
+
+  /**!
+   * @brief Creates a geometry
+   * @return
+   */
+  SceneGraphEntity addGeometry(const geo::Mesh&, const geo::Material&);
+
+  void setActiveCamera(const SceneGraphEntity* activeCamera);
 
   /// @brief Creates a simple barebone entity containing minimum components
   /// Minum components are: Transform, Name, Relationship
@@ -79,14 +86,6 @@ public:
                                   std::string name = "#Light#");
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position);
   SceneGraphEntity makeDirectionalLight(std::string name, glm::vec3 direction);
-  // SceneGraphEntity makeAreaLight(std::string name, SceneGraphEntity
-  // lightBody); SceneGraphEntity makeSpotLight(std::string name);
-
-  /**!
-   * @brief Creates a geometry
-   * @return
-   */
-  SceneGraphEntity addGeometry(const geo::Mesh&, const geo::Material&);
 
   SceneGraphEntity makeMesh(const geo::Mesh &mesh);
   SceneGraphEntity makeEmptyMesh(const geo::Mesh &mesh);
@@ -114,14 +113,12 @@ public:
                                        float spacing = 1.0F);
   SceneGraphEntity makeDebugVisualization(entt::entity target);
 
-
-  void setActiveCamera(const SceneGraphEntity* activeCamera);
-
 private:
   /// Uses EnTT in the background for scene management
   entt::registry m_registry;
-  std::shared_ptr<res::ResourceManager> m_resourceManager {nullptr};
+//  std::shared_ptr<ecsg::EntityFactory> m_entityFactory {nullptr};
 
+  geo::Material* m_defaultMaterial {nullptr};
   const SceneGraphEntity* m_activeCamera {nullptr};
 
   void processChildren(std::shared_ptr<const geo::SceneNode> node,
@@ -136,6 +133,6 @@ private:
 inline entt::registry &SceneGraph::getRegistry() { return m_registry; }
 
 } // namespace ecs
-} // namespace affx
+} // namespace lsw
 
 #endif // ARTIFAX_ECS_SCENEGRAPH_H

@@ -7,7 +7,7 @@
 
 #include <string>
 #include <vector>
-namespace affx {
+namespace lsw {
 namespace geo {
 
 struct Texture {

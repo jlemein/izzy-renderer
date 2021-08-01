@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace affx {
+namespace lsw {
 namespace ecsg {
 
 class SceneGraph;
@@ -98,7 +98,7 @@ private:
 // ==========================================================
 template <typename Component> Component &SceneGraphEntity::get() {
 #ifndef NDEBUG
-  if (m_registry.has<Component>(handle())) {
+  if (m_registry.all_of<Component>(handle())) {
 #endif
     return m_registry.get<Component>(handle());
 #ifndef NDEBUG
@@ -124,5 +124,5 @@ Component &SceneGraphEntity::add(const Component &comp) {
 }
 
 } // namespace ecs
-} // namespace affx
+} // namespace lsw
 #endif // GLVIEWER_ECS_SCENEGRAPHENTITY_H

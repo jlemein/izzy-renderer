@@ -5,7 +5,7 @@
 //#include <entt/entt.hpp>
 //
 //#include <deque>
-//using namespace affx::ecsu;
+//using namespace lsw::ecsu;
 //
 //void SceneUtil::addToScene(entt::registry& registry, ecsw::Scene& m) {
 //  auto scene_p = m.get();

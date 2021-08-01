@@ -9,7 +9,7 @@
 #include <entt/entt.hpp>
 #include <memory>
 
-namespace affx {
+namespace lsw {
 
 namespace viewer {
 class Viewer;
@@ -21,8 +21,8 @@ class SceneGraph;
 
 namespace ecs {
 
-class TextureSystem { //: public affx::ecs::IViewerExtension,
-                      //public affx::ecs::IRenderSubsystem {
+class TextureSystem { //: public lsw::ecs::IViewerExtension,
+                      //public lsw::ecs::IRenderSubsystem {
 public:
   TextureSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph);
   ~TextureSystem() = default;

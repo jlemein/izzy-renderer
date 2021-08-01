@@ -14,11 +14,12 @@
 #include <vwr_windowinputlistener.h>
 
 #include <iostream>
+#include <spdlog/spdlog.h>
 #include <vector>
 
 using namespace std;
-using namespace affx;
-using namespace affx::viewer;
+using namespace lsw;
+using namespace lsw::viewer;
 
 namespace {
 static void error_callback(int error, const char *description) {
@@ -47,7 +48,6 @@ void Viewer::setTitle(const std::string &title) {
 }
 
 void Viewer::initialize() {
-
   glfwSetErrorCallback(error_callback);
 
   if (!glfwInit())
@@ -91,6 +91,7 @@ void Viewer::initialize() {
   m_cameraSystem->init();
   m_debugSystem->init(); // for debug visualizations
   // should be called before render system.
+
   m_renderSystem->init();
   m_inputSystem->init();
   m_firstPersonSystem->init();

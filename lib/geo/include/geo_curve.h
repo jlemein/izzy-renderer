@@ -8,7 +8,7 @@
 #include <geo_boundingbox.h>
 #include <vector>
 
-namespace affx
+namespace lsw
 {
 namespace geo
 {

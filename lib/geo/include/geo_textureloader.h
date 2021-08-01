@@ -10,12 +10,12 @@
 #include <string>
 #include <memory>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
-class TextureLoader : public affx::res::ResourceFactory {
+class TextureLoader : public lsw::res::ResourceFactory {
 public:
-  std::unique_ptr<affx::res::IResource> loadResource(const std::string &name) override;
+  std::unique_ptr<lsw::res::IResource> createResource(const std::string &name) override;
 };
 
 } // end of package

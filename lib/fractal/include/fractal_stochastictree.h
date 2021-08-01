@@ -12,7 +12,7 @@
 #include <iosfwd>
 #include <random>
 
-namespace affx {
+namespace lsw {
 namespace fractal {
 
 struct StochasticRule {

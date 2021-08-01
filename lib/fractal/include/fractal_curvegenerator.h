@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_FRACTAL_CURVEGENERATOR_H
 #define GLVIEWER_FRACTAL_CURVEGENERATOR_H
 
-namespace affx {
+namespace lsw {
 namespace fractal {
 
 class CurveGenerator {
@@ -14,5 +14,5 @@ public:
 };
 
 } // namespace fractal
-} // namespace affx
+} // namespace lsw
 #endif // GLVIEWER_FRACTAL_CURVEGENERATOR_H

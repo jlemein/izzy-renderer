@@ -15,7 +15,7 @@
 #include <vector>
 #include <memory>
 
-namespace affx {
+namespace lsw {
 namespace res {
 class ResourceManager;
 template <typename T> class Resource;
@@ -83,11 +83,11 @@ private:
   //  MeshInstanceIterable m_instances{};
 };
 
-class SceneLoader : public affx::res::ResourceFactory {
+class SceneLoader : public lsw::res::ResourceFactory {
 public:
   SceneLoader(std::shared_ptr<res::ResourceManager> resourceManager);
 
-  std::unique_ptr<res::IResource> loadResource(const std::string &path) override;
+  std::unique_ptr<res::IResource> createResource(const std::string &path) override;
 
 private:
   std::shared_ptr<res::ResourceManager> m_resourceManager {nullptr};
@@ -116,6 +116,6 @@ private:
 };
 
 } // namespace geo
-} // namespace affx
+} // namespace lsw
 
 #endif // RENDERER_GEO_SCENELOADER_H

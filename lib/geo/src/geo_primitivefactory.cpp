@@ -4,8 +4,8 @@
 #include <geo_curve.h>
 #include <geo_mesh.h>
 #include <geo_primitivefactory.h>
-using namespace affx;
-using namespace affx::geo;
+using namespace lsw;
+using namespace lsw::geo;
 
 Mesh PrimitiveFactory::MakePlane(float width, float height) { return Mesh(); }
 

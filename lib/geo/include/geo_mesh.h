@@ -16,7 +16,7 @@
 #include <geo_material.h>
 #include <res_resource.h>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 enum class PolygonMode {

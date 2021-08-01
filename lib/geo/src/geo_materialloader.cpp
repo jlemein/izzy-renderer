@@ -11,7 +11,7 @@
 
 using json = nlohmann::json;
 
-using namespace affx::geo;
+using namespace lsw::geo;
 
 namespace {
 /// @brief Reserved material names in material definition file.
@@ -62,9 +62,8 @@ void addTextureToMaterial(const std::string &textureName,
 }
 
 void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
-  for (auto &material : j["materials"]) {
+  for (const auto &material : j["materials"]) {
     Material m;
-
     m.name = material["name"].get<std::string>();
 
     // pass shader info
@@ -72,6 +71,7 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
       m.vertexShader = material["vertex_shader"].get<std::string>();
       m.geometryShader = material["geometry_shader"].get<std::string>();
       m.fragmentShader = material["fragment_shader"].get<std::string>();
+      spdlog::info("{} --> Vertex shader: {}", m.name, m.vertexShader);
     } catch (nlohmann::detail::exception e) {
       throw std::runtime_error(
           fmt::format("Failed parsing shader names: {}", e.what()));
@@ -145,8 +145,9 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
                       e.what()));
     }
 
-    m_materials[m.name] = m;
-    spdlog::info("Loaded material with name {}", m.name);
+    m_materials[m.name] = m; // std::move(m);
+    spdlog::info("Loaded material with name {}",
+                 m_materials.at(m.name).vertexShader);
   }
 }
 
@@ -182,8 +183,8 @@ bool MaterialSystem::isMaterialDefined(const std::string &materialName) {
          m_materials.count(materialName) > 0;
 }
 
-std::unique_ptr<affx::res::IResource>
-MaterialSystem::loadResource(const std::string &reqMaterialName) {
+std::unique_ptr<lsw::res::IResource>
+MaterialSystem::createResource(const std::string &reqMaterialName) {
   auto materialName = m_materialMappings.count(reqMaterialName) > 0
                           ? m_materialMappings.at(reqMaterialName)
                           : reqMaterialName;
@@ -193,7 +194,8 @@ MaterialSystem::loadResource(const std::string &reqMaterialName) {
     material = m_materials.at(materialName);
   } else {
     if (m_materials.count(m_defaultMaterial) > 0) {
-      spdlog::warn("Material with name {} not found, default material used.");
+      spdlog::warn("Material with name '{}' not found, default material used.",
+                   materialName);
       material = m_materials.at(m_defaultMaterial);
     } else {
       throw std::runtime_error("Cannot load material. Material does not exist "
@@ -201,9 +203,9 @@ MaterialSystem::loadResource(const std::string &reqMaterialName) {
     }
   }
 
-  return std::make_unique<affx::res::Resource<geo::Material>>(100, material);
+  return std::make_unique<lsw::res::Resource<geo::Material>>(100, material);
 }
 
-std::unique_ptr<affx::res::IResource> MaterialSystem::makeDefaultMaterial() {
-  return loadResource(m_defaultMaterial);
+std::unique_ptr<lsw::res::IResource> MaterialSystem::makeDefaultMaterial() {
+  return createResource(m_defaultMaterial);
 }

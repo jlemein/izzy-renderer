@@ -12,12 +12,12 @@
 #include <spdlog/spdlog.h>
 #include <memory>
 
-using namespace affx;
-using namespace affx::geo;
+using namespace lsw;
+using namespace lsw::geo;
 using namespace std;
 
 std::unique_ptr<res::IResource>
-TextureLoader::loadResource(const std::string &name) {
+TextureLoader::createResource(const std::string &name) {
   int desiredChannels = 4;
   int width, height, channels;
   unsigned char *pixelData =

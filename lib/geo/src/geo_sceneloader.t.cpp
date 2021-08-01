@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <geo_mesh.h>
 #include <geo_meshinstance.h>
-using namespace affx::geo;
+using namespace lsw::geo;
 
 class SceneLoaderTest : public testing::Test {
 public:
@@ -14,7 +14,7 @@ public:
 
 TEST_F(SceneLoaderTest, ShouldFailIfResourceNotExist) {
   SceneLoader loader(nullptr);
-  EXPECT_NO_THROW(loader.loadResource("/home/jlemein/dev/artifax-renderer/lib/shapes/testdata/bunny.fbx"));
+  EXPECT_NO_THROW(loader.createResource("/home/jlemein/dev/artifax-renderer/lib/shapes/testdata/bunny.fbx"));
 }
 
 TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
@@ -24,7 +24,7 @@ TEST_F(SceneLoaderTest, ShouldLoadTwoInstancedCubes) {
   // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
   // - 1 instance is named: IcoSphere
   SceneLoader loader (nullptr);
-  auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
+  auto pScene = loader.createResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
   Scene* scene = reinterpret_cast<Scene*>(pScene.get());
 
   for (auto mesh : scene->meshes()) {
@@ -66,7 +66,7 @@ TEST_F(SceneLoaderTest, PrintHierarchy) {
   // - 2 cube instances share the same material: RedMaterial, the other has BlueMaterial.
   // - 1 instance is named: IcoSphere
   SceneLoader loader (nullptr);
-  auto pScene = loader.loadResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
+  auto pScene = loader.createResource("/home/jlemein/dev/artifax-renderer/testassets/models/3objects.fbx");
   Scene* scene = reinterpret_cast<Scene*>(pScene.get());
 
   EXPECT_EQ(scene->rootNode()->name, "RootNode");
@@ -87,7 +87,7 @@ TEST_F(SceneLoaderTest, PrintHierarchy) {
 //  // - 1 instance is named: IcoSphere
 //  SceneLoader loader (nullptr);
 //
-//  auto bunnyScene = static_pointer_cast<Scene>(loader.loadResource("assets/models/bunny.fbx"));
+//  auto bunnyScene = static_pointer_cast<Scene>(loader.createResource("assets/models/bunny.fbx"));
 //  auto bunnyMesh = bunnyScene->meshes()[0];
 //  auto bunny = sceneGraph->makeMesh(*bunnyMesh);
 //  bunny.add<FirstPersonControl>();
@@ -99,5 +99,5 @@ TEST_F(SceneLoaderTest, PrintHierarchy) {
 
 //TEST_F(SceneLoaderTest, ShouldLoadSimpleScene) {
 //  SceneLoader loader;
-//  loader.loadResource("bunny.fbx");
+//  loader.createResource("bunny.fbx");
 //}

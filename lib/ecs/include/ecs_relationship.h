@@ -8,7 +8,7 @@
 #include <entt/entt.hpp>
 #include <vector>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 struct Relationship {

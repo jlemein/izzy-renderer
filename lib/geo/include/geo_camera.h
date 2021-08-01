@@ -8,7 +8,7 @@
 #include <string>
 #include <glm/glm.hpp>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 struct Camera {

@@ -5,7 +5,7 @@
 #ifndef RENDERER_ECS_MATERIALSYSTEM_H
 #define RENDERER_ECS_MATERIALSYSTEM_H
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 /**!

@@ -1,12 +1,12 @@
 #include <ecs_relationshiputil.h>
 #include <ecs_relationship.h>
-using namespace affx::ecs;
+using namespace lsw::ecs;
 
 void RelationshipUtil::MakeChild(entt::registry& registry, entt::entity parent, entt::entity child) {
-  if (!registry.has<Relationship>(parent)) {
+  if (!registry.all_of<Relationship>(parent)) {
     registry.emplace<Relationship>(parent);
   }
-  if (!registry.has<Relationship>(child)) {
+  if (!registry.all_of<Relationship>(child)) {
     registry.emplace<Relationship>(child);
   }
 

@@ -7,7 +7,7 @@
 
 #include <memory>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 struct Mesh;
 }

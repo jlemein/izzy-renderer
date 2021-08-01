@@ -9,7 +9,7 @@
 #include <vector>
 #include <stack>
 
-namespace affx {
+namespace lsw {
 namespace fractal {
 
 struct State {

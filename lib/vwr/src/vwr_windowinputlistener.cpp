@@ -4,8 +4,8 @@
 #include <vwr_windowinputlistener.h>
 #include <io_inputsystem.h>
 #include <io_keyconstants.h>
-using namespace affx;
-using namespace affx::viewer;
+using namespace lsw;
+using namespace lsw::viewer;
 
 WindowInputListener::WindowInputListener(GLFWwindow *window)
 : m_window(window)

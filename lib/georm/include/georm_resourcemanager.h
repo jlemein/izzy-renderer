@@ -7,8 +7,9 @@
 
 #include <memory>
 #include <string>
+#include <unordered_map>
 
-namespace affx {
+namespace lsw {
 namespace res {
 class ResourceManager;
 } // namespace res
@@ -17,7 +18,7 @@ namespace geo {
 class Material;
 class Texture;
 }
-} // namespace affx
+} // namespace lsw
 
 namespace lsw {
 namespace georm {
@@ -31,14 +32,15 @@ class ResourceManager {
 public:
   ResourceManager(const std::string& materialsFile);
 
-  const affx::geo::Material& loadMaterial(const std::string& name);
-  const affx::geo::Texture& loadTexture(const std::string& path);
+  lsw::geo::Material& loadMaterial(const std::string& name);
+  lsw::geo::Texture& loadTexture(const std::string& path);
 
-  std::shared_ptr<affx::res::ResourceManager> getRawResourceManager();
+  std::shared_ptr<lsw::res::ResourceManager> getRawResourceManager();
 
 private:
   // TODO: must be nullptr
-  std::shared_ptr<affx::res::ResourceManager> m_wrappedResourceMgr {nullptr};
+  std::shared_ptr<lsw::res::ResourceManager> m_wrappedResourceMgr {nullptr};
+  std::unordered_map<std::string, std::shared_ptr<res::Resource<geo::Material>>> m_cachedResources;
 };
 
 } // end of package

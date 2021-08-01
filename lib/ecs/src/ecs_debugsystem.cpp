@@ -19,8 +19,8 @@
 #include <ecs_transformutil.h>
 #include <entt/entt.hpp>
 
-using namespace affx;
-using namespace affx::ecs;
+using namespace lsw;
+using namespace lsw::ecs;
 
 DebugSystem::DebugSystem(entt::registry &registry) : m_registry{registry} {}
 
@@ -32,7 +32,7 @@ void DebugSystem::init() {
     Renderable *renderable_p = m_registry.try_get<Renderable>(e);
     std::string name = "Unnamed";
 
-    if(m_registry.has<Name>(e)) {
+    if(m_registry.all_of<Name>(e)) {
       std::cout << "Adding debugger for " << m_registry.get<Name>(e).name << std::endl;
       name = m_registry.get<Name>(e).name;
     }

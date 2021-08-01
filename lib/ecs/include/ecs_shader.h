@@ -13,7 +13,7 @@
 #include <entt/fwd.hpp>
 #include <ecs_texture.h>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 //struct UberMaterialData {
@@ -75,6 +75,6 @@ struct Shader { // alias single RenderPass
 };
 
 } // namespace ecs
-} // namespace affx
+} // namespace lsw
 
 #endif // RENDERER_ECS_SHADER_H

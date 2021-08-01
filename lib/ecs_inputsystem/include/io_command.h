@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_IO_COMMAND_H
 #define GLVIEWER_IO_COMMAND_H
 
-namespace affx {
+namespace lsw {
 namespace io {
 
 class Command {

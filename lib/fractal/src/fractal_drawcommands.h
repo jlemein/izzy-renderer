@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-namespace affx {
+namespace lsw {
 namespace fractal {
 
 #include <fractal_tree.h>

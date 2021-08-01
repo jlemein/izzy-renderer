@@ -5,7 +5,7 @@
 #ifndef RENDERER_GEO_LIGHT_H
 #define RENDERER_GEO_LIGHT_H
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 //class Light {
@@ -67,6 +67,6 @@ public:
 };
 
 } // namespace geo
-} // namespace affx
+} // namespace lsw
 
 #endif // RENDERER_GEO_LIGHT_H

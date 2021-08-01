@@ -3,8 +3,8 @@
 //
 #include <fractal_generator.h>
 #include <fractal_treefactory.h>
-using namespace affx;
-using namespace affx::fractal;
+using namespace lsw;
+using namespace lsw::fractal;
 
 FractalGenerator::FractalGenerator(unsigned int seed) : m_seed(seed) {}
 

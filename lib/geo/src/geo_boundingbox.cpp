@@ -2,7 +2,7 @@
 //// Created by jlemein on 09-01-21.
 ////
 //#include <geo_boundingbox.h>
-//using namespace affx::geo;
+//using namespace lsw::geo;
 //
 //std::ostream &operator<<(std::ostream &os, const BoundingBox &bb) {
 //  os << "[" << bb.xMin << ", " << bb.xMax << "] x [" << bb.yMin << ", "

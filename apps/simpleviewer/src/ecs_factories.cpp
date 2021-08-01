@@ -20,7 +20,7 @@
 //
 //#include <string>
 //
-//using namespace affx::ecs;
+//using namespace lsw::ecs;
 //
 //EcsFactory::EcsFactory(entt::registry &registry) : m_registry(registry) {}
 //

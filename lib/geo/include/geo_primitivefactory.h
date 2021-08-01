@@ -5,7 +5,7 @@
 #ifndef ARTIFAX_MESH_PRIMITIVEFACTORY_H
 #define ARTIFAX_MESH_PRIMITIVEFACTORY_H
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 struct Curve;

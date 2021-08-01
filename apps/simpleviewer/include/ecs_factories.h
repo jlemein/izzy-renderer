@@ -4,7 +4,7 @@
 //#include <entt/entt.hpp>
 //#include <entt/fwd.hpp>
 //
-//namespace affx {
+//namespace lsw {
 //
 //namespace geo {
 //struct Mesh;

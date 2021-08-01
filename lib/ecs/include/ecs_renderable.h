@@ -18,7 +18,7 @@
 #include <string>
 #include <unordered_map>
 
-namespace affx
+namespace lsw
 {
 namespace ecs
 {

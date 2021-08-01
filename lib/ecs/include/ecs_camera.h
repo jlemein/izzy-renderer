@@ -8,7 +8,7 @@
 #include <vector>
 #include <entt/fwd.hpp>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 // offscreen render target acts as a camera, but it is not an actual camera.

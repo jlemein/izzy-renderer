@@ -8,7 +8,7 @@
 #include <entt/fwd.hpp>
 #include <vector>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 /**!

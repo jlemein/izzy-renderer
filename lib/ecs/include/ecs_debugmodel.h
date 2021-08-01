@@ -10,7 +10,7 @@
 #include <ecs_name.h>
 #include <geo_mesh.h>
 
-namespace affx {
+namespace lsw {
 namespace ecs {
 
 /**!

@@ -11,7 +11,7 @@
 
 #include <entt/entt.hpp>
 #include <ecsg_scenegraphentity.h>
-namespace affx {
+namespace lsw {
 
 namespace res {
 class ResourceManager;
@@ -98,4 +98,4 @@ private:
 };
 
 } // namespace viewer
-} // namespace affx
+} // namespace lsw

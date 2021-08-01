@@ -5,8 +5,8 @@
 #include <ecs_name.h>
 #include <ecs_relationshiputil.h>
 #include <ecs_transform.h>
-using namespace affx::ecsg;
-using namespace affx::ecs;
+using namespace lsw::ecsg;
+using namespace lsw::ecs;
 
 SceneGraphEntity::SceneGraphEntity(entt::registry& registry, entt::entity handle)
   : m_registry{registry}
@@ -25,7 +25,7 @@ std::string SceneGraphEntity::getName() const {
 }
 
 void SceneGraphEntity::setName(std::string name) {
-  m_registry.emplace_or_replace<Name>(m_handle, ecs::Name{name});
+  m_registry.emplace_or_replace<Name>(m_handle, Name{name});
 }
 
 glm::mat4& SceneGraphEntity::getTransform() {

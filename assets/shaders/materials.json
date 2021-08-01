@@ -11,14 +11,14 @@
       "name": "DefaultMaterial",
       "render_passes": [
         {
-          "name": "",
+          "name": "RP1",
           "description": "",
           "vertex_shader": "assets/shaders/diffuse.vert.spv",
           "geometry_shader": "",
           "fragment_shader": "assets/shaders/diffuse.frag.spv"
         },
         {
-          "name": "",
+          "name": "RP2",
           "description": "Second render pass",
           "vertex_shader": "assets/shaders/diffuse.vert.spv",
           "geometry_shader": "",

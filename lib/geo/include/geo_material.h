@@ -11,7 +11,7 @@
 #include <res_resource.h>
 #include <glm/glm.hpp>
 
-namespace affx {
+namespace lsw {
 namespace geo {
 
 //struct RenderPass {
@@ -40,7 +40,7 @@ struct Material {
   std::string geometryShader {""};
   std::string fragmentShader {""};
 
-  // colors
+  // colors.
   glm::vec3 diffuse;
   glm::vec3 emissive;
   glm::vec3 ambient;
