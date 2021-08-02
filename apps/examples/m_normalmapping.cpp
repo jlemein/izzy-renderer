@@ -20,15 +20,20 @@ int main(int argc, char** argv) {
 
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     sceneGraph->setDefaultMaterial(
-        resourceManager->loadMaterial("DefaultMaterial"));
+        resourceManager->createSharedMaterial("DefaultMaterial"));
 
-    auto lambert = resourceManager->loadMaterial("Lambert");
+    auto lambert = resourceManager->createMaterial("Lambert");
     lambert.setDiffuseMap("assets/textures/diffuse_wall.png");
     lambert.setNormalMap("assets/textures/normal_wall.png");
     sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), lambert);
 
     auto viewer = std::make_shared<viewer::Viewer>(
         sceneGraph, resourceManager->getRawResourceManager());
+
+    sceneGraph->makeDirectionalLight("Sun");
+
+    viewer->setActiveCamera(sceneGraph->makeCamera("DummyCamera"));
+
     viewer->setWindowSize(1024, 768);
     viewer->setTitle("Normal mapping");
     viewer->initialize();

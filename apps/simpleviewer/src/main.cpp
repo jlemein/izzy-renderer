@@ -19,10 +19,11 @@
 #include <geo_sceneloader.h>
 #include <geo_texture.h>
 #include <geo_textureloader.h>
+#include <res_resourcemanager.h>
 //#include <geo_scene.h>
 
 #include <res_resource.h>
-#include <res_resourcemanager.h>
+#include <res_resourcefactory.h>
 
 #include <memory>
 
@@ -61,9 +62,9 @@ int main() {
   resourceManager->addFactory<geo::Texture>(make_unique<geo::TextureLoader>());
 
   auto sceneGraph = make_shared<ecsg::SceneGraph>();
-  // BUGGED: getResource returns a pointer that you directly dereference - guaranteed dangling pointer
+
   throw std::runtime_error("// BUGGED: getResource returns a pointer that you directly dereference - guaranteed dangling pointer");
-  sceneGraph->setDefaultMaterial(**resourceManager->getResource<geo::Material>("Default"));
+  sceneGraph->setDefaultMaterial(resourceManager->createResource<geo::Material>("Default"));
 
   auto viewer = make_shared<Viewer>(sceneGraph, resourceManager);
   viewer->setWindowSize(1024, 768);
@@ -83,9 +84,9 @@ int main() {
   sceneGraph->makeRectangularGrid();
   //  auto loadedScene =
   //  resourceManager->getResource<geo::Scene>("testassets/models/3objects.fbx");
-  auto loadedScene = resourceManager->getResource<geo::Scene>(
+  auto loadedScene = resourceManager->createResource<geo::Scene>(
       "testassets/models/wooden_crate.fbx");
-  auto woodenCrate = sceneGraph->makeScene(*loadedScene, SceneLoaderFlags{.lights=false});
+  auto woodenCrate = sceneGraph->makeScene(**loadedScene, SceneLoaderFlags{.lights=false});
 
   // Camera
   auto cameraTransform = glm::inverse(glm::lookAt(glm::vec3(0.0F, 1.60F, 10.0F),

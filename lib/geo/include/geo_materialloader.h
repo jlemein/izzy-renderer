@@ -40,6 +40,8 @@ public:
 
 private:
   std::string m_materialConfigUri;
+  std::unordered_map<unsigned int, res::Resource<geo::Material>> m_registeredMaterials;
+
   std::unordered_map<std::string, geo::Material> m_materials;
 
   /// @brief Fbx specific material names are mapped to canonical material names
@@ -47,6 +49,7 @@ private:
   std::unordered_map<std::string, std::string> m_materialMappings;
 
   std::string m_defaultMaterial {""};
+  unsigned int m_nextId = {1U};
 
   void readMaterialMappings(nlohmann::json& json);
   void readMaterialDefinitions(nlohmann::json& json);

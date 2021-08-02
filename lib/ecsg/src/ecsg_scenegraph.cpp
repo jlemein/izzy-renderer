@@ -18,7 +18,7 @@
 #include <geo_sceneloader.h>
 
 #include <res_resource.h>
-#include <res_resourcemanager.h>
+#include <res_resourcefactory.h>
 
 using namespace lsw;
 using namespace lsw::ecsg;
@@ -26,8 +26,9 @@ using namespace lsw::ecs;
 
 SceneGraph::SceneGraph() {}
 
-void SceneGraph::setDefaultMaterial(geo::Material &material) {
-  m_defaultMaterial = &material;
+void SceneGraph::setDefaultMaterial(
+    std::shared_ptr<res::Resource<geo::Material>> material) {
+  m_defaultMaterial = material;
 }
 
 SceneGraphEntity SceneGraph::addGeometry(const geo::Mesh &mesh,
@@ -48,12 +49,15 @@ SceneGraphEntity SceneGraph::makeEntity(std::string name) {
   return SceneGraphEntity{m_registry, e};
 }
 
-SceneGraphEntity SceneGraph::makeCamera(std::string name, float fovx,
-                                        float aspect, float zNear, float zFar) {
+SceneGraphEntity SceneGraph::makeCamera(std::string name, float zDistance,
+                                        float fovx, float aspect, float zNear,
+                                        float zFar) {
   auto cameraEntity = makeEntity(std::move(name));
   ecs::Camera camera{
       .fovx = fovx, .aspect = aspect, .zNear = zNear, .zFar = zFar};
   cameraEntity.add<ecs::Camera>(std::move(camera));
+  cameraEntity.get<ecs::Transform>().localTransform[3] =
+      glm::vec4(0.0F, 0.0F, -zDistance, 1.0F);
 
   return cameraEntity;
 }
@@ -126,7 +130,7 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh &mesh) {
   if (m_defaultMaterial == nullptr) {
     throw std::runtime_error("No default material set, cannot create mesh");
   }
-  meshEntity.add<geo::Material>(*m_defaultMaterial);
+  meshEntity.add<geo::Material>(**m_defaultMaterial);
 
   //  auto& shader = meshEntity.add<ecs::Shader>(
   //      {"assets/shaders/diffuse.vert.spv",

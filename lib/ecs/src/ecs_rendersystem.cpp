@@ -351,9 +351,6 @@ public:
 };
 
 void RenderSystem::init() {
-  const geo::Material &mat =
-      m_registry.get<geo::Material>(static_cast<const entt::entity>(0U));
-  spdlog::error("Material ({}) name of e0: {}", (void *)&mat, mat.vertexShader);
   glShadeModel(GL_SMOOTH);
 
   // convert material descriptions to openGL specific material data.
@@ -403,11 +400,6 @@ void RenderSystem::init() {
   // handling meshes
   auto view = m_registry.view<geo::Mesh, geo::Material, Renderable>();
   for (auto entity : view) {
-    auto &material = m_registry.get<geo::Material>(entity);
-    spdlog::info("E: {} -- Material load shaders mtlname '{}' -- vs: {} fs: {}",
-                 entity, material.name, material.vertexShader,
-                 material.fragmentShader);
-
     auto name = m_registry.all_of<Name>(entity)
                     ? m_registry.get<Name>(entity).name
                     : "Unnamed";

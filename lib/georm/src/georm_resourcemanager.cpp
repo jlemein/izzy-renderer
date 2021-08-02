@@ -29,14 +29,23 @@ ResourceManager::getRawResourceManager() {
   return m_wrappedResourceMgr;
 }
 
-geo::Material &ResourceManager::loadMaterial(const std::string &name) {
-  if (m_cachedResources.find(name) == m_cachedResources.end()) {
-    m_cachedResources[name] =
-        m_wrappedResourceMgr->getResource<geo::Material>(name);
+MaterialPtr ResourceManager::createSharedMaterial(const std::string &name) {
+  if (m_cachedMaterials.find(name) == m_cachedMaterials.end()) {
+    m_cachedMaterials[name] =
+        m_wrappedResourceMgr->createResource<geo::Material>(name);
   }
-  return **m_cachedResources.at(name);
+  return m_cachedMaterials.at(name);
 }
 
-lsw::geo::Texture &ResourceManager::loadTexture(const std::string &path) {
-  return **m_wrappedResourceMgr->getResource<geo::Texture>(path);
+geo::Material ResourceManager::createMaterial(const std::string& name) {
+  // TODO: there is a possibility to alter the material before creation. Maybe it is what we want.
+  return **createSharedMaterial(name);
+}
+
+TexturePtr ResourceManager::loadTexture(const std::string &path) {
+  if (m_cachedTextures.find(path) == m_cachedTextures.end()) {
+    m_cachedTextures[path] =
+        m_wrappedResourceMgr->createResource<geo::Texture>(path);
+  }
+  return m_cachedTextures.at(path);
 }

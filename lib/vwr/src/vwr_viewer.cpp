@@ -8,7 +8,7 @@
 #include <ecs_transformsystem.h>
 #include <ecsg_scenegraph.h>
 #include <io_inputsystem.h>
-#include <res_resourcemanager.h>
+#include <res_resourcefactory.h>
 #include <vwr_viewer.h>
 #include <vwr_viewerextension.h>
 #include <vwr_windowinputlistener.h>

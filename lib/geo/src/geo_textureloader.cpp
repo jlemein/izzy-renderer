@@ -8,9 +8,9 @@
 #include <fmt/format.h>
 
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-#include <spdlog/spdlog.h>
 #include <memory>
+#include <spdlog/spdlog.h>
+#include <stb_image.h>
 
 using namespace lsw;
 using namespace lsw::geo;
@@ -25,7 +25,9 @@ TextureLoader::createResource(const std::string &name) {
 
   if (pixelData == nullptr) {
     throw std::runtime_error(
-        fmt::format("Cannot load texture from file {}. Are you sure the filename and extension are correct?", name));
+        fmt::format("Cannot load texture from file {}. Are you sure the "
+                    "filename and extension are correct?",
+                    name));
   }
 
   if (width * height == 0) {
@@ -35,10 +37,10 @@ TextureLoader::createResource(const std::string &name) {
   }
 
   auto textureResource =
-      make_unique<res::Resource<Texture>>(123, Texture{.path = name.c_str(),
-                                                       .width = width,
-                                                       .height = height,
-                                                       .channels = desiredChannels});
+      make_unique<res::Resource<Texture>>(Texture{.path = name.c_str(),
+                                                  .width = width,
+                                                  .height = height,
+                                                  .channels = desiredChannels});
   auto &texture = *textureResource;
 
   // number of pixels * channels * 8 bit
@@ -46,7 +48,8 @@ TextureLoader::createResource(const std::string &name) {
   texture->data = std::vector<uint8_t>(pixelData, pixelData + sizeImageData);
   stbi_image_free(pixelData);
 
-  spdlog::log(spdlog::level::info, "Loaded texture {}, {} x {}, {} channels", name, width, height, desiredChannels);
+  spdlog::log(spdlog::level::info, "Loaded texture {}, {} x {}, {} channels",
+              name, width, height, desiredChannels);
 
   return textureResource;
 }

@@ -11,7 +11,7 @@
 
 namespace lsw {
 namespace res {
-class ResourceManager;
+class ResourceFactory;
 } // namespace res
 
 namespace geo {
@@ -23,6 +23,9 @@ class Texture;
 namespace lsw {
 namespace georm {
 
+using MaterialPtr = std::shared_ptr<res::Resource<geo::Material>>;
+using TexturePtr = std::shared_ptr<res::Resource<geo::Texture>>;
+
 /**!
  * @brief Higher level resource manager specifically focused on loading
  * entities from the geometry package. The geometry package contains all higher
@@ -32,15 +35,18 @@ class ResourceManager {
 public:
   ResourceManager(const std::string& materialsFile);
 
-  lsw::geo::Material& loadMaterial(const std::string& name);
-  lsw::geo::Texture& loadTexture(const std::string& path);
+  MaterialPtr createSharedMaterial(const std::string& name);
+  geo::Material createMaterial(const std::string& name);
 
-  std::shared_ptr<lsw::res::ResourceManager> getRawResourceManager();
+  TexturePtr loadTexture(const std::string& path);
+
+  std::shared_ptr<res::ResourceManager> getRawResourceManager();
 
 private:
   // TODO: must be nullptr
-  std::shared_ptr<lsw::res::ResourceManager> m_wrappedResourceMgr {nullptr};
-  std::unordered_map<std::string, std::shared_ptr<res::Resource<geo::Material>>> m_cachedResources;
+  std::shared_ptr<res::ResourceManager> m_wrappedResourceMgr {nullptr};
+  std::unordered_map<std::string, MaterialPtr> m_cachedMaterials;
+  std::unordered_map<std::string, TexturePtr> m_cachedTextures;
 };
 
 } // end of package

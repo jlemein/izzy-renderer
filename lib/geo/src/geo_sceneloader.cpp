@@ -13,8 +13,8 @@
 #include <assimp/Importer.hpp>
 #include <assimp/postprocess.h>
 
-#include <spdlog/spdlog.h>
 #include <res_resourcemanager.h>
+#include <spdlog/spdlog.h>
 
 using namespace lsw;
 using namespace lsw::geo;
@@ -35,7 +35,7 @@ std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readDiffuseTexture(con
 
   std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
   if (!diffusePath.empty()) {
-    texture = m_resourceManager->getResource<geo::Texture>(diffusePath);
+    texture = m_resourceManager->createResource<geo::Texture>(diffusePath);
     spdlog::info("Material {}: loaded diffuse texture {}", material.name, diffusePath);
   }
 
@@ -54,7 +54,7 @@ std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readSpecularTexture(co
 
   std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
   if (!specularPath.empty()) {
-    texture = m_resourceManager->getResource<geo::Texture>(specularPath);
+    texture = m_resourceManager->createResource<geo::Texture>(specularPath);
     spdlog::info("Material {}: loaded specular texture {}", material.name,
                  specularPath);
   }
@@ -74,7 +74,7 @@ std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readNormalTexture(cons
 
   std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
   if (!normalPath.empty()) {
-    texture = m_resourceManager->getResource<geo::Texture>(normalPath);
+    texture = m_resourceManager->createResource<geo::Texture>(normalPath);
     spdlog::info("Material {}: loaded specular texture {}", material.name,
                  normalPath);
   }
@@ -93,7 +93,7 @@ std::shared_ptr<res::Resource<geo::Texture>> SceneLoader::readRoughnessTexture(c
 
   std::shared_ptr<res::Resource<geo::Texture>> texture {nullptr};
   if (!roughnessPath.empty()) {
-    texture = m_resourceManager->getResource<geo::Texture>(roughnessPath);
+    texture = m_resourceManager->createResource<geo::Texture>(roughnessPath);
     spdlog::info("Material {}: loaded roughness texture {}", material.name,
                  roughnessPath);
   }
@@ -109,7 +109,7 @@ void SceneLoader::readTextures(const aiMaterial *aiMaterial_p, Material &materia
 
   // TODO: read remaining generic textures
   for (auto& [name, path] : material.texturePaths) {
-    material.textures[name] = m_resourceManager->getResource<geo::Texture>(path);
+    material.textures[name] = m_resourceManager->createResource<geo::Texture>(path);
   }
 }
 
@@ -118,7 +118,7 @@ void SceneLoader::readMaterials(const aiScene *scene_p, Scene &scene) {
     aiMaterial *mat_p = scene_p->mMaterials[i];
 
     std::string name = mat_p->GetName().C_Str();
-    auto material = m_resourceManager->getResource<geo::Material>(name);
+    auto material = m_resourceManager->createResource<geo::Material>(name);
     (*material)->name = mat_p->GetName().C_Str();
 
     spdlog::info("Read material {} -- mapped to {} (vertex shader: {})", name, (*material)->name, (*material)->vertexShader);
@@ -128,7 +128,7 @@ void SceneLoader::readMaterials(const aiScene *scene_p, Scene &scene) {
     // overwrite settings with scene file properties
     aiColor3D color (0.f,0.f,0.f);
 
-    auto mat = *material;
+    auto& mat = *material;
     if (!mat->hasDiffuse) {
       mat_p->Get(AI_MATKEY_COLOR_DIFFUSE, color);
       mat->diffuse.r = color.r;
@@ -382,5 +382,5 @@ std::unique_ptr<res::IResource> SceneLoader::createResource(const std::string &p
   readLights(aiScene_p, scene);
   readCameras(aiScene_p, scene);
 
-  return std::make_unique<res::Resource<geo::Scene>>(10, std::move(scene));
+  return std::make_unique<res::Resource<geo::Scene>>(std::move(scene));
 }

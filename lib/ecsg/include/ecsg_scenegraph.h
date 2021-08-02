@@ -3,10 +3,10 @@
 
 #include <ecsg_scenegraphentity.h>
 #include <entt/entt.hpp>
+#include <geo_material.h>
 #include <glm/glm.hpp>
 #include <memory>
 #include <res_resource.h>
-#include <geo_material.h>
 
 namespace lsw {
 
@@ -31,17 +31,16 @@ namespace ecsg {
  * @details It is possible to skip loading
  */
 struct SceneLoaderFlags {
-  bool animations {true};
-  bool cameras {false};
-  bool geometry {true};
-  bool lights {false};
-  bool materials {true};
+  bool animations{true};
+  bool cameras{false};
+  bool geometry{true};
+  bool lights{false};
+  bool materials{true};
 
   static inline SceneLoaderFlags All() {
     return SceneLoaderFlags{true, true, true, true, true};
   }
 };
-
 
 /**!
  * SceneGraph is the central authority to deal with the scene hierarchy.
@@ -52,11 +51,12 @@ class SceneGraph {
 public:
   SceneGraph();
 
-  void setDefaultMaterial(geo::Material& material);
+  void
+  setDefaultMaterial(std::shared_ptr<res::Resource<geo::Material>> material);
 
-  //TODO: represent the active camera in the scene graph,
-  // probably by flagging the entity with ActiveCamera component.
-  // or maybe a centralized registry.
+  // TODO: represent the active camera in the scene graph,
+  //  probably by flagging the entity with ActiveCamera component.
+  //  or maybe a centralized registry.
   void setActiveCamera(SceneGraph camera);
 
   entt::registry &getRegistry();
@@ -65,17 +65,19 @@ public:
    * @brief Creates a geometry
    * @return
    */
-  SceneGraphEntity addGeometry(const geo::Mesh&, const geo::Material&);
+  SceneGraphEntity addGeometry(const geo::Mesh &, const geo::Material &);
 
-  void setActiveCamera(const SceneGraphEntity* activeCamera);
+  void setActiveCamera(const SceneGraphEntity *activeCamera);
 
   /// @brief Creates a simple barebone entity containing minimum components
   /// Minum components are: Transform, Name, Relationship
   SceneGraphEntity makeEntity(std::string name = "");
 
-  SceneGraphEntity makeCamera(std::string name, float fovx = 120.0F,
-                              float aspect = 1.0F, float zNear = 0.1F,
-                              float zFar = 1000.0F);
+  /// @brief Creates a camera at a Z distance of 5 meter from the origin,
+  /// looking at the origin
+  SceneGraphEntity makeCamera(std::string name, float zDistance = -5.0F,
+                              float fovx = 120.0F, float aspect = 1.0F,
+                              float zNear = 0.1F, float zFar = 1000.0F);
 
   SceneGraphEntity makeCamera(const geo::Camera &geoCamera);
 
@@ -85,13 +87,16 @@ public:
                                   glm::vec3 color = {1.0F, 1.0F, 1.0F},
                                   std::string name = "#Light#");
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position);
-  SceneGraphEntity makeDirectionalLight(std::string name, glm::vec3 direction);
+  SceneGraphEntity makeDirectionalLight(std::string name,
+                                        glm::vec3 direction = {
+                                            0.10976F, 0.98787834F, 0.10976F});
 
   SceneGraphEntity makeMesh(const geo::Mesh &mesh);
   SceneGraphEntity makeEmptyMesh(const geo::Mesh &mesh);
   SceneGraphEntity makeCurve(std::string name);
 
-  SceneGraphEntity makeRenderable(geo::Mesh &&mesh, const geo::Material &material);
+  SceneGraphEntity makeRenderable(geo::Mesh &&mesh,
+                                  const geo::Material &material);
   SceneGraphEntity makeRenderable(const geo::Mesh &mesh, glm::mat4 transform,
                                   geo::Material &material);
   SceneGraphEntity makeRenderable(geo::Curve &&curve,
@@ -105,8 +110,10 @@ public:
    * as well. By default everything is loaded.
    * @return
    */
-  SceneGraphEntity makeScene(geo::Scene &, SceneLoaderFlags flags = SceneLoaderFlags{});
-  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource, SceneLoaderFlags flags = SceneLoaderFlags{});
+  SceneGraphEntity makeScene(geo::Scene &,
+                             SceneLoaderFlags flags = SceneLoaderFlags{});
+  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource,
+                             SceneLoaderFlags flags = SceneLoaderFlags{});
 
   SceneGraphEntity makeTexture();
   SceneGraphEntity makeRectangularGrid(float size = 10.0F,
@@ -116,10 +123,10 @@ public:
 private:
   /// Uses EnTT in the background for scene management
   entt::registry m_registry;
-//  std::shared_ptr<ecsg::EntityFactory> m_entityFactory {nullptr};
+  //  std::shared_ptr<ecsg::EntityFactory> m_entityFactory {nullptr};
 
-  geo::Material* m_defaultMaterial {nullptr};
-  const SceneGraphEntity* m_activeCamera {nullptr};
+  std::shared_ptr<res::Resource<geo::Material>> m_defaultMaterial{nullptr};
+  const SceneGraphEntity *m_activeCamera{nullptr};
 
   void processChildren(std::shared_ptr<const geo::SceneNode> node,
                        SceneLoaderFlags flags,
@@ -132,7 +139,7 @@ private:
 
 inline entt::registry &SceneGraph::getRegistry() { return m_registry; }
 
-} // namespace ecs
+} // namespace ecsg
 } // namespace lsw
 
 #endif // ARTIFAX_ECS_SCENEGRAPH_H

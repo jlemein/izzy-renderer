@@ -203,7 +203,7 @@ MaterialSystem::createResource(const std::string &reqMaterialName) {
     }
   }
 
-  return std::make_unique<lsw::res::Resource<geo::Material>>(100, material);
+  return std::make_unique<lsw::res::Resource<geo::Material>>(material);
 }
 
 std::unique_ptr<lsw::res::IResource> MaterialSystem::makeDefaultMaterial() {
