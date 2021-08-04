@@ -15,7 +15,14 @@
 namespace lsw {
 namespace geo {
 
-
+/**
+ * The material system manages the materials in the scene.
+ * It is responsible for reading the material definitions (json) file that list
+ * the available materials.
+ *
+ * Every material described in the materials file should be mapped to a data
+ * structure.
+ */
 class MaterialSystem : public lsw::res::ResourceFactory {
 public:
   MaterialSystem(const std::string& path);

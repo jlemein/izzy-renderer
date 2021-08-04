@@ -7,7 +7,9 @@
 #include <geo_ubermaterialdata.h>
 #include <memory>
 #include <nlohmann/json.hpp>
+#include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
+#include <sstream>
 
 using json = nlohmann::json;
 
@@ -62,16 +64,21 @@ void addTextureToMaterial(const std::string &textureName,
 }
 
 void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
+  spdlog::info("Reading material definitions...");
+
   for (const auto &material : j["materials"]) {
     Material m;
     m.name = material["name"].get<std::string>();
+    spdlog::debug("Reading material with id \"{}\"...", m.name);
 
     // pass shader info
     try {
       m.vertexShader = material["vertex_shader"].get<std::string>();
       m.geometryShader = material["geometry_shader"].get<std::string>();
       m.fragmentShader = material["fragment_shader"].get<std::string>();
-      spdlog::info("{} --> Vertex shader: {}", m.name, m.vertexShader);
+      spdlog::debug("\tvertex shader: {}", m.vertexShader);
+      spdlog::debug("\tgeometry shader: {}", m.geometryShader);
+      spdlog::debug("\tfragment shader: {}", m.fragmentShader);
     } catch (nlohmann::detail::exception e) {
       throw std::runtime_error(
           fmt::format("Failed parsing shader names: {}", e.what()));
@@ -88,14 +95,19 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
                                               : prop["type"].get<std::string>();
 
           if (type == std::string{"texture"}) {
-            addTextureToMaterial(name, prop["value"].get<std::string>(), m);
+            auto path = prop["value"].get<std::string>();
+            spdlog::debug("\t{} texture: {}", name, path);
+            addTextureToMaterial(name, path, m);
           } else {
             if (prop["value"].is_array()) {
               auto floatArray = prop["value"].get<std::vector<float>>();
               m.setFloatArray(name, floatArray);
+              spdlog::debug("\t{}: [{}, {}, {}]", name, floatArray[0],
+                            floatArray[1], floatArray[2]);
             } else {
               auto value = prop["value"].get<float>();
               m.setFloat(name, value);
+              spdlog::debug("\t{}: {}", name, value);
             }
           }
         } catch (std::runtime_error &e) {
@@ -106,38 +118,25 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
         }
       }
 
-      //      auto diffuse = properties["diffuse_color"];
-      //      if (diffuse.size() >= 3) {
-      //        m.diffuse = glm::vec3(diffuse[0].get<float>(),
-      //        diffuse[1].get<float>(),
-      //                              diffuse[2].get<float>());
-      //        m.hasDiffuse = true;
-      //      }
-      //      auto specular = properties["specular_color"];
-      //      if (specular.size() >= 3) {
-      //        m.specular =
-      //            glm::vec3(specular[0].get<float>(),
-      //            specular[1].get<float>(),
-      //                      specular[2].get<float>());
-      //        m.hasSpecular = true;
-      //      }
-      //      auto ambient = properties["ambient_color"];
-      //      if (ambient.size() >= 3) {
-      //        m.ambient = glm::vec3(ambient[0], ambient[1], ambient[2]);
-      //        m.hasAmbient = true;
-      //      }
-
       // TODO: for now we parse properties here
-      if (m.name == std::string{"UberMaterial"}) {
-        UberMaterialData data = UberMaterialData::FromMaterial(m);
-        m.setProperty(data);
-      }
-      //      else if (m.name == std::string{"DefaultMaterial"}) {
-      //
-      //      }
+      // Every material property needs to be converted to a representation in
+      // the shader unit. This is done using Uniform buffer objects. Some
+      // materials might be able to reuse the data block. The data block is
+      // specified with a layout attribute in the json file.
+      if (material.count("layout") > 0) {
+        auto layout = material["layout"].get<std::string>();
 
-      spdlog::info("Material {} with ambient color {}, {}, {}", m.name,
-                   m.ambient.r, m.ambient.g, m.ambient.b);
+        if (layout == "_Lambert") {
+          m.setProperty(LambertData::FromMaterial(m));
+        } else if (layout == "_UberMaterial") {
+          m.setProperty(UberMaterialData::FromMaterial(m));
+        } else {
+          spdlog::error("{} layout structure is unknown. Continue without "
+                        "which may lead to shading anomalies.",
+                        layout);
+        }
+      }
+
     } catch (nlohmann::detail::exception e) {
       throw std::runtime_error(
           fmt::format("Failed reading standard material color (diffuse, "
@@ -146,8 +145,6 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
     }
 
     m_materials[m.name] = m; // std::move(m);
-    spdlog::info("Loaded material with name {}",
-                 m_materials.at(m.name).vertexShader);
   }
 }
 

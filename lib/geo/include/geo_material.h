@@ -40,7 +40,7 @@ struct Material {
   std::string geometryShader {""};
   std::string fragmentShader {""};
 
-  // colors.
+  // special set of attributes
   glm::vec3 diffuse;
   glm::vec3 emissive;
   glm::vec3 ambient;
@@ -53,6 +53,7 @@ struct Material {
   bool hasTransparent {false};
   bool hasAmbient {false};
 
+  /// @brief predefined textures that gets mapped to from existing scene files.
   std::shared_ptr<res::Resource<geo::Texture>> diffuseTexture {nullptr};
   std::shared_ptr<res::Resource<geo::Texture>> specularTexture {nullptr};
   std::shared_ptr<res::Resource<geo::Texture>> normalTexture {nullptr};
@@ -67,8 +68,10 @@ struct Material {
   std::string normalTexturePath {""};
   std::string roughnessTexturePath {""};
 
-  // TODO: move in separate class or struct
+  // TODO: move in separate class or struct.
+  /// @brief a texture maps from a parameter name (e.g. my_diffuse_tex) to a file path.
   std::unordered_map<std::string, std::string> texturePaths {};
+  /// @brief mapping from parameter name to the texture resource.
   std::unordered_map<std::string, std::shared_ptr<res::Resource<geo::Texture>>> textures {};
 
   void setFloat(const std::string& name, float value) {

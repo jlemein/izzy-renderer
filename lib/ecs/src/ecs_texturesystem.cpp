@@ -74,14 +74,25 @@ void TextureSystem::initialize() {
   auto& registry = m_sceneGraph->getRegistry();
   auto view = registry.view<geo::Material>();
 
+  // put the code in bottom part of readMaterialDefinitions here
+  // ...
+
   for (auto entity : view) {
     auto& renderable = registry.get_or_emplace<Renderable>(entity);
     auto &geoMaterial = view.get<geo::Material>(entity);
 
+//    for (auto& [name, resource] : geoMaterial.textures) {
+//      renderable.textures.emplace_back(makeGlTexture(**resource, name));
+//    }
+
     for (auto& [name, path] : geoMaterial.texturePaths) {
       // TODO: check if name is used in shader object
-
-      renderable.textures.emplace_back(makeGlTexture(**geoMaterial.textures[name], name));
+      try {
+        renderable.textures.emplace_back(
+            makeGlTexture(**geoMaterial.textures.at(name), name));
+      } catch (std::out_of_range e) {
+        throw std::runtime_error(fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
+      }
     }
 
     // A material is parsed in two ways

@@ -13,9 +13,13 @@ target_include_directories(geo
         PUBLIC include
         PRIVATE src)
 
-target_link_libraries(geo PRIVATE CONAN_PKG::assimp CONAN_PKG::glm
-        CONAN_PKG::spdlog
-        PUBLIC CONAN_PKG::assimp CONAN_PKG::resourcemanager CONAN_PKG::stb CONAN_PKG::fmt CONAN_PKG::nlohmann_json)
+target_link_libraries(geo
+        PRIVATE
+            CONAN_PKG::assimp CONAN_PKG::glm
+            CONAN_PKG::spdlog
+#            CONAN_PKG::boost
+        PUBLIC
+            CONAN_PKG::assimp CONAN_PKG::resourcemanager CONAN_PKG::stb CONAN_PKG::fmt CONAN_PKG::nlohmann_json)
 
 #if (BUILD_TESTING)
     add_executable(geo_test

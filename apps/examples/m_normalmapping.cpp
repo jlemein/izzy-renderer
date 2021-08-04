@@ -14,6 +14,10 @@ using namespace lsw;
 using namespace geo;
 
 int main(int argc, char** argv) {
+#ifndef NDEBUG
+  spdlog::set_level(spdlog::level::debug);
+#endif // NDEBUG
+
   try {
     auto resourceManager =
         make_shared<georm::ResourceManager>("../assets/shaders/materials.json");
@@ -22,9 +26,16 @@ int main(int argc, char** argv) {
     sceneGraph->setDefaultMaterial(
         resourceManager->createSharedMaterial("DefaultMaterial"));
 
-    auto lambert = resourceManager->createMaterial("Lambert");
-    lambert.setDiffuseMap("assets/textures/diffuse_wall.png");
-    lambert.setNormalMap("assets/textures/normal_wall.png");
+    auto lambert = resourceManager->createMaterial("NormalMapExample");
+//    lambert.setDiffuseMap("assets/textures/diffuse_wall.png");
+//    lambert.setNormalMap("assets/textures/normal_wall.png");
+//    lambert.setShaderLayout(UberMaterialData::PARAM_NAME);
+
+    if (lambert.floatArrayValues.count("diffuse_color") > 0) {
+      auto diffuse = lambert.floatArrayValues.at("diffuse_color");
+      spdlog::info("Lambert has diffuse: {} {} {}", diffuse[0], diffuse[1], diffuse[2]);
+    }
+
     sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), lambert);
 
     auto viewer = std::make_shared<viewer::Viewer>(
@@ -39,7 +50,8 @@ int main(int argc, char** argv) {
     viewer->initialize();
     viewer->run();
   } catch (std::runtime_error& e) {
-    spdlog::error("Error running the viewer: {}", e.what());
+    spdlog::error(e.what());
+    return -1;
   }
 
   return 0;

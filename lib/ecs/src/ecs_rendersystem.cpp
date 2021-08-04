@@ -176,9 +176,17 @@ void initLightingUbo(Renderable &renderable) {
 }
 
 /**
+ * @brief Sets up the render component (i.e. the handle to the render system)
+ * with the assigned material properties for this entity. Every material has a
+ * uniform properties attribute that gets filled based on ....
  *
- * @param renderable
- * @param properties
+ * @details
+ * The material component (@see geo::Material) contains a set of attributes,
+ * easily editable in the code. Eventually the attributes gets mapped to a
+ * uniform property attribute.
+ *
+ * @param renderable The render component
+ * @param properties The material properties.
  */
 void initShaderProperties(Renderable &renderable,
                           const geo::Material::UniformProperties &properties) {

@@ -12,6 +12,7 @@
 namespace lsw {
 namespace res {
 class ResourceFactory;
+class ResourceManager;
 } // namespace res
 
 namespace geo {

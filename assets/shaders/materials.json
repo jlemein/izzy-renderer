@@ -103,6 +103,24 @@
       ]
     },
     {
+      "name": "NormalMapExample",
+      "vertex_shader": "assets/shaders/diffuse.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/diffuse.frag.spv",
+      "properties": [
+        {
+          "type": "texture",
+          "name": "diffuseMap",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+        },
+        {
+          "type": "texture",
+          "name": "normalMap",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+        }
+      ]
+    },
+    {
       "name": "ParallaxExample",
       "vertex_shader": "assets/shaders/parallax.vert.spv",
       "geometry_shader": "",

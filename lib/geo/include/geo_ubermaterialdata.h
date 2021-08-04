@@ -23,8 +23,24 @@ struct UberMaterialData {
 
   static inline const char *PARAM_NAME = "UberMaterial";
   //TODO: should be factored out to util
+  /**
+   * Fills a UberMaterial data structure with the properties from the specified
+   * material.
+   * The UberMaterialData is used for UberMaterial materials.json.
+   *
+   * @param material
+   * @return
+   */
   static UberMaterialData FromMaterial(const geo::Material& material);
 };
+
+
+struct LambertData {
+  static inline const char *PARAM_NAME = "Lambert";
+
+  static LambertData FromMaterial(const geo::Material& material);
+};
+
 
 }
 }

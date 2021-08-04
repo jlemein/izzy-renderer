@@ -17,3 +17,9 @@ UberMaterialData UberMaterialData::FromMaterial(const geo::Material &material) {
 
   return data;
 }
+
+LambertData LambertData::FromMaterial(const geo::Material &material) {
+  LambertData data;
+
+  return data;
+}

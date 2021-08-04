@@ -10,6 +10,7 @@ resourcemanager/0.2@lemonsoftware/dev
 imgui/1.80
 nlohmann_json/3.9.1
 stb/20200203
+boost/1.76.0
 
 [options]
 gtest:build_gmock=True
