@@ -1,7 +1,10 @@
 
 add_library(georm STATIC
         src/georm_resourcemanager.cpp
-        include/georm_resourcemanager.h src/georm_resourcemanager.t.cpp)
+        include/georm_resourcemanager.h
+        include/georm_materialsystem.h
+        src/georm_materialsystem.cpp
+        src/georm_resourcemanager.t.cpp)
 
 target_include_directories(georm
         PUBLIC include
@@ -9,7 +12,7 @@ target_include_directories(georm
 
 target_link_libraries(georm
         PRIVATE
-            geo
+            geo ecsg
             CONAN_PKG::spdlog
             CONAN_PKG::nlohmann_json
             CONAN_PKG::resourcemanager

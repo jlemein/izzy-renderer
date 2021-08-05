@@ -14,10 +14,10 @@ using namespace lsw::georm;
 
 ResourceManager::ResourceManager(const std::string &materialsFile)
     : m_wrappedResourceMgr(std::make_shared<res::ResourceManager>()) {
-  auto materialSystem = std::make_unique<geo::MaterialSystem>(materialsFile);
-  materialSystem->initialize();
+  auto materialFactory = std::make_unique<geo::MaterialSystem>(materialsFile);
+  materialFactory->initialize();
 
-  m_wrappedResourceMgr->addFactory<geo::Material>(move(materialSystem));
+  m_wrappedResourceMgr->addFactory<geo::Material>(move(materialFactory));
   m_wrappedResourceMgr->addFactory<lsw::geo::Scene>(
       std::make_unique<geo::SceneLoader>(m_wrappedResourceMgr));
   m_wrappedResourceMgr->addFactory<geo::Texture>(

@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <res_resource.h>
 
 namespace lsw {
 namespace res {

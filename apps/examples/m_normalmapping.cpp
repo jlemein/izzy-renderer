@@ -1,19 +1,20 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include <spdlog/spdlog.h>
 #include <geo_materialloader.h>
 #include <memory>
+#include <spdlog/spdlog.h>
 #include <vwr_viewer.h>
 //#include <res_resourcemanager.h>
-#include <georm_resourcemanager.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
+#include <georm_materialsystem.h>
+#include <georm_resourcemanager.h>
 using namespace std;
 using namespace lsw;
 using namespace geo;
 
-int main(int argc, char** argv) {
+int main(int argc, char **argv) {
 #ifndef NDEBUG
   spdlog::set_level(spdlog::level::debug);
 #endif // NDEBUG
@@ -26,14 +27,19 @@ int main(int argc, char** argv) {
     sceneGraph->setDefaultMaterial(
         resourceManager->createSharedMaterial("DefaultMaterial"));
 
+    auto materialSystem = make_shared<georm::MaterialSystem>(
+        sceneGraph, resourceManager, "../assets/shaders/materials.json");
+    materialSystem->createMaterial("NormalMapExample");
+
     auto lambert = resourceManager->createMaterial("NormalMapExample");
-//    lambert.setDiffuseMap("assets/textures/diffuse_wall.png");
-//    lambert.setNormalMap("assets/textures/normal_wall.png");
-//    lambert.setShaderLayout(UberMaterialData::PARAM_NAME);
+    //    lambert.setDiffuseMap("assets/textures/diffuse_wall.png");
+    //    lambert.setNormalMap("assets/textures/normal_wall.png");
+    //    lambert.setShaderLayout(UberMaterialData::PARAM_NAME);
 
     if (lambert.floatArrayValues.count("diffuse_color") > 0) {
       auto diffuse = lambert.floatArrayValues.at("diffuse_color");
-      spdlog::info("Lambert has diffuse: {} {} {}", diffuse[0], diffuse[1], diffuse[2]);
+      spdlog::info("Lambert has diffuse: {} {} {}", diffuse[0], diffuse[1],
+                   diffuse[2]);
     }
 
     sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), lambert);
@@ -49,7 +55,7 @@ int main(int argc, char** argv) {
     viewer->setTitle("Normal mapping");
     viewer->initialize();
     viewer->run();
-  } catch (std::runtime_error& e) {
+  } catch (std::runtime_error &e) {
     spdlog::error(e.what());
     return -1;
   }
