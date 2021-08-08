@@ -2,15 +2,15 @@
 #pragma once
 
 #include <ecs_firstpersoncontrolsystem.h>
-#include <vwr_viewerextension.h>
 #include <ecs_rendersubsystem.h>
+#include <vwr_viewerextension.h>
 
 #include <list>
 #include <memory>
 #include <string>
 
-#include <entt/entt.hpp>
 #include <ecsg_scenegraphentity.h>
+#include <entt/entt.hpp>
 namespace lsw {
 
 namespace res {
@@ -36,15 +36,15 @@ class InputSystem;
 namespace viewer {
 class WindowInputListener;
 
-typedef struct WindowHandle{} WindowHandle;
+typedef struct WindowHandle {
+} WindowHandle;
 
 struct DisplayDetails {
-  WindowHandle* window {nullptr};
-  std::string shadingLanguage {""};
-  std::string shadingLanguageVersion {""};
+  WindowHandle *window{nullptr};
+  std::string shadingLanguage{""};
+  std::string shadingLanguageVersion{""};
   int windowWidth, windowHeight;
 };
-
 
 class Viewer {
 public:
@@ -56,11 +56,13 @@ public:
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<res::ResourceManager> resourceManager);
+  Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
+         std::shared_ptr<ecs::RenderSystem> renderSystem,
+         std::shared_ptr<res::ResourceManager> resourceManager);
 
   ~Viewer();
 
-  ecsg::SceneGraph& getSceneGraph();
+  ecsg::SceneGraph &getSceneGraph();
 
   DisplayDetails getDisplayDetails();
 
@@ -68,19 +70,18 @@ public:
   int run();
 
   void setWindowSize(unsigned int width, unsigned int height);
-  void setTitle(const std::string& title);
+  void setTitle(const std::string &title);
 
   void setActiveCamera(ecsg::SceneGraphEntity cameraEntity);
 
-  void
-  registerExtension(std::shared_ptr<ecs::IViewerExtension> interactable);
+  void registerExtension(std::shared_ptr<ecs::IViewerExtension> interactable);
   void registerRenderSubsystem(
       std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem);
 
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
   std::shared_ptr<res::ResourceManager> m_resourceManager;
-  entt::registry& m_registry;
+  entt::registry &m_registry;
 
   std::list<std::shared_ptr<ecs::IViewerExtension>> m_viewerExtensions;
 

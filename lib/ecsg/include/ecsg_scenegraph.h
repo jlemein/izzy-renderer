@@ -87,6 +87,14 @@ public:
                                   glm::vec3 color = {1.0F, 1.0F, 1.0F},
                                   std::string name = "#Light#");
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position);
+
+  /**
+   * Creates a directional light source towards the specified direction
+   * @param name        [in] A human readable name for the light source.
+   * @param direction   [in] The direction of the light source, as seen from the
+   *                         origin of the scene.
+   * @return A new scene graph entity with the directional light source.
+   */
   SceneGraphEntity makeDirectionalLight(std::string name,
                                         glm::vec3 direction = {
                                             0.10976F, 0.98787834F, 0.10976F});

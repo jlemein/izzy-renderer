@@ -1,11 +1,12 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include <geo_materialloader.h>
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <vwr_viewer.h>
+#include <georm_materialsystem.h>
 //#include <res_resourcemanager.h>
+#include <ecs_firstpersoncontrol.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
 #include <georm_materialsystem.h>
@@ -20,36 +21,31 @@ int main(int argc, char **argv) {
 #endif // NDEBUG
 
   try {
-    auto resourceManager =
-        make_shared<georm::ResourceManager>("../assets/shaders/materials.json");
+    auto resourceManager = make_shared<georm::ResourceManager>();
 
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
+    auto materialSystem =
+        make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");
+    resourceManager->setMaterialSystem(materialSystem);
+
+    auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
+
     sceneGraph->setDefaultMaterial(
         resourceManager->createSharedMaterial("DefaultMaterial"));
-
-    auto materialSystem = make_shared<georm::MaterialSystem>(
-        sceneGraph, resourceManager, "../assets/shaders/materials.json");
-    materialSystem->createMaterial("NormalMapExample");
-
+    
     auto lambert = resourceManager->createMaterial("NormalMapExample");
-    //    lambert.setDiffuseMap("assets/textures/diffuse_wall.png");
-    //    lambert.setNormalMap("assets/textures/normal_wall.png");
-    //    lambert.setShaderLayout(UberMaterialData::PARAM_NAME);
-
-    if (lambert.floatArrayValues.count("diffuse_color") > 0) {
-      auto diffuse = lambert.floatArrayValues.at("diffuse_color");
-      spdlog::info("Lambert has diffuse: {} {} {}", diffuse[0], diffuse[1],
-                   diffuse[2]);
-    }
 
     sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), lambert);
 
     auto viewer = std::make_shared<viewer::Viewer>(
-        sceneGraph, resourceManager->getRawResourceManager());
+        sceneGraph, renderSystem, resourceManager->getRawResourceManager());
 
-    sceneGraph->makeDirectionalLight("Sun");
+    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.0F, 0.0F, 1.0F));
 
-    viewer->setActiveCamera(sceneGraph->makeCamera("DummyCamera"));
+    auto camera = sceneGraph->makeCamera("DummyCamera");
+    camera.add<ecs::FirstPersonControl>();
+    viewer->setActiveCamera(camera);
 
     viewer->setWindowSize(1024, 768);
     viewer->setTitle("Normal mapping");

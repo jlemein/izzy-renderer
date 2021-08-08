@@ -24,7 +24,11 @@ layout(binding = 1) uniform sampler2D normalMap;
 
 
 void main() {
-    outColor = texture(diffuseMap, uv1);
+    if (uv1.x + uv1.y > 1) {
+        outColor = texture(diffuseMap, uv1);
+    } else {
+        outColor = texture(normalMap, uv1);
+    }
 //    for (int i=0; i<uNumberLights; i++) {
 //        vec3 nn_light_direction = normalize(light_direction[i].xyz);
 //        vec3 nn_normal = normalize(inNormal).xyz;

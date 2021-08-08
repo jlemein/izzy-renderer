@@ -6,7 +6,6 @@
 #define RENDERER_GEO_SCENELOADER_H
 
 #include "geo_camera.h"
-#include "geo_materialloader.h"
 #include <assimp/scene.h>
 #include <geo_transform.h>
 #include <glm/glm.hpp>

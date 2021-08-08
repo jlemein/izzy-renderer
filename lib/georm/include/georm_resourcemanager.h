@@ -25,6 +25,7 @@ class Texture;
 namespace lsw {
 namespace georm {
 
+class MaterialSystem;
 using MaterialPtr = std::shared_ptr<res::Resource<geo::Material>>;
 using TexturePtr = std::shared_ptr<res::Resource<geo::Texture>>;
 
@@ -35,7 +36,9 @@ using TexturePtr = std::shared_ptr<res::Resource<geo::Texture>>;
  */
 class ResourceManager {
 public:
-  ResourceManager(const std::string& materialsFile);
+  ResourceManager();
+
+  void setMaterialSystem(std::shared_ptr<georm::MaterialSystem> materialSystem);
 
   MaterialPtr createSharedMaterial(const std::string& name);
   geo::Material createMaterial(const std::string& name);
@@ -47,6 +50,8 @@ public:
 private:
   // TODO: must be nullptr
   std::shared_ptr<res::ResourceManager> m_wrappedResourceMgr {nullptr};
+  std::shared_ptr<georm::MaterialSystem> m_materialSystem {nullptr};
+
   std::unordered_map<std::string, MaterialPtr> m_cachedMaterials;
   std::unordered_map<std::string, TexturePtr> m_cachedTextures;
 };

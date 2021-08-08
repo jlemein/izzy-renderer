@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 21-03-21.
 //
-#include <geo_materialloader.h>
+#include <georm_materialsystem.h>
 #include <geo_scene.h>
 #include <geo_sceneloader.h>
 #include <geo_texture.h>
@@ -12,16 +12,19 @@ using namespace lsw;
 using namespace lsw;
 using namespace lsw::georm;
 
-ResourceManager::ResourceManager(const std::string &materialsFile)
+ResourceManager::ResourceManager()
     : m_wrappedResourceMgr(std::make_shared<res::ResourceManager>()) {
-  auto materialFactory = std::make_unique<geo::MaterialSystem>(materialsFile);
-  materialFactory->initialize();
 
-  m_wrappedResourceMgr->addFactory<geo::Material>(move(materialFactory));
+//  m_wrappedResourceMgr->addFactory<geo::Material>(move(materialFactory));
   m_wrappedResourceMgr->addFactory<lsw::geo::Scene>(
       std::make_unique<geo::SceneLoader>(m_wrappedResourceMgr));
   m_wrappedResourceMgr->addFactory<geo::Texture>(
       std::make_unique<geo::TextureLoader>());
+}
+
+void ResourceManager::setMaterialSystem(std::shared_ptr<georm::MaterialSystem> materialSystem) {
+  m_materialSystem = materialSystem;
+  m_wrappedResourceMgr->addFactory<geo::Material>(materialSystem);
 }
 
 std::shared_ptr<lsw::res::ResourceManager>

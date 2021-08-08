@@ -6,40 +6,52 @@
 #define RENDERER_GEORM_MATERIALSYSTEM_H
 
 #include "georm_resourcemanager.h"
+#include <ecs_rendersystem.h>
 #include <ecsg_scenegraphentity.h>
 #include <entt/entt.hpp>
 #include <geo_material.h>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
 #include <res_resource.h>
+#include <res_resourcefactory.h>
 
 namespace lsw {
+
 namespace ecsg {
 class SceneGraph;
 } // namespace ecsg
-
 namespace georm {
 
 class ResourceManager;
 
 /**
- * The material system manages the materials in the scene.
+ * The material system manages the material components in the scene.
  * It is responsible for reading the material definitions (json) file that list
  * the available materials.
  *
  * Every material described in the materials file should be mapped to a data
  * structure.
  */
-class MaterialSystem {
+class MaterialSystem : public res::ResourceFactory, public ecs::IMaterialSystem {
 public:
   MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
-                 std::shared_ptr<georm::ResourceManager> resourceManager,
-                 const std::string &path);
+                 std::shared_ptr<georm::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
 
-  void initialize();
-  void initializeTextures(); // --> possibly move to render system
+  void loadMaterialsFromFile(const std::string& path);
+
+  /**
+   * Loops over all materials in the scene graph and makes sure the textures are loaded (if not loaded already).
+   * Also it synchronizes the render system with the entities' texture data (by attaching or detaching texture data).
+   *
+   * @param renderSystem Handle to the render system to instruct to synch a texture.
+   * @details
+   * In essence, it makes sure the textures are loaded or removed.
+   * it makes sure the rendersystem is updated with new texture data, or to
+   * remove
+   */
+  virtual void synchronizeTextures(ecs::RenderSystem& renderSystem) override;
 
   /// @brief Loads the material associated with the specified material name.
   /// @details the material is loaded based on material name. There are four
@@ -51,8 +63,8 @@ public:
   ///  3. If not found, then the default material is used.
   ///  4. If there is no default material, an exception is thrown.
   /// @returns a unique ptr
-//  std::unique_ptr<res::IResource>
-//  createResource(const std::string &name) override;
+  virtual std::unique_ptr<res::IResource>
+  createResource(const std::string &name) override;
 
   bool isMaterialDefined(const std::string &materialName);
 
@@ -64,8 +76,8 @@ public:
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
   std::shared_ptr<georm::ResourceManager> m_resourceManager;
+//  std::shared_ptr<ecs::RenderSystem> m_renderSystem;
 
-  std::string m_materialConfigUri;
   std::unordered_map<unsigned int, res::Resource<geo::Material>>
       m_registeredMaterials;
 
@@ -84,7 +96,6 @@ private:
   // @see IRenderSubsystem
   void onRender(entt::entity entity);
 };
-
 
 } // namespace georm
 } // namespace lsw

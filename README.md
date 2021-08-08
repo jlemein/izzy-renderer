@@ -11,7 +11,17 @@ The Lemon Shite Renderer consists of the following major systems:
 
 ## Resource manager
 
-A resource manager handles all external resources loaded in the scene.
+A resource manager managed the administration of all resources in the scene, and outside of the scene.
+All resources involve assets such as scene files, audio files, video files, images, textures, materials, but also ordinary text files.
+A resource manager is a superficial instance by itself. It does not know much about each of the assets.
+The responsibility of a resource manager is as follows:
+* Forwards calls to the corresponding resource factory. The resource manager abstracts away the underlying resource systems for clients using the resource manager.
+* Maintains the collection of created resources, but it does not decide on the lifetime of an object. This is the responsibility of the resource system.
+* Issues unique ids. 
+
+A **resource system** is involved with managing the resource components.
+
+handles all external resources loaded in the scene.
 It is composed of a set of resource factories. Each resource factory is able to create a specific resource. The resource manager makes sure the right factory is created.
 A resource factory is only responsible for resource creation. 
 

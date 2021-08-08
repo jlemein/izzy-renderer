@@ -22,3 +22,6 @@ glslc assets/shaders/default_curve.frag -o "$OUTPUT_DIR/assets/shaders/default_c
 
 glslc assets/shaders/default_curve.vert -o "$OUTPUT_DIR/assets/shaders/diffuse-color.vert.spv"
 glslc assets/shaders/default_curve.frag -o "$OUTPUT_DIR/assets/shaders/diffuse-color.frag.spv"
+
+glslc assets/shaders/albedo-spec-mapped.vert -o "$OUTPUT_DIR/assets/shaders/albedo-spec-mapped.vert.spv"
+glslc assets/shaders/albedo-spec-mapped.frag -o "$OUTPUT_DIR/assets/shaders/albedo-spec-mapped.frag.spv"
