@@ -13,6 +13,9 @@
 #include <entt/entt.hpp>
 namespace lsw {
 
+namespace anim {
+class AnimationSystem;
+}
 namespace res {
 class ResourceManager;
 }
@@ -81,6 +84,7 @@ public:
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
   std::shared_ptr<res::ResourceManager> m_resourceManager;
+  std::shared_ptr<anim::AnimationSystem> m_animationSystem;
   entt::registry &m_registry;
 
   std::list<std::shared_ptr<ecs::IViewerExtension>> m_viewerExtensions;

@@ -7,7 +7,7 @@ add_library(georm STATIC
         src/georm_resourcemanager.t.cpp
         src/anim_animationsystem.cpp
         include/anim_animationsystem.h
-        include/anim_constant.h)
+        include/anim_localrotation.h)
 
 target_include_directories(georm
         PUBLIC include

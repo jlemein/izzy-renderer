@@ -4,18 +4,27 @@
 #ifndef RENDERER_ANIM_ANIMATIONSYSTEM_H
 #define RENDERER_ANIM_ANIMATIONSYSTEM_H
 
-//#include <vwr_viewerextension.h>
+#include <memory>
 
 namespace lsw {
+namespace ecsg {
+class SceneGraph;
+}
+
 namespace anim {
 
-class AnimationSystem {//: public ecs::IViewerExtension {
+class AnimationSystem { //: public ecs::IViewerExtension {
 public:
-    AnimationSystem();
+  AnimationSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph);
+
+  void init();
+  void update(float time, float dt);
+
+private:
+  std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
 };
 
-}
-}
+} // namespace anim
+} // namespace lsw
 
-
-#endif //RENDERER_ANIM_ANIMATIONSYSTEM_H
+#endif // RENDERER_ANIM_ANIMATIONSYSTEM_H

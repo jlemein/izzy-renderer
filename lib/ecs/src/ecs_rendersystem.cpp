@@ -384,6 +384,7 @@ public:
 
 void RenderSystem::init() {
   glShadeModel(GL_SMOOTH);
+  glEnable(GL_MULTISAMPLE);
 
   // convert material descriptions to openGL specific material data.
   m_materialSystem->synchronizeTextures(*this);
@@ -504,7 +505,8 @@ void RenderSystem::updateLightProperties() {
     m_uLightData.diffuseColors[i] = glm::vec4(light.diffuseColor, 1.0F);
     m_uLightData.intensities[i] = light.intensity;
     m_uLightData.attenuation[i] = light.attenuationQuadratic;
-    m_uLightData.positions[i] = transform.worldTransform[3];
+    m_uLightData.positions[i] = transform.worldTransform * glm::vec4(1.0);
+    //m_uLightData.positions[i] = transform.worldTransform[3];
     ++i;
   }
 }

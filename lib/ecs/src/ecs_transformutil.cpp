@@ -25,6 +25,14 @@ void TransformUtil::RotateEuler(Transform &transform, const glm::vec3& axis, flo
   transform.localTransform = glm::rotate(transform.localTransform, radians, axis);
 }
 
+glm::mat4 TransformUtil::RotateEulerRadians(const glm::vec3& axis, float radians) {
+  return glm::rotate(glm::mat4(1.0), radians, axis);
+}
+
+glm::mat4 TransformUtil::RotateEulerDegrees(const glm::vec3& axis, float degrees) {
+  return RotateEulerRadians(axis, static_cast<float>(M_PI * degrees/180.0));
+}
+
 void TransformUtil::Translate(Transform &transform, const glm::vec3 &translate) {
   transform.localTransform[3] += glm::vec4(translate, 0.0f);
 }

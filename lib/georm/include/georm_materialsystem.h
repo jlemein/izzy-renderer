@@ -11,7 +11,7 @@
 #include <entt/entt.hpp>
 #include <geo_material.h>
 #include <memory>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <res_resource.h>
 #include <res_resourcefactory.h>
 

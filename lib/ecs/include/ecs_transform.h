@@ -18,6 +18,7 @@ struct Transform {
   glm::mat4 worldTransform {glm::mat4(1.0F) };
 };
 
+
 //struct Orientation {
 //  // default orientation aligned with negative z-axis
 //  glm::quat q = glm::angleAxis(0.0F, glm::vec3(0.0F, 0.0F, 1.0F));

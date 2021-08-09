@@ -12,6 +12,7 @@
 #include <vwr_viewer.h>
 #include <vwr_viewerextension.h>
 #include <vwr_windowinputlistener.h>
+#include <anim_animationsystem.h>
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -32,6 +33,7 @@ Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
                std::shared_ptr<res::ResourceManager> resourceManager)
     : m_sceneGraph{sceneGraph}, m_resourceManager{resourceManager},
       m_registry(sceneGraph->getRegistry()),
+      m_animationSystem{make_shared<anim::AnimationSystem>(sceneGraph)},
       m_renderSystem{renderSystem},
       m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)},
       m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)},
@@ -56,6 +58,7 @@ void Viewer::initialize() {
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+  glfwWindowHint(GLFW_SAMPLES, 16);
 
   GLFWwindow *window = glfwCreateWindow(m_displayDetails.windowWidth,
                                         m_displayDetails.windowHeight,
@@ -91,6 +94,8 @@ void Viewer::initialize() {
 
   m_cameraSystem->init();
   m_debugSystem->init(); // for debug visualizations
+  m_animationSystem->init(); // possible bone initialization
+
   // should be called before render system.
 
   m_renderSystem->init();
@@ -124,6 +129,7 @@ int Viewer::run() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // update systems
+    m_animationSystem->update(time, dt);
     m_inputSystem->update();
     m_firstPersonSystem->update(dt);
     m_transformSystem->update(time, dt);

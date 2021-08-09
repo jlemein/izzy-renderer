@@ -34,7 +34,7 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp
         include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h
 #        ../core/include/core_exceptions.h
-        include/ecs_shader.h include/ecs_materialsystem.h)
+        include/ecs_shader.h include/ecs_materialsystem.h include/core_util.h)
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)

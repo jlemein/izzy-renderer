@@ -22,6 +22,8 @@ struct TransformUtil {
   static void Scale(Transform &transform, float scale);
 
   static void RotateEuler(Transform& transform, const glm::vec3& axis, float radians);
+  static glm::mat4 RotateEulerRadians(const glm::vec3& axis, float radians);
+  static glm::mat4 RotateEulerDegrees(const glm::vec3& axis, float degrees);
 
   /// @brief Translates transformation matrix 'transform' by a 3D translation
   /// vector 't'. Transformation matrix is not reset or reinitialized. It is up

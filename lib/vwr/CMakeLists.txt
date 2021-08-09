@@ -17,4 +17,5 @@ target_link_libraries(vwr PUBLIC ecsg
         GLEW::GLEW
         glm::glm
         inputsystem ecs
+        georm
         )
