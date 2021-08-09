@@ -40,6 +40,8 @@ struct Material {
   std::string geometryShader {""};
   std::string fragmentShader {""};
 
+  std::string shaderLayout {""};
+
   // special set of attributes
   glm::vec3 diffuse;
   glm::vec3 emissive;

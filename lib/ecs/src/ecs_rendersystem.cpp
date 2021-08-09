@@ -236,10 +236,11 @@ void initShaderProperties(Renderable &renderable,
 
 } // namespace
 
-RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph)
+RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
+                           std::shared_ptr<IMaterialSystem> materialSystem)
     : m_registry{sceneGraph->getRegistry()},
       m_debugSystem(sceneGraph->getRegistry()),
-      m_materialSystem(std::make_shared<TextureSystem>(sceneGraph)) {}
+      m_materialSystem(materialSystem) {}
 
 void initCurveBuffers(Renderable &renderable, const geo::Curve &curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
@@ -263,7 +264,10 @@ void initMeshBuffers(Renderable &renderable, const geo::Mesh &mesh) {
   GLuint vertexSize = mesh.vertices.size() * sizeof(float);
   GLuint normalSize = mesh.normals.size() * sizeof(float);
   GLuint uvSize = mesh.uvs.size() * sizeof(float);
-  GLuint bufferSize = vertexSize + normalSize + uvSize;
+  GLuint tangentSize = mesh.tangents.size() * sizeof(float);
+  GLuint bitangentSize = mesh.bitangents.size() * sizeof(float);
+  GLuint bufferSize =
+      vertexSize + normalSize + uvSize + tangentSize + bitangentSize;
 
   glGenBuffers(1, &renderable.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
@@ -276,18 +280,28 @@ void initMeshBuffers(Renderable &renderable, const geo::Mesh &mesh) {
   glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize, uvSize,
                   mesh.uvs.data()); // fill partial data - normals
 
+  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize, tangentSize,
+                  mesh.tangents.data()); // fill partial data - normals
+
+  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize + tangentSize, bitangentSize,
+                  mesh.bitangents.data()); // fill partial data - normals
+
   glGenBuffers(1, &renderable.index_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(uint32_t),
                mesh.indices.data(), GL_STATIC_DRAW);
 
-  renderable.vertexAttribCount = 3;
+  renderable.vertexAttribCount = 5;
   renderable.vertexAttribArray[0].size = 3U;
   renderable.vertexAttribArray[0].buffer_offset = 0U;
   renderable.vertexAttribArray[1].size = 3U;
   renderable.vertexAttribArray[1].buffer_offset = vertexSize;
   renderable.vertexAttribArray[2].size = 2U;
   renderable.vertexAttribArray[2].buffer_offset = vertexSize + normalSize;
+  renderable.vertexAttribArray[3].size = 3U;
+  renderable.vertexAttribArray[3].buffer_offset = vertexSize + normalSize + uvSize;
+  renderable.vertexAttribArray[4].size = 3U;
+  renderable.vertexAttribArray[5].buffer_offset = vertexSize + normalSize + tangentSize;
   renderable.drawElementCount = mesh.indices.size();
   renderable.primitiveType = GL_TRIANGLES;
 
@@ -298,6 +312,10 @@ void initMeshBuffers(Renderable &renderable, const geo::Mesh &mesh) {
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0,
                         BUFFER_OFFSET(vertexSize + normalSize));
+  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0,
+                        BUFFER_OFFSET(vertexSize + normalSize + uvSize));
+  glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0,
+                        BUFFER_OFFSET(vertexSize + normalSize + uvSize + tangentSize));
 }
 GLuint compileShader(const geo::Material &material,
                      const Renderable &renderable) {
@@ -362,7 +380,7 @@ void RenderSystem::init() {
   glShadeModel(GL_SMOOTH);
 
   // convert material descriptions to openGL specific material data.
-  m_materialSystem->initialize();
+  m_materialSystem->synchronizeTextures(*this);
 
   // small summary
   spdlog::info("Render system initialized | "
@@ -442,7 +460,8 @@ void RenderSystem::update(float time, float dt) {
   // component.
   synchMvpMatrices();
   updateLightProperties();
-  m_materialSystem->update(time, dt);
+
+  //  m_materialSystem->update(time, dt); --> not needed I think
 }
 
 void RenderSystem::synchMvpMatrices() {
@@ -541,6 +560,7 @@ void RenderSystem::updateCamera(Renderable &renderable) {
   renderable.uniformBlock.proj =
       glm::perspective(activeCamera.fovx, activeCamera.aspect,
                        activeCamera.zNear, activeCamera.zFar);
+  renderable.uniformBlock.viewPos = glm::vec3(transform.worldTransform[3]);
 }
 
 void RenderSystem::addSubsystem(std::shared_ptr<IRenderSubsystem> system) {
@@ -563,7 +583,7 @@ void RenderSystem::render() {
     glUseProgram(renderable.program);
 
     // prepare the materials
-    m_materialSystem->onRender(entity);
+    activateTextures(entity);
 
     // TODO: disable in release
     if (renderable.isWireframe) {
@@ -624,4 +644,72 @@ void RenderSystem::checkError(entt::entity e) {
     std::cerr << " Render error occurred for " << name << ": " << err
               << std::endl;
   }
+}
+
+/**!
+ * @brief Creates a texture buffer and sends the data over to the GPU. This
+ * method therefore converts a texture resource to GPU ready representation.
+ * @param renderable      [in/out] Reference to renderable
+ * @param geoTexture
+ * @param name
+ *
+ * TODO: think about passing a scene graph entity instead
+ * @return
+ */
+void RenderSystem::attachTexture(ecs::Renderable &renderable,
+                                 const geo::Texture &geoTexture,
+                                 const std::string &name) {
+
+  ecs::Texture texture{.name = name};
+  glGenTextures(1, &texture.glTextureId);
+  glBindTexture(GL_TEXTURE_2D, texture.glTextureId);
+
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+  if (!geoTexture.data.empty()) {
+    GLint texChannel = geoTexture.channels == 3 ? GL_RGB : GL_RGBA;
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, geoTexture.width, geoTexture.height,
+                 0, texChannel, GL_UNSIGNED_BYTE, geoTexture.data.data());
+    glGenerateMipmap(GL_TEXTURE_2D);
+  } else {
+    std::cout << "Failed to load texture" << std::endl;
+    exit(1);
+  }
+
+  renderable.textures.emplace_back(texture);
+  spdlog::log(spdlog::level::debug, "Loaded GL texture for texture '{}'", name);
+}
+
+void RenderSystem::activateTextures(entt::entity e) {
+  //  for (auto entity : view) {
+  //  auto& registry = m_sceneGraph->getRegistry();
+
+  if (!m_registry.all_of<ecs::Renderable, geo::Material>(e)) {
+    return;
+  }
+
+  const auto &renderable = m_registry.get<ecs::Renderable>(e);
+  //  const auto& shader = m_registry.get<Shader>(e);
+
+  for (int t = 0; t < renderable.textures.size(); ++t) {
+    auto &texture = renderable.textures[t];
+
+    glActiveTexture(GL_TEXTURE0 + t);
+    glBindTexture(GL_TEXTURE_2D, texture.glTextureId);
+
+    GLint s_diffuseMap =
+        glGetUniformLocation(renderable.program, texture.name.c_str());
+    //    if (s_diffuseMap == -1) {
+    //        //std::cout << "Cannot find diffuse texture" << std::endl;
+    //        //exit(1);
+    //    } else {
+    glUniform1i(s_diffuseMap, t);
+  }
+
+  //    }
+  //    glBindSampler(0, 0);
 }

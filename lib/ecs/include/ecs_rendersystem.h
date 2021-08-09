@@ -5,32 +5,31 @@
 #ifndef GLVIEWER_VIEWER_RENDERSYSTEM_H
 #define GLVIEWER_VIEWER_RENDERSYSTEM_H
 
+#include <ecs_debugsystem.h>
 #include <ecs_renderable.h>
 #include <ecs_rendersubsystem.h>
-#include <ecs_debugsystem.h>
 #include <memory>
 
 #include <glm/glm.hpp>
 
-namespace lsw
-{
+namespace lsw {
 
 namespace ecsg {
 class SceneGraph;
 } // namespace ecsg
 
-namespace ecs
-{
+namespace ecs {
 struct Shader;
 class TextureSystem;
+class IMaterialSystem;
 
 /**!
  * Responsible
  */
-class RenderSystem
-{
- public:
-  RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph);
+class RenderSystem {
+public:
+  RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
+               std::shared_ptr<IMaterialSystem> materialSystem);
 
   void init();
   void update(float time, float dt);
@@ -42,22 +41,34 @@ class RenderSystem
 
   void setActiveCamera(entt::entity cameraEntity);
 
- private:
+  /**
+   * Attaches a texture to the renderable unit
+   * @param geoTexture
+   * @param paramName
+   * @return
+   */
+  void attachTexture(ecs::Renderable &renderable,
+                             const geo::Texture &geoTexture,
+                             const std::string &paramName);
+
+  void activateTextures(entt::entity e);
+
+private:
   entt::registry &m_registry;
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
-  std::shared_ptr<TextureSystem> m_materialSystem;
+  std::shared_ptr<IMaterialSystem> m_materialSystem;
   ecs::DebugSystem m_debugSystem;
 
-  entt::entity m_activeCamera {entt::null};
+  entt::entity m_activeCamera{entt::null};
 
   /// Lighting parameters needed for the uniform buffer object in the shader.
   /// These lighting properties are for forward lighting (not deferred).
   UniformLighting m_uLightData;
-  //UniformDeferredLighting m_uDeferredLightData;
+  // UniformDeferredLighting m_uDeferredLightData;
 
   // groups for performance considerations
-//  entt::group<Renderable> m_renderables;
-//  entt::group<Renderable, Debug> m_debuggables;
+  //  entt::group<Renderable> m_renderables;
+  //  entt::group<Renderable, Debug> m_debuggables;
 
   /// makes sure the transformations applied to meshes and cameras are reflected
   /// in the renderable component.
@@ -73,10 +84,15 @@ class RenderSystem
   void updateLightProperties();
 
   void checkError(entt::entity e);
-
 };
 
-}  // namespace ecs
-}  // namespace lsw
+class IMaterialSystem {
+public:
+  virtual void synchronizeTextures(RenderSystem& renderSystem) = 0;
+  virtual ~IMaterialSystem() = default;
+};
 
-#endif  // GLVIEWER_VIEWER_RENDERSYSTEM_H
+} // namespace ecs
+} // namespace lsw
+
+#endif // GLVIEWER_VIEWER_RENDERSYSTEM_H

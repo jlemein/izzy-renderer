@@ -7,7 +7,6 @@
 #include <geo_light.h>
 #include <geo_meshinstance.h>
 #include <geo_transform.h>
-#include <geo_materialloader.h>
 
 #include <deque>
 #include <assimp/Importer.hpp>

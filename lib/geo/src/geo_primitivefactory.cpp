@@ -4,6 +4,7 @@
 #include <geo_curve.h>
 #include <geo_mesh.h>
 #include <geo_primitivefactory.h>
+#include <geo_meshutil.h>
 using namespace lsw;
 using namespace lsw::geo;
 
@@ -11,40 +12,88 @@ Mesh PrimitiveFactory::MakePlane(float width, float height) { return Mesh(); }
 
 Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
   float vertices[] = {
-      -.5F, -.5F, -.5F, // v0
-      .5F,  -.5F, -.5F, // v1
-      .5F,  -.5F, .5F,  // v2
-      -.5F, -.5F, .5F,  // v3
-      -.5F, .5F,  -.5F, // v4
-      .5F,  .5F,  -.5F, // v5
-      .5F,  .5F,  .5F,  // v6
-      -.5F, .5F,  .5F   // v7
+      -.5F, -.5F, .5F,  // v0
+      .5F,  -.5F, .5F,  // v1
+      .5F,  -.5F, -.5F, // v2
+      -.5F, -.5F, -.5F, // v3
+      -.5F, .5F,  .5F,  // v4
+      .5F,  .5F,  .5F,  // v5
+      .5F,  .5F,  -.5F, // v6
+      -.5F, .5F,  -.5F, // v7
+
+      -.5F, -.5F, .5F,  // v8
+      .5F,  -.5F, .5F,  // v9
+      .5F,  -.5F, -.5F, // v10
+      -.5F, -.5F, -.5F, // v11
+      -.5F, .5F,  .5F,  // v12
+      .5F,  .5F,  .5F,  // v13
+      .5F,  .5F,  -.5F, // v14
+      -.5F, .5F,  -.5F, // v15
+
+      -.5F, -.5F, .5F,  // v16
+      .5F,  -.5F, .5F,  // v17
+      .5F,  -.5F, -.5F, // v18
+      -.5F, -.5F, -.5F, // v19
+      -.5F, .5F,  .5F,  // v20
+      .5F,  .5F,  .5F,  // v21
+      .5F,  .5F,  -.5F, // v22
+      -.5F, .5F,  -.5F  // v23
+  };
+
+  float normals[] = {
+      .0F,  .0F,  1.F,  .0F,  .0F,  1.F,  // v0 v1
+      .0F,  .0F,  -1.F, .0F,  .0F,  -1.F, // v2 v3
+      .0F,  .0F,  1.F,  .0F,  .0F,  1.F,  // v4 v5
+      .0F,  .0F,  -1.F, .0F,  .0F,  -1.F, // v6 v7
+
+      -1.F, .0F,  .0F,  1.F,  .0F,  .0F, // v8 v9
+      1.F,  .0F,  .0F,  -1.F, .0F,  .0F, // v10 v11
+      -1.F, .0F,  .0F,  1.F,  .0F,  .0F, // v12 v13
+      1.F,  .0F,  .0F,  -1.F, .0F,  .0F, // v14 v15
+
+      .0F,  -1.F, .0F,  .0F,  -1.F, .0F, // v16 v17
+      .0F,  -1.F, .0F,  .0F,  -1.F, .0F, // v18 v19
+      .0F,  1.F,  .0F,  .0F,  1.F,  .0F, // v20 v21
+      .0F,  1.F,  .0F,  .0F,  1.F,  .0F  // v22 v23
+  };
+
+  float uvs[] = {
+      0.0F, 0.0F, 1.0,  0.0F, 0.0,  0.0F, 1.0F, 0.0F, // 0 1 2 3
+      0.0F, 1.0F, 1.0,  1.0F, 0.0,  1.0F, 1.0F, 1.0F, // 4 5 6 7
+      1.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, // 8 9 10 11
+      1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F, 1.0F, // 12 13 14 15
+      0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, // 16 17 18 19
+      0.0F, 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 1.0F  // 20 21 22 23
   };
 
   /**
-   *          v7 ------------ v6
+   *          v7/15/23 ------------ v6/14/22
    *        /  |             / |
    *      /    |           /   |
-   *     v4 ------------ v5    |
+   *     v4/12/20 ------------ v5/13/21    |
    *     |     |          |    |
-   *     |    v3 ---------|-- v2
+   *     |    v3/11/19 ---------|-- v2/10/18
    *     |   /            |   /
    *     | /              | /
-   *     v0 ------------ v1
+   *     v0/8/16 ------------ v1/9/17
    *
+   *  v x/y/z --> x is front/back, y is left/right, z is bottom/top
    */
 
-  uint32_t indices[] = {0, 1, 5, 0, 5, 4,  // Front
-                        1, 2, 6, 1, 6, 5,  // Right
-                        2, 3, 7, 2, 7, 6,  // Back
-                        3, 0, 4, 3, 4, 7,  // Left
-                        0, 3, 1, 1, 3, 2,  // Bottom
-                        4, 5, 6, 4, 6, 7}; // Top
+  uint32_t indices[] = {0,  1,  5,  0,  5,  4,   // Front
+                        9,  10, 14, 9,  14, 13,  // Right
+                        2,  3,  7,  2,  7,  6,   // Back
+                        11, 8,  12, 11, 12, 15,  // Left
+                        16, 19, 17, 17, 19, 18,  // Bottom
+                        20, 21, 22, 20, 22, 23}; // Top
   Mesh mesh;
   mesh.vertices =
       std::vector<float>{vertices, vertices + sizeof(vertices) / sizeof(float)};
   mesh.indices = std::vector<uint32_t>{indices, indices + sizeof(indices) /
                                                               sizeof(uint32_t)};
+  mesh.uvs = std::vector<float>{uvs, uvs + sizeof(uvs) / sizeof(float)};
+  mesh.normals =
+      std::vector<float>{normals, normals + sizeof(normals) / sizeof(float)};
 
   // scale the box to requested size
   for (unsigned int i = 0U; i < mesh.vertices.size(); i += 3) {
@@ -52,6 +101,8 @@ Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
     mesh.vertices[i + 1] *= height;
     mesh.vertices[i + 2] *= depth;
   }
+
+  MeshUtil::GenerateBinormalTangents(mesh);
 
   return mesh;
 }
@@ -145,10 +196,7 @@ Mesh PrimitiveFactory::MakePyramid(float baseWidth, float height) {
 
   return mesh;
 }
-Mesh PrimitiveFactory::MakeSphere(float radius) {
-  return Mesh();
-}
-
+Mesh PrimitiveFactory::MakeSphere(float radius) { return Mesh(); }
 
 Mesh PrimitiveFactory::MakeDonut(float innerRadius, float outerRadius) {
   return Mesh();
