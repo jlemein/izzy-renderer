@@ -111,12 +111,12 @@
         {
           "type": "texture",
           "name": "albedoMap",
-          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+          "value": "assets/textures/castle_albedo.jpg"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+          "value": "assets/textures/castle_normal.jpg"
         }
       ]
     },
@@ -139,12 +139,12 @@
         {
           "type": "texture",
           "name": "albedo_map",
-          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+          "value": "assets/textures/castle_albedo.jpg"
         },
         {
           "type": "texture",
           "name": "normal_map",
-          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+          "value": "assets/textures/castle_normal.jpg"
         }
       ]
     },

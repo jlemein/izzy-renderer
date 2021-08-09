@@ -30,8 +30,18 @@ class IViewerExtension
   /**
    * Called every frame to do update behavior. Check for changed state and update
    * the attributes required. Do not render things here.
-   * When this method is called the transform system has already run.
+   * When this method is called the transform system has already run. --> should not right?
    * The order run is based on the order added to the queue.
+   *
+   * @details
+   * It is important to respect the update system. There are two types of updates.
+   * * one in which you depend on others, AI that follows an enemy.
+   * The AI system runs on
+   * * you depend on your own movement and time, for example: animation systems that reflect the current time.
+   *
+   * update(time) - You can update your position, the transform system will still run afterwards. The transform system
+   * only runs to make sure the transformation hierarchy is up-to-date and the lo
+   *
    * @param time
    * @param dt
    */

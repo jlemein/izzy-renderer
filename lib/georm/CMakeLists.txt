@@ -4,7 +4,10 @@ add_library(georm STATIC
         include/georm_resourcemanager.h
         include/georm_materialsystem.h
         src/georm_materialsystem.cpp
-        src/georm_resourcemanager.t.cpp)
+        src/georm_resourcemanager.t.cpp
+        src/anim_animationsystem.cpp
+        include/anim_animationsystem.h
+        include/anim_constant.h)
 
 target_include_directories(georm
         PUBLIC include

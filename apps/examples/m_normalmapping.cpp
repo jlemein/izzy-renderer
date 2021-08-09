@@ -11,6 +11,8 @@
 #include <geo_primitivefactory.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
+#include <anim_animationsystem.h>
+
 using namespace std;
 using namespace lsw;
 using namespace geo;
@@ -22,6 +24,7 @@ int main(int argc, char **argv) {
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
+    auto animationSystem = make_shared<anim::AnimationSystem>();
 
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem =
@@ -30,6 +33,7 @@ int main(int argc, char **argv) {
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
+//    renderSystem->addSubsystem(make_shared<anim::AnimationSystem>());
 
     sceneGraph->setDefaultMaterial(
         resourceManager->createSharedMaterial("DefaultMaterial"));
