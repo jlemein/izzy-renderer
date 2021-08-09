@@ -7,9 +7,9 @@ include(GoogleTest)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(conan)
-conan_cmake_run(CONANFILE conanfile.txt
-        BASIC_SETUP CMAKE_TARGETS
-        BUILD missing)
+conan_cmake_run(CONANFILE conanfile.py
+        BASIC_SETUP
+        GENERATORS CMakeDeps)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -21,10 +21,6 @@ list(APPEND CMAKE_MODULE_PATH
         )
 list (APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
-include(conan)
-conan_cmake_run(CONANFILE conanfile.py
-        BASIC_SETUP
-        GENERATORS CMakeDeps)
 
 set(CMAKE_CXX_STANDARD 17)
 
