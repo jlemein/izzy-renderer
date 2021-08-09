@@ -5,13 +5,16 @@ add_library(vwr STATIC src/vwr_viewer.cpp
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
+find_package(EnTT REQUIRED)
+find_package(glfw3 REQUIRED)
+find_package(glm REQUIRED)
 target_include_directories(vwr PUBLIC include
         PRIVATE src)
 target_link_libraries(vwr PUBLIC ecsg
-        CONAN_PKG::entt
-        CONAN_PKG::glfw
+        EnTT::EnTT
+        glfw::glfw
         OpenGL::GL
         GLEW::GLEW
-        CONAN_PKG::glm
+        glm::glm
         inputsystem ecs
         )

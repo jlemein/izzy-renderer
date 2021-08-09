@@ -10,15 +10,22 @@ target_include_directories(georm
         PUBLIC include
         PRIVATE src)
 
+find_package(resourcemanager REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(stb REQUIRED)
+find_package(fmt REQUIRED)
+find_package(assimp REQUIRED)
+find_package(nlohmann_json REQUIRED)
+
 target_link_libraries(georm
         PRIVATE
-            geo ecsg
-            CONAN_PKG::spdlog
-            CONAN_PKG::nlohmann_json
-            CONAN_PKG::resourcemanager
-            CONAN_PKG::assimp
-            CONAN_PKG::stb
-            CONAN_PKG::fmt
+        geo ecsg
+        spdlog::spdlog
+        nlohmann_json::nlohmann_json
+        resourcemanager::resourcemanager
+        assimp::assimp
+        stb::stb
+        fmt::fmt
         )
 
 #if (BUILD_TESTING)

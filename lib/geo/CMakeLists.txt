@@ -13,13 +13,22 @@ target_include_directories(geo
         PUBLIC include
         PRIVATE src)
 
+find_package(nlohmann_json REQUIRED)
+find_package(stb REQUIRED)
+find_package(resourcemanager REQUIRED)
+find_package(assimp REQUIRED)
+find_package(glm REQUIRED)
+find_package(spdlog REQUIRED)
+find_package(GTest REQUIRED)
+
 target_link_libraries(geo
         PRIVATE
-            CONAN_PKG::assimp CONAN_PKG::glm
-            CONAN_PKG::spdlog
+            assimp::assimp
+            glm::glm
+            spdlog::spdlog
 #            CONAN_PKG::boost
         PUBLIC
-            CONAN_PKG::assimp CONAN_PKG::resourcemanager CONAN_PKG::stb CONAN_PKG::fmt CONAN_PKG::nlohmann_json)
+        assimp::assimp resourcemanager::resourcemanager stb::stb fmt::fmt nlohmann_json::nlohmann_json)
 
 #if (BUILD_TESTING)
     add_executable(geo_test
@@ -27,8 +36,8 @@ target_link_libraries(geo
             src/geo_material.t.cpp
             include/geo_scene.h include/geo_light.h include/geo_camera.h src/geo_materialloader.t.cpp)
     target_link_libraries(geo_test PRIVATE
-            CONAN_PKG::glm
-            geo CONAN_PKG::gtest CONAN_PKG::nlohmann_json)
+            glm::glm
+            geo GTest::GTest nlohmann_json::nlohmann_json)
     target_include_directories(geo_test PRIVATE include)
 #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)
     gtest_discover_tests(geo_test)

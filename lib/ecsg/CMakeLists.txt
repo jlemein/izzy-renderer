@@ -6,4 +6,5 @@ add_library(ecsg STATIC
 
 target_include_directories(ecsg PUBLIC include
         PRIVATE src)
-target_link_libraries(ecsg PUBLIC ecs geo CONAN_PKG::resourcemanager)
+find_package(resourcemanager REQUIRED)
+target_link_libraries(ecsg PUBLIC ecs geo resourcemanager::resourcemanager)
