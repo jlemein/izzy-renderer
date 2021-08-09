@@ -102,7 +102,7 @@ Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
     mesh.vertices[i + 2] *= depth;
   }
 
-  MeshUtil::GenerateBinormalTangents(mesh);
+  MeshUtil::GenerateTangents(mesh);
 
   return mesh;
 }

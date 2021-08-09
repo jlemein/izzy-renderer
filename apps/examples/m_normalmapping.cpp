@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     auto viewer = std::make_shared<viewer::Viewer>(
         sceneGraph, renderSystem, resourceManager->getRawResourceManager());
 
-    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.0F, 0.0F, 1.0F));
+    sceneGraph->makeDirectionalLight("Sun", glm::vec3(1.0F, 0.6F, 0.2F));
 
     auto camera = sceneGraph->makeCamera("DummyCamera");
     camera.add<ecs::FirstPersonControl>();

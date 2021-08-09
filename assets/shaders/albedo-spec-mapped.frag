@@ -34,7 +34,7 @@ void main() {
 
   //  for (int i=0; i<uNumberLights; i++) {
         vec3 light_direction = normalize(in_TangentLightPosition.xyz);
-        float dot_normal_light = dot(light_direction, surf_normal);
+        float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
 
         float attenuation = 1.0F;
         vec3 light_diffuse = uColors[0].xyz;
@@ -48,8 +48,9 @@ void main() {
             light_diffuse *= 0.001F * uIntensity[0];
         }
 
-        outColor = vec4(normalize(vec3(in_tangent)), 1.0F);
-//        outColor += dot_normal_light * attenuation * vec4(material_color * light_diffuse, 1.0);
+//        outColor = vec4(normalize(vec3(abs(in_tangent))), 1.0F);
+        outColor = vec4(dot_normal_light) * attenuation * vec4(material_color * light_diffuse, 1.0);
+//        outColor = vec4(dot_normal_light);
    // }
 
 //    vec3 nn_light_direction = normalize(light_direction[0].xyz);

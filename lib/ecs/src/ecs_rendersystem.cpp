@@ -292,16 +292,22 @@ void initMeshBuffers(Renderable &renderable, const geo::Mesh &mesh) {
                mesh.indices.data(), GL_STATIC_DRAW);
 
   renderable.vertexAttribCount = 5;
+  // position data
   renderable.vertexAttribArray[0].size = 3U;
   renderable.vertexAttribArray[0].buffer_offset = 0U;
+  // normal data
   renderable.vertexAttribArray[1].size = 3U;
   renderable.vertexAttribArray[1].buffer_offset = vertexSize;
+  // uv data
   renderable.vertexAttribArray[2].size = 2U;
   renderable.vertexAttribArray[2].buffer_offset = vertexSize + normalSize;
+  // tangent data
   renderable.vertexAttribArray[3].size = 3U;
   renderable.vertexAttribArray[3].buffer_offset = vertexSize + normalSize + uvSize;
+  // bitangent data
   renderable.vertexAttribArray[4].size = 3U;
-  renderable.vertexAttribArray[5].buffer_offset = vertexSize + normalSize + tangentSize;
+  renderable.vertexAttribArray[4].buffer_offset = vertexSize + normalSize + uvSize + tangentSize;
+
   renderable.drawElementCount = mesh.indices.size();
   renderable.primitiveType = GL_TRIANGLES;
 

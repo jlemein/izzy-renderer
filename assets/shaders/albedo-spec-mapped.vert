@@ -48,6 +48,7 @@ void main() {
 
     out_TangentFragPosition = TBN * vec3(model * vec4(aPos, 1.0F));
     out_TangentViewPosition = TBN * viewPosition;
+    out_TangentLightPosition = vec4(TBN * uPositions[0].xyz, 0.0F);
 
     mat4 MVP = proj * view * model;
     mat4 MV = view * model;
@@ -59,16 +60,16 @@ void main() {
     gl_Position = MVP * vec4(aPos, 1.0);
     out_uv = aUv;
 
-   // for (int i=0; i<uNumberLights; i++) {
-        if (uPositions[0].w != 0.0) {
-            // point light
-//            light_direction[i] = vec4((uPositions[i] - world_position).xyz, 1.0);
-            out_TangentLightPosition = vec4(TBN * uPositions[0].xyz, 1.0F);
-        } else {
-            // directional light
-//            light_direction[i] = uPositions[i];
-            out_TangentLightPosition = vec4(TBN * uPositions[0].xyz, 0.0F);
-        }
-    //}
+//   // for (int i=0; i<uNumberLights; i++) {
+//        if (uPositions[0].w != 0.0) {
+//            // point light
+////            light_direction[i] = vec4((uPositions[i] - world_position).xyz, 1.0);
+//            out_TangentLightPosition = uPositions[0];//vec4(TBN * uPositions[0].xyz, 1.0F);
+//        } else {
+//            // directional light
+////            light_direction[i] = uPositions[i];
+//            out_TangentLightPosition = vec4(TBN * uPositions[0].xyz, 0.0F);
+//        }
+//    //}
     out_normal = invTranspose * vec4(aNormal, 1.0);
 }
