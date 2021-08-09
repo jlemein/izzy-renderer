@@ -36,12 +36,15 @@ add_library(ecs STATIC include/ecs_camera.h
 #        ../core/include/core_exceptions.h
         include/ecs_shader.h include/ecs_materialsystem.h)
 
-target_link_libraries(ecs PUBLIC geo CONAN_PKG::entt CONAN_PKG::spdlog ecsg)
+target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog ecsg)
 
 message("Packages in conan: ${CONAN_PKG}")
 
+find_package(GTest REQUIRED)
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
-target_link_libraries(ecsu_test PUBLIC ecs CONAN_PKG::gtest)
+
+target_link_libraries(ecsu_test PUBLIC ecs GTest::GTest)
+
 
 add_executable(ecs_test src/ecs_shader.t.cpp src/ecs_firstpersoncontrolsystem.t.cpp src/ecs_transformsystem.t.cpp)
 target_link_libraries(ecs_test PRIVATE ecs CONAN_PKG::gtest)
@@ -68,5 +71,9 @@ target_include_directories(ecs
         PUBLIC include
         PRIVATE src)
 
+find_package(EnTT REQUIRED)
+find_package(glm REQUIRED)
+
 target_link_libraries(ecs
-        PUBLIC CONAN_PKG::entt CONAN_PKG::glm inputsystem)
+        PUBLIC EnTT::EnTT glm::glm inputsystem)
+

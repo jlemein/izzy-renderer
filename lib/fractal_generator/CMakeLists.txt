@@ -7,4 +7,5 @@ target_include_directories(fractalgenerator
         PUBLIC include
         PRIVATE src)
 
-target_link_libraries(fractalgenerator PRIVATE fractal CONAN_PKG::entt geo)
+find_package(EnTT REQUIRED)
+target_link_libraries(fractalgenerator PRIVATE fractal EnTT::EnTT geo)

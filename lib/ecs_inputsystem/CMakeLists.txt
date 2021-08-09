@@ -4,5 +4,8 @@ target_include_directories(inputsystem
         PUBLIC include
         PRIVATE src)
 
+find_package(EnTT REQUIRED)
+find_package(glfw3 REQUIRED)
+
 target_link_libraries(inputsystem
-PUBLIC CONAN_PKG::entt CONAN_PKG::glfw)
+PUBLIC EnTT::EnTT glfw::glfw)
