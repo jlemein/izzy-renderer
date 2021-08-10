@@ -111,10 +111,8 @@ SceneGraphEntity SceneGraph::makePointLight(std::string name,
 SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name,
                                                   glm::vec3 direction) {
   auto lightEntity = makeEntity(std::move(name));
-  auto& light = lightEntity.add<Light>();
-
-  // no attenuation for directional light
-  light.attenuationQuadratic = 0.0F;
+//  auto& light = lightEntity.add<Light>();
+  auto& dlight = lightEntity.add<DirectionalLight>();
 
   // different between point and directional light is in the w component.
   lightEntity.get<Transform>().localTransform[3] = glm::normalize(glm::vec4(direction, 0.0F));

@@ -15,7 +15,7 @@ void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& m
 
   renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, lightingBlockName.c_str());
   if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-    spdlog::debug("Lighting disabled, cannot find ubo block index with name {}", UniformLighting::PARAM_NAME);
+    spdlog::warn("Material {}: Lighting disabled, cannot find ubo block index with name {}", material.name, lightingBlockName);
     renderable.isLightingSupported = false;
   } else {
     renderable.isLightingSupported = true;
@@ -57,6 +57,7 @@ void LightSystem::updateLightProperties() {
   int numberOfDirectionalLights = std::clamp(static_cast<unsigned int>(dirLights.size_hint()), 0U, 1U);
   int numberOfAmbientLights = std::clamp(static_cast<unsigned int>(ambientLights.size()), 0U, 1U);
 
+  m_oldModel.numberLights = numberOfDirectionalLights;
   m_lighting.numberOfLights =
       glm::ivec4(numberOfDirectionalLights, numberOfAmbientLights, numberOfPointLights, numberOfSpotLights);
 
@@ -72,6 +73,11 @@ void LightSystem::updateLightProperties() {
     m_lighting.directionalLight.direction = transform.worldTransform * glm::vec4(1.0);
     m_lighting.directionalLight.color = glm::vec4(light.color, 0.0F);
     m_lighting.directionalLight.intensity = light.intensity;
+
+    m_oldModel.positions[0] = transform.worldTransform * glm::vec4(1.0);
+    m_oldModel.attenuation[0] = 0.0;
+    m_oldModel.diffuseColors[0] = glm::vec4(light.color, 1.0);
+    m_oldModel.intensities[0] = light.intensity;
   }
 
   // -- Ambient lights ------------------------------
