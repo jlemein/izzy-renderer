@@ -33,12 +33,19 @@ struct UniformBlockData {
   std::size_t size;
 };
 
+struct LightingInfo {
+  // name of UBO struct in shader
+  std::string layout;
+};
+
 struct Material {
   std::string name;
 
   std::string vertexShader {""};
   std::string geometryShader {""};
   std::string fragmentShader {""};
+
+  LightingInfo lighting;
 
   std::string shaderLayout {""};
 

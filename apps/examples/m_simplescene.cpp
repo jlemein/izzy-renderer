@@ -25,6 +25,8 @@ int main(int argc, char **argv) {
   spdlog::set_level(spdlog::level::debug);
 #endif // NDEBUG
 
+//    std::cout << "Usage: program --materials=materials.json --scene=hello.fbx"
+
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
@@ -53,7 +55,6 @@ int main(int argc, char **argv) {
     auto sun =
         sceneGraph->makeDirectionalLight("Sun", glm::vec3(1.F, 2.F, 0.0F));
     sun.add(anim::LocalRotation{Util::ToRadians(10.0F)});
-
 
     auto camera = sceneGraph->makeCamera("DummyCamera");
     camera.add<ecs::FirstPersonControl>();

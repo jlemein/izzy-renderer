@@ -19,6 +19,8 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecs_camerasystem.h
         src/ecs_camerasystem.cpp
         src/ecs_firstpersoncontrolsystem.cpp
+        src/ecs_lightsystem.h
+        src/ecs_lightsystem.cpp
 
         include/ecs_firstpersoncontrolsystem.h
         include/ecs_rendersystem.h
@@ -38,6 +40,7 @@ add_library(ecs STATIC include/ecs_camera.h
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
+target_include_directories(ecs PUBLIC include PRIVATE src)
 target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog ecsg)
 
 message("Packages in conan: ${CONAN_PKG}")

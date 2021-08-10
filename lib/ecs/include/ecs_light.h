@@ -5,6 +5,8 @@
 #ifndef GLVIEWER_ECS_LIGHT_H
 #define GLVIEWER_ECS_LIGHT_H
 
+#include <glm/glm.hpp>
+
 namespace lsw {
 namespace ecs {
 
@@ -14,19 +16,30 @@ namespace ecs {
  * If no transform is attached, then the light source is ambient.
  */
 struct Light {
-  float intensity {1000.0F}; // by default 1000 W
-  float attenuationQuadratic {0.2F};
+  float intensity{1000.0F};  // by default 1000 W
+  float attenuationQuadratic{0.2F};
   glm::vec3 diffuseColor{1.0F};
-  glm::vec3 specularColor {0.0F};
-  glm::vec3 ambientColor {0.0F};
-
-  /**!
-   * If set to true, then the light point is assumed to be directional.
-   * If false, then it is assumed to be a point light.
-   */
-//  bool isDirectional {false};
+  glm::vec3 specularColor{0.0F};
+  glm::vec3 ambientColor{0.0F};
 };
 
-}
-}
-#endif // GLVIEWER_ECS_LIGHT_H
+struct AmbientLight {
+  float intensity{1000.0F};
+  glm::vec3 color;
+};
+
+struct PointLight {
+  float intensity{1000.0F};
+  float attenuation{0.2F};
+  float radius{1.0F};
+  glm::vec3 color;
+};
+
+struct DirectionalLight {
+  float intensity{1000.0F};
+  glm::vec3 color;
+};
+
+}  // namespace ecs
+}  // namespace lsw
+#endif  // GLVIEWER_ECS_LIGHT_H

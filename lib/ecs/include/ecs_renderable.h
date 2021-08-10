@@ -36,6 +36,21 @@ struct ColorBlock {
   static inline const char* PARAM_NAME = "ColorBlock";
 };
 
+struct UniformLight {
+    glm::vec4 position;
+    glm::vec4 diffuseColor;
+
+};
+
+struct UniformPointLights {
+    glm::vec4 positions;
+    glm::vec4 diffuse;
+    float intensity;
+    float attenuation;
+
+    static inline const char* PARAM_NAME = "PointLight";
+};
+
 struct UniformLighting {
   glm::vec4 positions[4];
   glm::vec4 diffuseColors[4];
@@ -91,6 +106,10 @@ struct Renderable {
   GLuint uboLightingId {0};     // id as returned from glGenBuffers(GL_UNIFORM,...)
   GLint uboLightingIndex {-1};   // index as determined by GLSL compiler
   GLint uboLightingBinding {-1}; // binding as specified in shader (binding = x)
+
+  // this is done to make sure different light structs are supported.
+  const void* pUboLightStruct {nullptr}; // address of light struct - maintained by light system
+  unsigned int pUboLightStructSize {0U}; // size of the struct
 
   // TODO: check if we can only include this property in debug mode (for performance reasons)
   bool isWireframe {false};

@@ -107,6 +107,12 @@
       "vertex_shader": "assets/shaders/albedo-spec-mapped.vert.spv",
       "geometry_shader": "",
       "fragment_shader": "assets/shaders/albedo-spec-mapped.frag.spv",
+      "lighting": {
+        "mode": "deg",
+        "max_lights_per_pass": 1,
+        "lighting_struct": "UniformSingleLight",
+        "blend_mode": "Add"
+      },
       "properties": [
         {
           "type": "texture",

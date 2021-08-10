@@ -22,6 +22,7 @@ namespace ecs {
 struct Shader;
 class TextureSystem;
 class IMaterialSystem;
+class LightSystem;
 
 /**!
  * Responsible
@@ -58,6 +59,7 @@ private:
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
   std::shared_ptr<IMaterialSystem> m_materialSystem;
   ecs::DebugSystem m_debugSystem;
+  std::shared_ptr<ecs::LightSystem> m_lightSystem;
 
   entt::entity m_activeCamera{entt::null};
 
@@ -82,6 +84,8 @@ private:
   void updateModelMatrix(entt::entity e);
   void updateCamera(Renderable &renderable);
   void updateLightProperties();
+
+  void initShaderProperties(Renderable& renderable, const geo::Material& material);
 
   void checkError(entt::entity e);
 };
