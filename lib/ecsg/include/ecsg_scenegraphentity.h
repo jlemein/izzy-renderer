@@ -103,7 +103,7 @@ template <typename Component> Component &SceneGraphEntity::get() {
     return m_registry.get<Component>(handle());
 #ifndef NDEBUG
   } else {
-    throw std::runtime_error("Does not have compoentn");
+    throw std::runtime_error("Does not have component");
   }
 #endif
 }

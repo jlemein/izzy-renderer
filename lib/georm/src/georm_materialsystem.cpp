@@ -86,7 +86,7 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
       m.vertexShader = material["vertex_shader"].get<std::string>();
       m.geometryShader = material["geometry_shader"].get<std::string>();
       m.fragmentShader = material["fragment_shader"].get<std::string>();
-      m.lighting.layout = "Lighting2";//material["lighting"]["layout"].get<std::string>();
+      m.lighting.layout = "";//"Lighting2";//material["lighting"]["layout"].get<std::string>();
 
       spdlog::debug("\tvertex shader: {}", m.vertexShader);
       spdlog::debug("\tgeometry shader: {}", m.geometryShader);
