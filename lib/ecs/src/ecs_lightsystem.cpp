@@ -11,6 +11,7 @@ LightSystem::LightSystem(entt::registry& registry)
 
 void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& material) {
   auto lightingBlockName = !material.lighting.layout.empty() ? material.lighting.layout : UniformLighting::PARAM_NAME;
+  spdlog::info("Lightblock for {}: {}", material.name, lightingBlockName);
   //  auto lightingBlockName = UniformLighting::PARAM_NAME;
 
   renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, lightingBlockName.c_str());
@@ -24,9 +25,12 @@ void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& m
   if (lightingBlockName == UniformLighting::PARAM_NAME) {
     renderable.pUboLightStruct = &m_oldModel;
     renderable.pUboLightStructSize = sizeof(UniformLighting);
-  } else if (lightingBlockName == UniformLighting::PARAM_NAME) {
+  } else if (lightingBlockName == ULighting::PARAM_NAME) {
     renderable.pUboLightStruct = &m_lighting;
     renderable.pUboLightStructSize = sizeof(ULighting);
+  } else {
+    throw std::runtime_error(
+        fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, lightingBlockName));
   }
 
   glGenBuffers(1, &renderable.uboLightingId);
@@ -48,9 +52,9 @@ void LightSystem::updateLightProperties() {
   if (numLights == 0) {
     std::cout << "WARNING: No active lights in scene." << std::endl;
   }
-//  if (numLights > 4) {
-//    throw std::runtime_error("Too many lights in the scene. Max supported is 4");
-//  }
+  //  if (numLights > 4) {
+  //    throw std::runtime_error("Too many lights in the scene. Max supported is 4");
+  //  }
 
   int numberOfPointLights = std::clamp(static_cast<unsigned int>(pointLights.size_hint()), 0U, 4U);
   int numberOfSpotLights = 0U;
@@ -61,6 +65,8 @@ void LightSystem::updateLightProperties() {
   m_lighting.numberOfLights =
       glm::ivec4(numberOfDirectionalLights, numberOfAmbientLights, numberOfPointLights, numberOfSpotLights);
 
+  m_oldModel.numberLights = 1U;
+
   // -- Directional lights ------------------------------
   auto i = 0U;
   for (auto e : dirLights) {
@@ -69,6 +75,10 @@ void LightSystem::updateLightProperties() {
     }
     const auto& light = dirLights.get<DirectionalLight>(e);
     const auto& transform = dirLights.get<Transform>(e);
+
+    m_oldModel.diffuseColors[0] = glm::vec4(light.color, 0.0F);
+    m_oldModel.intensities[0] = light.intensity;
+    m_oldModel.positions[0] = transform.worldTransform * glm::vec4(1.0);
 
     m_lighting.directionalLight.direction = transform.worldTransform * glm::vec4(1.0);
     m_lighting.directionalLight.color = glm::vec4(light.color, 0.0F);

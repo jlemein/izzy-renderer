@@ -323,8 +323,6 @@ void SceneLoader::readLights(const aiScene* aiScene, geo::Scene& scene) {
       light->type = Light::Type::POINT_LIGHT; break;
 
     case aiLightSource_DIRECTIONAL:
-      std::cout << "Directional light source '" << light->name << "' has p: " << aiLight->mPosition.x << ", " << aiLight->mPosition.y << ", " << aiLight->mPosition.z
-  << " and d: " << aiLight->mDirection.x << ", " << aiLight->mDirection.y << ", " << aiLight->mDirection.z << std::endl;
       light->type = Light::Type::DIRECTIONAL_LIGHT;
       light->position = glm::vec3(aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z);
       light->position *= -1;
@@ -332,6 +330,9 @@ void SceneLoader::readLights(const aiScene* aiScene, geo::Scene& scene) {
 
     case aiLightSource_AMBIENT:
       light->type = Light::Type::AMBIENT_LIGHT; break;
+
+    case aiLightSource_SPOT:
+      light->type = Light::Type::SPOT_LIGHT; break;
 
     default:
       std::cerr << "Unknown light source type. Ignoring light source type.\n";

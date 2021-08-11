@@ -355,7 +355,7 @@ void RenderSystem::init() {
       "Render system initialized | "
       "Number of material in use {} | "
       "Number of active lights: {}",
-      "Unknown", m_registry.view<Light>().size());
+      "Unknown", "Unknown");
 
   // Initialization of the rendersystem encompasses the following steps.
   // Take into account the vocabulary.
