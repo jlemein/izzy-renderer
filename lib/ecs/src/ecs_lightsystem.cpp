@@ -10,37 +10,42 @@ LightSystem::LightSystem(entt::registry& registry)
   : m_registry{registry} {}
 
 void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& material) {
-  auto lightingBlockName = !material.lighting.layout.empty() ? material.lighting.layout : UniformLighting::PARAM_NAME;
-  spdlog::info("Lightblock for {}: {}", material.name, lightingBlockName);
-  //  auto lightingBlockName = UniformLighting::PARAM_NAME;
+  auto uboStructName = material.lighting.ubo_struct_name;
 
-  renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, lightingBlockName.c_str());
-  if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-    spdlog::warn("Material {}: Lighting disabled, cannot find ubo block index with name {}", material.name, lightingBlockName);
-    renderable.isLightingSupported = false;
-  } else {
-    renderable.isLightingSupported = true;
+  // check if a light ubo struct name is defined.
+  if (uboStructName.empty()) {
+    return;
   }
 
-  if (lightingBlockName == UniformLighting::PARAM_NAME) {
+  renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
+  if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
+    // we don't expect this. The material has defined a light struct name, but not found. Error.
+    spdlog::error("Material {}: Lighting disabled, cannot find ubo block index with name '{}'", material.name, uboStructName);
+    return;
+  }
+
+  renderable.isLightingSupported = true;
+
+  // now of all the supported light systems, find the one the shader needs and store the size and address of it.
+  if (uboStructName == UniformLighting::PARAM_NAME) {
     renderable.pUboLightStruct = &m_oldModel;
     renderable.pUboLightStructSize = sizeof(UniformLighting);
-  } else if (lightingBlockName == ULighting::PARAM_NAME) {
-    renderable.pUboLightStruct = &m_lighting;
-    renderable.pUboLightStructSize = sizeof(ULighting);
+  } else if (uboStructName == ForwardLighting::PARAM_NAME) {
+    renderable.pUboLightStruct = &m_forwardLighting;
+    renderable.pUboLightStructSize = sizeof(ForwardLighting);
   } else {
     throw std::runtime_error(
-        fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, lightingBlockName));
+        fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, uboStructName));
   }
 
   glGenBuffers(1, &renderable.uboLightingId);
   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
-  GLint blockIndex = glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
+  GLint blockIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
 
   glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboLightingBinding);
 
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformLighting), nullptr, GL_DYNAMIC_DRAW);
+  glBufferData(GL_UNIFORM_BUFFER, renderable.pUboLightStructSize, nullptr, GL_DYNAMIC_DRAW);
 }
 
 void LightSystem::updateLightProperties() {
@@ -62,7 +67,7 @@ void LightSystem::updateLightProperties() {
   int numberOfAmbientLights = std::clamp(static_cast<unsigned int>(ambientLights.size()), 0U, 1U);
 
   m_oldModel.numberLights = numberOfDirectionalLights;
-  m_lighting.numberOfLights =
+  m_forwardLighting.numberOfLights =
       glm::ivec4(numberOfDirectionalLights, numberOfAmbientLights, numberOfPointLights, numberOfSpotLights);
 
   m_oldModel.numberLights = 1U;
@@ -80,9 +85,12 @@ void LightSystem::updateLightProperties() {
     m_oldModel.intensities[0] = light.intensity;
     m_oldModel.positions[0] = transform.worldTransform * glm::vec4(1.0);
 
-    m_lighting.directionalLight.direction = transform.worldTransform * glm::vec4(1.0);
-    m_lighting.directionalLight.color = glm::vec4(light.color, 0.0F);
-    m_lighting.directionalLight.intensity = light.intensity;
+    m_forwardLighting.directionalLight.direction = transform.worldTransform * glm::vec4(1.0);
+    std::cout << "Direction: " << m_forwardLighting.directionalLight.direction[0] << " "
+              << m_forwardLighting.directionalLight.direction[1] << " " << m_forwardLighting.directionalLight.direction[2]
+              << std::endl;
+    m_forwardLighting.directionalLight.color = glm::vec4(light.color, 0.0F);
+    m_forwardLighting.directionalLight.intensity = light.intensity;
 
     m_oldModel.positions[0] = transform.worldTransform * glm::vec4(1.0);
     m_oldModel.attenuation[0] = 0.0;
@@ -97,8 +105,8 @@ void LightSystem::updateLightProperties() {
       break;
     }
     auto& light = ambientLights.get<AmbientLight>(e);
-    m_lighting.ambientLight.color = glm::vec4(light.color, 0.0F);
-    m_lighting.ambientLight.intensity = light.intensity;
+    m_forwardLighting.ambientLight.color = glm::vec4(light.color, 0.0F);
+    m_forwardLighting.ambientLight.intensity = light.intensity;
   }
 
   // -- Point lights ------------------------------
@@ -110,7 +118,7 @@ void LightSystem::updateLightProperties() {
     const auto& light = pointLights.get<PointLight>(e);
     const auto& transform = pointLights.get<Transform>(e);
 
-    auto& ubo = m_lighting.pointLights[i++];
+    auto& ubo = m_forwardLighting.pointLights[i++];
     ubo.attenuation = light.attenuation;
     ubo.color = glm::vec4(light.color, 0.0F);
     ubo.intensity = light.intensity;

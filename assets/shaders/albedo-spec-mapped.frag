@@ -49,7 +49,7 @@ void main() {
         }
 
 //        outColor = vec4(normalize(vec3(abs(in_tangent))), 1.0F);
-        outColor = vec4(dot_normal_light) * attenuation * vec4(material_color * light_diffuse, 1.0);
+        outColor = uPositions[0];//vec4(dot_normal_light) * attenuation * vec4(material_color * light_diffuse, 1.0);
 //        outColor = vec4(dot_normal_light);
    // }
 

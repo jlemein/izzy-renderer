@@ -5,6 +5,7 @@
 #include <ecs_name.h>
 #include <ecs_relationshiputil.h>
 #include <ecs_transform.h>
+#include <ecs_transformutil.h>
 using namespace lsw::ecsg;
 using namespace lsw::ecs;
 
@@ -38,6 +39,10 @@ const glm::mat4& SceneGraphEntity::getTransform() const {
 
 void SceneGraphEntity::setTransform(const glm::mat4& transform) {
   m_registry.get<Transform>(m_handle).localTransform = transform;
+}
+
+void SceneGraphEntity::translate(const glm::vec3& translate) {
+  TransformUtil::Translate(this->get<Transform>(), translate);
 }
 
 void SceneGraphEntity::addChild(SceneGraphEntity child) {

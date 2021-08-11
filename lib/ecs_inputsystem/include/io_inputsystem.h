@@ -17,6 +17,8 @@ namespace io
 {
 class Command;
 enum class Key;
+enum class MouseButton;
+
 class InputListener;
 
 class InputSystem
@@ -30,6 +32,8 @@ class InputSystem
 
   bool isKeyPressed(char c) const;
   bool isKeyPressed(Key key) const;
+  bool isMouseButtonPressed(MouseButton button) const;
+
   void getRelativeMouseMovement(double* dx, double* dy) const;
 
   void registerInputListener(std::shared_ptr<InputListener> listener);

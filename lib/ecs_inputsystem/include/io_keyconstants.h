@@ -13,6 +13,11 @@ namespace io
 enum class Key {
   kESCAPE, kSPACEBAR, kLEFT_SHIFT
 };
+enum class MouseButton {
+  kLEFT = 0,
+  kRIGHT = 1,
+  kMIDDLE = 2
+};
 
 } // namespace package
 } // namespace enterprise

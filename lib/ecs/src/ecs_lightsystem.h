@@ -35,7 +35,7 @@ struct UAmbientLight {
   glm::vec4 color;
 };
 
-struct ULighting {
+struct ForwardLighting {
   // number of lights in order: directional, ambient, point, spotlights.
   glm::ivec4 numberOfLights;
 
@@ -44,7 +44,7 @@ struct ULighting {
   UPointLight pointLights[4];
   USpotlight spotlights[2];
 
-  static inline const char* PARAM_NAME = "Lighting2";
+  static inline const char* PARAM_NAME = "ForwardLighting";
 };
 
 class LightSystem {
@@ -57,7 +57,7 @@ class LightSystem {
  private:
   entt::registry& m_registry;
   UniformLighting m_oldModel;
-  ULighting m_lighting;
+  ForwardLighting m_forwardLighting;
 };
 
 }  // namespace ecs

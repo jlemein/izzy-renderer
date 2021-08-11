@@ -1,0 +1,189 @@
+{
+  "default_material": "DefaultMaterial",
+  "material_mapping": [
+    {
+      "from": "WoodCrate",
+      "to": "ParallaxExample"
+    }
+  ],
+  "materials": [
+    {
+      "name": "DefaultMaterial",
+      "render_passes": [
+        {
+          "name": "RP1",
+          "description": "",
+          "vertex_shader": "assets/shaders/diffuse.vert.spv",
+          "geometry_shader": "",
+          "fragment_shader": "assets/shaders/diffuse.frag.spv"
+        },
+        {
+          "name": "RP2",
+          "description": "Second render pass",
+          "vertex_shader": "assets/shaders/diffuse.vert.spv",
+          "geometry_shader": "",
+          "fragment_shader": "assets/shaders/diffuse.frag.spv"
+        }
+      ],
+      "vertex_shader": "assets/shaders/diffuse.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/diffuse.frag.spv",
+      "properties": [
+        {
+          "name": "diffuse_color",
+          "value": [
+            1.0,
+            0.5,
+            0.0
+          ]
+        },
+        {
+          "name": "specular_color",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ambient_color",
+          "value": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "UberMaterial",
+      "vertex_shader": "assets/shaders/uber.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/uber.frag.spv",
+      "properties": [
+        {
+          "type": "float",
+          "name": "iteration_count",
+          "value": 13.0
+        },
+        {
+          "type": "texture",
+          "name": "diffuseTex",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+        },
+        {
+          "type": "texture",
+          "name": "noiseTex",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+        },
+        {
+          "name": "diffuse_color",
+          "value": [
+            0.0,
+            0.5,
+            0.0
+          ]
+        },
+        {
+          "name": "specular_color",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ambient_color",
+          "value": [
+            0.2,
+            0.2,
+            0.2
+          ]
+        }
+      ]
+    },
+    {
+      "name": "NormalMapExample",
+      "vertex_shader": "assets/shaders/albedo-spec-mapped.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/albedo-spec-mapped.frag.spv",
+      "lighting": {
+        "ubo_layout": "Lighting",
+        "blend_mode": "Add"
+      },
+      "properties": [
+        {
+          "type": "texture",
+          "name": "albedoMap",
+          "value": "assets/textures/castle_albedo.jpg"
+        },
+        {
+          "type": "texture",
+          "name": "normalMap",
+          "value": "assets/textures/castle_normal.jpg"
+        }
+      ]
+    },
+    {
+      "name": "ParallaxExample",
+      "vertex_shader": "assets/shaders/parallax.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/parallax.frag.spv",
+      "properties": [
+        {
+          "type": "float",
+          "name": "strength",
+          "value": 2.0
+        },
+        {
+          "type": "texture",
+          "name": "height_map",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_height.png"
+        },
+        {
+          "type": "texture",
+          "name": "albedo_map",
+          "value": "assets/textures/castle_albedo.jpg"
+        },
+        {
+          "type": "texture",
+          "name": "normal_map",
+          "value": "assets/textures/castle_normal.jpg"
+        }
+      ]
+    },
+    {
+      "name": "DMaterial",
+      "material_name": "Diffuse",
+      "vertex_shader": "assets/shaders/uber.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/uber.frag.spv",
+      "properties": [
+        {
+          "name": "diffuse_color",
+          "value": [
+            1.0,
+            0.5,
+            0.0
+          ]
+        },
+        {
+          "name": "specular_color",
+          "value": [
+            1.0,
+            1.0,
+            1.0
+          ]
+        },
+        {
+          "name": "ambient_color",
+          "value": [
+            0.1,
+            0.1,
+            0.1
+          ]
+        }
+      ]
+    }
+  ]
+}

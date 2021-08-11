@@ -35,7 +35,7 @@ struct UniformBlockData {
 
 struct LightingInfo {
   // name of UBO struct in shader
-  std::string layout;
+  std::string ubo_struct_name;
 };
 
 struct Material {

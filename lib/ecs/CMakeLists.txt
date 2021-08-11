@@ -24,9 +24,7 @@ add_library(ecs STATIC include/ecs_camera.h
 
         include/ecs_firstpersoncontrolsystem.h
         include/ecs_rendersystem.h
-        include/ecs_texturesystem.h
         src/ecs_rendersystem.cpp
-        src/ecs_texturesystem.cpp
         src/ecs_transformutil.cpp
         include/ecs_debug.h
         include/ecs_debugsystem.h
@@ -51,8 +49,14 @@ add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
 target_link_libraries(ecsu_test PUBLIC ecs GTest::GTest)
 
 
-add_executable(ecs_test src/ecs_shader.t.cpp src/ecs_firstpersoncontrolsystem.t.cpp src/ecs_transformsystem.t.cpp)
+add_executable(ecs_test
+        src/ecs_shader.t.cpp
+        src/ecs_firstpersoncontrolsystem.t.cpp
+        src/ecs_transformsystem.t.cpp
+        src/ecs_lightsystem.t.cpp
+        )
 target_link_libraries(ecs_test PRIVATE ecs GTest::GTest)
+target_include_directories(ecs_test PRIVATE src)
 
 #
 #target_include_directories(camerasystem
@@ -70,7 +74,6 @@ target_link_libraries(ecs_test PRIVATE ecs GTest::GTest)
 #        PUBLIC EnTT transformsystem glm)
 #
 #
-#add_library(viewer-textures STATIC src/ecs_texturesystem.cpp include/ecs_texturesystem.h)
 #
 target_include_directories(ecs
         PUBLIC include

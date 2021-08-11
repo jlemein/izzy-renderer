@@ -33,7 +33,7 @@ glm::mat4 TransformUtil::RotateEulerDegrees(const glm::vec3& axis, float degrees
   return RotateEulerRadians(axis, static_cast<float>(M_PI * degrees/180.0));
 }
 
-void TransformUtil::Translate(Transform &transform, const glm::vec3 &translate) {
+void TransformUtil::Translate(Transform &transform, const glm::vec3& translate) {
   transform.localTransform[3] += glm::vec4(translate, 0.0f);
 }
 

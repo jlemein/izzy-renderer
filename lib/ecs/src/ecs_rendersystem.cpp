@@ -8,7 +8,6 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_relationship.h>
-#include <ecs_texturesystem.h>
 #include <ecs_transform.h>
 #include <ecsg_scenegraph.h>
 #include <fstream>
@@ -135,29 +134,29 @@ void initMVPUniformBlock(Renderable& renderable) {
   glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), nullptr, GL_DYNAMIC_DRAW);
 }
 
-//void initLightingUbo(Renderable& renderable, geo::Material& material) {
-//  auto lightingBlockName = !material.lighting.layout.empty() ? material.lighting.layout : UniformLighting::PARAM_NAME;
-//  //  auto lightingBlockName = UniformLighting::PARAM_NAME;
+// void initLightingUbo(Renderable& renderable, geo::Material& material) {
+//   auto lightingBlockName = !material.lighting.layout.empty() ? material.lighting.layout : UniformLighting::PARAM_NAME;
+//   //  auto lightingBlockName = UniformLighting::PARAM_NAME;
 //
 //
 //
-//  renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, lightingBlockName.c_str());
-//  if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-//    spdlog::debug("Lighting disabled, cannot find ubo block index with name {}", UniformLighting::PARAM_NAME);
-//    renderable.isLightingSupported = false;
-//  } else {
-//    renderable.isLightingSupported = true;
-//  }
+//   renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, lightingBlockName.c_str());
+//   if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
+//     spdlog::debug("Lighting disabled, cannot find ubo block index with name {}", UniformLighting::PARAM_NAME);
+//     renderable.isLightingSupported = false;
+//   } else {
+//     renderable.isLightingSupported = true;
+//   }
 //
-//  glGenBuffers(1, &renderable.uboLightingId);
-//  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
-//  GLint blockIndex = glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
+//   glGenBuffers(1, &renderable.uboLightingId);
+//   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
+//   GLint blockIndex = glGetUniformBlockIndex(renderable.program, UniformLighting::PARAM_NAME);
 //
-//  glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboLightingBinding);
+//   glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboLightingBinding);
 //
-//  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
-//  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformLighting), nullptr, GL_DYNAMIC_DRAW);
-//}
+//   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
+//   glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformLighting), nullptr, GL_DYNAMIC_DRAW);
+// }
 
 }  // namespace
 
@@ -401,10 +400,9 @@ void RenderSystem::init() {
       initMeshBuffers(renderable, mesh);
 
       auto& material = m_registry.get<geo::Material>(entity);
-      spdlog::info("Material load shaders name '{}' ; mtlname '{}' -- vs: {} fs: {}", name, material.name,
-                   material.vertexShader, material.fragmentShader);
+      spdlog::info("Compiling shaders -- vs: {} fs: {}", material.vertexShader, material.fragmentShader);
       renderable.program = compileShader(material, renderable);
-      spdlog::info("Init shader properties for {}, mtl name: {} -> vs: {}", name, material.name, material.vertexShader);
+
       initShaderProperties(renderable, material);
 
     } catch (std::exception& e) {
@@ -438,7 +436,7 @@ void RenderSystem::synchMvpMatrices() {
   }
 }
 //
-//void RenderSystem::updateLightProperties() {
+// void RenderSystem::updateLightProperties() {
 //
 //  auto view = m_registry.view<Transform, Light>();
 //  m_uLightData.numberLights = view.size_hint();

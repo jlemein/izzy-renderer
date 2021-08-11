@@ -55,6 +55,11 @@ bool InputSystem::isKeyPressed(Key key) const
   return glfwGetKey(m_window, toGlfwKey.at(key)) == GLFW_PRESS;
 }
 
+bool InputSystem::isMouseButtonPressed(MouseButton button) const {
+  auto glfwButton = GLFW_MOUSE_BUTTON_LEFT + static_cast<int>(button);
+  return glfwGetMouseButton(m_window, glfwButton) == GLFW_PRESS;
+}
+
 void InputSystem::getRelativeMouseMovement(double *dx, double *dy) const
 {
   *dx = m_relativeMouseX / m_windowWidth;

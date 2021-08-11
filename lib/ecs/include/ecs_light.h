@@ -37,7 +37,7 @@ struct PointLight {
 
 struct DirectionalLight {
   float intensity{1000.0F};
-  glm::vec3 color {1.0F};
+  glm::vec3 color {1.0F, 1.0, 1.0F};
 };
 
 struct SpotLight {};

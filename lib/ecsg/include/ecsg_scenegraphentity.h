@@ -59,6 +59,8 @@ public:
    */
   void setTransform(const glm::mat4 &transform);
 
+  void translate(const glm::vec3& translate);
+
   template <typename Component> Component &add();
   template <typename Component> Component &add(Component &&);
   template <typename Component> Component &add(const Component &);

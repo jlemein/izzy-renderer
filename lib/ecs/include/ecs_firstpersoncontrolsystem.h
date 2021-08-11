@@ -8,31 +8,26 @@
 #include <entt/fwd.hpp>
 #include <glm/glm.hpp>
 
-namespace lsw
-{
-namespace io
-{
+namespace lsw {
+namespace io {
 class InputSystem;
 }
 
-namespace ecs
-{
+namespace ecs {
 /**
  * @brief Handles input for first person camera behavior. Moving forward, jumping, looking
  * around.
  */
-class FirstPersonMovementSystem
-{
+class FirstPersonMovementSystem {
  public:
-  FirstPersonMovementSystem(entt::registry &registry,
-                            lsw::io::InputSystem *inputSystem);
+  FirstPersonMovementSystem(entt::registry& registry, lsw::io::InputSystem* inputSystem);
 
   void init();
   void update(float dt);
 
  private:
-  entt::registry &m_registry;
-  io::InputSystem *m_inputSystem;
+  entt::registry& m_registry;
+  io::InputSystem* m_inputSystem;
 
   void getRelativeMovement(float& forward, float& right);
 };
