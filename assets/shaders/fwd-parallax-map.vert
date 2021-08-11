@@ -1,15 +1,38 @@
 #version 460
+#extension GL_ARB_separate_shader_objects : enable
 
-#define MAX_LIGHTS 4
+#define MAX_POINT_LIGHTS 4
+#define MAX_SPOT_LIGHTS 2
+
+struct PointLight {
+    vec4 position;
+    vec4 color;
+    float intensity;
+    float attenuation;
+};
+
+struct DirectionalLight {
+    vec3 direction;
+    float intensity;
+    vec4 color;
+};
+
+struct SpotLight {
+    vec4 position;
+};
+
+struct AmbientLight {
+    vec3 color;
+    float intensity;
+};
 
 layout(std140, binding=2)
-uniform Lighting {
-// Positions in world space
-    vec4 uPositions[MAX_LIGHTS];
-    vec4 uColors[MAX_LIGHTS];
-    float uIntensity[MAX_LIGHTS];
-    float uAttenuation[MAX_LIGHTS];
-    int uNumberLights;
+uniform ForwardLighting {
+    ivec4 numberOfLights;
+    DirectionalLight directionalLight;
+    AmbientLight ambientLight;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+    SpotLight spotlight [MAX_SPOT_LIGHTS];
 };
 
 layout(binding = 1)
@@ -48,28 +71,15 @@ void main() {
 
     out_TangentFragPosition = TBN * vec3(model * vec4(aPos, 1.0F));
     out_TangentViewPosition = TBN * viewPosition;
-    out_TangentLightPosition = vec4(TBN * uPositions[0].xyz, 0.0F);
+    out_uv = aUv;
+    mat4 invTranspose = inverse(transpose(model));
+    out_normal = invTranspose * vec4(aNormal, 1.0);
+
+    // directional light source
+    out_TangentLightPosition = vec4(TBN * directionalLight.direction.xyz, 0.0F);
 
     mat4 MVP = proj * view * model;
     mat4 MV = view * model;
-    mat4 invTranspose = inverse(transpose(model));
-
-    vec4 world_position = model * vec4(aPos, 1.0F);
-
 
     gl_Position = MVP * vec4(aPos, 1.0);
-    out_uv = aUv;
-
-//   // for (int i=0; i<uNumberLights; i++) {
-//        if (uPositions[0].w != 0.0) {
-//            // point light
-////            light_direction[i] = vec4((uPositions[i] - world_position).xyz, 1.0);
-//            out_TangentLightPosition = uPositions[0];//vec4(TBN * uPositions[0].xyz, 1.0F);
-//        } else {
-//            // directional light
-////            light_direction[i] = uPositions[i];
-//            out_TangentLightPosition = vec4(TBN * uPositions[0].xyz, 0.0F);
-//        }
-//    //}
-    out_normal = invTranspose * vec4(aNormal, 1.0);
 }

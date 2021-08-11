@@ -25,7 +25,7 @@ void AnimationSystem::update(float time, float dt) {
     auto &rot = view.get<LocalRotation>(e);
 
     // TODO: make quaternion operation
-    t.localTransform *= glm::rotate(glm::mat4(1.F), rot.radiansPerSecond*dt, rot.axis);
+    t.localTransform = glm::rotate(glm::mat4(1.F), rot.radiansPerSecond*dt, rot.axis) * t.localTransform;
   }
 }
 

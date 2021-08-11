@@ -103,7 +103,7 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 di
   lightEntity.add<ecs::DirectionalLight>();
 
   // different between point and directional light is in the w component.
-  lightEntity.get<Transform>().localTransform[3] = glm::normalize(glm::vec4(direction, 0.0F));
+  lightEntity.get<Transform>().localTransform[3] = glm::normalize(glm::vec4(direction, 1.0F));
   return lightEntity;
 }
 

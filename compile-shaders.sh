@@ -1,6 +1,5 @@
 #!/bin/bash
 
-echo "Args: $0 --| $1 --| $2"
 if [ "$#" -ne 2 ] ; then
   echo "Usage: $0 INPUT_DIRECTORY OUTPUT_DIRECTORY" >&2
   exit 1

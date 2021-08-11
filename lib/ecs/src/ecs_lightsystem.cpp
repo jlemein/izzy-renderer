@@ -83,19 +83,12 @@ void LightSystem::updateLightProperties() {
 
     m_oldModel.diffuseColors[0] = glm::vec4(light.color, 0.0F);
     m_oldModel.intensities[0] = light.intensity;
-    m_oldModel.positions[0] = transform.worldTransform * glm::vec4(1.0);
+    m_oldModel.positions[0] = transform.worldTransform[3];
+    m_oldModel.attenuation[0] = 0.0;
 
-    m_forwardLighting.directionalLight.direction = transform.worldTransform * glm::vec4(1.0);
-    std::cout << "Direction: " << m_forwardLighting.directionalLight.direction[0] << " "
-              << m_forwardLighting.directionalLight.direction[1] << " " << m_forwardLighting.directionalLight.direction[2]
-              << std::endl;
+    m_forwardLighting.directionalLight.direction = transform.worldTransform[3];
     m_forwardLighting.directionalLight.color = glm::vec4(light.color, 0.0F);
     m_forwardLighting.directionalLight.intensity = light.intensity;
-
-    m_oldModel.positions[0] = transform.worldTransform * glm::vec4(1.0);
-    m_oldModel.attenuation[0] = 0.0;
-    m_oldModel.diffuseColors[0] = glm::vec4(light.color, 1.0);
-    m_oldModel.intensities[0] = light.intensity;
   }
 
   // -- Ambient lights ------------------------------

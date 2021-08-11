@@ -10,19 +10,6 @@
 namespace lsw {
 namespace ecs {
 
-///**!
-// * Simple lighting representation.
-// * For positional or directional light sources (a transform need to be attached).
-// * If no transform is attached, then the light source is ambient.
-// */
-//struct Light {
-//  float intensity{1000.0F};  // by default 1000 W
-//  float attenuationQuadratic{0.2F};
-//  glm::vec3 diffuseColor{1.0F};
-//  glm::vec3 specularColor{0.0F};
-//  glm::vec3 ambientColor{0.0F};
-//};
-
 struct AmbientLight {
   float intensity{1000.0F};
   glm::vec3 color {1.0F};
@@ -36,7 +23,7 @@ struct PointLight {
 };
 
 struct DirectionalLight {
-  float intensity{1000.0F};
+  float intensity{1.0F};
   glm::vec3 color {1.0F, 1.0, 1.0F};
 };
 
