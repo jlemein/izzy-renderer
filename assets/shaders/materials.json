@@ -108,9 +108,7 @@
       "geometry_shader": "",
       "fragment_shader": "assets/shaders/albedo-spec-mapped.frag.spv",
       "lighting": {
-        "mode": "deg",
-        "max_lights_per_pass": 1,
-        "lighting_struct": "UniformSingleLight",
+        "ubo_layout": "Lighting",
         "blend_mode": "Add"
       },
       "properties": [

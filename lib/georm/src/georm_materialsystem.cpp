@@ -81,6 +81,16 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json &j) {
     m.name = material["name"].get<std::string>();
     spdlog::debug("Reading material with id \"{}\"...", m.name);
 
+    try {
+      if (material.count("lighting") > 0) {
+        const auto& lighting = material["lighting"];
+        m.lighting.layout = lighting["ubo_layout"].get<std::string>();
+      }
+    } catch (nlohmann::detail::exception e) {
+        throw std::runtime_error(
+                fmt::format("Failed parsing lighting metadata: {}", e.what()));
+    }
+
     // pass shader info
     try {
       m.vertexShader = material["vertex_shader"].get<std::string>();
