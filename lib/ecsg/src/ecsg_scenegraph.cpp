@@ -52,7 +52,7 @@ SceneGraphEntity SceneGraph::makeCamera(std::string name, float zDistance, float
   auto cameraEntity = makeEntity(std::move(name));
   ecs::Camera camera{.fovx = fovx, .aspect = aspect, .zNear = zNear, .zFar = zFar};
   cameraEntity.add<ecs::Camera>(std::move(camera));
-  cameraEntity.get<ecs::Transform>().localTransform[3] = glm::vec4(0.0F, 0.0F, -zDistance, 1.0F);
+  cameraEntity.get<ecs::Transform>().localTransform[3] = glm::vec4(0.0F, 0.0F, zDistance, 1.0F);
 
   return cameraEntity;
 }

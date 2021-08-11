@@ -2,12 +2,12 @@
   "material_mapping": [
     {
       "from": "WoodCrate",
-      "to": "NormalMap2"
+      "to": "NormalMap"
     }
   ],
   "materials": [
     {
-      "name": "NormalMap2",
+      "name": "NormalMap",
       "vertex_shader": "assets/shaders/fwd-diffuse-map.vert.spv",
       "geometry_shader": "",
       "fragment_shader": "assets/shaders/fwd-diffuse-map.frag.spv",
@@ -29,24 +29,33 @@
       ]
     },
     {
-      "name": "NormalMap1",
-      "vertex_shader": "assets/shaders/albedo-spec-mapped.vert.spv",
+      "name": "ParallaxMap",
+      "vertex_shader": "assets/shaders/fwd-parallax-map.vert.spv",
       "geometry_shader": "",
-      "fragment_shader": "assets/shaders/albedo-spec-mapped.frag.spv",
+      "fragment_shader": "assets/shaders/fwd-parallax-map.frag.spv",
       "lighting": {
-        "ubo_struct": "Lighting",
+        "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
       },
       "properties": [
         {
+          "name": "height_scale",
+          "value": 0.1
+        },
+        {
           "type": "texture",
           "name": "albedoMap",
-          "value": "assets/textures/castle_albedo.jpg"
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "assets/textures/castle_normal.jpg"
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+        },
+        {
+          "type": "texture",
+          "name": "heightMap",
+          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_height.png"
         }
       ]
     }

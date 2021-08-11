@@ -40,19 +40,19 @@ int main(int argc, char** argv) {
     //        resourceManager->createSharedMaterial("DefaultMaterial"));
 
     // ==== SCENE SETUP ======================================================
-    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("NormalMap1"));
-    boxL.translate(glm::vec3(-0.9F, 0.0F, 0.0F));
-    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
+    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("NormalMap"));
+    boxL.translate(glm::vec3(-1.3F, 0.0F, 0.0F));
+//    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
 
-    auto boxR = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("NormalMap2"));
-    boxR.translate(glm::vec3(0.9F, 0.0F, 0.0F));
-    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
+    auto boxR = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("ParallaxMap"));
+    boxR.translate(glm::vec3(1.3F, 0.0F, 0.0F));
+//    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
 
-    auto sun = sceneGraph->makeDirectionalLight("Sun", glm::vec3(1.F, 1.0F, .0F));
-    sun.add(anim::LocalRotation{Util::ToRadians(90.F)});
+    auto sun = sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+//    sun.add(anim::LocalRotation{Util::ToRadians(15.F)});
 
     // ==== CAMERA SETUP ====================================================
-    auto camera = sceneGraph->makeCamera("DummyCamera");
+    auto camera = sceneGraph->makeCamera("DummyCamera", 8);
     auto& controls = camera.add<ecs::FirstPersonControl>();
     controls.onlyRotateOnMousePress = true;
     viewer->setActiveCamera(camera);

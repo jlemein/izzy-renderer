@@ -41,7 +41,7 @@ uniform UniformBufferBlock {
     mat4 model;
     mat4 view;
     mat4 proj;
-    vec3 viewPosition; // position of camera in world coordinates
+    vec3 viewPosition;// position of camera in world coordinates
 };
 
 
@@ -58,17 +58,19 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 0) uniform sampler2D albedoMap;
 layout(binding = 1) uniform sampler2D normalMap;
 
+vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
+    float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
+    float attenuation = 1.0F;
+    vec4 light_color = directionalLight.color * directionalLight.intensity;
+    return dot_normal_light * attenuation * light_color;
+}
 
 void main() {
-    vec3 material_color = texture(albedoMap, in_uv).xyz;
-    vec3 surf_normal = normalize(texture(normalMap, in_uv).rgb*2.0-1.0);  // surface normal
-    vec3 geom_normal = normalize(in_normal).xyz;          // geometric normal
-
+    vec4 material_color = texture(albedoMap, in_uv);
+    vec3 surf_normal = normalize(texture(normalMap, in_uv).rgb*2.0-1.0);// surface normal
+    vec3 geom_normal = normalize(in_normal).xyz;// geometric normal
     vec3 light_direction = normalize(in_TangentLightPosition.xyz);
-    float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
 
-    float attenuation = 1.0F;
-    vec3 light_color = directionalLight.color.xyz * directionalLight.intensity;
 
-    outColor = dot_normal_light * attenuation * vec4(material_color * light_color, 1.0);
+    outColor = computeDirectionalLight(surf_normal, light_direction) * material_color;
 }

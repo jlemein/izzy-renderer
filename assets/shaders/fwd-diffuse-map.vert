@@ -56,7 +56,6 @@ layout(location = 1) out vec2 out_uv;
 layout(location = 2) out vec4 out_TangentLightPosition; // ray towards light
 layout(location = 3) out vec3 out_TangentViewPosition; // ray towards camera
 layout(location = 4) out vec3 out_TangentFragPosition; // world position of shaded point
-
 layout(location = 5) out vec3 out_tangent;
 layout(location = 6) out vec3 out_btangent;
 

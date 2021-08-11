@@ -75,7 +75,7 @@ public:
 
   /// @brief Creates a camera at a Z distance of 5 meter from the origin,
   /// looking at the origin
-  SceneGraphEntity makeCamera(std::string name, float zDistance = -5.0F,
+  SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F,
                               float fovx = 120.0F, float aspect = 1.0F,
                               float zNear = 0.1F, float zFar = 1000.0F);
 
