@@ -40,7 +40,7 @@
       "properties": [
         {
           "type": "uniform",
-          "name": "MyMaterial",
+          "name": "Parallax",
           "value": {
             "height_scale": 1.0
           }

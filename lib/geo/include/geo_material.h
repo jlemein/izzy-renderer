@@ -10,6 +10,7 @@
 #include <memory>
 #include <res_resource.h>
 #include <glm/glm.hpp>
+#include <spdlog/spdlog.h>
 
 namespace lsw {
 namespace geo {
@@ -28,7 +29,10 @@ namespace geo {
 //  std::vector<ecs::Texture> textures {};
 //};
 
-struct UniformBlockData {
+/**
+ * A mapping of data location and size to keep the uniform blocks registered.
+ */
+struct UniformBlockInfo {
   void *data;
   std::size_t size;
 };
@@ -61,6 +65,7 @@ struct UserProperties {
   }
 
   void setFloat(const std::string& name, float value) {
+      spdlog::debug("UBO {}: Setting property {} (float) to value: {}", ubo_name, name, value);
       floatValues[name] = value;
   }
 
@@ -153,14 +158,15 @@ struct Material {
   float shininess;
   float opacity;
 
-  using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
+  using UniformBlockRegistry = std::unordered_map<std::string, UniformBlockInfo>;
 
-  UniformProperties properties;
+  UniformBlockRegistry properties;
 
   template <typename T> void setProperty(const T &data) {
     setProperty(T::PARAM_NAME, data);
   }
 
+  // TODO: deprecated, remove it in favor of the register call below.
   template <typename T> void setProperty(const char *name, const T &data) {
     if (properties.count(name) > 0) {
       memcpy(properties.at(name).data, &data, sizeof(T));
@@ -172,6 +178,18 @@ struct Material {
       memcpy(properties[name].data, &data, sizeof(T));
     }
     properties.at(name).size = sizeof(T);
+  }
+
+  void registerUniformBlock(const char *name, void* pData, std::size_t size) {
+    if (properties.count(name) > 0) {
+      throw std::runtime_error("Cannot add a uniform block {} to material {} that already exists.");
+//      memcpy(properties.at(name).data, pData, size);
+    } else {
+      properties[name].data = pData;
+      properties[name].size = size;
+//      memcpy(properties[name].data, pData, size);
+    }
+    properties.at(name).size = size;
   }
 
   void *getProperty(const char *name) {

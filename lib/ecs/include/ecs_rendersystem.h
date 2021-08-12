@@ -92,8 +92,11 @@ private:
 
 class IMaterialSystem {
 public:
-  virtual void synchronizeTextures(RenderSystem& renderSystem) = 0;
   virtual ~IMaterialSystem() = default;
+  virtual void synchronizeTextures(RenderSystem& renderSystem) = 0;
+
+  virtual void update(float time, float dt) = 0;
+
 };
 
 } // namespace ecs

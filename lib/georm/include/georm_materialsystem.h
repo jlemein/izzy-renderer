@@ -43,6 +43,13 @@ public:
   void loadMaterialsFromFile(const std::string& path);
 
   /**
+   * Every frame this method is called to let the material system update it's shader parameters.
+   * @param time
+   * @param dt
+   */
+  void update(float time, float dt) override;
+
+  /**
    * Loops over all materials in the scene graph and makes sure the textures are loaded (if not loaded already).
    * Also it synchronizes the render system with the entities' texture data (by attaching or detaching texture data).
    *
@@ -52,7 +59,7 @@ public:
    * it makes sure the rendersystem is updated with new texture data, or to
    * remove
    */
-  virtual void synchronizeTextures(ecs::RenderSystem& renderSystem) override;
+  void synchronizeTextures(ecs::RenderSystem& renderSystem) override;
 
   /// @brief Loads the material associated with the specified material name.
   /// @details the material is loaded based on material name. There are four

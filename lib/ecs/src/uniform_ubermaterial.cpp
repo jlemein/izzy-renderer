@@ -16,7 +16,7 @@ void UberUniformManager::DestroyUniformBlock(void* block) {
   delete uber;
 }
 
-void UberUniformManager::UpdateUniform(void* data, Material& material) {
+void UberUniformManager::UpdateUniform(void* data, const Material& material) {
   auto uber = reinterpret_cast<Uber*>(data);
 
   const auto& ambientData = material.userProperties.getFloatArray("ambient_color");

@@ -198,9 +198,7 @@ void RenderSystem::initShaderProperties(Renderable& renderable, const geo::Mater
 
     if (blockIndex == GL_INVALID_INDEX) {
       auto a = glGetUniformLocation(renderable.program, name.c_str());
-
-      std::cerr << "Cannot find ubo block with name '" << name << "' in shader";
-      exit(1);
+      throw std::runtime_error(fmt::format("Cannot find ubo block with name '{}' in shader {}", name, material.name));
     }
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
@@ -421,6 +419,7 @@ void RenderSystem::update(float time, float dt) {
   // component.
   synchMvpMatrices();
   m_lightSystem->updateLightProperties();
+  m_materialSystem->update(time, dt);
 
   //  m_materialSystem->update(time, dt); --> not needed I think
 }

@@ -169,9 +169,13 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
                                       .vertexShader = "assets/shaders/default_curve.vert.spv",
                                       .fragmentShader = "assets/shaders/default_curve.frag.spv"});
 
-  ecs::ColorBlock block;
-  block.color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
+  auto block = new ecs::ColorBlock;
+  block->color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
   s.setProperty("ColorBlock", block);
+  //TODO: Add color block manager to material system,
+  // OR make a separate list of constantUniformBlocks that dont need management,
+  // OR whenever you look for ColorBlock manager and you cannot find one, then ignore.
+//  s.registerUniformBlock("ColorBlock", block, sizeof(ecs::ColorBlock));
 
   return curve;
 }

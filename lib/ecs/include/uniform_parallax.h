@@ -22,7 +22,7 @@ class ParallaxManager : public UniformBlockManager {
     auto parallax = reinterpret_cast<Parallax*>(data);
     delete parallax;
   }
-  void UpdateUniform(void* data, geo::Material& m) override {
+  void UpdateUniform(void* data, const geo::Material& m) override {
     auto parallax = reinterpret_cast<Parallax*>(data);
     parallax->height_scale = m.userProperties.getFloat("height_scale");
   }

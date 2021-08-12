@@ -12,7 +12,7 @@ class UniformBlockManager {
 
   virtual void* CreateUniformBlock(std::size_t& t) = 0;
   virtual void DestroyUniformBlock(void* block) = 0;
-  virtual void UpdateUniform(void* data, geo::Material& material) = 0;
+  virtual void UpdateUniform(void* data, const geo::Material& material) = 0;
 };
 
 }  // namespace ufm

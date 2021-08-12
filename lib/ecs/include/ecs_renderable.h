@@ -78,7 +78,7 @@ struct Renderable_UniformBlockInfo {
   GLuint bufferId;
   GLint blockIndex;
   GLint blockBinding;
-  const geo::UniformBlockData* pData {nullptr};
+  const geo::UniformBlockInfo* pData {nullptr};
 };
 
 struct Renderable {

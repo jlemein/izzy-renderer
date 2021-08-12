@@ -40,7 +40,6 @@ MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
                                std::shared_ptr<georm::ResourceManager> resourceManager)
   : m_sceneGraph{sceneGraph}
   , m_resourceManager{resourceManager} {
-
   // for now register the uniform blocks
   // these are the registered uniform blocks that the shaders can make use of.
   m_uniformBlockManagers[ufm::Lambert::PARAM_NAME] = std::make_unique<ufm::LambertUniformManager>();
@@ -120,15 +119,30 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
 
       try {
         if (type == "uniform") {
-          auto value = prop["value"];
-          for (const auto& [key, value] : value.items()) {
-            spdlog::error("Uniform block {} --> {}: {} -- IGNORED FOR NOW", name, key, value);
-//            m.setProperty(name.c_str(), )
-            // TODO: register the name of the uniform block. Create a UniformPropertiesBlock that provides the material
-            //  interface to set values. Or consider that a material can have only one uniform block for material properties.
-            //  That means the shader has a Lighting, Matrices and Material uniform block of which the latter one is the one that
-            //  is the target object for setProperty calls.
-//            m.uniformBlocks.at(name).setFloatArray(key, value);
+          if (m_uniformBlockManagers.count(name) <= 0) {
+            throw std::runtime_error(fmt::format(
+                "Material {}: Uniform block '{}' is not registered to the material system. Shader will likely misbehave.",
+                m.name, name));
+          } else {
+            std::size_t sizeOfStruct = 0;
+            auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
+            m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
+            m.userProperties.ubo_name = name;
+
+            auto parameters = prop["value"];
+
+            for (const auto& [key, value] : parameters.items()) {
+              if (value.is_array() && value.is_number_float()) {
+                auto list = value.get<std::vector<float>>();
+                spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key , fmt::join(list.begin(), list.end(), ", ")));
+                m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
+              } else if (value.is_number_float()) {
+                spdlog::debug("\t{}::{} = {}", name, key , value.get<float>());
+                m.userProperties.setFloat(key, value.get<float>());
+              } else {
+                spdlog::error("Material {} with parameter '{}' is ignored. Data type is not supported.", m.name, key);
+              }
+            }
           }
         } else if (type == "texture") {
           auto path = prop["value"].get<std::string>();
@@ -163,20 +177,20 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
     // the shader unit. This is done using Uniform buffer objects. Some
     // materials might be able to reuse the data block. The data block is
     // specified with a layout attribute in the json file.
-//    if (material.count("layout") > 0) {
-//      auto layout = material["layout"].get<std::string>();
-//
-//      if (layout == "_Lambert") {
-//        m.setProperty(ufm::LambertData::FromMaterial(m));
-//      } else if (layout == "_UberMaterial") {
-//        m.setProperty(UberMaterialData::FromMaterial(m));
-//      } else {
-//        spdlog::error(
-//            "{} layout structure is unknown. Continue without "
-//            "which may lead to shading anomalies.",
-//            layout);
-//      }
-//    }
+    //    if (material.count("layout") > 0) {
+    //      auto layout = material["layout"].get<std::string>();
+    //
+    //      if (layout == "_Lambert") {
+    //        m.setProperty(ufm::LambertData::FromMaterial(m));
+    //      } else if (layout == "_UberMaterial") {
+    //        m.setProperty(UberMaterialData::FromMaterial(m));
+    //      } else {
+    //        spdlog::error(
+    //            "{} layout structure is unknown. Continue without "
+    //            "which may lead to shading anomalies.",
+    //            layout);
+    //      }
+    //    }
 
     m_materials[m.name] = m;  // std::move(m);
   }
@@ -235,6 +249,34 @@ MaterialPtr MaterialSystem::makeDefaultMaterial() {
   return m_resourceManager->createSharedMaterial(m_defaultMaterial);  // createResource(m_defaultMaterial);
 }
 
+// void MaterialSystem::update(float time, float dt) {
+//   auto& registry = m_sceneGraph->getRegistry();
+//   auto view = registry.view<geo::Material, ecs::Renderable>();
+//
+//   for (auto e : view) {
+//     auto& material = view.get<geo::Material>(e);
+//     auto& renderable = view.get<ecs::Renderable>(e);
+//
+//     if (!material.userProperties.ubo_name.empty()) {
+//       m_uniformBlockManagers[renderable.]
+//     }
+//     m_uniformBlockManagers
+//   }
+// }
+
+void MaterialSystem::update(float time, float dt) {
+  auto view = m_sceneGraph->getRegistry().view<geo::Material, ecs::Renderable>();
+  for (auto e : view) {
+    const auto& r = view.get<ecs::Renderable>(e);
+    const auto& m = view.get<geo::Material>(e);
+
+    // TODO: probably this for loop is more efficient if it is part of render system
+    for (const auto& [name, uniformBlock] : r.userProperties) {
+      m_uniformBlockManagers.at(name)->UpdateUniform(uniformBlock.pData->data, m);
+    }
+  }
+}
+
 void MaterialSystem::synchronizeTextures(ecs::RenderSystem& renderSystem) {
   auto& registry = m_sceneGraph->getRegistry();
   auto view = registry.view<geo::Material>();  // why are we not requesting
@@ -258,6 +300,7 @@ void MaterialSystem::synchronizeTextures(ecs::RenderSystem& renderSystem) {
             fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
       }
     }
+    spdlog::info("Synchronizing textures");
 
     // A material is parsed in two ways
     // - A material has standard textures assigned in the scene file, such as

@@ -44,6 +44,11 @@ uniform UniformBufferBlock {
     vec3 viewPosition;// position of camera in world coordinates
 };
 
+layout(binding = 2)
+uniform Parallax {
+    float height_scales;
+};
+
 
 layout(location = 0) in vec4 in_normal;
 layout(location = 1) in vec2 in_uv;
