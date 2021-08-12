@@ -134,10 +134,10 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
             for (const auto& [key, value] : parameters.items()) {
               if (value.is_array() && value.is_number_float()) {
                 auto list = value.get<std::vector<float>>();
-                spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key , fmt::join(list.begin(), list.end(), ", ")));
+                spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
                 m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
               } else if (value.is_number_float()) {
-                spdlog::debug("\t{}::{} = {}", name, key , value.get<float>());
+                spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
                 m.userProperties.setFloat(key, value.get<float>());
               } else {
                 spdlog::error("Material {} with parameter '{}' is ignored. Data type is not supported.", m.name, key);
@@ -272,6 +272,12 @@ void MaterialSystem::update(float time, float dt) {
 
     // TODO: probably this for loop is more efficient if it is part of render system
     for (const auto& [name, uniformBlock] : r.userProperties) {
+#ifndef NDEBUG
+      if (m_uniformBlockManagers.count(name) <= 0) {
+        throw std::runtime_error(fmt::format("Material system cannot find manager for ubo block '{}'", name));
+      }
+#endif  // NDEBUG
+
       m_uniformBlockManagers.at(name)->UpdateUniform(uniformBlock.pData->data, m);
     }
   }

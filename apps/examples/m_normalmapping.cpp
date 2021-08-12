@@ -15,22 +15,12 @@
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
 #include <gui_system.h>
+#include <gui_lighteditor.h>
 
 using namespace std;
 using namespace lsw;
 using namespace geo;
 using lsw::core::Util;
-
-void renderGui(float dt, float totalTime) {
-  // set next window position. call before Begin(). use pivot=(0.5f,0.5f) to center on given point, etc.
-  ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
-  ImGui::SetNextWindowSize(ImVec2(150, 300), ImGuiCond_Once);
-
-  // render your GUI
-  ImGui::Begin("Demo window");
-  ImGui::Button("Hello!");
-  ImGui::End();
-}
 
 int main(int argc, char** argv) {
 #ifndef NDEBUG
@@ -45,7 +35,7 @@ int main(int argc, char** argv) {
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
-    auto viewer = std::make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager());
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager());
 
     // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
     //    sceneGraph->setDefaultMaterial(
@@ -65,19 +55,20 @@ int main(int argc, char** argv) {
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 8);
-    auto& controls = camera.add<ecs::FirstPersonControl>();
-    controls.onlyRotateOnMousePress = true;
+//    auto& controls = camera.add<ecs::FirstPersonControl>();
+//    controls.onlyRotateOnMousePress = true;
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-    auto gui = std::make_shared<GuiSystem>(viewer, renderGui);
+    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph);
+    auto gui = make_shared<GuiSystem>(viewer, *editor);
     viewer->registerExtension(gui);
 
     viewer->setWindowSize(1024, 768);
     viewer->setTitle("Normal mapping");
     viewer->initialize();
     viewer->run();
-  } catch (std::runtime_error& e) {
+  } catch (runtime_error& e) {
     spdlog::error(e.what());
     return EXIT_FAILURE;
   }

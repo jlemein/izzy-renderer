@@ -1,5 +1,6 @@
 
-add_executable(normalmap_example m_normalmapping.cpp)
+add_executable(normalmap_example m_normalmapping.cpp gui_lighteditor.h gui_lighteditor.cpp)
+target_include_directories(normalmap_example PRIVATE .)
 
 find_package(EnTT REQUIRED)
 find_package(glm REQUIRED)
