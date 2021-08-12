@@ -10,12 +10,14 @@
 #include <ecs_rendersystem.h>
 #include <fstream>
 #include <geo_textureloader.h>
-#include <geo_ubermaterialdata.h>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 #include <sstream>
+#include <uniform_ubermaterial.h>
+#include <uniform_lambert.h>
+#include <uniform_parallax.h>
 
 using json = nlohmann::json;
 
@@ -37,7 +39,14 @@ struct ReservedNames {
 MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
                                std::shared_ptr<georm::ResourceManager> resourceManager)
   : m_sceneGraph{sceneGraph}
-  , m_resourceManager{resourceManager} {}
+  , m_resourceManager{resourceManager} {
+
+  // for now register the uniform blocks
+  // these are the registered uniform blocks that the shaders can make use of.
+  m_uniformBlockManagers[ufm::Lambert::PARAM_NAME] = std::make_unique<ufm::LambertUniformManager>();
+  m_uniformBlockManagers[ufm::Parallax::PARAM_NAME] = std::make_unique<ufm::ParallaxManager>();
+  m_uniformBlockManagers[ufm::Uber::PARAM_NAME] = std::make_unique<ufm::UberUniformManager>();
+}
 
 void MaterialSystem::readMaterialMappings(json& j) {
   for (auto md : j["material_mapping"]) {
@@ -154,20 +163,20 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
     // the shader unit. This is done using Uniform buffer objects. Some
     // materials might be able to reuse the data block. The data block is
     // specified with a layout attribute in the json file.
-    if (material.count("layout") > 0) {
-      auto layout = material["layout"].get<std::string>();
-
-      if (layout == "_Lambert") {
-        m.setProperty(LambertData::FromMaterial(m));
-      } else if (layout == "_UberMaterial") {
-        m.setProperty(UberMaterialData::FromMaterial(m));
-      } else {
-        spdlog::error(
-            "{} layout structure is unknown. Continue without "
-            "which may lead to shading anomalies.",
-            layout);
-      }
-    }
+//    if (material.count("layout") > 0) {
+//      auto layout = material["layout"].get<std::string>();
+//
+//      if (layout == "_Lambert") {
+//        m.setProperty(ufm::LambertData::FromMaterial(m));
+//      } else if (layout == "_UberMaterial") {
+//        m.setProperty(UberMaterialData::FromMaterial(m));
+//      } else {
+//        spdlog::error(
+//            "{} layout structure is unknown. Continue without "
+//            "which may lead to shading anomalies.",
+//            layout);
+//      }
+//    }
 
     m_materials[m.name] = m;  // std::move(m);
   }

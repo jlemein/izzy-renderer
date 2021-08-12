@@ -14,6 +14,7 @@
 #include <nlohmann/json.hpp>
 #include <res_resource.h>
 #include <res_resourcefactory.h>
+#include <uniform_uniformblockmanager.h>
 
 namespace lsw {
 
@@ -80,6 +81,8 @@ private:
 
   std::unordered_map<unsigned int, res::Resource<geo::Material>>
       m_registeredMaterials;
+
+  std::unordered_map<std::string, std::unique_ptr<ufm::UniformBlockManager>> m_uniformBlockManagers;
 
   std::unordered_map<std::string, geo::Material> m_materials;
 

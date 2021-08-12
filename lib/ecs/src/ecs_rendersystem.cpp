@@ -13,7 +13,7 @@
 #include <fstream>
 #include <geo_curve.h>
 #include <geo_mesh.h>
-#include <geo_ubermaterialdata.h>
+#include <uniform_ubermaterial.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <spdlog/spdlog.h>
 #include <ecs_lightsystem.h>
@@ -204,8 +204,8 @@ void RenderSystem::initShaderProperties(Renderable& renderable, const geo::Mater
     }
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
-    auto p = reinterpret_cast<geo::UberMaterialData*>(blockData.data);
-    std::cout << "Ubermaterial: hasDiffuse " << std::boolalpha << p->hasDiffuseTex << std::endl;
+//    auto p = reinterpret_cast<ufm::UberMaterial*>(blockData.data);
+//    std::cout << "Ubermaterial: hasDiffuse " << std::boolalpha << p->hasDiffuseTex << std::endl;
     //    std::cout << "   --- Init " << renderable.name << ">" << name << "
     //    with "
     //              << p->diffuse.r << " " << p->diffuse.g << " " <<

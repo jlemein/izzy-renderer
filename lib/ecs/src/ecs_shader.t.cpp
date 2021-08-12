@@ -7,7 +7,7 @@
 #include <glm/glm.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-#include <geo_ubermaterialdata.h>
+#include <uniform_ubermaterial.h>
 using namespace lsw;
 using namespace testing;
 using namespace lsw::geo;
