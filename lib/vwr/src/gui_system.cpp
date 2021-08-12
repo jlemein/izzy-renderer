@@ -10,10 +10,9 @@
 #include "imgui_impl_opengl3.h"
 using namespace lsw;
 
-GuiSystem::GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer)
-: m_viewer(viewer)
-{
-}
+GuiSystem::GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer, std::function<void(float, float)> fnRenderCallback)
+  : m_fnRenderCallback(fnRenderCallback)
+  , m_viewer(viewer) {}
 
 void GuiSystem::initialize() {
   m_windowHandle = m_viewer->getDisplayDetails().window;
@@ -25,13 +24,14 @@ void GuiSystem::initialize() {
   // Setup Dear ImGui context
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO(); (void)io;
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+  ImGuiIO& io = ImGui::GetIO();
+  (void)io;
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
   // Setup Dear ImGui style
-  ImGui::StyleColorsDark();
-  //ImGui::StyleColorsClassic();
+  // ImGui::StyleColorsDark();
+  ImGui::StyleColorsClassic();
 
   // Setup Platform/Renderer backends
   ImGui_ImplGlfw_InitForOpenGL(reinterpret_cast<GLFWwindow*>(m_windowHandle), true);
@@ -43,9 +43,7 @@ void GuiSystem::update(float time, float dt) {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  if (show_demo_window) {
-    ImGui::ShowDemoWindow(&show_demo_window);
-  }
+  m_fnRenderCallback(time, dt);
 }
 
 void GuiSystem::beforeRender() {

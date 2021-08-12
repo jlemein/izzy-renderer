@@ -17,7 +17,8 @@ struct DisplayDetails;
 
 class GuiSystem : public lsw::ecs::IViewerExtension {
 public:
-  GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer);
+  GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer,
+           std::function<void(float, float)> fnRenderCallback);
 
   void initialize() override;
   void update(float time, float dt) override;
@@ -27,6 +28,8 @@ public:
 
 private:
   std::shared_ptr<lsw::viewer::Viewer> m_viewer {nullptr};
+  std::function<void(float, float)> m_fnRenderCallback {nullptr};
+
   void* m_windowHandle {nullptr};
   std::string m_shadingLanguage {""};
   std::string m_shadingVersion {""};

@@ -21,6 +21,17 @@ using namespace lsw;
 using namespace geo;
 using lsw::core::Util;
 
+void renderGui(float dt, float totalTime) {
+  // set next window position. call before Begin(). use pivot=(0.5f,0.5f) to center on given point, etc.
+  ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
+  ImGui::SetNextWindowSize(ImVec2(150, 300), ImGuiCond_Once);
+
+  // render your GUI
+  ImGui::Begin("Demo window");
+  ImGui::Button("Hello!");
+  ImGui::End();
+}
+
 int main(int argc, char** argv) {
 #ifndef NDEBUG
   spdlog::set_level(spdlog::level::debug);
@@ -43,14 +54,14 @@ int main(int argc, char** argv) {
     // ==== SCENE SETUP ======================================================
     auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("NormalMap"));
     boxL.translate(glm::vec3(-1.3F, 0.0F, 0.0F));
-//    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
+    //    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
 
     auto boxR = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("ParallaxMap"));
     boxR.translate(glm::vec3(1.3F, 0.0F, 0.0F));
-//    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
+    //    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
 
     auto sun = sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
-//    sun.add(anim::LocalRotation{Util::ToRadians(15.F)});
+    //    sun.add(anim::LocalRotation{Util::ToRadians(15.F)});
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 8);
@@ -59,7 +70,7 @@ int main(int argc, char** argv) {
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-    auto gui = std::make_shared<GuiSystem>(viewer);
+    auto gui = std::make_shared<GuiSystem>(viewer, renderGui);
     viewer->registerExtension(gui);
 
     viewer->setWindowSize(1024, 768);
