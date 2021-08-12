@@ -39,8 +39,11 @@
       },
       "properties": [
         {
-          "name": "height_scale",
-          "value": 0.1
+          "type": "uniform",
+          "name": "MyMaterial",
+          "value": {
+            "height_scale": 1.0
+          }
         },
         {
           "type": "texture",

@@ -102,61 +102,71 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
       throw std::runtime_error(fmt::format("Failed parsing shader names: {}", e.what()));
     }
 
-    try {
-      // load generic attributes
-      auto& properties = material["properties"];
-      for (const auto& prop : properties) {
-        auto name = prop["name"].get<std::string>();
+    // load generic attributes
+    auto& properties = material["properties"];
+    for (const auto& prop : properties) {
+      // every property always has a name and type
+      std::string name = prop["name"];
+      std::string type = prop["type"];
 
-        try {
-          auto type = prop.count("type") <= 0 ? "float" : prop["type"].get<std::string>();
-
-          if (type == std::string{"texture"}) {
-            auto path = prop["value"].get<std::string>();
-            spdlog::debug("\t{} texture: {}", name, path);
-            addTextureToMaterial(name, path, m);
-          } else {
-            if (prop["value"].is_array()) {
-              auto floatArray = prop["value"].get<std::vector<float>>();
-              m.setFloatArray(name, floatArray);
-              spdlog::debug("\t{}: [{}, {}, {}]", name, floatArray[0], floatArray[1], floatArray[2]);
-            } else {
-              auto value = prop["value"].get<float>();
-              m.setFloat(name, value);
-              spdlog::debug("\t{}: {}", name, value);
-            }
+      try {
+        if (type == "uniform") {
+          auto value = prop["value"];
+          for (const auto& [key, value] : value.items()) {
+            spdlog::error("Uniform block {} --> {}: {} -- IGNORED FOR NOW", name, key, value);
+//            m.setProperty(name.c_str(), )
+            // TODO: register the name of the uniform block. Create a UniformPropertiesBlock that provides the material
+            //  interface to set values. Or consider that a material can have only one uniform block for material properties.
+            //  That means the shader has a Lighting, Matrices and Material uniform block of which the latter one is the one that
+            //  is the target object for setProperty calls.
+//            m.uniformBlocks.at(name).setFloatArray(key, value);
           }
-        } catch (std::runtime_error& e) {
-          spdlog::error("Failed to parse property {} for material {}, details: {}", name, m.name, e.what());
-          throw e;
-        }
-      }
-
-      // TODO: for now we parse properties here
-      // Every material property needs to be converted to a representation in
-      // the shader unit. This is done using Uniform buffer objects. Some
-      // materials might be able to reuse the data block. The data block is
-      // specified with a layout attribute in the json file.
-      if (material.count("layout") > 0) {
-        auto layout = material["layout"].get<std::string>();
-
-        if (layout == "_Lambert") {
-          m.setProperty(LambertData::FromMaterial(m));
-        } else if (layout == "_UberMaterial") {
-          m.setProperty(UberMaterialData::FromMaterial(m));
+        } else if (type == "texture") {
+          auto path = prop["value"].get<std::string>();
+          spdlog::debug("\t{} texture: {}", name, path);
+          addTextureToMaterial(name, path, m);
         } else {
-          spdlog::error(
-              "{} layout structure is unknown. Continue without "
-              "which may lead to shading anomalies.",
-              layout);
+          spdlog::warn("Material '{}' defines property {} of type {} that is not supported. Property will be ignored.", m.name,
+                       name, type);
         }
-      }
 
-    } catch (nlohmann::detail::exception e) {
-      throw std::runtime_error(
-          fmt::format("Failed reading standard material color (diffuse, "
-                      "specular or ambient): {}",
-                      e.what()));
+      } catch (std::runtime_error& e) {
+        spdlog::error("Failed to parse property {} for material {}, details: {}", name, m.name, e.what());
+        throw e;
+      }
+    }
+
+    //        else {
+    //        if (prop["value"].is_array()) {
+    //            auto floatArray = prop["value"].get<std::vector<float>>();
+    //            m.setFloatArray(name, floatArray);
+    //            spdlog::debug("\t{}: [{}, {}, {}]", name, floatArray[0], floatArray[1], floatArray[2]);
+    //          } else {
+    //            auto value = prop["value"].get<float>();
+    //            m.setFloat(name, value);
+    //            m.setProperty(name.c_str(), nullptr);
+    //            spdlog::debug("\t{}: {}", name, value);
+    //          }
+    //        }
+
+    // TODO: for now we parse properties here
+    // Every material property needs to be converted to a representation in
+    // the shader unit. This is done using Uniform buffer objects. Some
+    // materials might be able to reuse the data block. The data block is
+    // specified with a layout attribute in the json file.
+    if (material.count("layout") > 0) {
+      auto layout = material["layout"].get<std::string>();
+
+      if (layout == "_Lambert") {
+        m.setProperty(LambertData::FromMaterial(m));
+      } else if (layout == "_UberMaterial") {
+        m.setProperty(UberMaterialData::FromMaterial(m));
+      } else {
+        spdlog::error(
+            "{} layout structure is unknown. Continue without "
+            "which may lead to shading anomalies.",
+            layout);
+      }
     }
 
     m_materials[m.name] = m;  // std::move(m);

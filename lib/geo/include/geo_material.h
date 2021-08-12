@@ -38,6 +38,38 @@ struct LightingInfo {
   std::string ubo_struct_name;
 };
 
+struct UserProperties {
+  std::string ubo_name; // name of the uniform block in the shader, used by render engine to find ID.
+
+  std::unordered_map<std::string, float> floatValues;
+  std::unordered_map<std::string, std::vector<float>> floatArrayValues;
+
+  float getFloat(const std::string& key) const {
+      if (floatValues.count(key) > 0 ) {
+          return floatValues.at(key);
+      } else {
+          throw std::runtime_error(fmt::format("Property {} (float) does not exist for uniform buffer struct {}", key, ubo_name));
+      }
+  }
+
+  std::vector<float> getFloatArray(const std::string& key) const {
+      if (floatArrayValues.count(key) > 0 ) {
+          return floatArrayValues.at(key);
+      } else {
+          throw std::runtime_error(fmt::format("Property {} (float[]) does not exist for uniform buffer struct {}", key, ubo_name));
+      }
+  }
+
+  void setFloat(const std::string& name, float value) {
+      floatValues[name] = value;
+  }
+
+  void setFloatArray(const std::string& name, std::vector<float> floatArray) {
+      floatArrayValues[name] = floatArray;
+  }
+
+};
+
 struct Material {
   std::string name;
 
@@ -69,8 +101,8 @@ struct Material {
   std::shared_ptr<res::Resource<geo::Texture>> roughnessTexture {nullptr};
   std::shared_ptr<res::Resource<geo::Texture>> opacityTexture {nullptr};
 
-  std::unordered_map<std::string, float> floatValues;
-  std::unordered_map<std::string, std::vector<float>> floatArrayValues;
+
+  UserProperties userProperties;
 
   std::string diffuseTexturePath {""};
   std::string specularTexturePath {""};
@@ -82,13 +114,6 @@ struct Material {
   std::unordered_map<std::string, std::string> texturePaths {};
   /// @brief mapping from parameter name to the texture resource.
   std::unordered_map<std::string, std::shared_ptr<res::Resource<geo::Texture>>> textures {};
-
-  void setFloat(const std::string& name, float value) {
-    floatValues[name] = value;
-  }
-  void setFloatArray(const std::string& name, std::vector<float> floatArray) {
-    floatArrayValues[name] = floatArray;
-  }
 
   void setDiffuseMap(const std::string& path) {
     diffuseTexturePath = path;
@@ -110,22 +135,6 @@ struct Material {
     if (filePath != texturePaths[textureName]) {
       texturePaths[textureName] = filePath;
       textures[textureName] = nullptr;
-    }
-  }
-
-  float getFloat(const std::string& key) const {
-    if (floatValues.count(key) > 0 ) {
-      return floatValues.at(key);
-    } else {
-      throw std::runtime_error(fmt::format("Property {} (float) does not exist for material {}", key, name));
-    }
-  }
-
-  std::vector<float> getFloatArray(const std::string& key) const {
-    if (floatArrayValues.count(key) > 0 ) {
-      return floatArrayValues.at(key);
-    } else {
-      throw std::runtime_error(fmt::format("Property {} (float[]) does not exist for material {}", key, name));
     }
   }
 

@@ -197,6 +197,8 @@ void RenderSystem::initShaderProperties(Renderable& renderable, const geo::Mater
     glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
 
     if (blockIndex == GL_INVALID_INDEX) {
+      auto a = glGetUniformLocation(renderable.program, name.c_str());
+
       std::cerr << "Cannot find ubo block with name '" << name << "' in shader";
       exit(1);
     }

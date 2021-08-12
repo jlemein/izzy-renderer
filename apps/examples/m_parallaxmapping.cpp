@@ -14,7 +14,6 @@
 #include <geo_primitivefactory.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
-#include <gui_system.h>
 
 using namespace std;
 using namespace lsw;
@@ -59,9 +58,6 @@ int main(int argc, char** argv) {
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-    auto gui = std::make_shared<GuiSystem>(viewer);
-    viewer->registerExtension(gui);
-
     viewer->setWindowSize(1024, 768);
     viewer->setTitle("Normal mapping");
     viewer->initialize();

@@ -68,14 +68,41 @@ vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
 
 vec2 ParallaxMapping(vec2 uv, vec3 viewDir) {
     float height = texture(heightMap, uv).r;
-    float height_scale = 0.05;
+    float height_scale = 0.2;
     vec2 p = viewDir.xy / viewDir.z * (height * height_scale);
     return uv - p;
 }
 
+vec2 SteepParallaxMapping(vec2 uv, vec3 viewDir) {
+    const float minLayers = 8.0;
+    const float maxLayers = 32.0;
+    float numLayers = mix(maxLayers, minLayers, max(dot(vec3(0.0, 0.0, 1.0), viewDir), 0.0));
+//    float numLayers = 10;
+    float layerDepth = 1.0 / numLayers;
+    float currentLayerDepth = 0.0;
+
+    float height_scale = 0.2;
+    vec2 P = viewDir.xy * height_scale;
+    vec2 deltaTexCoords = P / numLayers;
+
+    vec2 currentTexCoords = uv;
+    float currentDepthMapValue = texture(heightMap, uv).r;
+
+    while (currentLayerDepth < currentDepthMapValue) {
+        currentTexCoords -= deltaTexCoords;
+        currentDepthMapValue = texture(heightMap, uv).r;
+        currentLayerDepth += layerDepth;
+    }
+
+    return currentTexCoords;
+}
+
+
+
 void main() {
     vec3 viewDir = normalize(in_TangentViewPosition - in_TangentFragPosition);
-    vec2 uv = ParallaxMapping(in_uv, viewDir);
+//    vec2 uv = ParallaxMapping(in_uv, viewDir);
+    vec2 uv = SteepParallaxMapping(in_uv, viewDir);
 
     if (uv.x > 1.0 || uv.y > 1.0 || uv.x < 0.0 || uv.y < 0.0)
         discard;
