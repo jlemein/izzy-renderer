@@ -89,6 +89,12 @@ SceneGraphEntity SceneGraph::makeLight(const geo::Light& light) {
   return lightEntity;
 }
 
+SceneGraphEntity SceneGraph::makeAmbientLight(std::string name, glm::vec3 color, float intensity) {
+  auto lightEntity = makeEntity(std::move(name));
+  lightEntity.add<ecs::AmbientLight>({.intensity=1.0F, .color = color});
+  return lightEntity;
+}
+
 SceneGraphEntity SceneGraph::makePointLight(std::string name, glm::vec3 position) {
   auto lightEntity = makeEntity(std::move(name));
   lightEntity.add<ecs::PointLight>();

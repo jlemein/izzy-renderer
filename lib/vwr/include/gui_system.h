@@ -23,16 +23,17 @@ class IGuiWindow {
 
 class GuiSystem : public lsw::ecs::IViewerExtension {
 public:
-  GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer, std::shared_ptr<IGuiWindow> window);
+  GuiSystem(std::shared_ptr<IGuiWindow> window);
 
-  void initialize() override;
+  void initialize(lsw::viewer::Viewer* viewer) override;
   void update(float time, float dt) override;
   void beforeRender() override;
   void afterRender() override;
   void cleanup() override;
 
+  bool isProcessingInput() const;
+
 private:
-  std::shared_ptr<lsw::viewer::Viewer> m_viewer {nullptr};
   std::shared_ptr<IGuiWindow> m_window {nullptr};
 
   void* m_windowHandle {nullptr};

@@ -25,7 +25,7 @@ class IViewerExtension
    * At this point the viewer has initialized a window context, and you can
    * query device metrics.
    */
-  virtual void initialize() = 0;
+  virtual void initialize(lsw::viewer::Viewer* viewer) = 0;
 
   /**
    * Called every frame to do update behavior. Check for changed state and update

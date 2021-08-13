@@ -11,9 +11,9 @@ namespace ecs {
 struct Renderable;
 
 struct UPointLight {
-  glm::vec3 position;
-  float intensity;
+  glm::vec4 position;
   glm::vec4 color;
+  float intensity;
   float attenuation;
 };
 
@@ -30,9 +30,11 @@ struct USpotlight {
   float attenuation;
 };
 
+// manually pad the C struct, because GPU adds padding for std140
 struct UAmbientLight {
-  float intensity;
   glm::vec4 color;
+  float intensity;
+  float __padding[3];
 };
 
 struct ForwardLighting {

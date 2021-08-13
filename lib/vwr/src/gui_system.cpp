@@ -10,15 +10,15 @@
 #include "imgui_impl_opengl3.h"
 using namespace lsw;
 
-GuiSystem::GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer, std::shared_ptr<IGuiWindow> window)
+GuiSystem::GuiSystem(std::shared_ptr<IGuiWindow> window)
   : m_window(window)
-  , m_viewer(viewer) {}
+   {}
 
-void GuiSystem::initialize() {
-  m_windowHandle = m_viewer->getDisplayDetails().window;
-  m_shadingLanguage = m_viewer->getDisplayDetails().shadingLanguage;
+void GuiSystem::initialize(lsw::viewer::Viewer* viewer) {
+  m_windowHandle = viewer->getDisplayDetails().window;
+  m_shadingLanguage = viewer->getDisplayDetails().shadingLanguage;
   if (m_shadingLanguage == "glsl") {
-    m_shadingVersion = m_viewer->getDisplayDetails().shadingLanguageVersion;
+    m_shadingVersion = viewer->getDisplayDetails().shadingLanguageVersion;
   }
 
   // Setup Dear ImGui context
@@ -59,4 +59,8 @@ void GuiSystem::cleanup() {
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
+}
+
+bool GuiSystem::isProcessingInput() const {
+  return ImGui::IsAnyItemActive() && ImGui::IsAnyMouseDown();
 }

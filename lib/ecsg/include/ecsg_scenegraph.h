@@ -84,6 +84,7 @@ public:
 
   SceneGraphEntity makeLight(const geo::Light &light);
 
+  SceneGraphEntity makeAmbientLight(std::string name, glm::vec3 color = {.1F, .1F, .1F}, float intensity = 1.0F);
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position, ecs::PointLight pointLight);
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position);
 

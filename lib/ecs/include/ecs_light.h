@@ -11,12 +11,12 @@ namespace lsw {
 namespace ecs {
 
 struct AmbientLight {
-  float intensity{1000.0F};
-  glm::vec3 color {1.0F};
+  float intensity{1.0F};
+  glm::vec3 color {.15F};
 };
 
 struct PointLight {
-  float intensity{1000.0F};
+  float intensity{100.0F};
   float attenuation{0.2F};
   float radius{1.0F};
   glm::vec3 color {1.F};

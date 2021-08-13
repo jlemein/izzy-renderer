@@ -49,7 +49,9 @@ int main(int argc, const char** argv) {
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager());
+    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto guiSystem = make_shared<GuiSystem>(editor);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager(), guiSystem);
 
     // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
     //    sceneGraph->setDefaultMaterial(
@@ -57,29 +59,29 @@ int main(int argc, const char** argv) {
 
     // ==== SCENE SETUP ======================================================
     auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("NormalMap"));
-    boxL.translate(glm::vec3(-1.3F, 0.0F, 0.0F));
+    boxL.translate(glm::vec3(0.0F, 0.0F, 0.0F));
     //    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
 
-    auto boxR = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("ParallaxMap"));
-    boxR.translate(glm::vec3(1.3F, 0.0F, 0.0F));
+//    auto boxR = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("ParallaxMap"));
+//    boxR.translate(glm::vec3(1.3F, 0.0F, 0.0F));
     //    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
 
     // ==== LIGHTS SETUP ====================================================
     auto sun = sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
     //    sun.add(anim::LocalRotation{Util::ToRadians(15.F)});
-    sceneGraph->makePointLight("Bulb1", glm::vec3{1.F, 1.0F, 1.0F}, ecs::PointLight{.color = {1.F, .5F, .0F}});
-    sceneGraph->makePointLight("Bulb2", glm::vec3{0.F, 1.0F, 1.0F}, ecs::PointLight{.color = {0.F, .5F, .1F}});
+    sceneGraph->makeAmbientLight("Ambient");
+//    sceneGraph->makePointLight("PointLight1", glm::vec3{0.0F, 2.0F, 0.0F}, ecs::PointLight{.color = {1.F, 0.F, 0.F}});
+    sceneGraph->makePointLight("PointLight2", glm::vec3{0.0F, .5F, 0.0F}, ecs::PointLight{.color = {0.F, 1.F, 0.F}});
+//    sceneGraph->makePointLight("Bulb1", glm::vec3{1.F, 1.0F, 1.0F}, ecs::PointLight{.color = {1.F, .5F, .0F}});
+//    sceneGraph->makePointLight("Bulb2", glm::vec3{0.F, 1.0F, 1.0F}, ecs::PointLight{.color = {0.F, .5F, .1F}});
 
     // ==== CAMERA SETUP ====================================================
-    auto camera = sceneGraph->makeCamera("DummyCamera", 8);
-    //    auto& controls = camera.add<ecs::FirstPersonControl>();
-    //    controls.onlyRotateOnMousePress = true;
+    auto camera = sceneGraph->makeCamera("DummyCamera", 4);
+    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
-    auto gui = make_shared<GuiSystem>(viewer, editor);
-    viewer->registerExtension(gui);
+    viewer->registerExtension(guiSystem);
 
     viewer->setWindowSize(1024, 768);
     viewer->setTitle("Normal mapping");

@@ -12,17 +12,17 @@ struct PointLight {
 };
 
 struct DirectionalLight {
-    vec3 direction;
-    float intensity;
+    vec3 direction; // 0 - 4
+    float intensity; // 4
     vec4 color;
 };
 
 struct SpotLight {
-    vec4 position;
+    vec4 position; // 4N
 };
 
 struct AmbientLight {
-    vec3 color;
+    vec4 color;
     float intensity;
 };
 
@@ -58,6 +58,7 @@ layout(location = 3) out vec3 out_TangentViewPosition; // ray towards camera
 layout(location = 4) out vec3 out_TangentFragPosition; // world position of shaded point
 layout(location = 5) out vec3 out_tangent;
 layout(location = 6) out vec3 out_btangent;
+layout(location = 7) out vec4 out_TangentPtLightPosition[MAX_POINT_LIGHTS];
 
 void main() {
     out_tangent = aTangent;
@@ -76,6 +77,10 @@ void main() {
 
     // directional light source
     out_TangentLightPosition = vec4(TBN * directionalLight.direction.xyz, 0.0F);
+
+    for (int i=0; i<numberOfLights.z; ++i) {
+        out_TangentPtLightPosition[i] = vec4(TBN * pointLights[i].position.xyz, 0.0F);
+    }
 
     mat4 MVP = proj * view * model;
     mat4 MV = view * model;
