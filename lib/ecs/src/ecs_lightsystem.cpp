@@ -115,7 +115,7 @@ void LightSystem::updateLightProperties() {
     ubo.attenuation = light.attenuation;
     ubo.color = glm::vec4(light.color, 0.0F);
     ubo.intensity = light.intensity;
-    ubo.position = transform.worldTransform * glm::vec4(1.0);
+    ubo.position = transform.worldTransform[3];
   }
 
   // -- spotlights - not supported yet -----------------------------

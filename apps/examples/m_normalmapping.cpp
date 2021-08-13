@@ -18,11 +18,13 @@
 #include <gui_lighteditor.h>
 #include <programoptions.h>
 #include <georm_fontsystem.h>
+#include <ecs_light.h>
 
 using namespace std;
 using namespace lsw;
 using namespace geo;
 using lsw::core::Util;
+using namespace glm;
 
 int main(int argc, const char** argv) {
 #ifndef NDEBUG
@@ -34,9 +36,9 @@ int main(int argc, const char** argv) {
     return EXIT_FAILURE;
   }
 
-//  Workspace workspace(options.getWorkspaceDir());
-//  workspace.setFontFolder("fonts");
-//  workspace.setModelFolder("models");
+  //  Workspace workspace(options.getWorkspaceDir());
+  //  workspace.setFontFolder("fonts");
+  //  workspace.setModelFolder("models");
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
@@ -62,13 +64,16 @@ int main(int argc, const char** argv) {
     boxR.translate(glm::vec3(1.3F, 0.0F, 0.0F));
     //    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
 
+    // ==== LIGHTS SETUP ====================================================
     auto sun = sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
     //    sun.add(anim::LocalRotation{Util::ToRadians(15.F)});
+    sceneGraph->makePointLight("Bulb1", glm::vec3{1.F, 1.0F, 1.0F}, ecs::PointLight{.color = {1.F, .5F, .0F}});
+    sceneGraph->makePointLight("Bulb2", glm::vec3{0.F, 1.0F, 1.0F}, ecs::PointLight{.color = {0.F, .5F, .1F}});
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 8);
-//    auto& controls = camera.add<ecs::FirstPersonControl>();
-//    controls.onlyRotateOnMousePress = true;
+    //    auto& controls = camera.add<ecs::FirstPersonControl>();
+    //    controls.onlyRotateOnMousePress = true;
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================

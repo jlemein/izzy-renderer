@@ -27,9 +27,9 @@ class ParallaxManager : public UniformBlockManager {
     parallax->height_scale = m.userProperties.getFloat("height_scale");
   }
 
-  ValueSemantic GetSemantic(const char* name) override {
-    return ValueSemantic::COLOR_RGB
-  }
+//  ValueSemantic GetSemantic(const char* name) override {
+//    return ValueSemantic::COLOR_RGB
+//  }
 };
 
 

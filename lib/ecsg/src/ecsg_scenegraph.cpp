@@ -98,6 +98,15 @@ SceneGraphEntity SceneGraph::makePointLight(std::string name, glm::vec3 position
   return lightEntity;
 }
 
+SceneGraphEntity SceneGraph::makePointLight(std::string name, glm::vec3 position, ecs::PointLight pointLight) {
+  auto lightEntity = makeEntity(std::move(name));
+  lightEntity.add<ecs::PointLight>(std::move(pointLight));
+
+  // different between point and directional light is in the w component.
+  lightEntity.get<Transform>().localTransform[3] = glm::vec4(position, 1.0F);
+  return lightEntity;
+}
+
 SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 direction) {
   auto lightEntity = makeEntity(std::move(name));
   lightEntity.add<ecs::DirectionalLight>();

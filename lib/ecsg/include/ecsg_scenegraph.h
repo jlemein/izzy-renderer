@@ -22,6 +22,7 @@ struct Material;
 
 namespace ecs {
 struct Transform;
+struct PointLight;
 }
 
 namespace ecsg {
@@ -83,9 +84,7 @@ public:
 
   SceneGraphEntity makeLight(const geo::Light &light);
 
-  SceneGraphEntity makePointLight(glm::vec3 intensity = {1.0F, 1.0F, 1.0F},
-                                  glm::vec3 color = {1.0F, 1.0F, 1.0F},
-                                  std::string name = "#Light#");
+  SceneGraphEntity makePointLight(std::string name, glm::vec3 position, ecs::PointLight pointLight);
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position);
 
   /**

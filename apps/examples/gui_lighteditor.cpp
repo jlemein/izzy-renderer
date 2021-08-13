@@ -44,14 +44,21 @@ void GuiLightEditor::render(float dt, float totalTime) {
   ImGui::Begin("Demo window");
   ImGui::Button("Hello!");
 
-  auto view = m_registry.view<ecs::DirectionalLight>();
-  for (auto e : view) {
-    auto& light = view.get<ecs::DirectionalLight>(e);
-    auto& name = m_registry.get<ecs::Name>(e);
-
-    ImGui::TextColored(ImVec4(1,1,0,1), "Lights in the scene");
+  // == LIGHTS ========================================================
+  ImGui::TextColored(ImVec4(1,1,0,1), "Lights in the scene");
+  auto dirLights = m_registry.view<ecs::DirectionalLight, ecs::Name>();
+  for (auto [e, light, name] : dirLights.each()) {
     ImGui::ColorEdit3(name.name.c_str(), glm::value_ptr(light.color));
   }
+  auto ambientLights = m_registry.view<ecs::AmbientLight, ecs::Name>();
+  for (auto [e, light, name] : ambientLights.each()) {
+    ImGui::ColorEdit3(name.name.c_str(), glm::value_ptr(light.color));
+  }
+  auto pointLights = m_registry.view<ecs::PointLight, ecs::Name>();
+  for (auto [e, light, name] : pointLights.each()) {
+    ImGui::ColorEdit3(name.name.c_str(), glm::value_ptr(light.color));
+  }
+  // ==================================================================
 
   ImGui::TextColored(ImVec4(1,1,0,1), "Materials");
   auto materials = m_registry.view<geo::Material>();
