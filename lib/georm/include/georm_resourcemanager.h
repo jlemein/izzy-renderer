@@ -39,6 +39,7 @@ public:
   ResourceManager();
 
   void setMaterialSystem(std::shared_ptr<georm::MaterialSystem> materialSystem);
+  std::shared_ptr<georm::MaterialSystem> getMaterialSystem();
 
   MaterialPtr createSharedMaterial(const std::string& name);
   geo::Material createMaterial(const std::string& name);

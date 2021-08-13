@@ -15,10 +15,15 @@ struct DisplayDetails;
 }
 }
 
+class IGuiWindow {
+ public:
+  virtual void init() = 0 ;
+  virtual void render(float time, float dt) = 0;
+};
+
 class GuiSystem : public lsw::ecs::IViewerExtension {
 public:
-  GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer,
-           std::function<void(float, float)> fnRenderCallback);
+  GuiSystem(std::shared_ptr<lsw::viewer::Viewer> viewer, std::shared_ptr<IGuiWindow> window);
 
   void initialize() override;
   void update(float time, float dt) override;
@@ -28,7 +33,7 @@ public:
 
 private:
   std::shared_ptr<lsw::viewer::Viewer> m_viewer {nullptr};
-  std::function<void(float, float)> m_fnRenderCallback {nullptr};
+  std::shared_ptr<IGuiWindow> m_window {nullptr};
 
   void* m_windowHandle {nullptr};
   std::string m_shadingLanguage {""};

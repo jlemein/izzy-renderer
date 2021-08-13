@@ -42,6 +42,9 @@ public:
 
   void loadMaterialsFromFile(const std::string& path);
 
+  MaterialPtr createSharedMaterial(const std::string& name);
+  geo::Material createMaterial(const std::string& name);
+
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
    * @param time
@@ -84,8 +87,8 @@ public:
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
   std::shared_ptr<georm::ResourceManager> m_resourceManager;
-//  std::shared_ptr<ecs::RenderSystem> m_renderSystem;
 
+  std::unordered_map<std::string, MaterialPtr> m_cachedMaterials;
   std::unordered_map<unsigned int, res::Resource<geo::Material>>
       m_registeredMaterials;
 

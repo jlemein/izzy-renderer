@@ -16,19 +16,31 @@
 #include <georm_resourcemanager.h>
 #include <gui_system.h>
 #include <gui_lighteditor.h>
+#include <programoptions.h>
+#include <georm_fontsystem.h>
 
 using namespace std;
 using namespace lsw;
 using namespace geo;
 using lsw::core::Util;
 
-int main(int argc, char** argv) {
+int main(int argc, const char** argv) {
 #ifndef NDEBUG
   spdlog::set_level(spdlog::level::debug);
 #endif  // NDEBUG
 
+  ProgramOptions options;
+  if (!options.parseArguments(argc, argv)) {
+    return EXIT_FAILURE;
+  }
+
+//  Workspace workspace(options.getWorkspaceDir());
+//  workspace.setFontFolder("fonts");
+//  workspace.setModelFolder("models");
+
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
+    auto fontSystem = make_shared<georm::FontSystem>(options.getWorkspaceDir());
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
     materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");
@@ -60,8 +72,8 @@ int main(int argc, char** argv) {
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph);
-    auto gui = make_shared<GuiSystem>(viewer, *editor);
+    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto gui = make_shared<GuiSystem>(viewer, editor);
     viewer->registerExtension(gui);
 
     viewer->setWindowSize(1024, 768);

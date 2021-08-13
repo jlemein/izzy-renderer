@@ -1,13 +1,15 @@
 
 add_library(georm STATIC
-        src/georm_resourcemanager.cpp
         include/georm_resourcemanager.h
         include/georm_materialsystem.h
+        include/anim_animationsystem.h
+        include/anim_localrotation.h
+        include/georm_fontsystem.h
+        src/georm_resourcemanager.cpp
         src/georm_materialsystem.cpp
         src/georm_resourcemanager.t.cpp
         src/anim_animationsystem.cpp
-        include/anim_animationsystem.h
-        include/anim_localrotation.h)
+        src/georm_fontsystem.cpp)
 
 target_include_directories(georm
         PUBLIC include
@@ -19,10 +21,12 @@ find_package(stb REQUIRED)
 find_package(fmt REQUIRED)
 find_package(assimp REQUIRED)
 find_package(nlohmann_json REQUIRED)
+#find_package(Boost REQUIRED COMPONENTS filesystem)
 
 target_link_libraries(georm
         PRIVATE
         geo ecsg
+#        Boost::filesystem
         spdlog::spdlog
         nlohmann_json::nlohmann_json
         resourcemanager::resourcemanager

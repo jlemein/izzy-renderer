@@ -25,6 +25,8 @@ class LambertUniformManager : public UniformBlockManager {
   }
 
   void UpdateUniform(void* block, const geo::Material& material) override {}
+
+
 };
 
 }  // namespace ufm

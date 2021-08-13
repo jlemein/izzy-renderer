@@ -6,18 +6,39 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <ecs_name.h>
 #include <geo_material.h>
+#include <georm_resourcemanager.h>
 using namespace lsw::gui;
 using namespace std;
 
-GuiLightEditor::GuiLightEditor(shared_ptr<ecsg::SceneGraph> sceneGraph)
+GuiLightEditor::GuiLightEditor(shared_ptr<ecsg::SceneGraph> sceneGraph, shared_ptr<georm::FontSystem> fontSystem)
   : m_sceneGraph{sceneGraph}
-  , m_registry(sceneGraph->getRegistry()) {}
+  , m_fontSystem(fontSystem)
+  , m_registry(sceneGraph->getRegistry()) {
 
-void GuiLightEditor::operator()(float dt, float totalTime) {
+
+}
+
+void GuiLightEditor::init() {
+  // Setup Dear ImGui style
+  // ImGui::StyleColorsDark();
+  ImGui::StyleColorsDark();
+
+  ImGuiIO& io = ImGui::GetIO();
+
+  for (auto font : m_fontSystem->getAvailableFonts()) {
+    m_fonts.push_back(io.Fonts->AddFontFromFileTTF(font.c_str(), 20));
+    spdlog::info("Loaded font: {}", font);
+  }
+  spdlog::debug("Gui window initialized");
+}
+
+void GuiLightEditor::render(float dt, float totalTime) {
   // set next window position. call before Begin(). use pivot=(0.5f,0.5f) to center on given point, etc.
   ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
   ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
 //  ImGui::StyleColorsLight();
+
+  ImGui::PushFont(m_fonts[1]);
 
   // render your GUI
   ImGui::Begin("Demo window");
@@ -46,4 +67,5 @@ void GuiLightEditor::operator()(float dt, float totalTime) {
   ImGui::EndChild();
 
   ImGui::End();
+  ImGui::PopFont();
 }

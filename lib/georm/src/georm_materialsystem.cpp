@@ -245,6 +245,18 @@ std::unique_ptr<res::IResource> MaterialSystem::createResource(const std::string
   return std::make_unique<lsw::res::Resource<geo::Material>>(material);
 }
 
+//MaterialPtr MaterialSystem::createSharedMaterial(const std::string &name) {
+//  if (m_cachedMaterials.find(name) == m_cachedMaterials.end()) {
+//    m_cachedMaterials[name] = createResource(name);
+//  }
+//  return m_cachedMaterials.at(name);
+//}
+//
+//geo::Material ResourceManager::createMaterial(const std::string& name) {
+//  // TODO: there is a possibility to alter the material before creation. Maybe it is what we want.
+//  return **createSharedMaterial(name);
+//}
+
 MaterialPtr MaterialSystem::makeDefaultMaterial() {
   return m_resourceManager->createSharedMaterial(m_defaultMaterial);  // createResource(m_defaultMaterial);
 }
