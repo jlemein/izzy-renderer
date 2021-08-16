@@ -7,7 +7,6 @@
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_renderable.h>
 #include <ecs_rendersystem.h>
-#include <ecs_texturesystem.h>
 #include <ecs_transform.h>
 #include <ecs_transformutil.h>
 #include <fractal_generator.h>

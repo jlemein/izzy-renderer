@@ -1,4 +1,17 @@
-# Artifax Renderer
+# Wera3D Renderer
+
+The Wera3D renderer can be called by running:
+
+```wera3d -s scene.fbx -m materials.json```
+
+
+  ```wera3d scene.fbx```
+
+In this case the renderer uses the built in
+
+
+If no material file is provided, the scene will be rendered using a standard universal shader.
+This universal shader is found in the install directory under `${WERA3D_HOME}/shaders`.
 
 The artifax renderer is written using entity component systems (ECS).
 The Lemon Shite Renderer consists of the following major systems:

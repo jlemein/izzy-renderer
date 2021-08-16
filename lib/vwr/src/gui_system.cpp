@@ -5,14 +5,15 @@
 #include <vwr_viewer.h>
 #include <imgui.h>
 #include <GLFW/glfw3.h>
+#include <memory>
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
+
 using namespace lsw;
 
-GuiSystem::GuiSystem(std::shared_ptr<IGuiWindow> window)
-  : m_window(window)
-   {}
+GuiSystem::GuiSystem(std::shared_ptr<IGuiWindow> dialog)
+  : m_window{dialog} {}
 
 void GuiSystem::initialize(lsw::viewer::Viewer* viewer) {
   m_windowHandle = viewer->getDisplayDetails().window;

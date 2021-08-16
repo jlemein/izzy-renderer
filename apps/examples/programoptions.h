@@ -26,7 +26,7 @@ class ProgramOptions {
    * @param argv
    * @return True if parse successful, false otherwise.
    */
-  bool parseArguments(int argc, const char* argv[]) {
+  bool parseArguments(int argc, char* argv[]) {
     if (argc < 2) {
       spdlog::error("Not enough arguments provided");
       return false;

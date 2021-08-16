@@ -32,28 +32,42 @@ int main(int argc, char* argv[]) {
   spdlog::set_level(spdlog::level::debug);
 #endif  // NDEBUG
 
-  cxxopts::Options _options("Normal mapping", "Demo shows normal mapping");
-  _options.add_options()
-      ("d,debug", "Enable debugging")
-      ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
-      ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>());
-  auto result = _options.parse(argc, argv);
+  cxxopts::Options options("wera3d", "Wera3d renderer is a hybrid between rasterized rendering and ray tracing.");
+  options.add_options()
+    ("d,debug", "Enable debugging")
+    ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
+    ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>())
+    ("h,help", "Print usage");
+  auto result = options.parse(argc, argv);
 
-  ProgramOptions options;
-  if (!options.parseArguments(argc, argv)) {
+  if (result.count("help"))
+  {
+    std::cout << options.help() << std::endl;
+    exit(0);
+  }
+
+  auto workspaceDir = std::getenv("WERA3D_HOME");
+  std::string sWorkspaceDir = "";
+  if (workspaceDir) {
+    sWorkspaceDir = workspaceDir;
+  }
+
+  std::string sceneFile {""}, materialsFile {""};
+  try {
+    sceneFile = result["scene"].as<std::string>();
+    materialsFile = result["materials"].as<std::string>();
+  } catch (std::domain_error e) {
+    spdlog::error("Missing input arguments");
+    std::cout << options.help() << std::endl;
     return EXIT_FAILURE;
   }
 
-  //  Workspace workspace(options.getWorkspaceDir());
-  //  workspace.setFontFolder("fonts");
-  //  workspace.setModelFolder("models");
-
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
-    auto fontSystem = make_shared<georm::FontSystem>(options.getWorkspaceDir());
+    auto fontSystem = make_shared<georm::FontSystem>(workspaceDir);
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
-    materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");
+    materialSystem->loadMaterialsFromFile(materialsFile);
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
@@ -61,27 +75,11 @@ int main(int argc, char* argv[]) {
     auto guiSystem = make_shared<GuiSystem>(editor);
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager(), guiSystem);
 
-    // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
-    //    sceneGraph->setDefaultMaterial(
-    //        resourceManager->createSharedMaterial("DefaultMaterial"));
-
     // ==== SCENE SETUP ======================================================
-    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("NormalMap"));
-    boxL.translate(glm::vec3(0.0F, 0.0F, 0.0F));
-    //    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
-
-    //    auto boxR = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("ParallaxMap"));
-    //    boxR.translate(glm::vec3(1.3F, 0.0F, 0.0F));
-    //    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
+    spdlog::info("Loading scene file: {}", sceneFile);
 
     // ==== LIGHTS SETUP ====================================================
-    auto sun = sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
-    //    sun.add(anim::LocalRotation{Util::ToRadians(15.F)});
-    sceneGraph->makeAmbientLight("Ambient");
-    //    sceneGraph->makePointLight("PointLight1", glm::vec3{0.0F, 2.0F, 0.0F}, ecs::PointLight{.color = {1.F, 0.F, 0.F}});
-    sceneGraph->makePointLight("PointLight2", glm::vec3{0.0F, .5F, 0.0F}, ecs::PointLight{.color = {0.F, 1.F, 0.F}});
-    //    sceneGraph->makePointLight("Bulb1", glm::vec3{1.F, 1.0F, 1.0F}, ecs::PointLight{.color = {1.F, .5F, .0F}});
-    //    sceneGraph->makePointLight("Bulb2", glm::vec3{0.F, 1.0F, 1.0F}, ecs::PointLight{.color = {0.F, .5F, .1F}});
+    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);

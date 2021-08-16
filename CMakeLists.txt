@@ -41,17 +41,16 @@ set(CMAKE_CXX_STANDARD 17)
 #        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
 #        DEPENDS ${SPIRV_INPUT_FILES})
 
-add_custom_target(compile-shaders ALL
-        COMMAND sh ./compile-shaders.sh assets/shaders ${CMAKE_BINARY_DIR}/assets/shaders
-        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+#add_custom_target(compile-shaders ALL
+#        COMMAND sh ./compile-shaders.sh assets/shaders ${CMAKE_BINARY_DIR}/assets/shaders
+#        WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
-add_custom_target(copy-config-files ALL
-        COMMAND sh ./compile-shaders.sh "${CMAKE_BINARY_DIR}" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
-
-
+#add_custom_target(copy-config-files ALL
+#        COMMAND sh ./compile-shaders.sh "${CMAKE_BINARY_DIR}" WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
 
 
-include(FetchContent)
+
+
 
 add_subdirectory(lib)
 add_subdirectory(apps)

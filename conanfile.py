@@ -54,4 +54,5 @@ class RendererConan(ConanFile):
         self.requires("nlohmann_json/3.9.1")
         self.requires("stb/20200203")
         self.requires("boost/1.76.0")
+        self.requires("cxxopts/2.2.1")
 
