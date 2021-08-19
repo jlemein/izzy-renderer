@@ -56,6 +56,8 @@ class LightSystem {
   void initLightingUbo(Renderable& r, const geo::Material& material);
   void updateLightProperties();
 
+  int getActiveLightCount() const;
+
  private:
   entt::registry& m_registry;
   UniformLighting m_oldModel;

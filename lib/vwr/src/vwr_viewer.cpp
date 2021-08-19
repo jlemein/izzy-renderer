@@ -48,7 +48,9 @@ void Viewer::setWindowSize(unsigned int width, unsigned int height) {
   m_displayDetails.windowHeight = static_cast<int>(height);
 }
 
-void Viewer::setTitle(const std::string& title) {}
+void Viewer::setTitle(const std::string& title) {
+  m_title = title;
+}
 
 void Viewer::initialize() {
   glfwSetErrorCallback(error_callback);
@@ -129,7 +131,7 @@ int Viewer::run() {
     m_animationSystem->update(time, dt);
     m_inputSystem->update();
 
-    if (!m_guiSystem->isProcessingInput()) {
+    if (m_guiSystem && !m_guiSystem->isProcessingInput()) {
       m_firstPersonSystem->update(dt);
     }
     m_transformSystem->update(time, dt);

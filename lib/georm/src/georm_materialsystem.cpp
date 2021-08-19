@@ -111,51 +111,53 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
     }
 
     // load generic attributes
-    auto& properties = material["properties"];
-    for (const auto& prop : properties) {
-      // every property always has a name and type
-      std::string name = prop["name"];
-      std::string type = prop["type"];
+    if (material.contains("properties")) {
+      auto& properties = material["properties"];
+      for (const auto& prop : properties) {
+        // every property always has a name and type
+        std::string name = prop["name"];
+        std::string type = prop["type"];
 
-      try {
-        if (type == "uniform") {
-          if (m_uniformBlockManagers.count(name) <= 0) {
-            throw std::runtime_error(fmt::format(
-                "Material {}: Uniform block '{}' is not registered to the material system. Shader will likely misbehave.",
-                m.name, name));
-          } else {
-            std::size_t sizeOfStruct = 0;
-            auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
-            m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
-            m.userProperties.ubo_name = name;
+        try {
+          if (type == "uniform") {
+            if (m_uniformBlockManagers.count(name) <= 0) {
+              throw std::runtime_error(fmt::format(
+                  "Material {}: Uniform block '{}' is not registered to the material system. Shader will likely misbehave.",
+                  m.name, name));
+            } else {
+              std::size_t sizeOfStruct = 0;
+              auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
+              m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
+              m.userProperties.ubo_name = name;
 
-            auto parameters = prop["value"];
+              auto parameters = prop["value"];
 
-            for (const auto& [key, value] : parameters.items()) {
-              if (value.is_array() && value.is_number_float()) {
-                auto list = value.get<std::vector<float>>();
-                spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
-                m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
-              } else if (value.is_number_float()) {
-                spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
-                m.userProperties.setFloat(key, value.get<float>());
-              } else {
-                spdlog::error("Material {} with parameter '{}' is ignored. Data type is not supported.", m.name, key);
+              for (const auto& [key, value] : parameters.items()) {
+                if (value.is_array() && value.is_number_float()) {
+                  auto list = value.get<std::vector<float>>();
+                  spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
+                  m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
+                } else if (value.is_number_float()) {
+                  spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
+                  m.userProperties.setFloat(key, value.get<float>());
+                } else {
+                  spdlog::error("Material {} with parameter '{}' is ignored. Data type is not supported.", m.name, key);
+                }
               }
             }
+          } else if (type == "texture") {
+            auto path = prop["value"].get<std::string>();
+            spdlog::debug("\t{} texture: {}", name, path);
+            addTextureToMaterial(name, path, m);
+          } else {
+            spdlog::warn("Material '{}' defines property {} of type {} that is not supported. Property will be ignored.",
+                         m.name, name, type);
           }
-        } else if (type == "texture") {
-          auto path = prop["value"].get<std::string>();
-          spdlog::debug("\t{} texture: {}", name, path);
-          addTextureToMaterial(name, path, m);
-        } else {
-          spdlog::warn("Material '{}' defines property {} of type {} that is not supported. Property will be ignored.", m.name,
-                       name, type);
-        }
 
-      } catch (std::runtime_error& e) {
-        spdlog::error("Failed to parse property {} for material {}, details: {}", name, m.name, e.what());
-        throw e;
+        } catch (std::runtime_error& e) {
+          spdlog::error("Failed to parse property {} for material {}, details: {}", name, m.name, e.what());
+          throw e;
+        }
       }
     }
 

@@ -17,6 +17,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <spdlog/spdlog.h>
 #include <ecs_lightsystem.h>
+#include <ecs_wireframe.h>
 
 using namespace lsw;
 using namespace lsw::ecs;
@@ -349,12 +350,14 @@ void RenderSystem::init() {
   // convert material descriptions to openGL specific material data.
   m_materialSystem->synchronizeTextures(*this);
 
+  auto numLights = m_lightSystem->getActiveLightCount();
+
   // small summary
   spdlog::info(
       "Render system initialized | "
       "Number of material in use {} | "
       "Number of active lights: {}",
-      "Unknown", "Unknown");
+      "Unknown", numLights);
 
   // Initialization of the rendersystem encompasses the following steps.
   // Take into account the vocabulary.
@@ -526,6 +529,7 @@ void RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system) {
 }
 
 void RenderSystem::render() {
+
   // 1. Select buffer to render into
   auto view = m_registry.view<const Renderable>();
 
@@ -540,7 +544,7 @@ void RenderSystem::render() {
     activateTextures(entity);
 
     // TODO: disable in release
-    if (renderable.isWireframe) {
+    if (renderable.isWireframe || m_registry.any_of<Wireframe>(entity)) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

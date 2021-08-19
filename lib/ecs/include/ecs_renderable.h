@@ -69,11 +69,6 @@ struct VertexAttribArray {
   GLuint buffer_offset;
 };
 
-//struct UniformBlockData {
-//  void *data;
-//  std::size_t size;
-//};
-
 struct Renderable_UniformBlockInfo {
   GLuint bufferId;
   GLint blockIndex;
@@ -112,6 +107,7 @@ struct Renderable {
   unsigned int pUboLightStructSize {0U}; // size of the struct
 
   // TODO: check if we can only include this property in debug mode (for performance reasons)
+  // TODO merge with Wireframe component, and/or use wireframe shader.
   bool isWireframe {false};
 
   std::vector<ecs::Texture> textures;

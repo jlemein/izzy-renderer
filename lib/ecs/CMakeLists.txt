@@ -8,7 +8,7 @@ set (HEADERS
         include/uniform_parallax.h
         include/uniform_ubermaterial.h
         include/uniform_lambert.h
-        src/uniform_ubermaterial.cpp include/uniform_uniformblockmanager.h)
+        src/uniform_ubermaterial.cpp include/uniform_uniformblockmanager.h include/ecs_wireframe.h)
 
 add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrol.h

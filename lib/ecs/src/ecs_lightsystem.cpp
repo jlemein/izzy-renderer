@@ -9,6 +9,14 @@ using namespace lsw::ecs;
 LightSystem::LightSystem(entt::registry& registry)
   : m_registry{registry} {}
 
+int LightSystem::getActiveLightCount() const {
+  auto pointLights = m_registry.view<Transform, PointLight>();
+  auto dirLights = m_registry.view<Transform, DirectionalLight>();
+  auto ambientLights = m_registry.view<AmbientLight>();
+
+  return pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
+}
+
 void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& material) {
   auto uboStructName = material.lighting.ubo_struct_name;
 
@@ -54,9 +62,7 @@ void LightSystem::updateLightProperties() {
   auto dirLights = m_registry.view<Transform, DirectionalLight>();
   auto ambientLights = m_registry.view<AmbientLight>();
   auto numLights = pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
-  if (numLights == 0) {
-    std::cout << "WARNING: No active lights in scene." << std::endl;
-  }
+
   //  if (numLights > 4) {
   //    throw std::runtime_error("Too many lights in the scene. Max supported is 4");
   //  }

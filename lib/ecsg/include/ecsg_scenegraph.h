@@ -67,6 +67,7 @@ public:
    * @return
    */
   SceneGraphEntity addGeometry(const geo::Mesh &, const geo::Material &);
+  SceneGraphEntity addGeometry(const geo::Mesh& mesh);
 
   void setActiveCamera(const SceneGraphEntity *activeCamera);
 

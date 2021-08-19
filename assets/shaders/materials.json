@@ -61,6 +61,12 @@
           "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_height.png"
         }
       ]
+    },
+    {
+      "name": "Wireframe",
+      "vertex_shader": "assets/shaders/wireframe.vert.spv",
+      "geometry_shader": "",
+      "fragment_shader": "assets/shaders/wireframe.frag.spv"
     }
   ]
 }
