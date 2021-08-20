@@ -23,8 +23,8 @@ class SceneGraph;
  * the generic add and get component functionality.
  */
 class SceneGraphEntity {
-public:
-  SceneGraphEntity(entt::registry &owner, entt::entity handle);
+ public:
+  SceneGraphEntity(entt::registry& owner, entt::entity handle);
 
   uint64_t id() const;
   entt::entity handle();
@@ -44,12 +44,12 @@ public:
   /**!
    * @returns a const reference to the local transform matrix.
    */
-  const glm::mat4 &getTransform() const;
+  const glm::mat4& getTransform() const;
 
   /**
    * @returns a reference to the local transform matrix, eligbible to be edited.
    */
-  glm::mat4 &getTransform();
+  glm::mat4& getTransform();
 
   /**!
    * Sets the local transformation matrix for this scene graph entity.
@@ -57,14 +57,19 @@ public:
    * it's parent scene graph entity.
    * @param transform Local transformation matrix.
    */
-  void setTransform(const glm::mat4 &transform);
+  void setTransform(const glm::mat4& transform);
 
   void translate(const glm::vec3& translate);
 
-  template <typename Component> Component &add();
-  template <typename Component> Component &add(Component &&);
-  template <typename Component> Component &add(const Component &);
-  template <typename Component> Component &get();
+  template <typename Component>
+  decltype(auto) add();
+
+  template <typename Component>
+  decltype(auto) add(Component&&);
+  template <typename Component>
+  decltype(auto) add(const Component&);
+  template <typename Component>
+  Component& get();
 
   /**!
    * Removes this entity from the parent's list of children.
@@ -73,15 +78,15 @@ public:
    * root nodes in the scene graph.
    */
   void detachFromParent();
-  void attachToParent(SceneGraphEntity &parent);
+  void attachToParent(SceneGraphEntity& parent);
 
-  std::vector<SceneGraphEntity *> getChildren();
+  std::vector<SceneGraphEntity*> getChildren();
 
   /**!
    * @returns a pointer to the parent entity of this entity, if it exists.
    * If there is no parent entity, then nullptr is returned.
    */
-  SceneGraphEntity *getParent();
+  SceneGraphEntity* getParent();
 
   void addChild(SceneGraphEntity child);
   //  void addChildren(SceneGraphEntity&... children);
@@ -90,15 +95,16 @@ public:
 
   //  void addSibling(SceneGraphEntity& sibling);
 
-private:
-  entt::registry &m_registry;
+ private:
+  entt::registry& m_registry;
   entt::entity m_handle;
 };
 
 // ==========================================================
 // INLINE DEFINITIONS
 // ==========================================================
-template <typename Component> Component &SceneGraphEntity::get() {
+template <typename Component>
+Component& SceneGraphEntity::get() {
 #ifndef NDEBUG
   if (m_registry.all_of<Component>(handle())) {
 #endif
@@ -110,21 +116,21 @@ template <typename Component> Component &SceneGraphEntity::get() {
 #endif
 }
 
-template <typename Component> Component &SceneGraphEntity::add() {
+template <typename Component>
+decltype(auto) SceneGraphEntity::add() {
   return m_registry.emplace_or_replace<Component>(handle());
 }
 
 template <typename Component>
-Component &SceneGraphEntity::add(Component &&comp) {
-  return m_registry.emplace_or_replace<Component>(
-      handle(), std::forward<Component>(comp));
+decltype(auto) SceneGraphEntity::add(Component&& comp) {
+  return m_registry.emplace_or_replace<Component>(handle(), std::forward<Component>(comp));
 }
 
 template <typename Component>
-Component &SceneGraphEntity::add(const Component &comp) {
+decltype(auto) SceneGraphEntity::add(const Component& comp) {
   return m_registry.emplace_or_replace<Component>(handle(), comp);
 }
 
-} // namespace ecs
-} // namespace lsw
-#endif // GLVIEWER_ECS_SCENEGRAPHENTITY_H
+}  // namespace ecsg
+}  // namespace lsw
+#endif  // GLVIEWER_ECS_SCENEGRAPHENTITY_H

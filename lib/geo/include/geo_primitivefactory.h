@@ -63,7 +63,7 @@ public:
   static Mesh MakePyramid(float base = 1.0F, float height = 1.0F);
 
 
-  static Mesh MakeSphere(float radius);
+  static Mesh MakeSphere(float radius = 1.0F);
   static Mesh MakeDonut(float innerRadius, float outerRadius);
   static Mesh MakeTeapot(float size);
 };
