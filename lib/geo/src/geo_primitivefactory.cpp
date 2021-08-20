@@ -192,56 +192,41 @@ Mesh PrimitiveFactory::MakePyramid(float baseWidth, float height) {
 
   return mesh;
 }
-Mesh PrimitiveFactory::MakeSphere(float radius) {
+Mesh PrimitiveFactory::MakeUVSphere(float radius, int numSides) {
   Mesh mesh;
-  int numSides = 18;
 
-  std::vector<float> vertices;
-  //  vertices.reserve();
+  // a sphere with N number of sides has N vertices per cross section (around the surface).
+  // The sphere is symmetric, so the number of vertices is N * (N-2) + 2.
+  // The top and bottom of the sphere are a single vertex, therefore the adjustment of 2.
+  int numVertices = numSides * (numSides-2) + 2;
+  int numTriangles = (numSides-2) * numSides;
 
-  float* pActiveVertex = &vertices[0];
+  mesh.vertices.reserve(numVertices);
+  mesh.indices.reserve(numTriangles*3);
 
-  int vertexIndex = 0;
   for (int h = 0; h < numSides; ++h) {
-    if (h % (numSides-1) == 0) {
-      float x = .0F;
-      float y = h > 0 ? radius : -radius;
-      float z = .0F;
-      std::cout << vertexIndex++ << ": ";
-      std::cout << (y < 0 ? "Bottom " : "Top ");
-      std::cout << "x, y, z: " << x << " " << y << " " << z << std::endl;
 
-      mesh.vertices.push_back(x);
-      mesh.vertices.push_back(y);
-      mesh.vertices.push_back(z);
+    // if we are dealing with the first vertex,
+    // h==0 --> bottom; h == numSides-1 --> top.
+    if (h % (numSides-1) == 0) {
+      mesh.vertices.push_back(.0F);
+      mesh.vertices.push_back(h > 0 ? radius : -radius);
+      mesh.vertices.push_back(.0F);
       continue;
     }
 
-    float ht = h / static_cast<float>(numSides-1);
-    float theta = (-1 + ht) * M_PI;
+    float theta = h / static_cast<float>(numSides-1) * M_PI;
+
     for (int i = 0; i < numSides; ++i) {
+      float phi = i / static_cast<float>(numSides) * 2.0 * M_PI;
 
-      float t = i / static_cast<float>(numSides);
-      float phi = t * 2 * M_PI_2;
-
-      float sin_t = sin(ht * M_PI);
-      float r = sin_t * radius;
-//      std::cout << "r = " << r << std::endl;
-
-//      float x = r * cos(t);
-//      float z = r * sin(t);
-//      float y = -radius + ht * (2.0*radius);
       float x = cos(phi) * sin(theta);
       float z = sin(phi) * sin(theta);
-      float y = cos(theta);
+      float y = -cos(theta);
 
-      std::cout << vertexIndex++ << ": ";
-      std::cout << "(ht=" << ht << ", t= " << t << ") x, y, z: "
-                << x << " " << y << " " << z << std::endl;
-
-      mesh.vertices.push_back(x);
-      mesh.vertices.push_back(y);
-      mesh.vertices.push_back(z);
+      mesh.vertices.push_back(x * radius);
+      mesh.vertices.push_back(y * radius);
+      mesh.vertices.push_back(z * radius);
     }
   }
 
@@ -253,12 +238,10 @@ Mesh PrimitiveFactory::MakeSphere(float radius) {
     mesh.indices.push_back(0);
     mesh.indices.push_back(v0);
     mesh.indices.push_back(v1);
-    std::cout << "[ 0, " << v0 << ", " << v1 << "];\n";
   }
 
   // the top of the sphere
-  int numVertices = numSides*(numSides-2) + 2;
-  int lastVertex = numVertices-1;
+  int lastVertex = numVertices -1;
   for (int n=0; n<numSides; ++n) {
     int v1 = lastVertex - numSides + n;
     int v2 = lastVertex - numSides + (n+1) % numSides;
@@ -283,9 +266,6 @@ Mesh PrimitiveFactory::MakeSphere(float radius) {
       int v11 = base + i + numSides;
       int v12 = base + numSides + (i + 1) % numSides;
 
-      std::cout << v01 << " " << v11 << " " << v02 << std::endl;
-      std::cout << v02 << " " << v11 << " " << v12 << std::endl << std::endl;
-
       mesh.indices.push_back(v01);
       mesh.indices.push_back(v11);
       mesh.indices.push_back(v02);
@@ -296,6 +276,7 @@ Mesh PrimitiveFactory::MakeSphere(float radius) {
     }
   }
 
+  std::cout << mesh.indices.size() << " capacity: " << mesh.indices.capacity() << std::endl;
   return mesh;
 }
 
