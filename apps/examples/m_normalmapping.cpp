@@ -16,7 +16,7 @@
 #include <georm_resourcemanager.h>
 #include <gui_system.h>
 #include <gui_lighteditor.h>
-#include <programoptions.h>
+#include <wsp_workspace.h>
 #include <georm_fontsystem.h>
 #include <ecs_light.h>
 #include <cxxopts.hpp>
@@ -27,22 +27,69 @@ using namespace geo;
 using lsw::core::Util;
 using namespace glm;
 
+struct File {
+  std::string path;
+  void* data;
+
+  void openReadOnly();
+};
+
+/// @brief The R class is a resource locator class.
+/// The main use of this class is to have a concise way to resolve resources from the
+/// workspace directory. The R class makes use of a singleton that gets initialized in the
+/// beginning of the simulation.
+// R("textures/skydome.jpg")
+
+using lsw::wsp::Workspace;
+
+Workspace parseProgramArguments(int argc, char* argv[]) {
+  cxxopts::Options _options("normalmap", "Demo of normal mapping");
+  _options.add_options()("d,debug", "Enable debugging", cxxopts::value<bool>()->default_value("false"))(
+      "s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())(
+      "m,materials", "Reference to a materials json file", cxxopts::value<std::string>()->default_value(""))("h,help",
+                                                                                                             "Print usage");
+  auto result = _options.parse(argc, argv);
+
+  if (result.count("help")) {
+    std::cout << _options.help() << std::endl;
+    exit(EXIT_SUCCESS);
+  }
+
+  if (!result.count("scene")) {
+    spdlog::error("Missing required command line argument --scene.");
+    std::cout << _options.help() << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  auto& workspace = wsp::WorkspaceManager::GetWorkspace();
+  workspace.sceneFile = result["scene"].as<std::string>();
+  workspace.materialsFile = result["materials"].as<std::string>();
+
+  const char* weraHomeEnv = getenv("WERA3D_HOME");
+  if (weraHomeEnv) {
+    workspace.homeDir = weraHomeEnv;
+    workspace.path = argv[0];
+    workspace.defaultMaterialsFile = workspace.homeDir + "/default_materials.json";
+  } else {
+    workspace.isStrictMode = true;  // no default materials to read from, which implies strict mode.
+  }
+
+  cout << "Scene file: " << workspace.sceneFile << endl;
+  cout << "Materials file: " << (workspace.materialsFile.empty() ? "<not specified>" : workspace.materialsFile) << endl;
+  cout << "Fallback materials: " << (workspace.defaultMaterialsFile.empty() ? "<not specified>" : workspace.defaultMaterialsFile) << endl;
+  cout << "Strict mode: " << (workspace.isStrictMode ? "enabled" : "disabled") << endl;
+
+  cout << "Testing R: " << wsp::R("myTexture.jpg") << std::endl;
+
+  return workspace;
+}
+
 int main(int argc, char* argv[]) {
 #ifndef NDEBUG
   spdlog::set_level(spdlog::level::debug);
 #endif  // NDEBUG
 
-  cxxopts::Options _options("Normal mapping", "Demo shows normal mapping");
-  _options.add_options()
-      ("d,debug", "Enable debugging")
-      ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
-      ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>());
-  auto result = _options.parse(argc, argv);
-
-  ProgramOptions options;
-  if (!options.parseArguments(argc, argv)) {
-    return EXIT_FAILURE;
-  }
+  auto workspace = parseProgramArguments(argc, argv);
 
   //  Workspace workspace(options.getWorkspaceDir());
   //  workspace.setFontFolder("fonts");
@@ -50,7 +97,7 @@ int main(int argc, char* argv[]) {
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
-    auto fontSystem = make_shared<georm::FontSystem>(options.getWorkspaceDir());
+    auto fontSystem = make_shared<georm::FontSystem>(workspace.path.c_str());
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
     materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");

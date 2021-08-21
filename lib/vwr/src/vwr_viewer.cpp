@@ -131,7 +131,7 @@ int Viewer::run() {
     m_animationSystem->update(time, dt);
     m_inputSystem->update();
 
-    if (m_guiSystem && !m_guiSystem->isProcessingInput()) {
+    if (!m_guiSystem || !m_guiSystem->isProcessingInput()) {
       m_firstPersonSystem->update(dt);
     }
     m_transformSystem->update(time, dt);
