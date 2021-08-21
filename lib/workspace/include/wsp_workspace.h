@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
 namespace lsw {
 namespace wsp {
@@ -16,17 +17,20 @@ namespace wsp {
  */
 struct Workspace {
   /// @brief Location of installation directory, which should be ${WERA3D_HOME}.
-  std::string installDir{""};  // home directory of wera3d containing default fallback materials. Not meannt to be adjusted
+  std::filesystem::path installDir{
+      ""};  // home directory of wera3d containing default fallback materials. Not meannt to be adjusted
 
   /// @brief Location of workspace directory if specified on command line. Otherwise it's the current working directory.
-  std::string path{""};     // by default the location from where the application is run.
+  std::filesystem::path path{""};  // by default the location from where the application is run.
 
   /// @brief Scene file to be loaded, as specified on the command line
-  std::string sceneFile{""};
+  std::filesystem::path sceneFile{""};
 
   /// @brief
-  std::string materialsFile{""};
-  
+  std::filesystem::path materialsFile{""};
+
+  bool debugMode{true};
+
   bool isStrictMode{false};
 };
 
@@ -45,11 +49,18 @@ class WorkspaceManager {
   }
 };
 
-
-
-static std::string R(const char* path) {
+/// @brief Resolving a path goes like this:
+/// 1. (If not in workspace) - A file is resolved from the current working directory. unless it is an absolute path.
+/// 2. (If in workspace) - A file is resolved from the workspace, unless it is an absolute path.
+static std::filesystem::path R(std::filesystem::path path) {
   auto& workspace = WorkspaceManager::GetWorkspace();
-  return workspace.path + "/" + path;
+  return workspace.path / path;
+}
+
+/// @brief Resolves a path from the asset directory.
+static std::filesystem::path R(std::filesystem::path path, std::filesystem::path asset) {
+  auto& workspace = WorkspaceManager::GetWorkspace();
+  return workspace.path / path;
 }
 
 }  // namespace wsp

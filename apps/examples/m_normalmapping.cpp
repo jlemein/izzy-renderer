@@ -42,12 +42,22 @@ struct File {
 
 using lsw::wsp::Workspace;
 
+namespace {
+#ifndef NDEBUG
+const char* DEBUG_MODE = "true";
+#else
+const char* DEBUG_MODE = "false";
+#endif  // NDEBUG
+}  // namespace
+
 Workspace parseProgramArguments(int argc, char* argv[]) {
   cxxopts::Options _options("normalmap", "Demo of normal mapping");
-  _options.add_options()("d,debug", "Enable debugging", cxxopts::value<bool>()->default_value("false"))(
-      "s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())(
-      "m,materials", "Reference to a materials json file", cxxopts::value<std::string>()->default_value(""))("h,help",
-                                                                                                             "Print usage");
+  _options.add_options()
+      ("d,debug", "Enable debugging", cxxopts::value<bool>()->default_value(DEBUG_MODE))
+      ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
+      ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>()->default_value(""))
+      ("w,workspace", "Workspace directory", cxxopts::value<std::string>())
+      ("h,help","Print usage");
   auto result = _options.parse(argc, argv);
 
   if (result.count("help")) {
@@ -67,16 +77,16 @@ Workspace parseProgramArguments(int argc, char* argv[]) {
 
   const char* weraHomeEnv = getenv("WERA3D_HOME");
   if (weraHomeEnv) {
-    workspace.homeDir = weraHomeEnv;
+    workspace.installDir = weraHomeEnv;
     workspace.path = argv[0];
-    workspace.defaultMaterialsFile = workspace.homeDir + "/default_materials.json";
   } else {
     workspace.isStrictMode = true;  // no default materials to read from, which implies strict mode.
   }
 
+  workspace.debugMode = result["debug"].as<bool>();
+
   cout << "Scene file: " << workspace.sceneFile << endl;
   cout << "Materials file: " << (workspace.materialsFile.empty() ? "<not specified>" : workspace.materialsFile) << endl;
-  cout << "Fallback materials: " << (workspace.defaultMaterialsFile.empty() ? "<not specified>" : workspace.defaultMaterialsFile) << endl;
   cout << "Strict mode: " << (workspace.isStrictMode ? "enabled" : "disabled") << endl;
 
   cout << "Testing R: " << wsp::R("myTexture.jpg") << std::endl;
@@ -85,22 +95,17 @@ Workspace parseProgramArguments(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-#ifndef NDEBUG
-  spdlog::set_level(spdlog::level::debug);
-#endif  // NDEBUG
-
   auto workspace = parseProgramArguments(argc, argv);
-
-  //  Workspace workspace(options.getWorkspaceDir());
-  //  workspace.setFontFolder("fonts");
-  //  workspace.setModelFolder("models");
+  if (workspace.debugMode) {
+    spdlog::set_level(spdlog::level::debug);
+  }
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
     auto fontSystem = make_shared<georm::FontSystem>(workspace.path.c_str());
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
-    materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");
+    materialSystem->loadMaterialsFromFile(workspace.path / "materials.json");
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
