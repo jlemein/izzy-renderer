@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <filesystem>
 
 namespace lsw {
 namespace georm {
@@ -13,7 +14,7 @@ class FontSystem {
   std::vector<std::string> getAvailableFonts();
 
  private:
-  std::string m_workspaceDir;
+  std::filesystem::path m_workspaceDir;
 };
 
 }

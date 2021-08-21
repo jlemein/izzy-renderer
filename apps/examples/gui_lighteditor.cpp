@@ -83,7 +83,9 @@ void GuiLightEditor::render(float dt, float totalTime) {
   ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
   //  ImGui::StyleColorsLight();
 
-  ImGui::PushFont(m_fonts[1]);
+  if (!m_fonts.empty()) {
+    ImGui::PushFont(*m_fonts.begin());
+  }
 
   // render your GUI
   ImGui::Begin("Demo window");
@@ -121,5 +123,8 @@ void GuiLightEditor::render(float dt, float totalTime) {
   ImGui::EndChild();
 
   ImGui::End();
-  ImGui::PopFont();
+
+  if (!m_fonts.empty()) {
+    ImGui::PopFont();
+  }
 }
