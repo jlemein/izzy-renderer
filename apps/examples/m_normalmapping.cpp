@@ -27,19 +27,6 @@ using namespace geo;
 using lsw::core::Util;
 using namespace glm;
 
-struct File {
-  std::string path;
-  void* data;
-
-  void openReadOnly();
-};
-
-/// @brief The R class is a resource locator class.
-/// The main use of this class is to have a concise way to resolve resources from the
-/// workspace directory. The R class makes use of a singleton that gets initialized in the
-/// beginning of the simulation.
-// R("textures/skydome.jpg")
-
 using lsw::wsp::Workspace;
 
 namespace {
@@ -51,17 +38,24 @@ const char* DEBUG_MODE = "false";
 }  // namespace
 
 Workspace parseProgramArguments(int argc, char* argv[]) {
-  cxxopts::Options _options("normalmap", "Demo of normal mapping");
+  const std::string PROGRAM_NAME = "normalmap";
+  cxxopts::Options _options(PROGRAM_NAME, "Portfolio demo of normal mapping. \n@Copyright reserved to jlemein.nl\n");
   _options.add_options()
       ("d,debug", "Enable debugging", cxxopts::value<bool>()->default_value(DEBUG_MODE))
       ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
       ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>()->default_value(""))
       ("w,workspace", "Workspace directory", cxxopts::value<std::string>())
+      ("v,version", "Version information")
       ("h,help","Print usage");
   auto result = _options.parse(argc, argv);
 
   if (result.count("help")) {
     std::cout << _options.help() << std::endl;
+    exit(EXIT_SUCCESS);
+  }
+
+  if (result.count("version")) {
+    std::cout << PROGRAM_NAME << " v" << VERSION_STR << std::endl; // VERSION_STR is defined in CmakeLists.txt
     exit(EXIT_SUCCESS);
   }
 
