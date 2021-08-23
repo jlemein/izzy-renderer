@@ -29,5 +29,19 @@ add_executable(icosphere m_icosphere.cpp)
 target_link_libraries(icosphere PRIVATE common cxxopts::cxxopts)
 
 install(TARGETS normalmap wera3d icosphere
+        COMPONENT examples
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
+install(TARGETS wera3d
+        COMPONENT wera3d
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)
+
+cpack_add_component(examples
+        DISPLAY_NAME "Examples"
+        DESCRIPTION "Example portfolio to show capabilities"
+        DOWNLOADED)
+cpack_add_component(renderer
+        DISPLAY_NAME "Renderer"
+        DESCRIPTION "Wera 3D Renderer"
+        DOWNLOADED)

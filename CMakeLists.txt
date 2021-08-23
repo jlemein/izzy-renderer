@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.16.3)
-project(Renderer)
+project(Renderer
+        VERSION 1.0.0)
+
+
 
 include(CTest)
 enable_testing()
@@ -50,7 +53,16 @@ set(CMAKE_CXX_STANDARD 17)
 
 
 
-
+include(CPack)
+set(CPACK_IFW_ROOT "/home/jlemein/Qt/QtIFW-4.1.1/")
+include(CPackIFW)
+set(CPACK_IFW_VERBOSE ON)
 
 add_subdirectory(lib)
 add_subdirectory(apps)
+
+#install(FILES LICENSE.md README.md DESTINATION ${CMAKE_BINARY_DIR})
+set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_LIST_DIR}/LICENSE.md)
+set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_LIST_DIR}/README.md)
+
+set(CPACK_GENERATOR "WIX;IFW;ZIP")
