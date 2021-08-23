@@ -4,4 +4,4 @@ build/
 .atom-build.yaml
 .vscode/
 CMakeLists.txt.user
-
+*.spv

@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
     auto resourceManager = make_shared<georm::ResourceManager>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
-    materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");
+    materialSystem->loadMaterialsFromFile("materials.json");
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
