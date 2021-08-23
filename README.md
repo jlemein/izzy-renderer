@@ -23,6 +23,31 @@ uber shader. Disney shader will be used in future release.
 
 ```wera3d -s scene.fbx -m materials.json```
 
+## Basic usage
+
+To render a scene the renderer needs a scene file and material assignments.
+A scene file will usually already consist of material assignments and properties.
+However, those assignments are tightly coupled to the underlying render system. Those 
+properties might not fit with the actual rendering implementation of Wera3d. Therefore
+the material properties are described in specific materials files.
+
+File conventions:
+
+* Let's assume the scene file is called car.fbx.
+* The car does assign material names to individual meshes. Multiple meshes can exist referring to the same material (name).
+* The material name is used to lookup the material in the Wera3d renderer.
+* Wera3d consist of a material collection.
+  * By default the default_materials.json is used in the `WERA3D_HOME` path environment variable.
+  * By supplying a materials argument to the renderer, the materials can be overridden.
+
+Example usages:
+
+| Command                                           | Description  |
+|---------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------|
+```wera3d model.fbx```                              | Renders a model using materials from the default material collection.
+```wera3d -s model.fbx -m materials.fbx```          | Renders a model using materials from the provided materials file. If not found, it still uses the default material collection.
+```wera3d -s model.fbx -m materials.fbx --strict``` | Renders a model, using only the materials.fbx. No default material collection is used.
+
 
 ## Resolving textures
 

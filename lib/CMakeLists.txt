@@ -1,3 +1,5 @@
+
+add_subdirectory(workspace)
 add_subdirectory(fractal)
 add_subdirectory(fractal_generator)
 #add_subdirectory(ecs_transformsystem)

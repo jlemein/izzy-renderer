@@ -16,7 +16,6 @@
 #include <georm_resourcemanager.h>
 #include <gui_system.h>
 #include <gui_lighteditor.h>
-#include <programoptions.h>
 #include <georm_fontsystem.h>
 #include <ecs_light.h>
 #include <cxxopts.hpp>

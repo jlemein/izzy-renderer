@@ -7,13 +7,17 @@ FontSystem::FontSystem(const char* workspaceDir)
   : m_workspaceDir(workspaceDir) {}
 
 std::vector<std::string> FontSystem::getAvailableFonts() {
-  fs::path p = fs::path {m_workspaceDir} / "fonts";
-  std::vector<std::string> fonts;
+  std::vector<std::string> fonts {};
 
-  for (fs::directory_iterator it(p); it != fs::directory_iterator(); ++it) {
+  fs::path fontsDirectory = fs::path{m_workspaceDir} / "fonts";
+  if (!fs::exists(fontsDirectory)) {
+    return fonts;
+  }
+
+  for (fs::directory_iterator it(fontsDirectory); it != fs::directory_iterator(); ++it) {
     auto filePath = it->path().filename();
     if (filePath.is_relative()) {
-      filePath = p / filePath;
+      filePath = fontsDirectory / filePath;
     }
     fonts.emplace_back(filePath.c_str());
   }
