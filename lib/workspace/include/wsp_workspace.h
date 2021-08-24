@@ -17,7 +17,7 @@ namespace wsp {
  */
 struct Workspace {
   /// @brief Location of installation directory, which should be ${WERA3D_HOME}.
-  std::filesystem::path installDir{
+  std::filesystem::path lsw_home_directory{
       ""};  // home directory of wera3d containing default fallback materials. Not meannt to be adjusted
 
   /// @brief Location of workspace directory if specified on command line. Otherwise it's the current working directory.
@@ -32,6 +32,25 @@ struct Workspace {
   bool debugMode{true};
 
   bool isStrictMode{false};
+};
+
+class WorkspaceFactory {
+ public:
+  /**
+   * A default workspace needs no input parameters.
+   * The default workspace requires the LSW_RENDERER_HOME environment variable to be set, otherwise it throws an exception.
+   * @return A workspace
+   */
+  static Workspace CreateDefaultWorkspace() {
+    Workspace workspace;
+    char* envHome = getenv("LSW_RENDERER_HOME");
+    if (envHome == nullptr) {
+      throw std::runtime_error("Environment variable LSW_RENDERER_HOME is not set.");
+    }
+    workspace.lsw_home_directory = envHome;
+    workspace.path = ".";
+    return workspace;
+  }
 };
 
 /**

@@ -3,24 +3,22 @@
 using namespace lsw::georm;
 namespace fs = std::filesystem;
 
-FontSystem::FontSystem(const char* workspaceDir)
-  : m_workspaceDir(workspaceDir) {}
+int FontSystem::addFontsFromDirectory(std::filesystem::path directory) {
+
+  // store number of fonts before, to calculate added number of fonts at the end of method
+  int prevNumberFonts = m_availableFontFiles.size();
+
+  if (fs::exists(directory)) {
+    for (fs::directory_iterator it(directory); it != fs::directory_iterator(); ++it) {
+      auto filePath = it->path().filename();
+      m_availableFontFiles.emplace_back(filePath.is_relative() ? directory / filePath : filePath);
+    }
+  }
+
+  int numberFonts = m_availableFontFiles.size();
+  return numberFonts - prevNumberFonts;
+}
 
 std::vector<std::string> FontSystem::getAvailableFonts() {
-  std::vector<std::string> fonts {};
-
-  fs::path fontsDirectory = fs::path{m_workspaceDir} / "fonts";
-  if (!fs::exists(fontsDirectory)) {
-    return fonts;
-  }
-
-  for (fs::directory_iterator it(fontsDirectory); it != fs::directory_iterator(); ++it) {
-    auto filePath = it->path().filename();
-    if (filePath.is_relative()) {
-      filePath = fontsDirectory / filePath;
-    }
-    fonts.emplace_back(filePath.c_str());
-  }
-
-  return fonts;
+  return m_availableFontFiles;
 }
