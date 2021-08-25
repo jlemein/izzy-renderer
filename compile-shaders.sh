@@ -8,6 +8,8 @@ fi
 INPUT_DIR="$1"
 OUTPUT_DIR="$2"
 
+mkdir -p $OUTPUT_DIR
+
 echo "Outputting shaders in directory: $OUTPUT_DIR"
 
 vs_files=$(readlink -m "${INPUT_DIR}/*.vert")
