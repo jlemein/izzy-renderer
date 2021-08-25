@@ -112,3 +112,47 @@ A material system handles the information and is responsible for processing mate
 * Knowing when to prepare and pre-load entities, based on current state of the scene graph.
 * Unloading of materials.
 
+# Project overview
+
+The project is built using Cmake:
+* cmake for building and generation of a source code project. Tested with make files.
+* **ctest** for running the unit tests
+* cmake install for installing the project
+* **cpack** for packaging the install process as a GUI installer.
+
+## Running unit tests
+
+Make sure to generate the project with unit tests included:
+
+```asm
+    # if not already performed
+    mkdir build && cd build
+
+    cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTING=ON ..
+    ctest
+```
+
+## Installing from source
+
+```asm
+git clone repo
+cd renderer && mkdir build && cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/opt
+make -j8
+(sudo) make install # use sudo only when installing to /usr/bin
+```
+
+## Creating an installer
+
+CPack is used to create a GUI installer. QTIFW is used as the cpack generator to create the installer.
+Make sure that QtIFW is installed and that the environment variable is set (either using ~/.bashrc or using the
+`export ROOT_QTIFW=<qtifw_root_directory>`).
+
+For linux follow the instructions:
+
+```asm
+    mkdir build && cd build
+    cmake .. -DCMAKE_BUILD_TYPE=Release
+    cpack
+```
+

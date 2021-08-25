@@ -2,6 +2,7 @@
 
 #include <string>
 #include <filesystem>
+#include <memory>
 
 namespace lsw {
 namespace wsp {
@@ -41,14 +42,14 @@ class WorkspaceFactory {
    * The default workspace requires the LSW_RENDERER_HOME environment variable to be set, otherwise it throws an exception.
    * @return A workspace
    */
-  static Workspace CreateDefaultWorkspace() {
-    Workspace workspace;
+  static std::shared_ptr<Workspace> CreateDefaultWorkspace() {
+    auto workspace = std::make_shared<Workspace>();
     char* envHome = getenv("LSW_RENDERER_HOME");
     if (envHome == nullptr) {
       throw std::runtime_error("Environment variable LSW_RENDERER_HOME is not set.");
     }
-    workspace.lsw_home_directory = envHome;
-    workspace.path = ".";
+    workspace->lsw_home_directory = envHome;
+    workspace->path = "";
     return workspace;
   }
 };
@@ -62,25 +63,41 @@ class WorkspaceManager {
   WorkspaceManager(const WorkspaceManager&) = delete;
   void operator=(const WorkspaceManager&) = delete;
 
-  static Workspace& GetWorkspace() {
-    static Workspace instance;
-    return instance;
+  static std::shared_ptr<Workspace> GetActiveWorkspace() {
+    return m_activeWorkspace;
   }
+
+  static void SetActiveWorkspace(std::shared_ptr<Workspace> workspace) {
+    m_activeWorkspace = workspace;
+  }
+
+ private:
+  static inline std::shared_ptr<Workspace> m_activeWorkspace {nullptr};
 };
 
 /// @brief Resolving a path goes like this:
 /// 1. (If not in workspace) - A file is resolved from the current working directory. unless it is an absolute path.
 /// 2. (If in workspace) - A file is resolved from the workspace, unless it is an absolute path.
 static std::filesystem::path R(std::filesystem::path path) {
-  auto& workspace = WorkspaceManager::GetWorkspace();
-  return workspace.path / path;
+  auto workspace = WorkspaceManager::GetActiveWorkspace();
+  constexpr const char* RESOURCES_PREFIX = "resources";
+
+  if (path.is_absolute()) {
+    return path;
+  } else if (!workspace->path.empty()) {
+    return workspace->path / RESOURCES_PREFIX / path;
+  } else if (!workspace->lsw_home_directory.empty()) {
+    return workspace->lsw_home_directory / RESOURCES_PREFIX / path;
+  } else {
+    return path;
+  }
 }
 
-/// @brief Resolves a path from the asset directory.
-static std::filesystem::path R(std::filesystem::path path, std::filesystem::path asset) {
-  auto& workspace = WorkspaceManager::GetWorkspace();
-  return workspace.path / path;
-}
+///// @brief Resolves a path from the asset directory.
+//static std::filesystem::path R(std::filesystem::path path, std::filesystem::path asset) {
+//  auto& workspace = WorkspaceManager::GetWorkspace();
+//  return workspace.path / path;
+//}
 
 }  // namespace wsp
 }  // namespace lsw

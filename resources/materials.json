@@ -8,9 +8,9 @@
   "materials": [
     {
       "name": "NormalMap",
-      "vertex_shader": "assets/shaders/fwd-diffuse-map.vert.spv",
+      "vertex_shader": "shaders/fwd-diffuse-map.vert.spv",
       "geometry_shader": "",
-      "fragment_shader": "assets/shaders/fwd-diffuse-map.frag.spv",
+      "fragment_shader": "shaders/fwd-diffuse-map.frag.spv",
       "lighting": {
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
@@ -19,20 +19,20 @@
         {
           "type": "texture",
           "name": "albedoMap",
-          "value": "assets/textures/castle_albedo.jpg"
+          "value": "textures/castle_albedo.jpg"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "assets/textures/castle_normal.jpg"
+          "value": "textures/castle_normal.jpg"
         }
       ]
     },
     {
       "name": "ParallaxMap",
-      "vertex_shader": "assets/shaders/fwd-parallax-map.vert.spv",
+      "vertex_shader": "shaders/fwd-parallax-map.vert.spv",
       "geometry_shader": "",
-      "fragment_shader": "assets/shaders/fwd-parallax-map.frag.spv",
+      "fragment_shader": "shaders/fwd-parallax-map.frag.spv",
       "lighting": {
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
@@ -48,25 +48,25 @@
         {
           "type": "texture",
           "name": "albedoMap",
-          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+          "value": "textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+          "value": "textures/cobble_stone/StreetCobblestone3_1K_normal.png"
         },
         {
           "type": "texture",
           "name": "heightMap",
-          "value": "assets/textures/cobble_stone/StreetCobblestone3_1K_height.png"
+          "value": "textures/cobble_stone/StreetCobblestone3_1K_height.png"
         }
       ]
     },
     {
       "name": "Wireframe",
-      "vertex_shader": "assets/shaders/wireframe.vert.spv",
+      "vertex_shader": "shaders/wireframe.vert.spv",
       "geometry_shader": "",
-      "fragment_shader": "assets/shaders/wireframe.frag.spv"
+      "fragment_shader": "shaders/wireframe.frag.spv"
     }
   ]
 }

@@ -27,17 +27,18 @@ list (APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD 17)
 
-#set(SPIRV_INPUT_FILES
-#        assets/shaders/shader.frag
-#        assets/shaders/diffuse.frag
-#        assets/shaders/shader.vert
-#        assets/shaders/diffuse.vert)
-#
-#set(SPIRV_OUTPUT_FILES
-#        ${CMAKE_BINARY_DIR}/assets/shaders/shader.frag.spv
-#        ${CMAKE_BINARY_DIR}/assets/shaders/shader.vert.spv
-#        ${CMAKE_BINARY_DIR}/assets/shaders/diffuse.frag.spv
-#        ${CMAKE_BINARY_DIR}/assets/shaders/diffuse.vert.spv)
+set(SHADER_INPUT_FILES
+        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-diffuse-map.vert
+        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-diffuse-map.frag
+        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-parallax-map.vert
+        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-parallax-map.frag
+        )
+
+set(SHADER_OUTPUT_FILES
+        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-diffuse-map.vert.spv
+        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-diffuse-map.frag.spv
+        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-parallax-map.vert.spv
+        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-parallax-map.frag.spv)
 
 # drawback of this method is that it is always considered out-of-date, and therefore always recompiles.
 #add_custom_target(compile-shaders
@@ -45,14 +46,22 @@ set(CMAKE_CXX_STANDARD 17)
 #        COMMAND ${CMAKE_CURRENT_LIST_DIR}/compile-shaders.sh ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders ${CMAKE_BINARY_DIR}/workspace/assets/shaders)
 
 # a better solution is as follows:
-file(GLOB SHADER_INPUT_FILES   ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders/*.vert ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders/*.frag)
-file(GLOB SHADER_OUTPUT_FILES  ${CMAKE_BINARY_DIR}/workspace/assets/shaders/*.spv)
+#file(GLOB SHADER_INPUT_FILES   ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders/*.vert ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders/*.frag)
+#file(GLOB SHADER_OUTPUT_FILES  ${CMAKE_BINARY_DIR}/resources/shaders/*.spv)
 add_custom_command(
         OUTPUT ${SHADER_OUTPUT_FILES}
         COMMAND echo "Compiling shaders"
-        COMMAND ${CMAKE_CURRENT_LIST_DIR}/compile-shaders.sh ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders ${CMAKE_BINARY_DIR}/workspace/assets/shaders
+        COMMAND ${CMAKE_CURRENT_LIST_DIR}/compile-shaders.sh ${CMAKE_CURRENT_LIST_DIR}/resources/shaders ${CMAKE_BINARY_DIR}/resources/shaders
         DEPENDS ${SHADER_INPUT_FILES})
-add_custom_target(compile-shaders DEPENDS ${SHADER_OUTPUT_FILES})
+add_custom_target(compile-shaders ALL DEPENDS ${SHADER_OUTPUT_FILES})
+
+####################################################################################
+### Resources
+####################################################################################
+install(FILES ${SHADER_OUTPUT_FILES} DESTINATION resources/shaders)
+configure_file(${CMAKE_SOURCE_DIR}/resources/materials.json ${CMAKE_BINARY_DIR}/resources/materials.json COPYONLY)
+install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION .)
+install(FILES ${CMAKE_SOURCE_DIR}/compile-shaders.sh DESTINATION tools)
 
 # configure file will copy the file <1> to the destination <2>, only if file <1> has changed or at first run.
 #configure_file(WELCOME.md $<TARGET_FILE_DIR:normalmap>/WELCOME.md COPYONLY)
@@ -63,8 +72,7 @@ add_custom_target(compile-shaders DEPENDS ${SHADER_OUTPUT_FILES})
 #        OUTPUT $<TARGET_FILE_DIR:normalmap>/WELCOME.md
 #        INPUT ${CMAKE_CURRENT_LIST_DIR}/WELCOME.md)
 
-install(FILES workspace/materials.json DESTINATION resources)
-install(DIRECTORY workspace/assets DESTINATION resources)
+
 
 set(CPACK_IFW_ROOT "/home/jlemein/Qt/QtIFW-4.1.1/")
 set(CPACK_IFW_VERBOSE ON)
@@ -84,4 +92,6 @@ add_subdirectory(apps)
 add_dependencies(normalmap compile-shaders)
 
 #install(FILES LICENSE.md README.md DESTINATION ${CMAKE_BINARY_DIR})
+
+
 

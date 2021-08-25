@@ -20,6 +20,7 @@
 #include <ecs_light.h>
 #include <cxxopts.hpp>
 #include <wsp_workspace.h>
+#include <memory>
 
 using namespace std;
 using namespace lsw;
@@ -28,11 +29,11 @@ using lsw::core::Util;
 using namespace glm;
 using lsw::wsp::Workspace;
 
-Workspace parseProgramArguments(int argc, char* argv[]);
+std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
 int main(int argc, char* argv[]) {
   auto workspace = parseProgramArguments(argc, argv);
-  if (workspace.debugMode) {
+  if (workspace->debugMode) {
     spdlog::set_level(spdlog::level::debug);
   }
 
@@ -42,10 +43,10 @@ int main(int argc, char* argv[]) {
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
 
-    if (workspace.materialsFile.empty()) {
+    if (workspace->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
-      materialSystem->loadMaterialsFromFile(workspace.materialsFile);
+      materialSystem->loadMaterialsFromFile(workspace->materialsFile);
     }
 
     resourceManager->setMaterialSystem(materialSystem);
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager(), guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    spdlog::info("Loading scene file: {}", workspace.sceneFile.c_str());
+    spdlog::info("Loading scene file: {}", workspace->sceneFile.c_str());
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
@@ -90,7 +91,7 @@ const char* DEBUG_MODE = "true";
 #endif  // NDEBUG
 }  // namespace
 
-Workspace parseProgramArguments(int argc, char* argv[]) {
+std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
   const std::string PROGRAM_NAME = "normalmap";
   cxxopts::Options _options(PROGRAM_NAME, "Portfolio demo of normal mapping. \n@Copyright reserved to jlemein.nl\n");
   _options.add_options()
@@ -118,23 +119,23 @@ Workspace parseProgramArguments(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  auto& workspace = wsp::WorkspaceManager::GetWorkspace();
-  workspace.sceneFile = result["scene"].as<std::string>();
-  workspace.materialsFile = result["materials"].as<std::string>();
+  auto workspace = wsp::WorkspaceManager::GetActiveWorkspace();
+  workspace->sceneFile = result["scene"].as<std::string>();
+  workspace->materialsFile = result["materials"].as<std::string>();
 
   const char* weraHomeEnv = getenv("WERA3D_HOME");
   if (weraHomeEnv) {
-    workspace.lsw_home_directory = weraHomeEnv;
-    workspace.path = argv[0];
+    workspace->lsw_home_directory = weraHomeEnv;
+    workspace->path = argv[0];
   } else {
-    workspace.isStrictMode = true;  // no default materials to read from, which implies strict mode.
+    workspace->isStrictMode = true;  // no default materials to read from, which implies strict mode.
   }
 
-  workspace.debugMode = result["debug"].as<bool>();
+  workspace->debugMode = result["debug"].as<bool>();
 
-  cout << "Scene file: " << workspace.sceneFile << endl;
-  cout << "Materials file: " << (workspace.materialsFile.empty() ? "<not specified>" : workspace.materialsFile) << endl;
-  cout << "Strict mode: " << (workspace.isStrictMode ? "enabled" : "disabled") << endl;
+  cout << "Scene file: " << workspace->sceneFile << endl;
+  cout << "Materials file: " << (workspace->materialsFile.empty() ? "<not specified>" : workspace->materialsFile) << endl;
+  cout << "Strict mode: " << (workspace->isStrictMode ? "enabled" : "disabled") << endl;
 
   cout << "Testing R: " << wsp::R("myTexture.jpg") << std::endl;
 

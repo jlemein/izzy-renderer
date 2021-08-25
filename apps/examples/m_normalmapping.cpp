@@ -44,27 +44,23 @@ int main(int argc, char* argv[]) {
   spdlog::set_level(spdlog::level::debug);
 #endif
 
-  std::cout << "CWD: " << std::filesystem::current_path() << std::endl;
-  std::ifstream input("WELCOME.md");
-  if (input.fail()) {
-    std::cerr << "Cannot open file" << std::endl;
+  std::shared_ptr<Workspace> workspace {nullptr};
+
+  try {
+    workspace = wsp::WorkspaceFactory::CreateDefaultWorkspace();
+    wsp::WorkspaceManager::SetActiveWorkspace(workspace);
+  } catch(std::runtime_error& e) {
+    std::cerr << e.what() << std::endl;
     exit(EXIT_FAILURE);
-  }
-  std::string str;
-  while (getline(input, str)) {
-    std::cout << str << endl;
   }
 
   try {
-    auto workspace = wsp::WorkspaceFactory::CreateDefaultWorkspace();
-
     auto resourceManager = make_shared<georm::ResourceManager>();
     auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
 
-    auto resourcePath = workspace.lsw_home_directory / "resources";
-    materialSystem->loadMaterialsFromFile(resourcePath / "materials.json");
+    materialSystem->loadMaterialsFromFile(wsp::R("materials.json"));
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));

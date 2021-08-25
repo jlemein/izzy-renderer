@@ -25,6 +25,7 @@ target_link_libraries(geo
             assimp::assimp
             glm::glm
             spdlog::spdlog
+            workspace
 #            CONAN_PKG::boost
         PUBLIC
         assimp::assimp resourcemanager::resourcemanager stb::stb fmt::fmt nlohmann_json::nlohmann_json)

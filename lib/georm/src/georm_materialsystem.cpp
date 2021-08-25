@@ -199,7 +199,6 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
 }
 
 void MaterialSystem::loadMaterialsFromFile(const std::string& path) {
-  // create an empty structure (null)
   std::ifstream input(path);
   if (input.fail()) {
     throw std::runtime_error(fmt::format("MaterialSystem fails to initialize: cannot read from '{}'", path));
