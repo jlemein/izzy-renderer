@@ -18,6 +18,7 @@
 #include <uniform_ubermaterial.h>
 #include <uniform_lambert.h>
 #include <uniform_parallax.h>
+#include <wsp_workspace.h>
 
 using json = nlohmann::json;
 
@@ -99,9 +100,9 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
 
     // pass shader info
     try {
-      m.vertexShader = material["vertex_shader"].get<std::string>();
-      m.geometryShader = material["geometry_shader"].get<std::string>();
-      m.fragmentShader = material["fragment_shader"].get<std::string>();
+      m.vertexShader = wsp::R(material["vertex_shader"].get<std::string>());
+      m.geometryShader = wsp::R(material["geometry_shader"].get<std::string>());
+      m.fragmentShader = wsp::R(material["fragment_shader"].get<std::string>());
 
       spdlog::debug("\tvertex shader: {}", m.vertexShader);
       spdlog::debug("\tgeometry shader: {}", m.geometryShader);

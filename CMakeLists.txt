@@ -62,8 +62,8 @@ install(FILES ${SHADER_OUTPUT_FILES} DESTINATION resources/shaders)
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/resources DESTINATION .)
 install(FILES ${CMAKE_SOURCE_DIR}/compile-shaders.sh DESTINATION tools)
 
-file(COPY resources/textures DESTINATION ${CMAKE_BINARY_DIR}/resources)
 configure_file(${CMAKE_SOURCE_DIR}/resources/materials.json ${CMAKE_BINARY_DIR}/resources/materials.json COPYONLY)
+file(COPY resources/textures DESTINATION ${CMAKE_BINARY_DIR}/resources)
 
 # configure file will copy the file <1> to the destination <2>, only if file <1> has changed or at first run.
 #configure_file(WELCOME.md $<TARGET_FILE_DIR:normalmap>/WELCOME.md COPYONLY)

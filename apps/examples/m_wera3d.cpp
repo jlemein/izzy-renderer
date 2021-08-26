@@ -92,12 +92,12 @@ const char* DEBUG_MODE = "true";
 }  // namespace
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
-  const std::string PROGRAM_NAME = "normalmap";
-  cxxopts::Options _options(PROGRAM_NAME, "Portfolio demo of normal mapping. \n@Copyright reserved to jlemein.nl\n");
+  const std::string PROGRAM_NAME = "wera3d";
+  cxxopts::Options _options(PROGRAM_NAME, "Wera3d renderer.\nCopyright reserved to jlemein.nl\n");
   _options.add_options()
-  ("d,debug", "Enable debugging", cxxopts::value<bool>()->default_value(DEBUG_MODE))
+  ("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))
   ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
-  ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>()->default_value(""))
+  ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>())
   ("w,workspace", "Workspace directory", cxxopts::value<std::string>())
   ("v,version", "Version information")
   ("h,help","Print usage");
