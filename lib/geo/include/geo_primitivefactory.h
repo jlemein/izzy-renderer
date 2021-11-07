@@ -33,37 +33,48 @@ public:
    * @param height The height of the plane.
    * @returns a plane wt
    */
-  static Mesh MakePlane(float width, float height);
+  static Mesh MakePlane(const std::string& name, float width, float height);
 
   /**!
    * Creates a simple axis aligned 3D box with center at origin, e.g. (0,0,0).
+   * @param name Name of the mesh.
    * @param width Width along the X axis.
    * @param height Height along the Y axis.
    * @param depth Depth along the Z axis.
    * @return A mesh object.
    */
-  static Mesh MakeBox(float width = 1.0F, float height = 1.0F, float depth = 1.0F);
+  static Mesh MakeBox(const std::string& name, float width = 1.0F, float height = 1.0F, float depth = 1.0F);
 
   /**!
    * Creates a simple cylinder centered at origin, e.g. (0,0,0).
+   * @param name The name of the mesh.
    * @param radius The radius of the circular cylinder cap.
    * @param height The height of the cylinder in the Y axis.
    * @param numSegments The number of sides for the cylinder. Increasing the
    * number of segments make a smoother result at the cost of more vertex data.
    * @returns a cylinder object
    */
-  static Mesh MakeCylinder(float radius = 1.0F, float height = 1.0F, int numSides = 12);
+  static Mesh MakeCylinder(const std::string& name, float radius = 1.0F, float height = 1.0F, int numSides = 12);
 
   /**!
    * Creates a pyramid with a defined base and height.
+   * @param name The name of the mesh.
    * @param base Base size of the pyramid, which corresponds to the width and height.
    * @param height The height of the pyramid from the base to the tip of the pyramid.
    * @return a mesh object
    */
-  static Mesh MakePyramid(float base = 1.0F, float height = 1.0F);
+  static Mesh MakePyramid(const std::string& name, float base = 1.0F, float height = 1.0F);
 
 
-  static Mesh MakeUVSphere(float radius = 1.0F, int num_segments = 32);
+  /**
+   *
+   * @param name The name of the mesh.
+   * @param radius
+   * @param num_segments
+   * @return
+   */
+  static Mesh MakeUVSphere(const std::string& name, float radius = 1.0F, int num_segments = 32);
+
   static Mesh MakeDonut(float innerRadius, float outerRadius);
   static Mesh MakeTeapot(float size);
 };

@@ -7,7 +7,7 @@
 #include <georm_resourcemanager.h>
 #include <nlohmann/json.hpp>
 
-#include <ecs_rendersystem.h>
+#include <glrs_rendersystem.h>
 #include <fstream>
 #include <geo_textureloader.h>
 #include <memory>
@@ -100,6 +100,7 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
 
     // pass shader info
     try {
+      m.isBinaryShader = material.contains("is_binary_shader") ? material["is_binary_shader"].get<bool>() : false;
       m.vertexShader = wsp::R(material["vertex_shader"].get<std::string>());
       m.geometryShader = wsp::R(material["geometry_shader"].get<std::string>());
       m.fragmentShader = wsp::R(material["fragment_shader"].get<std::string>());
@@ -277,9 +278,9 @@ MaterialPtr MaterialSystem::makeDefaultMaterial() {
 // }
 
 void MaterialSystem::update(float time, float dt) {
-  auto view = m_sceneGraph->getRegistry().view<geo::Material, ecs::Renderable>();
+  auto view = m_sceneGraph->getRegistry().view<geo::Material, glrs::Renderable>();
   for (auto e : view) {
-    const auto& r = view.get<ecs::Renderable>(e);
+    const auto& r = view.get<glrs::Renderable>(e);
     const auto& m = view.get<geo::Material>(e);
 
     // TODO: probably this for loop is more efficient if it is part of render system
@@ -295,7 +296,7 @@ void MaterialSystem::update(float time, float dt) {
   }
 }
 
-void MaterialSystem::synchronizeTextures(ecs::RenderSystem& renderSystem) {
+void MaterialSystem::synchronizeTextures(glrs::RenderSystem& renderSystem) {
   auto& registry = m_sceneGraph->getRegistry();
   auto view = registry.view<geo::Material>();  // why are we not requesting
                                                // <Material, Renderable>?
@@ -304,7 +305,7 @@ void MaterialSystem::synchronizeTextures(ecs::RenderSystem& renderSystem) {
   // ...
 
   for (auto entity : view) {
-    auto& renderable = registry.get_or_emplace<ecs::Renderable>(entity);
+    auto& renderable = registry.get_or_emplace<glrs::Renderable>(entity);
     auto& geoMaterial = view.get<geo::Material>(entity);
 
     for (auto& [name, path] : geoMaterial.texturePaths) {

@@ -5,9 +5,10 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_relationship.h>
-#include <ecs_renderable.h>
 #include <ecs_texture.h>
 #include <ecs_transform.h>
+
+#include <glrs_renderable.h>
 
 #include <geo_curve.h>
 #include <geo_light.h>
@@ -33,7 +34,7 @@ void SceneGraph::setDefaultMaterial(std::shared_ptr<res::Resource<geo::Material>
 
 SceneGraphEntity SceneGraph::addGeometry(const geo::Mesh& mesh, const geo::Material& mat) {
   auto e = makeEntity(mesh.name);
-  e.add<ecs::Renderable>();
+  e.add<glrs::Renderable>();
   e.add<geo::Mesh>(mesh);
   e.add<geo::Material>(mat);
 
@@ -125,7 +126,7 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 di
 SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh& mesh) {
   auto meshEntity = makeEntity(mesh.name);
 
-  meshEntity.add<ecs::Renderable>();
+  meshEntity.add<glrs::Renderable>();
   meshEntity.add<geo::Mesh>(mesh);
 
   // Watch out here, geo::Material is a value type so we can do this.
@@ -150,7 +151,7 @@ SceneGraphEntity SceneGraph::makeEmptyMesh(const geo::Mesh& mesh) {
   auto sge = makeEntity(mesh.name);
   auto e = sge.handle();
 
-  auto& renderable = m_registry.emplace<ecs::Renderable>(e);
+  auto& renderable = m_registry.emplace<glrs::Renderable>(e);
 
   m_registry.emplace<geo::Mesh>(e, mesh);
   return sge;
@@ -179,12 +180,12 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
   auto curve = makeEntity(std::move(name));
 
   curve.add<geo::Curve>();
-  curve.add<ecs::Renderable>();
+  curve.add<glrs::Renderable>();
   auto& s = curve.add<geo::Material>({.name = "default curve material",
                                       .vertexShader = "assets/shaders/default_curve.vert.spv",
                                       .fragmentShader = "assets/shaders/default_curve.frag.spv"});
 
-  auto block = new ecs::ColorBlock;
+  auto block = new glrs::ColorBlock;
   block->color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
   s.setProperty("ColorBlock", block);
   //TODO: Add color block manager to material system,
@@ -269,7 +270,7 @@ SceneGraphEntity SceneGraph::makeRenderable(const geo::Mesh& mesh, glm::mat4 tra
 
   //  auto materialId =
   //  m_resourceManager->getResource<geo::Material>(materialName)->id();
-  e.add<ecs::Renderable>();
+  e.add<glrs::Renderable>();
   e.add<geo::Mesh>(mesh);
   e.add<geo::Material>(material);
 
@@ -279,7 +280,7 @@ SceneGraphEntity SceneGraph::makeRenderable(const geo::Mesh& mesh, glm::mat4 tra
 SceneGraphEntity SceneGraph::makeRenderable(geo::Mesh&& mesh, const geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<ecs::Renderable>(e);
+  m_registry.emplace<glrs::Renderable>(e);
   m_registry.emplace<geo::Mesh>(e, std::move(mesh));
   m_registry.emplace<geo::Material>(e, material);
 
@@ -289,7 +290,7 @@ SceneGraphEntity SceneGraph::makeRenderable(geo::Mesh&& mesh, const geo::Materia
 SceneGraphEntity SceneGraph::makeRenderable(geo::Curve&& curve, const geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<ecs::Renderable>(e);
+  m_registry.emplace<glrs::Renderable>(e);
   m_registry.emplace<geo::Curve>(e, std::move(curve));
   m_registry.emplace<geo::Material>(e, material);
 

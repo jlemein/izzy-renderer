@@ -1,18 +1,18 @@
-#include <ecs_lightsystem.h>
-#include <ecs_renderable.h>
+#include <glrs_lightsystem.h>
+#include <glrs_renderable.h>
 #include <ecs_transform.h>
 #include <spdlog/spdlog.h>
 #include <ecs_light.h>
 using namespace lsw;
-using namespace lsw::ecs;
+using namespace lsw::glrs;
 
 LightSystem::LightSystem(entt::registry& registry)
   : m_registry{registry} {}
 
 int LightSystem::getActiveLightCount() const {
-  auto pointLights = m_registry.view<Transform, PointLight>();
-  auto dirLights = m_registry.view<Transform, DirectionalLight>();
-  auto ambientLights = m_registry.view<AmbientLight>();
+  auto pointLights = m_registry.view<ecs::Transform, ecs::PointLight>();
+  auto dirLights = m_registry.view<ecs::Transform, ecs::DirectionalLight>();
+  auto ambientLights = m_registry.view<ecs::AmbientLight>();
 
   return pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 }
@@ -58,9 +58,9 @@ void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& m
 
 void LightSystem::updateLightProperties() {
   //
-  auto pointLights = m_registry.view<Transform, PointLight>();
-  auto dirLights = m_registry.view<Transform, DirectionalLight>();
-  auto ambientLights = m_registry.view<AmbientLight>();
+  auto pointLights = m_registry.view<ecs::Transform, ecs::PointLight>();
+  auto dirLights = m_registry.view<ecs::Transform, ecs::DirectionalLight>();
+  auto ambientLights = m_registry.view<ecs::AmbientLight>();
   auto numLights = pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 
   //  if (numLights > 4) {
@@ -84,8 +84,8 @@ void LightSystem::updateLightProperties() {
     if (i > numberOfDirectionalLights) {
       break;
     }
-    const auto& light = dirLights.get<DirectionalLight>(e);
-    const auto& transform = dirLights.get<Transform>(e);
+    const auto& light = dirLights.get<ecs::DirectionalLight>(e);
+    const auto& transform = dirLights.get<ecs::Transform>(e);
 
     m_oldModel.diffuseColors[0] = glm::vec4(light.color, 0.0F);
     m_oldModel.intensities[0] = light.intensity;
@@ -103,7 +103,7 @@ void LightSystem::updateLightProperties() {
     if (i > numberOfAmbientLights) {
       break;
     }
-    auto& light = ambientLights.get<AmbientLight>(e);
+    auto& light = ambientLights.get<ecs::AmbientLight>(e);
     m_forwardLighting.ambientLight.color = glm::vec4(light.color, 0.0F);
     m_forwardLighting.ambientLight.intensity = light.intensity;
   }
@@ -114,8 +114,8 @@ void LightSystem::updateLightProperties() {
     if (i > numberOfPointLights) {
       break;
     }
-    const auto& light = pointLights.get<PointLight>(e);
-    const auto& transform = pointLights.get<Transform>(e);
+    const auto& light = pointLights.get<ecs::PointLight>(e);
+    const auto& transform = pointLights.get<ecs::Transform>(e);
 
     auto& ubo = m_forwardLighting.pointLights[i++];
     ubo.attenuation = light.attenuation;

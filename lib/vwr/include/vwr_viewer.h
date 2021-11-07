@@ -2,7 +2,7 @@
 #pragma once
 
 #include <ecs_firstpersoncontrolsystem.h>
-#include <ecs_rendersubsystem.h>
+#include <glrs_rendersubsystem.h>
 #include <vwr_viewerextension.h>
 
 #include <list>
@@ -22,9 +22,11 @@ namespace res {
 class ResourceManager;
 }
 
+namespace glrs {
+class RenderSystem;
+}
 namespace ecs {
 class TransformSystem;
-class RenderSystem;
 class CameraSystem;
 class DebugSystem;
 class IViewerExtension;
@@ -62,7 +64,7 @@ public:
    * not need this data).
    */
   Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
-         std::shared_ptr<ecs::RenderSystem> renderSystem,
+         std::shared_ptr<glrs::RenderSystem> renderSystem,
          std::shared_ptr<res::ResourceManager> resourceManager,
          std::shared_ptr<GuiSystem> guiSystem = nullptr);
 
@@ -82,7 +84,7 @@ public:
 
   void registerExtension(std::shared_ptr<ecs::IViewerExtension> interactable);
   void registerRenderSubsystem(
-      std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem);
+      std::shared_ptr<glrs::IRenderSubsystem> renderSubsystem);
 
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
@@ -93,7 +95,7 @@ private:
 
   std::list<std::shared_ptr<ecs::IViewerExtension>> m_viewerExtensions;
 
-  std::shared_ptr<ecs::RenderSystem> m_renderSystem;
+  std::shared_ptr<glrs::RenderSystem> m_renderSystem;
   std::shared_ptr<ecs::TransformSystem> m_transformSystem;
   std::shared_ptr<ecs::CameraSystem> m_cameraSystem;
   std::shared_ptr<ecs::DebugSystem> m_debugSystem;

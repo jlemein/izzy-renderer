@@ -4,7 +4,7 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <ecs_camerasystem.h>
-#include <ecs_rendersystem.h>
+#include <glrs_rendersystem.h>
 #include <ecs_transformsystem.h>
 #include <ecsg_scenegraph.h>
 #include <io_inputsystem.h>
@@ -29,7 +29,7 @@ static void error_callback(int error, const char* description) {
 }
 }  // namespace
 
-Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<ecs::RenderSystem> renderSystem,
+Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
                std::shared_ptr<res::ResourceManager> resourceManager, std::shared_ptr<GuiSystem> guiSystem)
   : m_sceneGraph{sceneGraph}
   , m_resourceManager{resourceManager}
@@ -179,6 +179,6 @@ void Viewer::registerExtension(std::shared_ptr<ecs::IViewerExtension> interactab
   m_viewerExtensions.emplace_back(move(interactable));
 }
 
-void Viewer::registerRenderSubsystem(std::shared_ptr<ecs::IRenderSubsystem> renderSubsystem) {
+void Viewer::registerRenderSubsystem(std::shared_ptr<glrs::IRenderSubsystem> renderSubsystem) {
   m_renderSystem->addSubsystem(renderSubsystem);
 }

@@ -6,7 +6,7 @@
 #define RENDERER_GEORM_MATERIALSYSTEM_H
 
 #include "georm_resourcemanager.h"
-#include <ecs_rendersystem.h>
+#include <glrs_rendersystem.h>
 #include <ecsg_scenegraphentity.h>
 #include <entt/entt.hpp>
 #include <geo_material.h>
@@ -33,7 +33,7 @@ class ResourceManager;
  * Every material described in the materials file should be mapped to a data
  * structure.
  */
-class MaterialSystem : public res::ResourceFactory, public ecs::IMaterialSystem {
+class MaterialSystem : public res::ResourceFactory, public glrs::IMaterialSystem {
 public:
   MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
                  std::shared_ptr<georm::ResourceManager> resourceManager);
@@ -62,7 +62,7 @@ public:
    * it makes sure the rendersystem is updated with new texture data, or to
    * remove
    */
-  void synchronizeTextures(ecs::RenderSystem& renderSystem) override;
+  void synchronizeTextures(glrs::RenderSystem& renderSystem) override;
 
   /// @brief Loads the material associated with the specified material name.
   /// @details the material is loaded based on material name. There are four

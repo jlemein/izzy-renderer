@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
 
     resourceManager->setMaterialSystem(materialSystem);
 
-    auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
+    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<GuiSystem>(editor);
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager(), guiSystem);

@@ -6,11 +6,12 @@
 #define GLVIEWER_VIEWER_RENDERSYSTEM_H
 
 #include <ecs_debugsystem.h>
-#include <ecs_renderable.h>
-#include <ecs_rendersubsystem.h>
+#include <glrs_renderable.h>
+#include <glrs_rendersubsystem.h>
 #include <memory>
 
 #include <glm/glm.hpp>
+#include <glrs_lightsystem.h>
 
 namespace lsw {
 
@@ -21,20 +22,34 @@ class SceneGraph;
 namespace ecs {
 struct Shader;
 class TextureSystem;
+}
+
+namespace glrs {
 class IMaterialSystem;
 class LightSystem;
+class ShaderSystem;
 
 /**!
  * Responsible
  */
 class RenderSystem {
 public:
+  using ShaderProgram = uint64_t;
+
   RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
-               std::shared_ptr<IMaterialSystem> materialSystem);
+               std::shared_ptr<glrs::IMaterialSystem> materialSystem);
 
   void init();
   void update(float time, float dt);
   void render();
+
+  /**
+   * Compiles a shader defined by a material and returns a shader program object.
+   * @param material
+   * @param renderable
+   * @return
+   */
+//  ShaderProgram compileShader(const geo::Material& material, const Renderable& renderable);
 
   // register as part of the render pipeline
   void addSubsystem(std::shared_ptr<IRenderSubsystem> system);
@@ -48,7 +63,7 @@ public:
    * @param paramName
    * @return
    */
-  void attachTexture(ecs::Renderable &renderable,
+  void attachTexture(glrs::Renderable &renderable,
                              const geo::Texture &geoTexture,
                              const std::string &paramName);
 
@@ -57,9 +72,10 @@ public:
 private:
   entt::registry &m_registry;
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
+  std::shared_ptr<ShaderSystem> m_shaderSystem;
   std::shared_ptr<IMaterialSystem> m_materialSystem;
   ecs::DebugSystem m_debugSystem;
-  std::shared_ptr<ecs::LightSystem> m_lightSystem;
+  std::shared_ptr<LightSystem> m_lightSystem;
 
   entt::entity m_activeCamera{entt::null};
 

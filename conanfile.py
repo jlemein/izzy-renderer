@@ -49,7 +49,7 @@ class RendererConan(ConanFile):
         self.requires("entt/3.7.1")
         self.requires("glfw/3.3.2")
         self.requires("spdlog/1.8.2")
-        self.requires("resourcemanager/0.2@lemonsoftware/dev")
+        self.requires("resourcemanager/0.2@lemon/editable")
         self.requires("imgui/1.80")
         self.requires("nlohmann_json/3.9.1")
         self.requires("stb/20200203")

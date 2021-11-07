@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 07-11-20.
 //
-#include <ecs_rendersystem.h>
+#include <glrs_rendersystem.h>
 
 #include <cstring>
 #include <ecs_camera.h>
@@ -16,58 +16,16 @@
 #include <uniform_ubermaterial.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <spdlog/spdlog.h>
-#include <ecs_lightsystem.h>
+#include <glrs_lightsystem.h>
 #include <ecs_wireframe.h>
+#include <geo_material.h>
+#include <glrs_shadersystem.h>
 
 using namespace lsw;
-using namespace lsw::ecs;
+using namespace lsw::glrs;
 
 namespace {
-std::vector<char> readFile(const std::string& filename) {
-  // TODO: check for empty file name and give clear error message
 
-  std::ifstream file(filename, std::ios::ate | std::ios::binary);
-
-  if (!file.is_open()) {
-    throw std::runtime_error(fmt::format("failed to read file '{}'", filename));
-  }
-
-  size_t fileSize = (size_t)file.tellg();
-  std::vector<char> buffer(fileSize);
-
-  file.seekg(0);
-  file.read(buffer.data(), fileSize);
-  file.close();
-
-  return buffer;
-}
-
-void getShaderLog(GLint shader) {
-  std::cout << "Failed to compile shader" << std::endl;
-  GLint reqBufferSize;
-  glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &reqBufferSize);
-
-  std::vector<char> buffer;
-  buffer.resize(reqBufferSize);
-  glGetShaderInfoLog(shader, reqBufferSize, nullptr, buffer.data());
-
-  std::string log(buffer.begin(), buffer.end());
-  std::cout << log << std::endl;
-}
-
-void printLinkingLog(GLint program) {
-  spdlog::log(spdlog::level::err, "Failed to link shader");
-
-  GLint reqBufferSize;
-  glGetProgramiv(program, GL_INFO_LOG_LENGTH, &reqBufferSize);
-
-  std::vector<char> buffer;
-  buffer.resize(reqBufferSize);
-  glGetProgramInfoLog(program, reqBufferSize, nullptr, buffer.data());
-
-  std::string log(buffer.begin(), buffer.end());
-  spdlog::log(spdlog::level::info, "Program log: {}", log);
-}
 
 constexpr void* BUFFER_OFFSET(unsigned int offset) {
   uint8_t* pAddress = 0;
@@ -116,8 +74,9 @@ void pushLightingData(const Renderable& renderable) {
 void initMVPUniformBlock(Renderable& renderable) {
   glUseProgram(renderable.program);  // TODO: remove line
   renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
+
   if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
-    throw std::runtime_error("Invalid uniform buffer object block index");
+    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}", renderable.material ? (*renderable.material)->vertexShader : "<no material assigned>"));
   }
 
   glGenBuffers(1, &renderable.uboId);
@@ -220,7 +179,13 @@ RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::sh
   : m_registry{sceneGraph->getRegistry()}
   , m_debugSystem(sceneGraph->getRegistry())
   , m_materialSystem(materialSystem)
-  , m_lightSystem{std::make_shared<ecs::LightSystem>(m_registry)} {}
+  , m_shaderSystem(std::make_shared<ShaderSystem>())
+  , m_lightSystem{std::make_shared<LightSystem>(m_registry)} {
+
+
+//    glGetIntegerv(GL_SHADER_BINARY_FORMATS)
+
+}
 
 void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
@@ -297,51 +262,54 @@ void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize));
   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize + tangentSize));
 }
-
-GLuint compileShader(const geo::Material& material, const Renderable& renderable) {
-  auto vertexShaderBuffer = readFile(material.vertexShader);
-  auto fragmentShaderBuffer = readFile(material.fragmentShader);
-
-  int vsCompiled = 0, fsCompiled = 0;
-  auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
-  glShaderBinary(1, &vertex_shader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, vertexShaderBuffer.data(), vertexShaderBuffer.size());
-  glSpecializeShaderARB(vertex_shader, "main", 0, 0, 0);
-  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vsCompiled);
-
-  auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
-  glShaderBinary(1, &fragment_shader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, fragmentShaderBuffer.data(),
-                 fragmentShaderBuffer.size());
-  glSpecializeShaderARB(fragment_shader, "main", 0, 0, 0);
-  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fsCompiled);
-
-  if (!fsCompiled) {
-    spdlog::log(spdlog::level::err, "Failed to compile fragment shader");
-    getShaderLog(fragment_shader);
-  }
-
-  if (!vsCompiled) {
-    spdlog::log(spdlog::level::err, "Failed to compile vertex shader");
-    getShaderLog(vertex_shader);
-  }
-
-  if (!fsCompiled || !vsCompiled) {
-    exit(1);
-  }
-
-  auto program = glCreateProgram();
-  glAttachShader(program, vertex_shader);
-  glAttachShader(program, fragment_shader);
-  glLinkProgram(program);
-  int linked = 0;
-  glGetProgramiv(program, GL_LINK_STATUS, &linked);
-
-  if (linked == GL_FALSE) {
-    spdlog::log(spdlog::level::err, "Linking failed for vs: {}, fs: {}", material.vertexShader, material.fragmentShader);
-    printLinkingLog(program);
-  }
-
-  return program;
-}
+//
+//RenderSystem::ShaderProgram RenderSystem::compileShader(const geo::Material& material, const Renderable& renderable) {
+////  auto vertexShaderBuffer = readFile(material.vertexShader);
+////  auto fragmentShaderBuffer = readFile(material.fragmentShader);
+//
+//  auto vertexShaderBuffer = readFile(material.vertexShader);
+//  auto fragmentShaderBuffer = readFile(material.fragmentShader);
+//
+//  int vsCompiled = 0, fsCompiled = 0;
+//  auto vertex_shader = glCreateShader(GL_VERTEX_SHADER);
+//  glShaderBinary(1, &vertex_shader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, vertexShaderBuffer.data(), vertexShaderBuffer.size());
+//  glSpecializeShaderARB(vertex_shader, "main", 0, 0, 0);
+//  glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &vsCompiled);
+//
+//  auto fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
+//  glShaderBinary(1, &fragment_shader, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, fragmentShaderBuffer.data(),
+//                 fragmentShaderBuffer.size());
+//  glSpecializeShaderARB(fragment_shader, "main", 0, 0, 0);
+//  glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fsCompiled);
+//
+//  if (!fsCompiled) {
+//    spdlog::log(spdlog::level::err, "Failed to compile fragment shader");
+//    getShaderLog(fragment_shader);
+//  }
+//
+//  if (!vsCompiled) {
+//    spdlog::log(spdlog::level::err, "Failed to compile vertex shader");
+//    getShaderLog(vertex_shader);
+//  }
+//
+//  if (!fsCompiled || !vsCompiled) {
+//    exit(1);
+//  }
+//
+//  auto program = glCreateProgram();
+//  glAttachShader(program, vertex_shader);
+//  glAttachShader(program, fragment_shader);
+//  glLinkProgram(program);
+//  int linked = 0;
+//  glGetProgramiv(program, GL_LINK_STATUS, &linked);
+//
+//  if (linked == GL_FALSE) {
+//    spdlog::log(spdlog::level::err, "Linking failed for vs: {}, fs: {}", material.vertexShader, material.fragmentShader);
+//    printLinkingLog(program);
+//  }
+//
+//  return static_cast<RenderSystem::ShaderProgram>(program);
+//}
 
 void RenderSystem::init() {
   glShadeModel(GL_SMOOTH);
@@ -382,10 +350,15 @@ void RenderSystem::init() {
 
     try {
       initCurveBuffers(renderable, curve);
-      renderable.program = compileShader(material, renderable);
+
+      if (material.isBinaryShader) {
+          renderable.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
+      } else {
+          renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
+      }
       initShaderProperties(renderable, material);
     } catch (std::exception& e) {
-      auto name = m_registry.all_of<Name>(entity) ? m_registry.get<Name>(entity).name : "Unnamed";
+      auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
 
       std::cerr << "Failed initializing curve '" << name << "': " << e.what();
       exit(1);
@@ -395,7 +368,7 @@ void RenderSystem::init() {
   // handling meshes
   auto view = m_registry.view<geo::Mesh, geo::Material, Renderable>();
   for (auto entity : view) {
-    auto name = m_registry.all_of<Name>(entity) ? m_registry.get<Name>(entity).name : "Unnamed";
+    auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
 
     try {
       auto& renderable = m_registry.get<Renderable>(entity);
@@ -404,12 +377,28 @@ void RenderSystem::init() {
 
       auto& material = m_registry.get<geo::Material>(entity);
       spdlog::info("Compiling shaders -- vs: {} fs: {}", material.vertexShader, material.fragmentShader);
-      renderable.program = compileShader(material, renderable);
+
+      if (material.isBinaryShader) {
+          renderable.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
+      } else {
+          renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
+      }
+
+        if (glGetUniformBlockIndex(renderable.program, "ForwardLighting") == GL_INVALID_INDEX) {
+            spdlog::error("Forward lighting not found");
+        } else {
+            spdlog::error("Forward lighting FOUND");
+        }
+
+      if (glGetUniformBlockIndex(renderable.program, "UniformBufferBlock") == GL_INVALID_INDEX) {
+        spdlog::error("Failed");
+      }
+
 
       initShaderProperties(renderable, material);
 
     } catch (std::exception& e) {
-      auto name = m_registry.all_of<Name>(entity) ? m_registry.get<Name>(entity).name : "Unnamed";
+      auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
 
       std::cerr << "Failed initializing mesh '" << name << "': " << e.what();
       exit(1);
@@ -478,13 +467,13 @@ void RenderSystem::updateModelMatrix(entt::entity e) {
 }
 
 void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
-  if (!m_registry.all_of<Camera>(cameraEntity)) {
+  if (!m_registry.all_of<ecs::Camera>(cameraEntity)) {
     throw std::runtime_error("Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
 
   // determine frame buffers
-  if (m_registry.all_of<PosteffectCollection>(m_activeCamera)) {
+  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
     GLuint framebufferName = 0;
     glGenFramebuffers(1, &framebufferName);
     glBindFramebuffer(GL_FRAMEBUFFER, framebufferName);
@@ -512,7 +501,7 @@ void RenderSystem::updateCamera(Renderable& renderable) {
   }
 
   auto& transform = m_registry.get<ecs::Transform>(m_activeCamera);
-  auto& activeCamera = m_registry.get<Camera>(m_activeCamera);
+  auto& activeCamera = m_registry.get<ecs::Camera>(m_activeCamera);
 
   renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
   renderable.uniformBlock.proj =
@@ -535,7 +524,7 @@ void RenderSystem::render() {
 
   for (auto entity : view) {
     const auto& renderable = view.get<const Renderable>(entity);
-    const auto& name = m_registry.get<Name>(entity);
+    const auto& name = m_registry.get<ecs::Name>(entity);
 
     // activate shader program
     glUseProgram(renderable.program);
@@ -544,7 +533,7 @@ void RenderSystem::render() {
     activateTextures(entity);
 
     // TODO: disable in release
-    if (renderable.isWireframe || m_registry.any_of<Wireframe>(entity)) {
+    if (renderable.isWireframe || m_registry.any_of<ecs::Wireframe>(entity)) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -595,7 +584,7 @@ void RenderSystem::checkError(entt::entity e) {
   // get error message
   GLenum err;
   if ((err = glGetError()) != GL_NO_ERROR) {
-    auto name = m_registry.all_of<Name>(e) ? m_registry.get<Name>(e).name : std::string{"Unnamed"};
+    auto name = m_registry.all_of<ecs::Name>(e) ? m_registry.get<ecs::Name>(e).name : std::string{"Unnamed"};
     std::cerr << " Render error occurred for " << name << ": " << err << std::endl;
   }
 }
@@ -610,7 +599,7 @@ void RenderSystem::checkError(entt::entity e) {
  * TODO: think about passing a scene graph entity instead
  * @return
  */
-void RenderSystem::attachTexture(ecs::Renderable& renderable, const geo::Texture& geoTexture, const std::string& name) {
+void RenderSystem::attachTexture(Renderable& renderable, const geo::Texture& geoTexture, const std::string& name) {
   ecs::Texture texture{.name = name};
   glGenTextures(1, &texture.glTextureId);
   glBindTexture(GL_TEXTURE_2D, texture.glTextureId);
@@ -639,11 +628,11 @@ void RenderSystem::activateTextures(entt::entity e) {
   //  for (auto entity : view) {
   //  auto& registry = m_sceneGraph->getRegistry();
 
-  if (!m_registry.all_of<ecs::Renderable, geo::Material>(e)) {
+  if (!m_registry.all_of<Renderable, geo::Material>(e)) {
     return;
   }
 
-  const auto& renderable = m_registry.get<ecs::Renderable>(e);
+  const auto& renderable = m_registry.get<Renderable>(e);
   //  const auto& shader = m_registry.get<Shader>(e);
 
   for (int t = 0; t < renderable.textures.size(); ++t) {

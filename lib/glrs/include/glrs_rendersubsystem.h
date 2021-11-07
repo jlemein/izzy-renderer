@@ -8,7 +8,7 @@
 #include <entt/entt.hpp>
 
 namespace lsw {
-namespace ecs
+namespace glrs
 {
 class IRenderSubsystem
 {

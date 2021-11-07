@@ -26,10 +26,10 @@ int main(int argc, char* argv[]) {
     materialSystem->loadMaterialsFromFile("materials.json");
     resourceManager->setMaterialSystem(materialSystem);
 
-    auto renderSystem = make_shared<ecs::RenderSystem>(sceneGraph, static_pointer_cast<ecs::IMaterialSystem>(materialSystem));
+    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
 
 //    auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("Wireframe"));
-    auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeUVSphere(), resourceManager->createMaterial("Wireframe"));
+    auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeUVSphere("UvSphere"), resourceManager->createMaterial("Wireframe"));
     box.add<ecs::Wireframe>();
 
     auto viewer =

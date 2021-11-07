@@ -14,7 +14,6 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrol.h
         include/ecs_moveable.h
         include/ecs_relationship.h
-        include/ecs_renderable.h
         include/ecs_texture.h
         include/ecs_transform.h
         include/ecs_transformutil.h
@@ -25,12 +24,8 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecs_camerasystem.h
         src/ecs_camerasystem.cpp
         src/ecs_firstpersoncontrolsystem.cpp
-        src/ecs_lightsystem.h
-        src/ecs_lightsystem.cpp
 
         include/ecs_firstpersoncontrolsystem.h
-        include/ecs_rendersystem.h
-        src/ecs_rendersystem.cpp
         src/ecs_transformutil.cpp
         include/ecs_debug.h
         include/ecs_debugsystem.h
@@ -40,15 +35,13 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp
         include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h
 #        ../core/include/core_exceptions.h
-        include/ecs_shader.h include/core_util.h
+        include/core_util.h
         ${HEADERS})
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(ecs PUBLIC include PRIVATE src)
 target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog ecsg)
-
-message("Packages in conan: ${CONAN_PKG}")
 
 find_package(GTest REQUIRED)
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
@@ -60,7 +53,6 @@ add_executable(ecs_test
         src/ecs_shader.t.cpp
         src/ecs_firstpersoncontrolsystem.t.cpp
         src/ecs_transformsystem.t.cpp
-        src/ecs_lightsystem.t.cpp
         )
 target_link_libraries(ecs_test PRIVATE ecs GTest::GTest)
 target_include_directories(ecs_test PRIVATE src)

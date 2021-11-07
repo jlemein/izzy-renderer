@@ -14,3 +14,4 @@ add_subdirectory(vwr)
 #add_subdirectory(viewer_textures)
 add_subdirectory(geo)
 add_subdirectory(georm)
+add_subdirectory(glrs)  # OpenGL based Render System

@@ -2,13 +2,11 @@
 
 #include <glm/glm.hpp>
 #include <geo_material.h>
-#include <ecs_renderable.h>
+#include <glrs_renderable.h>
 #include <entt/entity/registry.hpp>
 
 namespace lsw {
-namespace ecs {
-
-struct Renderable;
+namespace glrs {
 
 struct UPointLight {
   glm::vec4 position;
@@ -47,6 +45,19 @@ struct ForwardLighting {
   USpotlight spotlights[2];
 
   static inline const char* PARAM_NAME = "ForwardLighting";
+};
+
+struct UniformLighting {
+    glm::vec4 positions[4];
+    glm::vec4 diffuseColors[4];
+    float intensities[4];
+    glm::vec4 _padding1[3];
+    float attenuation[4];
+    glm::vec4 _padding2[3];
+
+    /// MAX = 4
+    uint32_t numberLights {0U};
+    static inline const char* PARAM_NAME = "Lighting";
 };
 
 class LightSystem {

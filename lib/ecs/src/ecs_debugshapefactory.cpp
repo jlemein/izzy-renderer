@@ -3,7 +3,7 @@
 //
 #include <ecs_debugmodel.h>
 #include <ecs_debugshapefactory.h>
-#include <ecs_renderable.h>
+#include <glrs_renderable.h>
 #include <ecs_transformutil.h>
 
 #include <entt/entt.hpp>
@@ -21,12 +21,12 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry &registry,
 
   const auto &transform = registry.get<Transform>(target);
 
-  box.mesh.push_back(geo::PrimitiveFactory::MakeBox(1.0F, 1.0F, 1.0F));
+  box.mesh.push_back(geo::PrimitiveFactory::MakeBox("Debug_BoundingBox", 1.0F, 1.0F, 1.0F));
   box.material.push_back(
       geo::Material{.vertexShader = "assets/shaders/debug.vert.spv",
                     .fragmentShader = "assets/shaders/debug.frag.spv"});
 
-  box.renderable.push_back(Renderable{.isWireframe = true});
+  box.renderable.push_back(glrs::Renderable{.isWireframe = true});
   box.transformations.push_back(Transform{});
 
   // by default use the
@@ -60,16 +60,16 @@ DebugModel DebugShapeFactory::MakeEulerArrow(entt::registry &registry,
                                              entt::entity target) {
   DebugModel eulerArrow;
 
-  auto xAxis = geo::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
-  auto yAxis = geo::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
-  auto zAxis = geo::PrimitiveFactory::MakeCylinder(0.05F, 2.0F);
+  auto xAxis = geo::PrimitiveFactory::MakeCylinder("Debug_CylinderX", 0.05F, 2.0F);
+  auto yAxis = geo::PrimitiveFactory::MakeCylinder("Debug_CylinderY", 0.05F, 2.0F);
+  auto zAxis = geo::PrimitiveFactory::MakeCylinder("Debug_CylinderZ", 0.05F, 2.0F);
   eulerArrow.mesh.push_back(xAxis);
   eulerArrow.mesh.push_back(yAxis);
   eulerArrow.mesh.push_back(zAxis);
 
-  eulerArrow.renderable.push_back(Renderable{});
-  eulerArrow.renderable.push_back(Renderable{});
-  eulerArrow.renderable.push_back(Renderable{});
+  eulerArrow.renderable.push_back(glrs::Renderable{});
+  eulerArrow.renderable.push_back(glrs::Renderable{});
+  eulerArrow.renderable.push_back(glrs::Renderable{});
 
   eulerArrow.names.push_back({"EulerX"});
   eulerArrow.names.push_back({"EulerY"});
@@ -121,19 +121,20 @@ DebugModel DebugShapeFactory::MakeCameraBox(entt::registry &registry,
   float cameraBoxDepth = 1.0F;
   float cameraBoxWidth = 0.5F;
 
-  auto cameraBoxMesh = geo::PrimitiveFactory::MakeBox(
+  auto cameraBoxMesh = geo::PrimitiveFactory::MakeBox("Debug_CameraBox",
       cameraBoxWidth, cameraBoxWidth, cameraBoxDepth);
   geo::MeshTransform::Translate(
       cameraBoxMesh,
       glm::vec3(0.0F, 0.0F, 0.5F * cameraBoxDepth + cameraFrontHeight));
   cameraBox.mesh.push_back(cameraBoxMesh);
   cameraBox.material.push_back(
-      geo::Material{.vertexShader = "assets/shaders/debug.vert.spv",
+      geo::Material{.isBinaryShader = true,
+                    .vertexShader = "assets/shaders/debug.vert.spv",
                     .fragmentShader = "assets/shaders/debug.frag.spv"});
-  cameraBox.renderable.push_back(Renderable{.isWireframe = false});
+  cameraBox.renderable.push_back(glrs::Renderable{.isWireframe = false});
   cameraBox.transformations.push_back(Transform{});
 
-  auto cameraFront = geo::PrimitiveFactory::MakePyramid(cameraBoxWidth * 0.8F,
+  auto cameraFront = geo::PrimitiveFactory::MakePyramid("Debug_Pyramid", cameraBoxWidth * 0.8F,
                                                         cameraFrontHeight);
   geo::MeshTransform::RotateX(cameraFront, 90.0F);
 
@@ -144,11 +145,11 @@ DebugModel DebugShapeFactory::MakeCameraBox(entt::registry &registry,
   auto shader =
       geo::Material{.vertexShader = "assets/shaders/debug.vert.spv",
                     .fragmentShader = "assets/shaders/debug.frag.spv"};
-  shader.setProperty<ColorBlock>(ColorBlock{
+  shader.setProperty<glrs::ColorBlock>(glrs::ColorBlock{
       .color = glm::vec4(1.0F, 0.5F, 0.0F, 1.0F), .diffuseShading = true});
   cameraBox.material.push_back(std::move(shader));
 
-  cameraBox.renderable.push_back(Renderable{.isWireframe = false});
+  cameraBox.renderable.push_back(glrs::Renderable{.isWireframe = false});
   cameraBox.transformations.push_back(Transform{});
 
   return cameraBox;

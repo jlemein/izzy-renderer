@@ -3,6 +3,14 @@
 The Wera3D renderer is a flexible lightweight renderer for Linux. The renderer is a rasterized renderer using OpenGL.
 The renderer can render arbitrary scene files, using the following instructions:
 
+### Build
+
+Requirements:
+* GLEW libraries - `sudo apt install libglew-dev`
+* glslc
+
+Project makes use of Git LFS.
+
 ### Preconditions
 
 1. Extract the wera3d at your location of choice. Suggestions are in: `~/opt/wera3d-1.0`.

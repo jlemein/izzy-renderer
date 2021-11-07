@@ -6,7 +6,7 @@
 #define ARTIFAX_ECS_DEBUGSYSTEM_H
 
 #include <ecs_debug.h>
-#include <ecs_renderable.h>
+#include <glrs_renderable.h>
 #include <entt/entity/registry.hpp>
 #include <geo_curve.h>
 #include <geo_mesh.h>

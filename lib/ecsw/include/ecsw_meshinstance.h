@@ -6,6 +6,7 @@
 #define GLVIEWER_ECSW_MESHINSTANCE_H
 
 #include <memory>
+#include <string>
 
 namespace lsw {
 namespace geo {

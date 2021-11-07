@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 06-02-21.
 //
-#include <ecs_lightsystem.h>
+#include <glrs_lightsystem.h>
 #include <gtest/gtest.h>
 using namespace lsw::ecs;
 

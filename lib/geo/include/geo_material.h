@@ -78,6 +78,9 @@ struct UserProperties {
 struct Material {
   std::string name;
 
+  /// Indicates whether the vertex and fragment shader files are in binary format (e.g. pre-compiled SPIRV format).
+  bool isBinaryShader {false};
+
   std::string vertexShader {""};
   std::string geometryShader {""};
   std::string fragmentShader {""};

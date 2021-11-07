@@ -8,11 +8,11 @@
 using namespace lsw;
 using namespace lsw::geo;
 
-Mesh PrimitiveFactory::MakePlane(float width, float height) {
-  return Mesh();
+Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float height) {
+  return Mesh{.name = name};
 }
 
-Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
+Mesh PrimitiveFactory::MakeBox(const std::string& name, float width, float height, float depth) {
   float vertices[] = {
       -.5F, -.5F, .5F,   // v0
       .5F,  -.5F, .5F,   // v1
@@ -88,11 +88,12 @@ Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
                         11, 8,  12, 11, 12, 15,   // Left
                         16, 19, 17, 17, 19, 18,   // Bottom
                         20, 21, 22, 20, 22, 23};  // Top
-  Mesh mesh;
+  Mesh mesh {.name = name};
   mesh.vertices = std::vector<float>{vertices, vertices + sizeof(vertices) / sizeof(float)};
   mesh.indices = std::vector<uint32_t>{indices, indices + sizeof(indices) / sizeof(uint32_t)};
   mesh.uvs = std::vector<float>{uvs, uvs + sizeof(uvs) / sizeof(float)};
   mesh.normals = std::vector<float>{normals, normals + sizeof(normals) / sizeof(float)};
+  mesh.name = "Box";
 
   // scale the box to requested size
   for (unsigned int i = 0U; i < mesh.vertices.size(); i += 3) {
@@ -106,8 +107,8 @@ Mesh PrimitiveFactory::MakeBox(float width, float height, float depth) {
   return mesh;
 }
 
-Mesh PrimitiveFactory::MakeCylinder(float radius, float height, int numSides) {
-  Mesh mesh;
+Mesh PrimitiveFactory::MakeCylinder(const std::string& name, float radius, float height, int numSides) {
+  Mesh mesh {.name = name};
 
   // cap + bottom + sides
   auto numVertices = numSides * 2 + 2;
@@ -163,7 +164,7 @@ Mesh PrimitiveFactory::MakeCylinder(float radius, float height, int numSides) {
   return mesh;
 }
 
-Mesh PrimitiveFactory::MakePyramid(float baseWidth, float height) {
+Mesh PrimitiveFactory::MakePyramid(const std::string& name, float baseWidth, float height) {
   float vertices[] = {
       -.5F, -.5F, -.5F,  // v0
       .5F,  -.5F, -.5F,  // v1
@@ -179,7 +180,7 @@ Mesh PrimitiveFactory::MakePyramid(float baseWidth, float height) {
       1, 2, 4,           // Right
       2, 3, 4,           // Back
   };
-  Mesh mesh;
+  Mesh mesh {.name = name};
   mesh.vertices = std::vector<float>{vertices, vertices + sizeof(vertices) / sizeof(float)};
   mesh.indices = std::vector<uint32_t>{indices, indices + sizeof(indices) / sizeof(uint32_t)};
 
@@ -192,8 +193,8 @@ Mesh PrimitiveFactory::MakePyramid(float baseWidth, float height) {
 
   return mesh;
 }
-Mesh PrimitiveFactory::MakeUVSphere(float radius, int numSides) {
-  Mesh mesh;
+Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int numSides) {
+  Mesh mesh {.name = name};
 
   // a sphere with N number of sides has N vertices per cross section (around the surface).
   // The sphere is symmetric, so the number of vertices is N * (N-2) + 2.

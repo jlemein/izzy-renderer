@@ -22,6 +22,9 @@ find_package(cxxopts REQUIRED)
 add_executable(normalmap m_normalmapping.cpp gui_lighteditor.h gui_lighteditor.cpp)
 target_link_libraries(normalmap PRIVATE common cxxopts::cxxopts)
 
+#add_executable(parallax m_parallaxmapping.cpp gui_lighteditor.h gui_lighteditor.cpp)
+#target_link_libraries(parallax PRIVATE common cxxopts::cxxopts)
+
 add_executable(wera3d m_wera3d.cpp gui_lighteditor.h gui_lighteditor.cpp)
 target_link_libraries(wera3d PRIVATE common cxxopts::cxxopts)
 target_compile_definitions(wera3d PRIVATE -DVERSION_STR="1.0.0")
