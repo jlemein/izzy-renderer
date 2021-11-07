@@ -384,17 +384,6 @@ void RenderSystem::init() {
           renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
       }
 
-        if (glGetUniformBlockIndex(renderable.program, "ForwardLighting") == GL_INVALID_INDEX) {
-            spdlog::error("Forward lighting not found");
-        } else {
-            spdlog::error("Forward lighting FOUND");
-        }
-
-      if (glGetUniformBlockIndex(renderable.program, "UniformBufferBlock") == GL_INVALID_INDEX) {
-        spdlog::error("Failed");
-      }
-
-
       initShaderProperties(renderable, material);
 
     } catch (std::exception& e) {

@@ -31,7 +31,7 @@
     },
     {
       "name": "ParallaxMap",
-      "is_binary_shader": true,
+      "is_binary_shader": false,
       "vertex_shader": "shaders/fwd-parallax-map.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/fwd-parallax-map.frag",

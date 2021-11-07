@@ -39,6 +39,7 @@ const char* DEBUG_MODE = "false";
 
 #include <fstream>
 
+
 int main(int argc, char* argv[]) {
 #ifndef NDEBUG
   spdlog::set_level(spdlog::level::debug);

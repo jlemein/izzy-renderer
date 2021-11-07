@@ -19,7 +19,7 @@ namespace wsp {
 struct Workspace {
   /// @brief Location of installation directory, which should be ${WERA3D_HOME}.
   std::filesystem::path lsw_home_directory{
-      ""};  // home directory of wera3d containing default fallback materials. Not meannt to be adjusted
+      ""};  // home directory of wera3d containing default fallback materials. Not meant to be adjusted
 
   /// @brief Location of workspace directory if specified on command line. Otherwise it's the current working directory.
   std::filesystem::path path{""};  // by default the location from where the application is run.
@@ -80,14 +80,13 @@ class WorkspaceManager {
 /// 2. (If in workspace) - A file is resolved from the workspace, unless it is an absolute path.
 static std::filesystem::path R(std::filesystem::path path) {
   auto workspace = WorkspaceManager::GetActiveWorkspace();
-  constexpr const char* RESOURCES_PREFIX = "resources";
 
   if (path.is_absolute()) {
     return path;
   } else if (!workspace->path.empty()) {
-    return workspace->path / RESOURCES_PREFIX / path;
+    return workspace->path / path;
   } else if (!workspace->lsw_home_directory.empty()) {
-    return workspace->lsw_home_directory / RESOURCES_PREFIX / path;
+    return workspace->lsw_home_directory / path;
   } else {
     return path;
   }

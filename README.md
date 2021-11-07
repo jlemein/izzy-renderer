@@ -3,6 +3,15 @@
 The Wera3D renderer is a flexible lightweight renderer for Linux. The renderer is a rasterized renderer using OpenGL.
 The renderer can render arbitrary scene files, using the following instructions:
 
+The following examples are delivered as part of the renderer:
+* Normalmapping example
+* Parallax mapping example
+
+The renderer is able to render a scene with materials.
+
+`wera3d --scene=hello.fbx --materials=material.json`
+
+
 ### Build
 
 Requirements:
