@@ -19,6 +19,7 @@ find_package(assimp REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(GTest REQUIRED)
+find_package(Boost REQUIRED)
 
 target_link_libraries(geo
         PRIVATE
@@ -26,7 +27,7 @@ target_link_libraries(geo
             glm::glm
             spdlog::spdlog
             workspace
-#            CONAN_PKG::boost
+            Boost::boost
         PUBLIC
         assimp::assimp resourcemanager::resourcemanager stb::stb fmt::fmt nlohmann_json::nlohmann_json)
 

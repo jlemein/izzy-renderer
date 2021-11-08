@@ -11,6 +11,7 @@
 #include <res_resource.h>
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
+#include <filesystem>
 
 namespace lsw {
 namespace geo {
@@ -112,10 +113,10 @@ struct Material {
 
   UserProperties userProperties;
 
-  std::string diffuseTexturePath {""};
-  std::string specularTexturePath {""};
-  std::string normalTexturePath {""};
-  std::string roughnessTexturePath {""};
+  std::filesystem::path diffuseTexturePath {""};
+  std::filesystem::path specularTexturePath {""};
+  std::filesystem::path normalTexturePath {""};
+  std::filesystem::path roughnessTexturePath {""};
 
   // TODO: move in separate class or struct.
   /// @brief a texture maps from a parameter name (e.g. my_diffuse_tex) to a file path.

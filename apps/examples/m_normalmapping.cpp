@@ -48,8 +48,7 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<Workspace> workspace {nullptr};
 
   try {
-    workspace = wsp::WorkspaceFactory::CreateDefaultWorkspace();
-    wsp::WorkspaceManager::SetActiveWorkspace(workspace);
+    workspace = wsp::WorkspaceManager::GetActiveWorkspace();
   } catch(std::runtime_error& e) {
     std::cerr << e.what() << std::endl;
     exit(EXIT_FAILURE);

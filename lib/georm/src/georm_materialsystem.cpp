@@ -238,6 +238,11 @@ std::unique_ptr<res::IResource> MaterialSystem::createResource(const std::string
     if (m_materials.count(m_defaultMaterial) > 0) {
       spdlog::warn("Material with name '{}' not found, default material used.", materialName);
       material = m_materials.at(m_defaultMaterial);
+    } else if (!m_materials.empty()) {
+      material = m_materials.begin()->second;
+      spdlog::warn(
+          "Material '{}' is not defined. No default material is set. Using the first defined material (0: '{}') instead.", name,
+          material.name);
     } else {
       throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", materialName));
     }

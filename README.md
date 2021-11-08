@@ -1,16 +1,32 @@
 # Wera3D Renderer
 
 The Wera3D renderer is a flexible lightweight renderer for Linux. The renderer is a rasterized renderer using OpenGL.
-The renderer can render arbitrary scene files, using the following instructions:
+The renderer can render a diverse collection of scene file formats.
+The renderer does not require much apriori knowledge. 
+
+To use the wera3d renderer, run the following command:
+
+`wera3d --scene=hello.fbx --materials=material.json`
+
+Wera3d takes two input arguments:
+* `--scene` Any of the supported scene file formats, such as *.fbx or *.collada files.
+* `--materials` Materials file, which is a JSON file mapping the materials in the scene file to concrete shaders.
+
 
 The following examples are delivered as part of the renderer:
 * Normalmapping example
 * Parallax mapping example
 
-The renderer is able to render a scene with materials.
+Aside from the scene file and materials file oriented approach, the library can be used as a C++ library as well.
+Take a look at the API documentation and the hello world demo code on how to get started
+using the library.
 
-`wera3d --scene=hello.fbx --materials=material.json`
+The library has been tested on:
+* Ubuntu 18.04
+* Ubuntu 20.04 (with AMD Ryzen 5700G)
 
+
+# API Documentation
 
 ### Build
 

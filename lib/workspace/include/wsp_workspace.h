@@ -64,15 +64,16 @@ class WorkspaceManager {
   void operator=(const WorkspaceManager&) = delete;
 
   static std::shared_ptr<Workspace> GetActiveWorkspace() {
-    return m_activeWorkspace;
+    static auto activeWorkspace = std::make_shared<Workspace>();
+    return activeWorkspace;
   }
 
-  static void SetActiveWorkspace(std::shared_ptr<Workspace> workspace) {
-    m_activeWorkspace = workspace;
-  }
+//  static void SetActiveWorkspace(std::shared_ptr<Workspace> workspace) {
+//    m_activeWorkspace = workspace;
+//  }
 
  private:
-  static inline std::shared_ptr<Workspace> m_activeWorkspace {nullptr};
+//  static inline std::shared_ptr<Workspace> m_activeWorkspace {nullptr};
 };
 
 /// @brief Resolving a path goes like this:

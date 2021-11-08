@@ -21,6 +21,7 @@
 #include <cxxopts.hpp>
 #include <wsp_workspace.h>
 #include <memory>
+#include <geo_sceneloader.h>
 
 using namespace std;
 using namespace lsw;
@@ -39,6 +40,7 @@ int main(int argc, char* argv[]) {
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
+    auto sceneLoader = make_shared<geo::SceneLoader>(resourceManager->getRawResourceManager());
     auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
@@ -58,6 +60,8 @@ int main(int argc, char* argv[]) {
 
     // ==== SCENE SETUP ======================================================
     spdlog::info("Loading scene file: {}", workspace->sceneFile.c_str());
+    auto pScene = sceneLoader->createResource(workspace->sceneFile);
+    Scene* scene = reinterpret_cast<Scene*>(pScene.get());
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
@@ -76,6 +80,7 @@ int main(int argc, char* argv[]) {
     viewer->run();
   } catch (runtime_error& e) {
     spdlog::error(e.what());
+    spdlog::error("Aborting the application with exit code ({})", EXIT_FAILURE);
     return EXIT_FAILURE;
   }
 
@@ -121,6 +126,7 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
 
   auto workspace = wsp::WorkspaceManager::GetActiveWorkspace();
   workspace->sceneFile = result["scene"].as<std::string>();
+  workspace->path = workspace->sceneFile.parent_path();
   workspace->materialsFile = result["materials"].as<std::string>();
 
   const char* weraHomeEnv = getenv("WERA3D_HOME");

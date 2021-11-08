@@ -45,10 +45,9 @@ std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char *argv[]) {
     }
 
 
-    auto workspace = std::make_shared<wsp::Workspace>();
+    auto workspace = wsp::WorkspaceManager::GetActiveWorkspace();
     workspace->materialsFile = result["materials"].as<std::string>();
     workspace->path = workspace->materialsFile.parent_path();
-    wsp::WorkspaceManager::SetActiveWorkspace(workspace);
 
     return wsp::WorkspaceManager::GetActiveWorkspace();
 }

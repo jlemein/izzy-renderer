@@ -13,6 +13,7 @@
 #include <res_resourcefactory.h>
 #include <vector>
 #include <memory>
+#include <filesystem>
 
 namespace lsw {
 namespace res {
@@ -67,6 +68,9 @@ public:
   SceneNodeIterable getSceneNodesByName(const std::string &name);
 
 private:
+  std::filesystem::path m_path; /// @brief Base path of the scene file. Resources shall be loaded relative from this path.
+  std::filesystem::path m_dir;
+
   std::unordered_map<std::string, SceneNodeIterable> m_sceneNodes;
   std::shared_ptr<SceneNode> m_rootNode{nullptr};
   MaterialIterable m_materials{};
@@ -101,15 +105,16 @@ private:
    * @brief Reads the textures associated to the material. If material system
    * contains an entry for the material, they take precedence over the textures
    * defined in the scene file.
+   * @param scene Scene file that is currently being processed. Passed because you might need to resolve relative paths.
    * @param aiMaterial
    * @param material
    */
-  void readTextures(const aiMaterial* aiMaterial, geo::Material& material);
+  void readTextures(const geo::Scene &scene, const aiMaterial* aiMaterial, geo::Material& material);
 
-  std::shared_ptr<res::Resource<geo::Texture>> readDiffuseTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<res::Resource<geo::Texture>> readSpecularTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<res::Resource<geo::Texture>> readNormalTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<res::Resource<geo::Texture>> readRoughnessTexture(const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<res::Resource<geo::Texture>> readDiffuseTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<res::Resource<geo::Texture>> readSpecularTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<res::Resource<geo::Texture>> readNormalTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<res::Resource<geo::Texture>> readRoughnessTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
 
 //  void readEmbeddedTextures(const aiScene* aiScene, geo::Scene& scene);
 };
