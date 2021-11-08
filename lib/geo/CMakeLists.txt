@@ -20,6 +20,7 @@ find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
 find_package(GTest REQUIRED)
 find_package(Boost REQUIRED)
+find_package(tinyexr REQUIRED)
 
 target_link_libraries(geo
         PRIVATE
@@ -28,6 +29,7 @@ target_link_libraries(geo
             spdlog::spdlog
             workspace
             Boost::boost
+            tinyexr::tinyexr
         PUBLIC
         assimp::assimp resourcemanager::resourcemanager stb::stb fmt::fmt nlohmann_json::nlohmann_json)
 

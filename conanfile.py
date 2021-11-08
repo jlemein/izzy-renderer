@@ -55,4 +55,5 @@ class RendererConan(ConanFile):
         self.requires("stb/20200203")
         self.requires("boost/1.76.0")
         self.requires("cxxopts/2.2.1")
+        self.requires("tinyexr/1.0.0")
 

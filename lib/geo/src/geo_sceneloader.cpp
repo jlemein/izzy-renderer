@@ -176,7 +176,7 @@ void SceneLoader::readMeshes(const aiScene* scene_p, Scene& scene) {
     mesh->polygonMode = PolygonMode::kTriangles;
 
     mesh->material = scene.m_materials[mesh_p->mMaterialIndex];
-    spdlog::error("Reading mesh {}: {} has material {} - {}", n, mesh_p->mName.C_Str(), (*mesh->material)->name,
+    spdlog::debug("Reading mesh {}: {} has material {} - {}", n, mesh_p->mName.C_Str(), (*mesh->material)->name,
                   (*mesh->material)->vertexShader);
 
     for (int i = 0; i < mesh_p->mNumVertices; ++i) {
