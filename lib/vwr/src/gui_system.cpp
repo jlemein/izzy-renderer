@@ -12,56 +12,61 @@
 
 using namespace lsw;
 
-GuiSystem::GuiSystem(std::shared_ptr<IGuiWindow> dialog)
-  : m_window{dialog} {}
+GuiSystem::GuiSystem(std::vector<std::shared_ptr<IGuiWindow>> dialogs)
+        : m_dialogs{dialogs.begin(), dialogs.end()} {}
 
-void GuiSystem::initialize(lsw::viewer::Viewer* viewer) {
-  m_windowHandle = viewer->getDisplayDetails().window;
-  m_shadingLanguage = viewer->getDisplayDetails().shadingLanguage;
-  if (m_shadingLanguage == "glsl") {
-    m_shadingVersion = viewer->getDisplayDetails().shadingLanguageVersion;
-  }
+void GuiSystem::initialize(lsw::viewer::Viewer *viewer) {
+    m_windowHandle = viewer->getDisplayDetails().window;
+    m_shadingLanguage = viewer->getDisplayDetails().shadingLanguage;
+    if (m_shadingLanguage == "glsl") {
+        m_shadingVersion = viewer->getDisplayDetails().shadingLanguageVersion;
+    }
 
-  // Setup Dear ImGui context
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImGuiIO& io = ImGui::GetIO();
-  (void)io;
+    // Setup Dear ImGui context
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO &io = ImGui::GetIO();
+    (void) io;
 
-  m_window->init();
+    for (const auto &dialog: m_dialogs) {
+        dialog->init();
+    }
 
-  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-  // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
+    // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
-  // Setup Platform/Renderer backends
-  ImGui_ImplGlfw_InitForOpenGL(reinterpret_cast<GLFWwindow*>(m_windowHandle), true);
-  ImGui_ImplOpenGL3_Init(m_shadingVersion.c_str());
+    // Setup Platform/Renderer backends
+    ImGui_ImplGlfw_InitForOpenGL(reinterpret_cast<GLFWwindow *>(m_windowHandle), true);
+    ImGui_ImplOpenGL3_Init(m_shadingVersion.c_str());
 }
-void GuiSystem::update(float time, float dt) {
-  // Start the Dear ImGui frame
-  ImGui_ImplOpenGL3_NewFrame();
-  ImGui_ImplGlfw_NewFrame();
-  ImGui::NewFrame();
 
-  m_window->render(time, dt);
+void GuiSystem::update(float time, float dt) {
+    // Start the Dear ImGui frame
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    for (const auto &dialog: m_dialogs) {
+        dialog->render(time, dt);
+    }
 }
 
 void GuiSystem::beforeRender() {
-  // Rendering
-  ImGui::Render();
+    // Rendering
+    ImGui::Render();
 }
 
 void GuiSystem::afterRender() {
-  ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
 void GuiSystem::cleanup() {
-  // Cleanup
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
+    // Cleanup
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 }
 
 bool GuiSystem::isProcessingInput() const {
-  return ImGui::IsAnyItemActive() && ImGui::IsAnyMouseDown();
+    return ImGui::IsAnyItemActive() && ImGui::IsAnyMouseDown();
 }

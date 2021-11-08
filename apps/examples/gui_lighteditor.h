@@ -7,9 +7,29 @@
 #include <gui_system.h>
 #include <imgui.h>
 
+
 namespace lsw {
+
+namespace georm {
+    class ResourceManager;
+}
+
 namespace gui {
 
+    class ResourceInspector : public IGuiWindow {
+    public:
+        ResourceInspector(std::shared_ptr<georm::ResourceManager> manager);
+
+        void init() override;
+
+        void render(float time, float dt) override;
+
+    private:
+        std::shared_ptr<georm::ResourceManager> m_resourceManager {nullptr};
+    };
+// Multiple GUI windows are needed
+// * Scene hierarchy view
+// * Resource inspector (i.e. textures, videos, sounds, images)
 class GuiLightEditor : public IGuiWindow {
  public:
   GuiLightEditor(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<georm::FontSystem> fontSystem);

@@ -48,6 +48,8 @@ public:
 
   std::shared_ptr<res::ResourceManager> getRawResourceManager();
 
+  const std::unordered_map<std::string, TexturePtr>& getTextures() const;
+
 private:
   // TODO: must be nullptr
   std::shared_ptr<res::ResourceManager> m_wrappedResourceMgr {nullptr};

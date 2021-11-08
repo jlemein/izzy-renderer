@@ -23,7 +23,7 @@ class IGuiWindow {
 
 class GuiSystem : public lsw::ecs::IViewerExtension {
 public:
-  GuiSystem(std::shared_ptr<IGuiWindow> dialog);
+  GuiSystem(std::vector<std::shared_ptr<IGuiWindow>> dialogs);
 
   void initialize(lsw::viewer::Viewer* viewer) override;
   void update(float time, float dt) override;
@@ -34,7 +34,8 @@ public:
   bool isProcessingInput() const;
 
 private:
-  std::shared_ptr<IGuiWindow> m_window {nullptr};
+//  std::shared_ptr<IGuiWindow> m_window {nullptr};
+  std::vector<std::shared_ptr<IGuiWindow>> m_dialogs {};
 
   void* m_windowHandle {nullptr};
   std::string m_shadingLanguage {""};
