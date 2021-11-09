@@ -112,14 +112,25 @@ void GuiLightEditor::render(float dt, float totalTime) {
     ImGui::TextColored(ImVec4(1, 1, 0, 1), "Materials");
     auto materials = m_registry.view<geo::Material>();
 
-    ImGui::BeginChild("Scrolling");
+    ImGui::BeginChild("Scrolling", ImVec2(400, 400));
     for (auto e: materials) {
         auto &m = materials.get<geo::Material>(e);
-        ImGui::TextColored(ImVec4(0, 1, 1, 1), "%s", m.name.c_str());
+//        ImGui::TextColored(ImVec4(0, 1, 1, 1), "%s", m.name.c_str());
         for (auto[name, path]: m.texturePaths) {
-            ImGui::LabelText(name.c_str(), "%s", path.c_str());
+//            ImGui::LabelText(name.c_str(), "%s", path.c_str());
+            if (ImGui::Selectable(name.c_str(), m_selectedTexture == path)) {
+                m_selectedTexture = path;
+//                renderSystem->getTextureHandle((*m.textures[name]).id());
+            }
         }
     }
+    ImGui::EndChild();
+    ImGui::SameLine();
+    ImGui::BeginChild("ImageView", ImVec2(400, 400));
+//    ImGui::Text("pointer = %p", 1);
+//    ImGui::Text("size = %d x %d", my_image_width, my_image_height);
+    int id = 1;
+    ImGui::Image((void *) (intptr_t) id, ImVec2(400, 4000));
     ImGui::EndChild();
 
     ImGui::End();
@@ -143,6 +154,14 @@ void ResourceInspector::render(float time, float dt) {
     ImGui::Begin("Resource Inspector");
     ImGui::Button("Hello!");
 
+
+//    ImGui::Begin("OpenGL Texture Text");
+//    auto texResource = m_resourceManager->getTextures().begin()->second;
+//    auto& tex = **texResource;
+
+
+
+
 //    ImGui::EndChild();
     if (ImGui::BeginTable("Textures", 3)) {
 //        for (int row = 0; row < 4; row++)
@@ -150,7 +169,7 @@ void ResourceInspector::render(float time, float dt) {
         ImGui::TableNextRow();
         for (const auto&[name, tex]: m_resourceManager->getTextures()) {
             ImGui::TableSetColumnIndex(0);
-            spdlog::warn(name);
+//            spdlog::warn(name);
             ImGui::Text(name.c_str());
         }
 //            for (int column = 0; column < 3; column++)

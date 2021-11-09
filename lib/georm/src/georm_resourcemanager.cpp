@@ -10,7 +10,6 @@
 #include <res_resourcemanager.h>
 
 using namespace lsw;
-using namespace lsw;
 using namespace lsw::georm;
 
 ResourceManager::ResourceManager()
@@ -31,6 +30,14 @@ void ResourceManager::setMaterialSystem(std::shared_ptr<georm::MaterialSystem> m
 std::shared_ptr<lsw::res::ResourceManager>
 ResourceManager::getRawResourceManager() {
     return m_wrappedResourceMgr;
+}
+
+ScenePtr ResourceManager::loadScene(std::filesystem::path path) {
+    if (m_loadedScenes.find(path) == m_loadedScenes.end()) {
+        m_loadedScenes[path] =
+                m_wrappedResourceMgr->createResource<geo::Scene>(path);
+    }
+    return m_loadedScenes.at(path);
 }
 
 MaterialPtr ResourceManager::createSharedMaterial(const std::string &name) {

@@ -119,7 +119,7 @@ public:
    * as well. By default everything is loaded.
    * @return
    */
-  SceneGraphEntity makeScene(geo::Scene &,
+  SceneGraphEntity makeScene(const geo::Scene &,
                              SceneLoaderFlags flags = SceneLoaderFlags{});
   SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource,
                              SceneLoaderFlags flags = SceneLoaderFlags{});

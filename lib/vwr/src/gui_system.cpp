@@ -12,6 +12,9 @@
 
 using namespace lsw;
 
+GuiSystem::GuiSystem(std::shared_ptr<IGuiWindow> dialog)
+        : m_dialogs{dialog} {}
+
 GuiSystem::GuiSystem(std::vector<std::shared_ptr<IGuiWindow>> dialogs)
         : m_dialogs{dialogs.begin(), dialogs.end()} {}
 

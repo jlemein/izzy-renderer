@@ -9,6 +9,18 @@ void TransformUtil::SetPosition(Transform &t, const glm::vec3 &e) {
   t.localTransform[3] = glm::vec4(e, 1.0f);
 }
 
+void TransformUtil::Scale(glm::mat4& transform, float scale) {
+    transform[0][0] *= scale;
+    transform[1][1] *= scale;
+    transform[2][2] *= scale;
+}
+
+glm::mat4 TransformUtil::Scale(const glm::mat4& transform, float scale) {
+    glm::mat4 m = transform;
+    TransformUtil::Scale(m, scale);
+    return m;
+}
+
 void TransformUtil::Scale(Transform &transform, float scale) {
   transform.localTransform[0][0] *= scale;
   transform.localTransform[1][1] *= scale;

@@ -44,6 +44,8 @@ class GuiLightEditor : public IGuiWindow {
   std::vector<ImFont*> m_fonts;
 
   entt::registry& m_registry;
+
+  std::string m_selectedTexture {""};
 };
 }
 }

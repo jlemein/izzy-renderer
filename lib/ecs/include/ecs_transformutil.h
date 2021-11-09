@@ -20,6 +20,8 @@ struct TransformUtil {
   /// vector 'scale'.
   static void Scale(Transform &transform, const glm::vec3 &scale);
   static void Scale(Transform &transform, float scale);
+  static void Scale(glm::mat4& transform, float scale);
+  static glm::mat4 Scale(const glm::mat4& transform, float scale);
 
   static void RotateEuler(Transform& transform, const glm::vec3& axis, float radians);
   static glm::mat4 RotateEulerRadians(const glm::vec3& axis, float radians);

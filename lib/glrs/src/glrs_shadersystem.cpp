@@ -4,13 +4,13 @@
 using namespace lsw::glrs;
 
 namespace {
-    std::vector<std::string> readFile(const std::string &filename) {
+    std::vector<std::string> readFile(const std::filesystem::path &filename) {
         // TODO: check for empty file name and give clear error message
 
         std::ifstream file(filename);
 
         if (!file.is_open()) {
-            throw std::runtime_error(fmt::format("failed to read file '{}'", filename));
+            throw std::runtime_error(fmt::format("failed to read file '{}'", std::filesystem::absolute(filename).string()));
         }
 
         std::vector<std::string> lines;
@@ -24,13 +24,13 @@ namespace {
         return lines;
     }
 
-    std::vector<char> readSpirvFile(const std::string &filename) {
+    std::vector<char> readSpirvFile(const std::filesystem::path &filename) {
         // TODO: check for empty file name and give clear error message
 
         std::ifstream file(filename, std::ios::ate | std::ios::binary);
 
         if (!file.is_open()) {
-            throw std::runtime_error(fmt::format("failed to read file '{}'", filename));
+            throw std::runtime_error(fmt::format("failed to read file '{}'", filename.string()));
         }
 
         size_t fileSize = (size_t) file.tellg();

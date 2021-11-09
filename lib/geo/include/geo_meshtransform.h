@@ -17,7 +17,7 @@ struct Curve;
 
 /**!
  * @brief transforms the mesh data directly instead of applying it to the transformation
- * matrix. This can be more efficient, since you are not manipuling the scene
+ * matrix. This can be more efficient, since you are not manipulating the scene
  * hierarchy
  */
 struct MeshTransform {

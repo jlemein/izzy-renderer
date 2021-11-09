@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <filesystem>
 #include <res_resource.h>
 
 namespace lsw {
@@ -19,6 +20,7 @@ class ResourceManager;
 namespace geo {
 class Material;
 class Texture;
+class Scene;
 }
 } // namespace lsw
 
@@ -28,6 +30,7 @@ namespace georm {
 class MaterialSystem;
 using MaterialPtr = std::shared_ptr<res::Resource<geo::Material>>;
 using TexturePtr = std::shared_ptr<res::Resource<geo::Texture>>;
+using ScenePtr = std::shared_ptr<res::Resource<geo::Scene>>;
 
 /**!
  * @brief Higher level resource manager specifically focused on loading
@@ -46,17 +49,24 @@ public:
 
   TexturePtr loadTexture(const std::string& path);
 
+  /** @brief load a scene file
+   *
+   * @param path Path to scene file (i.e. *.fbx, *.obj, etc).
+   * @return
+   */
+  ScenePtr loadScene(std::filesystem::path path);
+
   std::shared_ptr<res::ResourceManager> getRawResourceManager();
 
   const std::unordered_map<std::string, TexturePtr>& getTextures() const;
 
 private:
-  // TODO: must be nullptr
   std::shared_ptr<res::ResourceManager> m_wrappedResourceMgr {nullptr};
   std::shared_ptr<georm::MaterialSystem> m_materialSystem {nullptr};
 
   std::unordered_map<std::string, MaterialPtr> m_cachedMaterials;
   std::unordered_map<std::string, TexturePtr> m_cachedTextures;
+  std::unordered_map<std::string, ScenePtr> m_loadedScenes;
 };
 
 } // end of package

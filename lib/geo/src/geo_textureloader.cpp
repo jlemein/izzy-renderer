@@ -32,38 +32,34 @@ namespace {
 
     std::unique_ptr<res::Resource<Texture>> loadExr(std::filesystem::path path) {
         float *pixelData{nullptr}; // width * height * RGBA
-        int width;
-        int height;
+        int width{0};
+        int height{0};
         const char *err = nullptr;
 
-        int desiredChannels = 4; // RGBA
-        auto textureResource =
-                make_unique<res::Resource<Texture>>(
-                        Texture{.path = path, .width = width, .height = height, .channels = desiredChannels});
         int ret = LoadEXR(&pixelData, &width, &height, path.c_str(), &err);
 
-        if (width * height == 0) {
-            stbi_image_free(pixelData);
-            throw std::runtime_error(
-                    fmt::format("Cannot load texture from file '{}': width or height is 0", path.c_str()));
-        }
-
         if (ret != TINYEXR_SUCCESS) {
+            auto errorMessage = fmt::format("Failed loading texture '{}'", path.c_str());
             if (err) {
-                spdlog::error("Error: %s", err);
+                errorMessage += ": " + std::string(err);
                 FreeEXRErrorMessage(err); // release memory of error message.
             }
-        } else {
-
-            auto &texture = *textureResource;
-            // number of pixels * channels * 8 bit
-            uint64_t sizeImageData = width * height * desiredChannels;
-            texture->data = std::vector<uint8_t>(pixelData, pixelData + sizeImageData);
-
-            free(pixelData); // release memory of image data
+            spdlog::warn(errorMessage);
+            return nullptr;
         }
 
-        return textureResource;
+        int desiredChannels = 4; // RGBA
+        auto texture =
+                make_unique<res::Resource<Texture>>(
+                        Texture{.path = path, .width = width, .height = height, .channels = desiredChannels});
+
+        // number of pixels * channels * 8 bit
+        uint64_t sizeImageData = width * height * desiredChannels;
+        (*texture)->data = std::vector<uint8_t>(pixelData, pixelData + sizeImageData);
+
+        free(pixelData); // release memory of image data
+
+        return texture;
     }
 
     std::unique_ptr<res::Resource<Texture>> loadStbImage(std::filesystem::path path) {
@@ -102,7 +98,7 @@ std::unique_ptr<res::IResource> TextureLoader::createResource(const std::string 
     auto path = std::filesystem::path(name);  // R(name);
 
     if (!std::filesystem::exists(path)) {
-        throw std::runtime_error("Cannot load texture from file '{}': file does not exist");
+        throw std::runtime_error(fmt::format("Cannot load texture from file '{}': file does not exist", std::filesystem::absolute(path).string()));
     }
 
     auto extLowerCase = boost::algorithm::to_lower_copy(path.extension().string());
@@ -121,9 +117,11 @@ std::unique_ptr<res::IResource> TextureLoader::createResource(const std::string 
         texture = loadStbImage(path);
     }
 
-    spdlog::log(spdlog::level::info, "Loaded texture {}, {} x {}, {} channels", path.c_str(), (*texture)->width,
-                (*texture)->height,
-                (*texture)->channels);
+    if (texture) {
+        spdlog::log(spdlog::level::info, "Loaded texture {}, {} x {}, {} channels", path.c_str(), (*texture)->width,
+                    (*texture)->height,
+                    (*texture)->channels);
+    }
 
     return texture;
 }

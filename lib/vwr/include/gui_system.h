@@ -23,6 +23,7 @@ class IGuiWindow {
 
 class GuiSystem : public lsw::ecs::IViewerExtension {
 public:
+  GuiSystem(std::shared_ptr<IGuiWindow> dialog);
   GuiSystem(std::vector<std::shared_ptr<IGuiWindow>> dialogs);
 
   void initialize(lsw::viewer::Viewer* viewer) override;

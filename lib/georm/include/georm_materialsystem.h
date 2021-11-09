@@ -40,7 +40,7 @@ public:
 
   virtual ~MaterialSystem() = default;
 
-  void loadMaterialsFromFile(const std::string& path);
+  void loadMaterialsFromFile(const std::filesystem::path& path);
 
   MaterialPtr createSharedMaterial(const std::string& name);
   geo::Material createMaterial(const std::string& name);
@@ -104,7 +104,7 @@ private:
   unsigned int m_nextId = {1U};
 
   void readMaterialMappings(nlohmann::json &json);
-  void readMaterialDefinitions(nlohmann::json &json);
+  void readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json &json);
 
   // @see IRenderSubsystem
   void onRender(entt::entity entity);

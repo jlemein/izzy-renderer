@@ -79,7 +79,7 @@ void addTextureToMaterial(const std::string& textureName, const std::string& pat
   }
 }
 
-void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
+void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json& j) {
   spdlog::info("Reading material definitions...");
 
   for (const auto& material : j["materials"]) {
@@ -101,9 +101,9 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
     // pass shader info
     try {
       m.isBinaryShader = material.contains("is_binary_shader") ? material["is_binary_shader"].get<bool>() : false;
-      m.vertexShader = wsp::R(material["vertex_shader"].get<std::string>());
-      m.geometryShader = wsp::R(material["geometry_shader"].get<std::string>());
-      m.fragmentShader = wsp::R(material["fragment_shader"].get<std::string>());
+      m.vertexShader = parent_path / material["vertex_shader"].get<std::string>();
+      m.geometryShader = parent_path / material["geometry_shader"].get<std::string>();
+      m.fragmentShader = parent_path / material["fragment_shader"].get<std::string>();
 
       spdlog::debug("\tvertex shader: {}", m.vertexShader);
       spdlog::debug("\tgeometry shader: {}", m.geometryShader);
@@ -200,7 +200,7 @@ void MaterialSystem::readMaterialDefinitions(nlohmann::json& j) {
   }
 }
 
-void MaterialSystem::loadMaterialsFromFile(const std::string& path) {
+void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
   std::ifstream input(path);
   if (input.fail()) {
     throw std::runtime_error(fmt::format("MaterialSystem fails to initialize: cannot read from '{}'", path));
@@ -211,7 +211,7 @@ void MaterialSystem::loadMaterialsFromFile(const std::string& path) {
 
   // initialization of material system needs to be done in order.
   // first material definitions are read.
-  readMaterialDefinitions(j);
+  readMaterialDefinitions(path.parent_path(), j);
   readMaterialMappings(j);
 
   if (j.contains("default_material")) {

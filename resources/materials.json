@@ -1,4 +1,5 @@
 {
+  "default_material": "NormalMap",
   "material_mapping": [
     {
       "from": "WoodCrate",

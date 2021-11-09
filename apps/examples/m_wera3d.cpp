@@ -20,8 +20,8 @@
 #include <ecs_light.h>
 #include <cxxopts.hpp>
 #include <wsp_workspace.h>
-#include <memory>
 #include <geo_sceneloader.h>
+#include <geo_scene.h>
 
 using namespace std;
 using namespace lsw;
@@ -35,7 +35,7 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 int main(int argc, char* argv[]) {
   auto workspace = parseProgramArguments(argc, argv);
   if (workspace->debugMode) {
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::info);
   }
 
   try {
@@ -62,9 +62,9 @@ int main(int argc, char* argv[]) {
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager(), guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    spdlog::info("Loading scene file: {}", workspace->sceneFile.c_str());
-    auto pScene = sceneLoader->createResource(workspace->sceneFile);
-    Scene* scene = reinterpret_cast<Scene*>(pScene.get());
+    auto scenePtr = resourceManager->loadScene(workspace->sceneFile);
+    ecs::TransformUtil::Scale((*scenePtr)->rootNode()->transform, 0.05);
+    sceneGraph->makeScene(**scenePtr, ecsg::SceneLoaderFlags::All());
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
@@ -145,8 +145,6 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
   cout << "Scene file: " << workspace->sceneFile << endl;
   cout << "Materials file: " << (workspace->materialsFile.empty() ? "<not specified>" : workspace->materialsFile) << endl;
   cout << "Strict mode: " << (workspace->isStrictMode ? "enabled" : "disabled") << endl;
-
-  cout << "Testing R: " << wsp::R("myTexture.jpg") << std::endl;
 
   return workspace;
 }

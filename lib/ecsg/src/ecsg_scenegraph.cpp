@@ -10,6 +10,7 @@
 
 #include <glrs_renderable.h>
 
+#include <geo_camera.h>
 #include <geo_curve.h>
 #include <geo_light.h>
 #include <geo_material.h>
@@ -17,6 +18,7 @@
 #include <geo_meshinstance.h>
 #include <geo_meshtransform.h>
 #include <geo_sceneloader.h>
+#include <geo_scene.h>
 
 #include <res_resource.h>
 #include <res_resourcefactory.h>
@@ -253,6 +255,15 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, Sce
   for (auto& child : node->children) {
     processChildren(child, flags, &root);
   }
+}
+
+SceneGraphEntity SceneGraph::makeScene(const geo::Scene& scene, SceneLoaderFlags flags) {
+    auto rootScene = makeEntity();
+
+    // for geometry and mesh data
+    processChildren(scene.rootNode(), flags, &rootScene);
+
+    return rootScene;
 }
 
 SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene, SceneLoaderFlags flags) {
