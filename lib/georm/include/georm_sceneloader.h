@@ -18,19 +18,23 @@ class ResourceManager;
 template <typename T> class Resource;
 }
 namespace geo {
+    struct Scene;
+    struct Texture;
+    struct Material;
+} // namespace geo
 
-struct Scene;
-struct Texture;
-struct Material;
+namespace georm {
+
+class ResourceManager;
 
 class SceneLoader : public lsw::res::ResourceFactory {
 public:
-  SceneLoader(std::shared_ptr<res::ResourceManager> resourceManager);
+  SceneLoader(ResourceManager* resourceManager);
 
   std::unique_ptr<res::IResource> createResource(const std::string &path) override;
 
 private:
-  std::shared_ptr<res::ResourceManager> m_resourceManager {nullptr};
+  ResourceManager* m_resourceManager {nullptr};
 
   void readMaterials(const aiScene *aiScene, geo::Scene &scene);
   void readMeshes(const aiScene *aiScene, geo::Scene &scene);
@@ -48,13 +52,13 @@ private:
    */
   void readTextures(const geo::Scene &scene, const aiMaterial* aiMaterial, geo::Material& material);
 
-  std::shared_ptr<res::Resource<geo::Texture>> readDiffuseTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<res::Resource<geo::Texture>> readSpecularTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<res::Resource<geo::Texture>> readNormalTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<res::Resource<geo::Texture>> readRoughnessTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<geo::Texture> readDiffuseTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<geo::Texture> readSpecularTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<geo::Texture> readNormalTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  std::shared_ptr<geo::Texture> readRoughnessTexture(const geo::Scene &scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
 
 //  void readEmbeddedTextures(const aiScene* aiScene, geo::Scene& scene);
 };
 
-} // namespace geo
+} // namespace georm
 } // namespace lsw

@@ -16,7 +16,7 @@
 #include <geo_meshloader.h>
 #include <geo_meshtransform.h>
 #include <geo_primitivefactory.h>
-#include <geo_sceneloader.h>
+#include <georm_sceneloader.h>
 #include <geo_texture.h>
 #include <geo_textureloader.h>
 #include <georm_materialsystem.h>

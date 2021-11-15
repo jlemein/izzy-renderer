@@ -20,7 +20,7 @@
 #include <ecs_light.h>
 #include <cxxopts.hpp>
 #include <wsp_workspace.h>
-#include <geo_sceneloader.h>
+#include <georm_sceneloader.h>
 #include <geo_scene.h>
 
 using namespace std;
@@ -40,7 +40,8 @@ int main(int argc, char* argv[]) {
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
-    auto sceneLoader = make_shared<geo::SceneLoader>(resourceManager->getRawResourceManager());
+    //TODO: refactor this tricky situation with this pointer
+    auto sceneLoader = make_shared<georm::SceneLoader>(resourceManager.get());
     auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);

@@ -17,7 +17,7 @@
 #include <geo_mesh.h>
 #include <geo_meshinstance.h>
 #include <geo_meshtransform.h>
-#include <geo_sceneloader.h>
+#include "../../georm/include/georm_sceneloader.h"
 #include <geo_scene.h>
 
 #include <res_resource.h>

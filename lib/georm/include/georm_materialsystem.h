@@ -47,8 +47,8 @@ public:
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
-   * @param time
-   * @param dt
+   * @param time Global simulation time.
+   * @param dt Delta time passed since previous frame.
    */
   void update(float time, float dt) override;
 

@@ -317,8 +317,10 @@ void MaterialSystem::synchronizeTextures(glrs::RenderSystem& renderSystem) {
       // TODO: check if name is used in shader object
       try {
         auto t = m_resourceManager->loadTexture(path);
-        geoMaterial.textures[name] = t;
-        renderSystem.attachTexture(renderable, **t, name);
+        if (t != nullptr) {
+            geoMaterial.textures[name] = t;
+            renderSystem.attachTexture(renderable, *t, name);
+        }
       } catch (std::out_of_range e) {
         throw std::runtime_error(
             fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
@@ -335,16 +337,16 @@ void MaterialSystem::synchronizeTextures(glrs::RenderSystem& renderSystem) {
     //   In that case,
     // diffuse texture
     if (geoMaterial.diffuseTexture != nullptr) {
-      renderSystem.attachTexture(renderable, **geoMaterial.diffuseTexture, "diffuseTex");
+      renderSystem.attachTexture(renderable, *geoMaterial.diffuseTexture, "diffuseTex");
     }
     if (geoMaterial.specularTexture != nullptr) {
-      renderSystem.attachTexture(renderable, **geoMaterial.specularTexture, "specularTex");
+      renderSystem.attachTexture(renderable, *geoMaterial.specularTexture, "specularTex");
     }
     if (geoMaterial.normalTexture != nullptr) {
-      renderSystem.attachTexture(renderable, **geoMaterial.normalTexture, "normalTex");
+      renderSystem.attachTexture(renderable, *geoMaterial.normalTexture, "normalTex");
     }
     if (geoMaterial.roughnessTexture != nullptr) {
-      renderSystem.attachTexture(renderable, **geoMaterial.roughnessTexture, "normalTex");
+      renderSystem.attachTexture(renderable, *geoMaterial.roughnessTexture, "normalTex");
     }
   }
 }

@@ -3,23 +3,35 @@
 //
 #include <georm_materialsystem.h>
 #include <geo_scene.h>
-#include <geo_sceneloader.h>
+#include <georm_sceneloader.h>
 #include <geo_texture.h>
 #include <geo_textureloader.h>
 #include <georm_resourcemanager.h>
+#include <georm_sceneloader.h>
+#include <georm_exrloader.h>
+
 #include <res_resourcemanager.h>
 
 using namespace lsw;
 using namespace lsw::georm;
 
+namespace {
+    std::once_flag getTexturesCall;
+}
+
 ResourceManager::ResourceManager()
         : m_wrappedResourceMgr(std::make_shared<res::ResourceManager>()) {
 
 //  m_wrappedResourceMgr->addFactory<geo::Material>(move(materialFactory));
+
+    //TODO: tricky situation. Verify best approach for scene loader and reference to this.
     m_wrappedResourceMgr->addFactory<lsw::geo::Scene>(
-            std::make_unique<geo::SceneLoader>(m_wrappedResourceMgr));
+            std::make_unique<SceneLoader>(this));
     m_wrappedResourceMgr->addFactory<geo::Texture>(
             std::make_unique<geo::TextureLoader>());
+
+    m_textureSystem.setTextureLoader(".exr", std::make_unique<ExrLoader>());
+//    m_textureSystem.setTextureLoader(geo::ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<ExrLoader>());
 }
 
 void ResourceManager::setMaterialSystem(std::shared_ptr<georm::MaterialSystem> materialSystem) {
@@ -53,14 +65,15 @@ geo::Material ResourceManager::createMaterial(const std::string &name) {
     return **createSharedMaterial(name);
 }
 
-const std::unordered_map<std::string, TexturePtr> &ResourceManager::getTextures() const {
-    return m_cachedTextures;
+const std::unordered_map<std::string, TexturePtr> ResourceManager::getTextures() const {
+    std::call_once(getTexturesCall, [] {
+        spdlog::warn("Not implemented: ResourceManager::getTextures()");
+    });
+
+    //    return m_textureSystem->getTextures();
+    return std::unordered_map<std::string, TexturePtr>{};
 }
 
-TexturePtr ResourceManager::loadTexture(const std::string &path) {
-    if (m_cachedTextures.find(path) == m_cachedTextures.end()) {
-        m_cachedTextures[path] =
-                m_wrappedResourceMgr->createResource<geo::Texture>(path);
-    }
-    return m_cachedTextures.at(path);
+TexturePtr ResourceManager::loadTexture(const std::filesystem::path &path) {
+    return m_textureSystem.loadTexture(path);
 }

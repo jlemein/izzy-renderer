@@ -3,6 +3,8 @@
 //
 #pragma once
 
+#include <list>
+
 namespace lsw {
 namespace geo {
 
@@ -25,7 +27,7 @@ struct SceneNode {
 };
 
 class Scene {
-    friend class SceneLoader;
+//    friend class SceneLoader;
 
 public:
     using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
@@ -49,7 +51,7 @@ public:
 
     SceneNodeIterable getSceneNodesByName(const std::string &name);
 
-private:
+//private:
     std::filesystem::path m_path; /// @brief Base path of the scene file. Resources shall be loaded relative from this path.
     std::filesystem::path m_dir;
 

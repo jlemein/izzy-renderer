@@ -5,11 +5,14 @@ add_library(georm STATIC
         include/anim_animationsystem.h
         include/anim_localrotation.h
         include/georm_fontsystem.h
+        include/georm_exrloader.h
         src/georm_resourcemanager.cpp
         src/georm_materialsystem.cpp
         src/georm_resourcemanager.t.cpp
         src/anim_animationsystem.cpp
-        src/georm_fontsystem.cpp)
+        src/georm_fontsystem.cpp include/georm_texturesystem.h src/georm_texturesystem.cpp
+        src/georm_exrloader.cpp
+        include/georm_sceneloader.h src/georm_sceneloader.cpp)
 
 target_include_directories(georm
         PUBLIC include
@@ -22,6 +25,7 @@ find_package(fmt REQUIRED)
 find_package(assimp REQUIRED)
 find_package(nlohmann_json REQUIRED)
 #find_package(Boost REQUIRED COMPONENTS filesystem)
+find_package(openexr REQUIRED)
 
 target_link_libraries(georm
         PRIVATE
@@ -34,10 +38,11 @@ target_link_libraries(georm
         assimp::assimp
         stb::stb
         fmt::fmt
+        openexr::openexr
         )
 
 #if (BUILD_TESTING)
-#    add_executable(georm_test src/georm_resourcemanager.t.cpp)
+#    add_executable(georm_test src/georm_resourcemanager.t.cpp src/georm_sceneloader.t.cpp)
 #    target_link_libraries(geo_test PRIVATE georm CONAN_PKG::gtest)
 #    target_include_directories(geo_test PRIVATE include)
 #    #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)

@@ -1,14 +1,18 @@
 //
 // Created by jlemein on 22-02-21.
 //
-
-#ifndef RENDERER_GEO_TEXTURE_H
-#define RENDERER_GEO_TEXTURE_H
+#pragma once
 
 #include <string>
 #include <vector>
+#include <cstdint>
+
 namespace lsw {
 namespace geo {
+
+struct Rgba8888 {
+    uint8_t r, g, b, a;
+};
 
 struct Texture {
   std::string path;
@@ -21,5 +25,3 @@ struct Texture {
 
 } // end of package
 } // end of enterprise
-
-#endif // RENDERER_GEO_TEXTURE_H

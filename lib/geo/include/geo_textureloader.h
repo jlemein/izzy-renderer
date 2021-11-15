@@ -8,10 +8,23 @@
 #include <res_resourcefactory.h>
 #include <res_resource.h>
 #include <string>
+#include <vector>
 #include <memory>
+#include <filesystem>
 
 namespace lsw {
 namespace geo {
+
+struct Texture;
+
+using ExtensionList = std::vector<std::string>;
+
+class ITextureLoader {
+public:
+    virtual geo::Texture loadTexture(const std::filesystem::path& path) = 0;
+
+    virtual ExtensionList getSupportedExtensions() const = 0;
+};
 
 class TextureLoader : public lsw::res::ResourceFactory {
 public:

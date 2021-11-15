@@ -104,11 +104,11 @@ struct Material {
   bool hasAmbient {false};
 
   /// @brief predefined textures that gets mapped to from existing scene files.
-  std::shared_ptr<res::Resource<geo::Texture>> diffuseTexture {nullptr};
-  std::shared_ptr<res::Resource<geo::Texture>> specularTexture {nullptr};
-  std::shared_ptr<res::Resource<geo::Texture>> normalTexture {nullptr};
-  std::shared_ptr<res::Resource<geo::Texture>> roughnessTexture {nullptr};
-  std::shared_ptr<res::Resource<geo::Texture>> opacityTexture {nullptr};
+  std::shared_ptr<geo::Texture> diffuseTexture {nullptr};
+  std::shared_ptr<geo::Texture> specularTexture {nullptr};
+  std::shared_ptr<geo::Texture> normalTexture {nullptr};
+  std::shared_ptr<geo::Texture> roughnessTexture {nullptr};
+  std::shared_ptr<geo::Texture> opacityTexture {nullptr};
 
 
   UserProperties userProperties;
@@ -122,7 +122,7 @@ struct Material {
   /// @brief a texture maps from a parameter name (e.g. my_diffuse_tex) to a file path.
   std::unordered_map<std::string, std::string> texturePaths {};
   /// @brief mapping from parameter name to the texture resource.
-  std::unordered_map<std::string, std::shared_ptr<res::Resource<geo::Texture>>> textures {};
+  std::unordered_map<std::string, std::shared_ptr<geo::Texture>> textures {};
 
   void setDiffuseMap(const std::string& path) {
     diffuseTexturePath = path;

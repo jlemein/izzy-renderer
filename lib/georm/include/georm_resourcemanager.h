@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <filesystem>
 #include <res_resource.h>
+#include "georm_texturesystem.h"
 
 namespace lsw {
 namespace res {
@@ -29,7 +30,7 @@ namespace georm {
 
 class MaterialSystem;
 using MaterialPtr = std::shared_ptr<res::Resource<geo::Material>>;
-using TexturePtr = std::shared_ptr<res::Resource<geo::Texture>>;
+using TexturePtr = std::shared_ptr<geo::Texture>;
 using ScenePtr = std::shared_ptr<res::Resource<geo::Scene>>;
 
 /**!
@@ -37,7 +38,7 @@ using ScenePtr = std::shared_ptr<res::Resource<geo::Scene>>;
  * entities from the geometry package. The geometry package contains all higher
  * level entities, independent of the rendering system used.
  */
-class ResourceManager {
+class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
 public:
   ResourceManager();
 
@@ -47,25 +48,25 @@ public:
   MaterialPtr createSharedMaterial(const std::string& name);
   geo::Material createMaterial(const std::string& name);
 
-  TexturePtr loadTexture(const std::string& path);
+  TexturePtr loadTexture(const std::filesystem::path& path);
 
-  /** @brief load a scene file
-   *
-   * @param path Path to scene file (i.e. *.fbx, *.obj, etc).
-   * @return
-   */
+//  /** @brief load a scene file
+//   *
+//   * @param path Path to scene file (i.e. *.fbx, *.obj, etc).
+//   * @return
+//   */
   ScenePtr loadScene(std::filesystem::path path);
 
   std::shared_ptr<res::ResourceManager> getRawResourceManager();
 
-  const std::unordered_map<std::string, TexturePtr>& getTextures() const;
+  const std::unordered_map<std::string, TexturePtr> getTextures() const;
 
 private:
   std::shared_ptr<res::ResourceManager> m_wrappedResourceMgr {nullptr};
   std::shared_ptr<georm::MaterialSystem> m_materialSystem {nullptr};
+  georm::TextureSystem m_textureSystem;
 
   std::unordered_map<std::string, MaterialPtr> m_cachedMaterials;
-  std::unordered_map<std::string, TexturePtr> m_cachedTextures;
   std::unordered_map<std::string, ScenePtr> m_loadedScenes;
 };
 
