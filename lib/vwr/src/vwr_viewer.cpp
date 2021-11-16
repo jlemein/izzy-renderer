@@ -14,6 +14,7 @@
 #include <vwr_windowinputlistener.h>
 #include <anim_animationsystem.h>
 #include <gui_system.h>
+#include <georm_resourcemanager.h>
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -30,7 +31,7 @@ static void error_callback(int error, const char* description) {
 }  // namespace
 
 Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
-               std::shared_ptr<res::ResourceManager> resourceManager, std::shared_ptr<GuiSystem> guiSystem)
+               std::shared_ptr<georm::ResourceManager> resourceManager, std::shared_ptr<GuiSystem> guiSystem)
   : m_sceneGraph{sceneGraph}
   , m_resourceManager{resourceManager}
   , m_guiSystem(guiSystem)

@@ -25,6 +25,11 @@ class ResourceManager;
 namespace glrs {
 class RenderSystem;
 }
+
+namespace georm {
+class ResourceManager;
+}
+
 namespace ecs {
 class TransformSystem;
 class CameraSystem;
@@ -65,7 +70,7 @@ public:
    */
   Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
          std::shared_ptr<glrs::RenderSystem> renderSystem,
-         std::shared_ptr<res::ResourceManager> resourceManager,
+         std::shared_ptr<georm::ResourceManager> resourceManager,
          std::shared_ptr<GuiSystem> guiSystem = nullptr);
 
   ~Viewer();
@@ -88,7 +93,7 @@ public:
 
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
-  std::shared_ptr<res::ResourceManager> m_resourceManager;
+  std::shared_ptr<georm::ResourceManager> m_resourceManager;
   std::shared_ptr<GuiSystem> m_guiSystem {nullptr};
   std::shared_ptr<anim::AnimationSystem> m_animationSystem;
   entt::registry &m_registry;

@@ -45,3 +45,7 @@ void TextureSystem::setTextureLoader(const std::vector<std::string>& extensions,
 void TextureSystem::clearTextureLoaders() {
   m_textureLoaders.clear();
 }
+
+const std::unordered_map<std::string, geo::Texture>& TextureSystem::getTextures() const {
+  return m_cachedTextures;
+}

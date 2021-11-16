@@ -30,11 +30,11 @@ namespace georm {
 class TextureSystem;
 class MaterialSystem;
 
-class SceneLoader : public lsw::res::ResourceFactory {
+class SceneLoader {
  public:
   SceneLoader(std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<MaterialSystem> materialSystem);
 
-  std::unique_ptr<res::IResource> createResource(const std::string& path) override;
+  std::shared_ptr<geo::Scene> loadScene(const std::string& path);
 
  private:
   /**

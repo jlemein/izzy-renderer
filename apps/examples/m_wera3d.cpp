@@ -1,30 +1,29 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include <georm_materialsystem.h>
-#include <memory>
-#include <spdlog/spdlog.h>
-#include <vwr_viewer.h>
-//#include <res_resourcemanager.h>
+
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
+#include <ecs_light.h>
 #include <ecs_transformutil.h>
 #include <ecsg_scenegraph.h>
-#include <geo_primitivefactory.h>
-#include <georm_materialsystem.h>
-#include <georm_resourcemanager.h>
-#include <gui_system.h>
-#include <gui_lighteditor.h>
-#include <georm_fontsystem.h>
-#include <ecs_light.h>
-#include <cxxopts.hpp>
-#include <wsp_workspace.h>
-#include <georm_sceneloader.h>
 #include <geo_scene.h>
 #include <georm_exrloader.h>
+#include <georm_fontsystem.h>
+#include <georm_materialsystem.h>
+#include <georm_resourcemanager.h>
+#include <georm_sceneloader.h>
 #include <georm_stbtextureloader.h>
+#include <georm_texturesystem.h>
+#include <gui_lighteditor.h>
+#include <gui_system.h>
+#include <vwr_viewer.h>
+#include <wsp_workspace.h>
 
+#include <spdlog/spdlog.h>
+#include <cxxopts.hpp>
+#include <memory>
 using namespace std;
 using namespace lsw;
 using namespace geo;
@@ -48,7 +47,7 @@ int main(int argc, char* argv[]) {
 
     auto textureSystem = make_shared<georm::TextureSystem>();
     textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>());
-    textureSystem->setTextureLoader(ExtensionList {".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>());
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>());
     resourceManager->setTextureSystem(textureSystem);
 
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
@@ -56,7 +55,6 @@ int main(int argc, char* argv[]) {
 
     auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
     resourceManager->setSceneLoader(sceneLoader);
-
 
     if (workspace->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
@@ -70,12 +68,12 @@ int main(int argc, char* argv[]) {
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto resourceInspector = make_shared<gui::ResourceInspector>(resourceManager);
     auto guiSystem = make_shared<GuiSystem>(vector<std::shared_ptr<IGuiWindow>>{editor, resourceInspector});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager(), guiSystem);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    auto scenePtr = resourceManager->loadScene(workspace->sceneFile);
-    ecs::TransformUtil::Scale((*scenePtr)->rootNode()->transform, 0.05);
-    sceneGraph->makeScene(**scenePtr, ecsg::SceneLoaderFlags::All());
+    auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
+    ecs::TransformUtil::Scale(scene->rootNode()->transform, 0.05);
+    sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
@@ -101,25 +99,21 @@ int main(int argc, char* argv[]) {
   return EXIT_SUCCESS;
 }
 
-
 namespace {
 #ifndef NDEBUG
 const char* DEBUG_MODE = "true";
 #else
-  const char* DEBUG_MODE = "false";
+const char* DEBUG_MODE = "false";
 #endif  // NDEBUG
 }  // namespace
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
   const std::string PROGRAM_NAME = "wera3d";
   cxxopts::Options _options(PROGRAM_NAME, "Wera3d renderer.\nCopyright reserved to jlemein.nl\n");
-  _options.add_options()
-  ("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))
-  ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
-  ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>())
-  ("w,workspace", "Workspace directory", cxxopts::value<std::string>())
-  ("v,version", "Version information")
-  ("h,help","Print usage");
+  _options.add_options()("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))(
+      "s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())("m,materials", "Reference to a materials json file",
+                                                                                                 cxxopts::value<std::string>())(
+      "w,workspace", "Workspace directory", cxxopts::value<std::string>())("v,version", "Version information")("h,help", "Print usage");
   auto result = _options.parse(argc, argv);
 
   if (result.count("help")) {
@@ -128,7 +122,7 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
   }
 
   if (result.count("version")) {
-    std::cout << PROGRAM_NAME << " v" << VERSION_STR << std::endl; // VERSION_STR is defined in CmakeLists.txt
+    std::cout << PROGRAM_NAME << " v" << VERSION_STR << std::endl;  // VERSION_STR is defined in CmakeLists.txt
     exit(EXIT_SUCCESS);
   }
 

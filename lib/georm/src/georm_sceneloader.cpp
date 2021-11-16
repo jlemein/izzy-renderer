@@ -370,7 +370,7 @@ void readTextures(const aiScene* scene_p, geo::Scene& scene) {
   }
 }
 
-std::unique_ptr<res::IResource> SceneLoader::createResource(const std::string& path) {
+std::shared_ptr<geo::Scene> SceneLoader::loadScene(const std::string& path) {
   geo::Scene scene;
   scene.m_path = path;
   scene.m_dir = scene.m_path.parent_path();
@@ -393,5 +393,5 @@ std::unique_ptr<res::IResource> SceneLoader::createResource(const std::string& p
   readLights(aiScene_p, scene);
   readCameras(aiScene_p, scene);
 
-  return std::make_unique<res::Resource<geo::Scene>>(std::move(scene));
+  return std::make_shared<geo::Scene>(std::move(scene));
 }

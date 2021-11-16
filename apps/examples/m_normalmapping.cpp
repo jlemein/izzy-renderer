@@ -66,14 +66,14 @@ int main(int argc, char* argv[]) {
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<GuiSystem>(editor);
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager->getRawResourceManager(), guiSystem);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
 
     // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
     //    sceneGraph->setDefaultMaterial(
     //        resourceManager->createSharedMaterial("DefaultMaterial"));
 
     // ==== SCENE SETUP ======================================================
-    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("Box"), *resourceManager->createMaterial("NormalMap"));
+    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("Box"), *resourceManager->getMaterialSystem()->createMaterial("NormalMap"));
     boxL.translate(glm::vec3(0.0F, 0.0F, 0.0F));
     //    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
 

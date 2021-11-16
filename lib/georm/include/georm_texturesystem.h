@@ -52,6 +52,8 @@ class TextureSystem {
    */
   void clearTextureLoaders();
 
+  const std::unordered_map<std::string, geo::Texture>& getTextures() const;
+
  private:
   std::unordered_map<std::string, std::unique_ptr<geo::TextureLoader>> m_textureLoaders;
   std::unordered_map<std::string, geo::Texture> m_cachedTextures;
