@@ -73,7 +73,7 @@ int main(int argc, char* argv[]) {
     //        resourceManager->createSharedMaterial("DefaultMaterial"));
 
     // ==== SCENE SETUP ======================================================
-    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("Box"), resourceManager->createMaterial("NormalMap"));
+    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("Box"), *resourceManager->createMaterial("NormalMap"));
     boxL.translate(glm::vec3(0.0F, 0.0F, 0.0F));
     //    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
 

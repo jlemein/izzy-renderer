@@ -35,7 +35,7 @@ struct Mesh {
 
   std::vector<uint32_t> indices;
 
-  std::shared_ptr<res::Resource<Material>> material;
+  std::shared_ptr<Material> material {nullptr};
 
   // describes the data
   PolygonMode polygonMode {PolygonMode::kTriangles};

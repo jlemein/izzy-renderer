@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 
 //    auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("Wireframe"));
         auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeUVSphere("UvSphere"),
-                                           resourceManager->createMaterial("Wireframe"));
+                                           *resourceManager->createMaterial("Wireframe"));
         box.add<ecs::Wireframe>();
 
         auto viewer =

@@ -29,9 +29,10 @@ namespace lsw {
 namespace georm {
 
 class MaterialSystem;
-using MaterialPtr = std::shared_ptr<res::Resource<geo::Material>>;
+using MaterialPtr = std::shared_ptr<geo::Material>;
 using TexturePtr = std::shared_ptr<geo::Texture>;
 using ScenePtr = std::shared_ptr<res::Resource<geo::Scene>>;
+class SceneLoader;
 
 /**!
  * @brief Higher level resource manager specifically focused on loading
@@ -42,31 +43,30 @@ class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
 public:
   ResourceManager();
 
-  void setMaterialSystem(std::shared_ptr<georm::MaterialSystem> materialSystem);
-  std::shared_ptr<georm::MaterialSystem> getMaterialSystem();
+  /**
+   * Sets the material system
+   * @param materialSystem
+   */
+  void setMaterialSystem(std::shared_ptr<MaterialSystem> materialSystem);
+  void setTextureSystem(std::shared_ptr<TextureSystem> textureSystem);
+  void setSceneLoader(std::shared_ptr<SceneLoader> sceneLoader);
 
-  MaterialPtr createSharedMaterial(const std::string& name);
-  geo::Material createMaterial(const std::string& name);
+  std::shared_ptr<MaterialSystem> getMaterialSystem();
+  std::shared_ptr<TextureSystem> getTextureSystem();
+  std::shared_ptr<SceneLoader> getSceneLoader();
 
+  MaterialPtr createMaterial(const std::string& name);
   TexturePtr loadTexture(const std::filesystem::path& path);
-
-//  /** @brief load a scene file
-//   *
-//   * @param path Path to scene file (i.e. *.fbx, *.obj, etc).
-//   * @return
-//   */
   ScenePtr loadScene(std::filesystem::path path);
-
   std::shared_ptr<res::ResourceManager> getRawResourceManager();
-
   const std::unordered_map<std::string, TexturePtr> getTextures() const;
 
 private:
   std::shared_ptr<res::ResourceManager> m_wrappedResourceMgr {nullptr};
   std::shared_ptr<georm::MaterialSystem> m_materialSystem {nullptr};
-  georm::TextureSystem m_textureSystem;
+  std::shared_ptr<georm::SceneLoader> m_sceneLoader {nullptr};
+  std::shared_ptr<georm::TextureSystem> m_textureSystem;
 
-  std::unordered_map<std::string, MaterialPtr> m_cachedMaterials;
   std::unordered_map<std::string, ScenePtr> m_loadedScenes;
 };
 

@@ -79,13 +79,14 @@ int main(int argc, char **argv) {
         //        resourceManager->createSharedMaterial("DefaultMaterial"));
 
         // ==== SCENE SETUP ======================================================
+        //TODO:
         auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("NormalBox"),
-                                            resourceManager->createMaterial("NormalMap"));
+                                            *resourceManager->createMaterial("NormalMap"));
         boxL.translate(glm::vec3(-1.3F, 0.0F, 0.0F));
 //    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
 
         auto boxR = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("ParallaxBox"),
-                                            resourceManager->createMaterial("ParallaxMap"));
+                                            *resourceManager->createMaterial("ParallaxMap"));
         boxR.translate(glm::vec3(1.3F, 0.0F, 0.0F));
 //    boxR.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(2.0F)});
 

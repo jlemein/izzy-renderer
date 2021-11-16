@@ -17,7 +17,7 @@
 #include <geo_mesh.h>
 #include <geo_meshinstance.h>
 #include <geo_meshtransform.h>
-#include "../../georm/include/georm_sceneloader.h"
+
 #include <geo_scene.h>
 
 #include <res_resource.h>
@@ -30,15 +30,24 @@ using namespace lsw::ecs;
 
 SceneGraph::SceneGraph() {}
 
-void SceneGraph::setDefaultMaterial(std::shared_ptr<res::Resource<geo::Material>> material) {
+void SceneGraph::setDefaultMaterial(std::shared_ptr<geo::Material> material) {
   m_defaultMaterial = material;
 }
 
-SceneGraphEntity SceneGraph::addGeometry(const geo::Mesh& mesh, const geo::Material& mat) {
+SceneGraphEntity SceneGraph::addGeometry(geo::Mesh mesh, geo::Material mat) {
   auto e = makeEntity(mesh.name);
   e.add<glrs::Renderable>();
   e.add<geo::Mesh>(mesh);
   e.add<geo::Material>(mat);
+
+  return e;
+}
+
+SceneGraphEntity SceneGraph::addGeometry(geo::Mesh&& mesh, geo::Material&& material) {
+  auto e = makeEntity(mesh.name);
+  e.add<glrs::Renderable>();
+  e.add<geo::Mesh>(std::forward<geo::Mesh>(mesh));
+  e.add<geo::Material>(std::forward<geo::Material>(material));
 
   return e;
 }
@@ -137,7 +146,7 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh& mesh) {
   if (m_defaultMaterial == nullptr) {
     throw std::runtime_error("No default material set, cannot create mesh");
   }
-  meshEntity.add<geo::Material>(**m_defaultMaterial);
+  meshEntity.add<geo::Material>(*m_defaultMaterial);
 
   //  auto& shader = meshEntity.add<ecs::Shader>(
   //      {"assets/shaders/diffuse.vert.spv",
@@ -246,7 +255,7 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, Sce
       // TODO: make mesh instance instead of copy mesh
       //    auto e = makeRenderable(*instance->mesh, instance->transform,
       //    **material);
-      auto e = makeRenderable(*instance->mesh, instance->transform, **instance->material);
+      auto e = makeRenderable(*instance->mesh, instance->transform, *instance->material);
 
       root.addChild(e);
     }

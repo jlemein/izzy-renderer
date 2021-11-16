@@ -22,6 +22,8 @@
 #include <wsp_workspace.h>
 #include <georm_sceneloader.h>
 #include <geo_scene.h>
+#include <georm_exrloader.h>
+#include <georm_stbtextureloader.h>
 
 using namespace std;
 using namespace lsw;
@@ -40,19 +42,27 @@ int main(int argc, char* argv[]) {
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
-    //TODO: refactor this tricky situation with this pointer
-    auto sceneLoader = make_shared<georm::SceneLoader>(resourceManager.get());
+
     auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
+
+    auto textureSystem = make_shared<georm::TextureSystem>();
+    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>());
+    textureSystem->setTextureLoader(ExtensionList {".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>());
+    resourceManager->setTextureSystem(textureSystem);
+
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    resourceManager->setMaterialSystem(materialSystem);
+
+    auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
+    resourceManager->setSceneLoader(sceneLoader);
+
 
     if (workspace->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
       materialSystem->loadMaterialsFromFile(workspace->materialsFile);
     }
-
-    resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
 

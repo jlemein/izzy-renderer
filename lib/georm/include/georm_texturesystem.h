@@ -4,14 +4,14 @@
 #pragma once
 
 #include <geo_texture.h>
-#include <res_resource.h>
 #include <geo_textureloader.h>
+#include <res_resource.h>
 
+#include <filesystem>
 #include <memory>
 #include <string>
-#include <vector>
-#include <filesystem>
 #include <unordered_map>
+#include <vector>
 
 namespace lsw {
 namespace georm {
@@ -25,29 +25,38 @@ namespace georm {
  * @details Note that there is no texture component or whatsoever.
  */
 class TextureSystem {
-public:
-    /// Retrieves a texture that is unique.
-    std::shared_ptr<geo::Texture> loadTexture(const std::filesystem::path& path);
+ public:
+  /**
+   * Creates a texture with the specified name.
+   * @param path Path of the texture file.
+   * @return a texture object that is shared with the texture system.
+   */
+  std::shared_ptr<geo::Texture> loadTexture(const std::filesystem::path& path);
 
-    /**
-     * Sets a texture loader for the specified extension(s).
-     * There can only be one texture loader per extension.
-     * @param extension Extension that the texture loader can read.
-     * @param textureLoader The texture loader responsible for loading the specified texture format.
-     *                      Setting the extension to a nullptr unsets the texture loader.
-     */
-    void setTextureLoader(const std::string &extension, std::unique_ptr<geo::ITextureLoader> textureLoader);
+  /**
+   * Sets a texture loader for the specified extension(s).
+   * There can only be one texture loader per extension.
+   * @param extension Extension that the texture loader can read.
+   * @param textureLoader The texture loader responsible for loading the specified texture format.
+   *                      Setting the extension to a nullptr unsets the texture loader.
+   */
+  void setTextureLoader(const std::string& extension, std::unique_ptr<geo::TextureLoader> textureLoader);
 
-    /// @overload
-    void setTextureLoader(const geo::ExtensionList& extension, std::unique_ptr<geo::ITextureLoader> textureLoader);
+  /**
+   * @overload
+   */
+  void setTextureLoader(const geo::ExtensionList& extension, std::unique_ptr<geo::TextureLoader> textureLoader);
 
-    void clearTextureLoaders();
+  /**
+   * Removes all added texture loaders.
+   */
+  void clearTextureLoaders();
 
-private:
-    std::unordered_map <std::string, std::unique_ptr<geo::ITextureLoader>> m_textureLoaders;
-    std::unordered_map <std::string, geo::Texture> m_cachedTextures;
-    std::unordered_map<uint64_t, std::shared_ptr<geo::Texture>> m_textures;
+ private:
+  std::unordered_map<std::string, std::unique_ptr<geo::TextureLoader>> m_textureLoaders;
+  std::unordered_map<std::string, geo::Texture> m_cachedTextures;
+  std::unordered_map<uint64_t, std::shared_ptr<geo::Texture>> m_textures;
 };
 
-} // end of package
-} // end of enterprise
+}  // namespace georm
+}  // namespace lsw

@@ -10,9 +10,11 @@ add_library(georm STATIC
         src/georm_materialsystem.cpp
         src/georm_resourcemanager.t.cpp
         src/anim_animationsystem.cpp
-        src/georm_fontsystem.cpp include/georm_texturesystem.h src/georm_texturesystem.cpp
+        src/georm_fontsystem.cpp
+        include/georm_texturesystem.h src/georm_texturesystem.cpp
         src/georm_exrloader.cpp
-        include/georm_sceneloader.h src/georm_sceneloader.cpp)
+        include/georm_sceneloader.h src/georm_sceneloader.cpp
+        include/georm_stbtextureloader.h src/georm_stbtextureloader.cpp)
 
 target_include_directories(georm
         PUBLIC include

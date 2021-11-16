@@ -4,6 +4,7 @@
 #pragma once
 
 #include <list>
+#include <glm/glm.hpp>
 
 namespace lsw {
 namespace geo {
@@ -33,7 +34,7 @@ public:
     using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
     //  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
     using TextureIterable = std::vector<std::shared_ptr<Texture>>;
-    using MaterialIterable = std::vector<std::shared_ptr<res::Resource<geo::Material>>>;
+    using MaterialIterable = std::vector<std::shared_ptr<geo::Material>>;
     using LightIterable = std::vector<std::shared_ptr<Light>>;
     using CameraIterable = std::vector<std::shared_ptr<Camera>>;
     using SceneNodeIterable = std::vector<std::shared_ptr<SceneNode>>;

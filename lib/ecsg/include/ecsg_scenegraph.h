@@ -2,11 +2,11 @@
 #define ARTIFAX_ECS_SCENEGRAPH_H
 
 #include <ecsg_scenegraphentity.h>
+
+#include <res_resource.h>
 #include <entt/entt.hpp>
-#include <geo_material.h>
 #include <glm/glm.hpp>
 #include <memory>
-#include <res_resource.h>
 
 namespace lsw {
 
@@ -18,12 +18,12 @@ struct SceneNode;
 struct Light;
 struct Camera;
 struct Material;
-}; // namespace geo
+};  // namespace geo
 
 namespace ecs {
 struct Transform;
 struct PointLight;
-}
+}  // namespace ecs
 
 namespace ecsg {
 
@@ -49,27 +49,29 @@ struct SceneLoaderFlags {
  *
  */
 class SceneGraph {
-public:
+ public:
   SceneGraph();
 
-  void
-  setDefaultMaterial(std::shared_ptr<res::Resource<geo::Material>> material);
+  void setDefaultMaterial(std::shared_ptr<geo::Material> material);
 
   // TODO: represent the active camera in the scene graph,
   //  probably by flagging the entity with ActiveCamera component.
   //  or maybe a centralized registry.
   void setActiveCamera(SceneGraph camera);
 
-  entt::registry &getRegistry();
+  entt::registry& getRegistry();
 
   /**!
    * @brief Creates a geometry
    * @return
    */
-  SceneGraphEntity addGeometry(const geo::Mesh &, const geo::Material &);
+   //TODO: currently assigning a material to a geometry disconnects the relationship with the creator.
+   // this does not make it possible to share materials
+  SceneGraphEntity addGeometry(geo::Mesh mesh, geo::Material material);
+  SceneGraphEntity addGeometry(geo::Mesh&& mesh, geo::Material&& material);
   SceneGraphEntity addGeometry(const geo::Mesh& mesh);
 
-  void setActiveCamera(const SceneGraphEntity *activeCamera);
+  void setActiveCamera(const SceneGraphEntity* activeCamera);
 
   /// @brief Creates a simple barebone entity containing minimum components
   /// Minum components are: Transform, Name, Relationship
@@ -77,13 +79,11 @@ public:
 
   /// @brief Creates a camera at a Z distance of 5 meter from the origin,
   /// looking at the origin
-  SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F,
-                              float fovx = 120.0F, float aspect = 1.0F,
-                              float zNear = 0.1F, float zFar = 1000.0F);
+  SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F, float fovx = 120.0F, float aspect = 1.0F, float zNear = 0.1F, float zFar = 1000.0F);
 
-  SceneGraphEntity makeCamera(const geo::Camera &geoCamera);
+  SceneGraphEntity makeCamera(const geo::Camera& geoCamera);
 
-  SceneGraphEntity makeLight(const geo::Light &light);
+  SceneGraphEntity makeLight(const geo::Light& light);
 
   SceneGraphEntity makeAmbientLight(std::string name, glm::vec3 color = {.1F, .1F, .1F}, float intensity = 1.0F);
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position, ecs::PointLight pointLight);
@@ -96,20 +96,15 @@ public:
    *                         origin of the scene.
    * @return A new scene graph entity with the directional light source.
    */
-  SceneGraphEntity makeDirectionalLight(std::string name,
-                                        glm::vec3 direction = {
-                                            0.10976F, 0.98787834F, 0.10976F});
+  SceneGraphEntity makeDirectionalLight(std::string name, glm::vec3 direction = {0.10976F, 0.98787834F, 0.10976F});
 
-  SceneGraphEntity makeMesh(const geo::Mesh &mesh);
-  SceneGraphEntity makeEmptyMesh(const geo::Mesh &mesh);
+  SceneGraphEntity makeMesh(const geo::Mesh& mesh);
+  SceneGraphEntity makeEmptyMesh(const geo::Mesh& mesh);
   SceneGraphEntity makeCurve(std::string name);
 
-  SceneGraphEntity makeRenderable(geo::Mesh &&mesh,
-                                  const geo::Material &material);
-  SceneGraphEntity makeRenderable(const geo::Mesh &mesh, glm::mat4 transform,
-                                  geo::Material &material);
-  SceneGraphEntity makeRenderable(geo::Curve &&curve,
-                                  const geo::Material &shader);
+  SceneGraphEntity makeRenderable(geo::Mesh&& mesh, const geo::Material& material);
+  SceneGraphEntity makeRenderable(const geo::Mesh& mesh, glm::mat4 transform, geo::Material& material);
+  SceneGraphEntity makeRenderable(geo::Curve&& curve, const geo::Material& shader);
 
   /**!
    * Loads a complete scene and adds it to the scene graph.
@@ -119,36 +114,33 @@ public:
    * as well. By default everything is loaded.
    * @return
    */
-  SceneGraphEntity makeScene(const geo::Scene &,
-                             SceneLoaderFlags flags = SceneLoaderFlags{});
-  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource,
-                             SceneLoaderFlags flags = SceneLoaderFlags{});
+  SceneGraphEntity makeScene(const geo::Scene&, SceneLoaderFlags flags = SceneLoaderFlags{});
+  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource, SceneLoaderFlags flags = SceneLoaderFlags{});
 
   SceneGraphEntity makeTexture();
-  SceneGraphEntity makeRectangularGrid(float size = 10.0F,
-                                       float spacing = 1.0F);
+  SceneGraphEntity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);
   SceneGraphEntity makeDebugVisualization(entt::entity target);
 
-private:
+ private:
   /// Uses EnTT in the background for scene management
   entt::registry m_registry;
   //  std::shared_ptr<ecsg::EntityFactory> m_entityFactory {nullptr};
 
-  std::shared_ptr<res::Resource<geo::Material>> m_defaultMaterial{nullptr};
-  const SceneGraphEntity *m_activeCamera{nullptr};
+  std::shared_ptr<geo::Material> m_defaultMaterial{nullptr};
+  const SceneGraphEntity* m_activeCamera{nullptr};
 
-  void processChildren(std::shared_ptr<const geo::SceneNode> node,
-                       SceneLoaderFlags flags,
-                       SceneGraphEntity *parent_p = nullptr);
+  void processChildren(std::shared_ptr<const geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p = nullptr);
 };
 
 //====================================
 // INLINE DEFINITIONS
 //====================================
 
-inline entt::registry &SceneGraph::getRegistry() { return m_registry; }
+inline entt::registry& SceneGraph::getRegistry() {
+  return m_registry;
+}
 
-} // namespace ecsg
-} // namespace lsw
+}  // namespace ecsg
+}  // namespace lsw
 
-#endif // ARTIFAX_ECS_SCENEGRAPH_H
+#endif  // ARTIFAX_ECS_SCENEGRAPH_H
