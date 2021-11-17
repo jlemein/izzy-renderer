@@ -25,7 +25,7 @@ std::shared_ptr<geo::Texture> TextureSystem::loadTexture(const std::filesystem::
   return std::make_shared<geo::Texture>(m_cachedTextures[path]);
 }
 
-void TextureSystem::setTextureLoader(const std::string& extension, std::unique_ptr<geo::TextureLoader> textureLoader) {
+void TextureSystem::setTextureLoader(const std::string& extension, std::shared_ptr<geo::TextureLoader> textureLoader) {
   if (extension.empty()) {
     throw std::runtime_error("Cannot set texture loader for empty extension.");
   }
@@ -33,12 +33,12 @@ void TextureSystem::setTextureLoader(const std::string& extension, std::unique_p
   auto canonicalExtension = boost::starts_with(extension, ".") ? extension : "." + extension;
   boost::to_lower(canonicalExtension);
 
-  m_textureLoaders[canonicalExtension] = std::move(textureLoader);
+  m_textureLoaders[canonicalExtension] = textureLoader;
 }
 
-void TextureSystem::setTextureLoader(const std::vector<std::string>& extensions, std::unique_ptr<geo::TextureLoader> textureLoader) {
+void TextureSystem::setTextureLoader(const std::vector<std::string>& extensions, std::shared_ptr<geo::TextureLoader> textureLoader) {
   for (const auto& ext : extensions) {
-    setTextureLoader(ext, std::move(textureLoader));
+    setTextureLoader(ext, textureLoader);
   }
 }
 

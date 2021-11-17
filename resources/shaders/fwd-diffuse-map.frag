@@ -29,7 +29,7 @@ struct AmbientLight {
 
 layout(std140, binding=2)
 uniform ForwardLighting {
-    ivec4 numberOfLights;
+    ivec4 numberOfLights;  // dir, ambient, pt, sptlgt
     DirectionalLight directionalLight;  // largest base alignment: 4. Starts at byte 16 (directly after numberOfLights)
     AmbientLight ambientLight; // largest base alignment: 4.
     PointLight pointLights[MAX_POINT_LIGHTS];

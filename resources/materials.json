@@ -1,5 +1,5 @@
 {
-  "default_material": "NormalMap",
+  "default_material": "DebugNormal",
   "material_mapping": [
     {
       "from": "WoodCrate",
@@ -7,6 +7,22 @@
     }
   ],
   "materials": [
+    {
+      "name": "DebugUv",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/uv.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/uv.frag",
+      "properties": []
+    },
+    {
+      "name": "DebugNormal",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/normal.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/normal.frag",
+      "properties": []
+    },
     {
       "name": "NormalMap",
       "is_binary_shader": false,

@@ -321,14 +321,15 @@ void RenderSystem::init() {
     // convert material descriptions to openGL specific material data.
     m_materialSystem->synchronizeTextures(*this);
 
+    auto numMaterials = m_registry.view<geo::Material>().size();
     auto numLights = m_lightSystem->getActiveLightCount();
 
     // small summary
     spdlog::info(
             "Render system initialized | "
-            "Number of material in use {} | "
+            "Number of material in use: {} | "
             "Number of active lights: {}",
-            "Unknown", numLights);
+            numMaterials, numLights);
 
     // Initialization of the rendersystem encompasses the following steps.
     // Take into account the vocabulary.
@@ -379,7 +380,7 @@ void RenderSystem::init() {
             initMeshBuffers(renderable, mesh);
 
             auto &material = m_registry.get<geo::Material>(entity);
-            spdlog::info("Compiling shaders -- vs: {} fs: {}", material.vertexShader, material.fragmentShader);
+            spdlog::debug("Compiling shaders -- vs: {} fs: {}", material.vertexShader, material.fragmentShader);
 
             if (material.isBinaryShader) {
                 renderable.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);

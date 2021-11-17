@@ -40,12 +40,12 @@ class TextureSystem {
    * @param textureLoader The texture loader responsible for loading the specified texture format.
    *                      Setting the extension to a nullptr unsets the texture loader.
    */
-  void setTextureLoader(const std::string& extension, std::unique_ptr<geo::TextureLoader> textureLoader);
+  void setTextureLoader(const std::string& extension, std::shared_ptr<geo::TextureLoader> textureLoader);
 
   /**
    * @overload
    */
-  void setTextureLoader(const geo::ExtensionList& extension, std::unique_ptr<geo::TextureLoader> textureLoader);
+  void setTextureLoader(const geo::ExtensionList& extension, std::shared_ptr<geo::TextureLoader> textureLoader);
 
   /**
    * Removes all added texture loaders.
@@ -55,7 +55,7 @@ class TextureSystem {
   const std::unordered_map<std::string, geo::Texture>& getTextures() const;
 
  private:
-  std::unordered_map<std::string, std::unique_ptr<geo::TextureLoader>> m_textureLoaders;
+  std::unordered_map<std::string, std::shared_ptr<geo::TextureLoader>> m_textureLoaders;
   std::unordered_map<std::string, geo::Texture> m_cachedTextures;
   std::unordered_map<uint64_t, std::shared_ptr<geo::Texture>> m_textures;
 };
