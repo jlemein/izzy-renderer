@@ -1,5 +1,5 @@
 {
-  "default_material": "DebugNormal",
+  "default_material": "NormalMap",
   "material_mapping": [
     {
       "from": "WoodCrate",
@@ -21,6 +21,14 @@
       "vertex_shader": "shaders/normal.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/normal.frag",
+      "properties": []
+    },
+    {
+      "name": "DebugBinormal",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/tangent.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/tangent.frag",
       "properties": []
     },
     {

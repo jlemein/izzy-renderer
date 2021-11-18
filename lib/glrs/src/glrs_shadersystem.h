@@ -33,14 +33,13 @@ public:
      */
     Program compileSpirvShader(const std::string& vertexShader, const std::string& fragmentShader);
 
-//    void readSource();
-//
-//    void readSprvShader();
-
+    /**
+     * @returns true if GPU/system supports binary or precompiled shaders. If not, shaders need to be compiled from source before used.
+     */
     bool hasBinaryShaderSupport();
 
 private:
-    bool m_hasBinaryShaderSupport;
+    bool m_hasBinaryShaderSupport {false};
 };
 
 } // ecs

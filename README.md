@@ -196,3 +196,15 @@ For linux follow the instructions:
     cpack
 ```
 
+# Object creation
+
+* **PrimitiveFactory**: factory for creating simple objects, planes, triangles, boxes, spheres, cubes, cylinders, etcetera. A primitive factory produces a mesh object to which additional operations can be performed using the mesh utilities.
+
+# Utilities
+
+A entity component approach seperates data and logic. Applying operations to the data is done using appropriate utility functions.
+Creating meshes can be done by loading in scene files, or by generating them using utilities. After meshes are created or loaded from file, they often lack essential data Therefore a couple of 
+fingertips.
+
+* **Mesh utilities** (`geo::MeshUtil`): essential for transforming raw mesh data. This includes generating normals and tangent data. Changes are applied to the mesh data itself, meaning that no computation logic is needed after a mesh utility is used. 
+* **Transform utilities** (`ecs::TransformUtil`): essential for applying transformations to entities, such as scaling, rotating and moving objects.

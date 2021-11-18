@@ -20,6 +20,7 @@
 #include <gui_system.h>
 #include <vwr_viewer.h>
 #include <wsp_workspace.h>
+#include <geo_meshutil.h>
 
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
@@ -73,6 +74,10 @@ int main(int argc, char* argv[]) {
     // ==== SCENE SETUP ======================================================
     auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
     ecs::TransformUtil::Scale(scene->rootNode()->transform, 0.05);
+    for (auto& mesh : scene->m_meshes) {
+      geo::MeshUtil::GenerateTangents(*mesh);
+    }
+
     sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
 
     // ==== LIGHTS SETUP ====================================================
