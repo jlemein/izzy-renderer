@@ -115,7 +115,12 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
     if (material.contains("properties")) {
       auto& properties = material["properties"];
       for (const auto& prop : properties) {
-        // every property always has a name and type
+        // Required: every property must have a name and type.
+        if(!prop.contains("name") || !prop.contains("type")) {
+          spdlog::warn("Material '{}': property misses required attributes 'name' and/or 'type'. Property will be ignored.", m.name);
+          continue;
+        }
+
         std::string name = prop["name"];
         std::string type = prop["type"];
 
