@@ -48,12 +48,12 @@ set(SHADER_OUTPUT_FILES
 # a better solution is as follows:
 #file(GLOB SHADER_INPUT_FILES   ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders/*.vert ${CMAKE_CURRENT_LIST_DIR}/workspace/assets/shaders/*.frag)
 #file(GLOB SHADER_OUTPUT_FILES  ${CMAKE_BINARY_DIR}/resources/shaders/*.spv)
-add_custom_command(
-        OUTPUT ${SHADER_OUTPUT_FILES}
-        COMMAND echo "Compiling shaders"
-        COMMAND ${CMAKE_CURRENT_LIST_DIR}/compile-shaders.sh ${CMAKE_CURRENT_LIST_DIR}/resources/shaders ${CMAKE_BINARY_DIR}/resources/shaders
-        DEPENDS ${SHADER_INPUT_FILES})
-add_custom_target(compile-shaders ALL DEPENDS ${SHADER_OUTPUT_FILES})
+#add_custom_command(
+#        OUTPUT ${SHADER_OUTPUT_FILES}
+#        COMMAND echo "Compiling shaders"
+#        COMMAND ${CMAKE_CURRENT_LIST_DIR}/compile-shaders.sh ${CMAKE_CURRENT_LIST_DIR}/resources/shaders ${CMAKE_BINARY_DIR}/resources/shaders
+#        DEPENDS ${SHADER_INPUT_FILES})
+#add_custom_target(compile-shaders ALL DEPENDS ${SHADER_OUTPUT_FILES})
 
 ####################################################################################
 ### Resources
@@ -91,7 +91,7 @@ include(CPackIFW)
 add_subdirectory(lib)
 add_subdirectory(apps)
 
-add_dependencies(normalmap compile-shaders)
+#add_dependencies(normalmap compile-shaders)
 
 #install(FILES LICENSE.md README.md DESTINATION ${CMAKE_BINARY_DIR})
 

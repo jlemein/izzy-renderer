@@ -68,10 +68,11 @@ class SceneGraph {
    //TODO: currently assigning a material to a geometry disconnects the relationship with the creator.
    // this does not make it possible to share materials
   SceneGraphEntity addGeometry(geo::Mesh mesh, geo::Material material);
-  SceneGraphEntity addGeometry(geo::Mesh&& mesh, geo::Material&& material);
+//  SceneGraphEntity addGeometry(geo::Mesh&& mesh, geo::Material&& material);
   SceneGraphEntity addGeometry(const geo::Mesh& mesh);
+  SceneGraphEntity addGeometry(geo::Mesh mesh, std::shared_ptr<geo::Material> mat);
 
-  void setActiveCamera(const SceneGraphEntity* activeCamera);
+      void setActiveCamera(const SceneGraphEntity* activeCamera);
 
   /// @brief Creates a simple barebone entity containing minimum components
   /// Minum components are: Transform, Name, Relationship

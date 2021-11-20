@@ -43,14 +43,25 @@ SceneGraphEntity SceneGraph::addGeometry(geo::Mesh mesh, geo::Material mat) {
   return e;
 }
 
-SceneGraphEntity SceneGraph::addGeometry(geo::Mesh&& mesh, geo::Material&& material) {
+SceneGraphEntity SceneGraph::addGeometry(geo::Mesh mesh, std::shared_ptr<geo::Material> mat) {
   auto e = makeEntity(mesh.name);
   e.add<glrs::Renderable>();
-  e.add<geo::Mesh>(std::forward<geo::Mesh>(mesh));
-  e.add<geo::Material>(std::forward<geo::Material>(material));
+  e.add<geo::Mesh>(mesh);
+  // TODO: make sure we store a shared ptr instead of a copy.
+  //  shared materials offer option to share materials.
+  e.add<geo::Material>(*mat);
 
   return e;
 }
+
+//SceneGraphEntity SceneGraph::addGeometry(geo::Mesh&& mesh, geo::Material&& material) {
+//  auto e = makeEntity(mesh.name);
+//  e.add<glrs::Renderable>();
+//  e.add<geo::Mesh>(std::forward<geo::Mesh>(mesh));
+//  e.add<geo::Material>(std::forward<geo::Material>(material));
+//
+//  return e;
+//}
 
 SceneGraphEntity SceneGraph::makeEntity(std::string name) {
   auto e{m_registry.create()};

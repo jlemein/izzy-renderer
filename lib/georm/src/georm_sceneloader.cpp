@@ -241,8 +241,10 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, geo::Scene& scene) {
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
 
-      for (int k = 0; k < node_p->mMetaData->mNumProperties; ++k) {
-        std::cout << "\t\t" << node_p->mMetaData->mKeys[k].C_Str() << std::endl;
+      if (node_p->mMetaData != nullptr) {
+        for (int k = 0; k < node_p->mMetaData->mNumProperties; ++k) {
+          std::cout << "\t\t" << node_p->mMetaData->mKeys[k].C_Str() << std::endl;
+        }
       }
       meshInstance->mesh = mesh;
       meshInstance->name = std::string{node_p->mName.C_Str()};

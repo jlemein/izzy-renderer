@@ -119,9 +119,17 @@ struct Material {
   std::filesystem::path roughnessTexturePath {""};
 
   // TODO: move in separate class or struct.
-  /// @brief a texture maps from a parameter name (e.g. my_diffuse_tex) to a file path.
+  /**
+   * @brief a texture maps from a parameter name (e.g. my_diffuse_tex) to a file path.
+   * When programmatically assigned a texture to an entity, set the texturePath instead of loading the texture in textures.
+   */
   std::unordered_map<std::string, std::string> texturePaths {};
-  /// @brief mapping from parameter name to the texture resource.
+
+  /**
+   * @brief mapping from parameter name to the texture resource.
+   * This variable is for bookkeeping purposes only. Never set this attribute directly, your texture will not be loaded.
+   * Use @see texturePaths instead.
+   */
   std::unordered_map<std::string, std::shared_ptr<geo::Texture>> textures {};
 
   void setDiffuseMap(const std::string& path) {

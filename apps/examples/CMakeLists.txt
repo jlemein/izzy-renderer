@@ -29,6 +29,9 @@ add_executable(wera3d m_wera3d.cpp gui_lighteditor.h gui_lighteditor.cpp)
 target_link_libraries(wera3d PRIVATE common cxxopts::cxxopts)
 target_compile_definitions(wera3d PRIVATE -DVERSION_STR="1.0.0")
 
+add_executable(debugscene m_debugscene.cpp)
+target_link_libraries(debugscene PRIVATE common cxxopts::cxxopts)
+
 add_executable(icosphere m_icosphere.cpp)
 target_link_libraries(icosphere PRIVATE common cxxopts::cxxopts)
 

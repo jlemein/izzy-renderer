@@ -32,6 +32,20 @@
       "properties": []
     },
     {
+      "name": "Texture",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/texture.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/texture.frag",
+      "properties": [
+        {
+          "type": "texture",
+          "name": "textureMap",
+          "value": "textures/castle_albedo.jpg"
+        }
+      ]
+    },
+    {
       "name": "NormalMap",
       "is_binary_shader": false,
       "vertex_shader": "shaders/fwd-diffuse-map.vert",
