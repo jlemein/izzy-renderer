@@ -10,7 +10,7 @@ There are two ways to use Izzy renderer.
 1. By making use of a scene file and materials file.
 2. By using the renderer as a library. For examples, refer to the apps subfolder.
 
-To use Izzy render renderer with the first mode, run the following command:
+To use Izzy renderer with the first mode, run the following command:
 
 `izzyrender --scene=hello.fbx --materials=materials.json`
 
@@ -23,7 +23,7 @@ Izzy renderer takes two input arguments:
 
 
 The following examples are delivered as part of the renderer:
-* Normalmapping example
+* Normal mapping example
 * Parallax mapping example
 
 Aside from the scene file and materials file oriented approach, the library can be used as a C++ library as well.
@@ -39,9 +39,9 @@ The library has been tested on:
 > :warning: the current libraries will be refactored soon to reflect the design described below.
 
 The codebase is in transformation right now. The library structure will be simplified. The following libraries are distinguished:
+* `lsw` Core components needed for a rendering system. Think about materials, scene file representations, transformation matrices, light sources.
 * `lsw::gl` GL render system. Contains openGL specific code for rendering. Aside from this library, nothing deals with OpenGL. In future, there will be Vulkan support.
 * `lsw::gui` GUI system. Any
-* `lsw` Core components needed for a rendering system. Think about materials, scene file representations, transformation matrices, light sources.
 * `lsw::geo` Additional geometry objects.
 
 # API Documentation
@@ -59,9 +59,18 @@ Project makes use of Git LFS.
 
 ## Resolving materials and textures
 
-Resources are always loaded relative from the assets. For example, all textures specified in the scene file htat is passed
-as program argument, are resolved from the scene file. Textures specified as part of the materials file are resolved
-from the materials file. 
+Every renderer is may support different advanced features. It is for the time being impractical to have
+a single unified material file format that supports all features of modern renderers. 
+Most 3d models, however, provide some basic support for material settings, such as diffuse and specular colors, roughness values and
+texture information.
+Izzy Renderer derives as much as it can from the 3d models and render it to the best of it's knowledge.
+If you want fancier results, then you need to use the materials file. The material file is used to override the default
+material properties. Also the material file is used to express parameters to complex rendering techniques. The material
+file is in that sense a material file format for the Izzy Renderer.
+
+Resources are always loaded relative from the point of declaration.
+* Textures specified in the scene file (as part of the fbx file) are resolved as part of the location of the scene file.
+* Textures specified in the materials file are resolved from the location of the materials file.
 
 Most meshes make use of external data, such as textures, animation files, lookup data, etcetera. By default, relative paths in the model
 are resolved to the directory where the mesh is located.
