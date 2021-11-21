@@ -2,12 +2,17 @@
 
 The Izzy renderer is a flexible lightweight renderer for Linux. The renderer is a rasterized renderer using OpenGL.
 The renderer can render a diverse collection of scene file formats.
-The renderer does not require much apriori knowledge.
+The renderer does not require much apriori knowledge. 
+The renderer is designed to facilitate experimentation of rendering techniques. Therefore it is set up in a very
+flexible way using an ECS scene graph. 
 
+There are two ways to use Izzy renderer.
+1. By making use of a scene file and materials file.
+2. By using the renderer as a library. For examples, refer to the apps subfolder.
 
-To use the Izzy render renderer, run the following command:
+To use Izzy render renderer with the first mode, run the following command:
 
-`izzyrender --scene=hello.fbx --materials=material.json`
+`izzyrender --scene=hello.fbx --materials=materials.json`
 
 Izzy renderer takes two input arguments:
 * `--scene` Any of the supported scene file formats, such as *.fbx or *.collada files.
@@ -45,7 +50,9 @@ The codebase is in transformation right now. The library structure will be simpl
 
 Requirements:
 * GLEW libraries - `sudo apt install libglew-dev`
-* Conan 1.40+
+* Conan 1.40+ - https://docs.conan.io/en/latest/installation.html
+* CMake 3.15+
+* C++17
 
 Project makes use of Git LFS.
 
