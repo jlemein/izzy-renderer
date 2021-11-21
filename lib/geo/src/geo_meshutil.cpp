@@ -95,74 +95,74 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
 }
 
 void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh, float thresholdDegrees) {
-//  std::unordered_map<Mesh::Vertex, int, universal_hash> vertexIndexMap;
-//  std::vector<Vertex> uniqueVertices;
-//
-//  std::cout << "Unique vertices size: " << uniqueVertices.size() << std::endl;
-//
-//  for (auto i = 0U; i < mesh.indices.size(); ++i) {
-//    auto idx = mesh.indices[i];
-//    Mesh::Vertex* vertex = reinterpret_cast<Mesh::Vertex*>(&mesh.vertices[idx * 3]);
-//    Mesh::Normal* normal = reinterpret_cast<Mesh::Normal*>(&mesh.normals[idx * 3]);
-//    glm::vec2 uv = reinterpret_cast<glm::vec2&>(mesh.uvs[idx*2]);
-//
-//    auto index = uniqueVertices.size();
-//    if (!vertexIndexMap.contains(*vertex)) {
-//      // if vertex does not exist (so is unique), then add the vertex with the corresponding index
-//      vertexIndexMap[*vertex] = index;
-//      uniqueVertices.push_back(Vertex{*vertex, Mesh::Normal{0,0,0}, ));
-//    } else {
-//      index = vertexIndexMap[*vertex];
-//    }
-//
-//    auto& [v, summedNormal] = uniqueVertices[index];
-//    summedNormal.x += normal->x;
-//    summedNormal.y += normal->y;
-//    summedNormal.z += normal->z;
-//
-//    std::cout << "Summed normal at index " << index << ": " << summedNormal.x << ", " << summedNormal.y << ", " << summedNormal.z << std::endl;
-//
-//    // overwrite mesh index. This is fine, since we already processed it above.
-//    mesh.indices[i] = index;
-//    mesh.uvs[i*2] = uv.x;
-//    mesh.uvs[i*2 + 1] = uv.y;
-//  }
-//
-//  mesh.uvs.resize();
-//
-//  std::cout << "Preprocessing done." << std::endl;
-//
-//  for (int i=0; i<uniqueVertices.size(); ++i) {
-//    auto& [v, n] = uniqueVertices[i];
-//    std::cout << "V" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
-//  }
-//
-//  // Preprocessing done.
-//  // Now recreate the mesh
-//
-//  mesh.vertices.clear();
-//  mesh.normals.clear();
-//  mesh.uvs.clear();
-//  mesh.vertices.reserve(uniqueVertices.size()*3);
-//  mesh.normals.reserve(uniqueVertices.size()*3);
-//
-//  for (auto i=0U; i<uniqueVertices.size(); ++i) {
-//    auto& [v, n] = uniqueVertices[i];
-//
-//    mesh.vertices.push_back(v.x);
-//    mesh.vertices.push_back(v.y);
-//    mesh.vertices.push_back(v.z);
-//
-//    auto length = glm::length(*reinterpret_cast<glm::vec3*>(&n));
-//
-//    n.x /= length;
-//    n.y /= length;
-//    n.z /= length;
-//
-//    mesh.normals.push_back(n.x);
-//    mesh.normals.push_back(n.y);
-//    mesh.normals.push_back(n.z);
-//
-//    std::cout << "\nV" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
-//  }
+  std::unordered_map<Mesh::Vertex, int, universal_hash> vertexIndexMap;
+  std::vector<Vertex> uniqueVertices;
+
+  std::cout << "Unique vertices size: " << uniqueVertices.size() << std::endl;
+
+  for (auto i = 0U; i < mesh.indices.size(); ++i) {
+    auto idx = mesh.indices[i];
+    Mesh::Vertex* vertex = reinterpret_cast<Mesh::Vertex*>(&mesh.vertices[idx * 3]);
+    Mesh::Normal* normal = reinterpret_cast<Mesh::Normal*>(&mesh.normals[idx * 3]);
+    glm::vec2 uv = reinterpret_cast<glm::vec2&>(mesh.uvs[idx*2]);
+
+    auto index = uniqueVertices.size();
+    if (!vertexIndexMap.contains(*vertex)) {
+      // if vertex does not exist (so is unique), then add the vertex with the corresponding index
+      vertexIndexMap[*vertex] = index;
+      uniqueVertices.push_back(Vertex{*vertex, Mesh::Normal{0,0,0}, ));
+    } else {
+      index = vertexIndexMap[*vertex];
+    }
+
+    auto& [v, summedNormal] = uniqueVertices[index];
+    summedNormal.x += normal->x;
+    summedNormal.y += normal->y;
+    summedNormal.z += normal->z;
+
+    std::cout << "Summed normal at index " << index << ": " << summedNormal.x << ", " << summedNormal.y << ", " << summedNormal.z << std::endl;
+
+    // overwrite mesh index. This is fine, since we already processed it above.
+    mesh.indices[i] = index;
+    mesh.uvs[i*2] = uv.x;
+    mesh.uvs[i*2 + 1] = uv.y;
+  }
+
+  mesh.uvs.resize();
+
+  std::cout << "Preprocessing done." << std::endl;
+
+  for (int i=0; i<uniqueVertices.size(); ++i) {
+    auto& [v, n] = uniqueVertices[i];
+    std::cout << "V" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
+  }
+
+  // Preprocessing done.
+  // Now recreate the mesh
+
+  mesh.vertices.clear();
+  mesh.normals.clear();
+  mesh.uvs.clear();
+  mesh.vertices.reserve(uniqueVertices.size()*3);
+  mesh.normals.reserve(uniqueVertices.size()*3);
+
+  for (auto i=0U; i<uniqueVertices.size(); ++i) {
+    auto& [v, n] = uniqueVertices[i];
+
+    mesh.vertices.push_back(v.x);
+    mesh.vertices.push_back(v.y);
+    mesh.vertices.push_back(v.z);
+
+    auto length = glm::length(*reinterpret_cast<glm::vec3*>(&n));
+
+    n.x /= length;
+    n.y /= length;
+    n.z /= length;
+
+    mesh.normals.push_back(n.x);
+    mesh.normals.push_back(n.y);
+    mesh.normals.push_back(n.z);
+
+    std::cout << "\nV" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
+  }
 }
