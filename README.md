@@ -8,7 +8,7 @@ flexible way using an ECS scene graph.
 
 There are two ways to use Izzy renderer.
 1. By making use of a scene file and materials file.
-2. By using the renderer as a library. For examples, refer to the apps subfolder.
+2. By using the renderer as a library. For examples, refer to the `examples` subfolder.
 
 To use Izzy renderer with the first mode, run the following command:
 

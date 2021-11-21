@@ -72,7 +72,8 @@ file(COPY resources/textures DESTINATION ${CMAKE_BINARY_DIR}/resources)
 #        INPUT ${CMAKE_CURRENT_LIST_DIR}/WELCOME.md)
 
 add_subdirectory(lib)
-add_subdirectory(apps)
+add_subdirectory(src)
+add_subdirectory(examples)
 
 #add_dependencies(normalmap compile-shaders)
 

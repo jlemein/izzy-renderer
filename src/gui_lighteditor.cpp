@@ -1,3 +1,4 @@
+#include "gui_lighteditor.h"
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>
@@ -5,7 +6,6 @@
 #include <geo_material.h>
 #include <georm_resourcemanager.h>
 #include <georm_texturesystem.h>
-#include <gui_lighteditor.h>
 
 #include <imgui.h>
 #include <glm/glm.hpp>

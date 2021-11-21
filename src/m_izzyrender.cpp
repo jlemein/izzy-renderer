@@ -8,6 +8,7 @@
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
 #include <ecsg_scenegraph.h>
+#include <geo_meshutil.h>
 #include <geo_scene.h>
 #include <georm_exrloader.h>
 #include <georm_fontsystem.h>
@@ -16,13 +17,11 @@
 #include <georm_sceneloader.h>
 #include <georm_stbtextureloader.h>
 #include <georm_texturesystem.h>
-#include <gui_lighteditor.h>
 #include <gui_system.h>
 #include <vwr_viewer.h>
 #include <wsp_workspace.h>
-#include <geo_meshutil.h>
+#include "gui_lighteditor.h"
 
-#include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
@@ -38,13 +37,15 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 int main(int argc, char* argv[]) {
   auto workspace = parseProgramArguments(argc, argv);
   if (workspace->debugMode) {
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::info);
   }
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
+
     auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
+
     auto textureSystem = make_shared<georm::TextureSystem>();
     textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>());
     textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>());
@@ -65,30 +66,36 @@ int main(int argc, char* argv[]) {
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
 
     // ==== GUI =============================================================
-
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager);
+    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto resourceInspector = make_shared<gui::ResourceInspector>(resourceManager);
+    auto guiSystem = make_shared<GuiSystem>(vector<std::shared_ptr<IGuiWindow>>{editor, resourceInspector});
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, nullptr);//guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);
-    auto mat = materialSystem->createMaterial("Texture");
-    std::cout << "Number of textures: " << mat->textures.size() << " - " << mat->texturePaths.size() << std::endl;
-    for(auto& t : mat->textures) {
-      std::cout << t.first << " " << t.second->path << std::endl;
-    }
-    mat->texturePaths["textureMap"] = workspace->materialsFile.parent_path() / "models" / "textures" / "tea_set_01_nor_gl_4k.exr";
-    sceneGraph->addGeometry(uvPlane, mat);
+    auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
+    ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
 
+    for (auto& mesh : scene->m_meshes) {
+//      MeshUtil::ConvertToSmoothNormals(*mesh); // doesnt work yet, buggy
+      geo::MeshUtil::GenerateTangents(*mesh);
+    }
+
+    sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+    auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
+    ptLight.get<ecs::PointLight>().intensity = 4.0F;
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-
     viewer->setActiveCamera(camera);
+
+    // ==== UI SETUP ========================================================
+//    viewer->registerExtension(guiSystem);
     viewer->setWindowSize(1024, 768);
-    viewer->setTitle("Normal mapping");
+    viewer->setTitle(fmt::format("Izzy Renderer: {}", workspace->sceneFile.filename().string()));
     viewer->initialize();
     viewer->run();
   } catch (runtime_error& e) {
@@ -119,6 +126,11 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
 
   if (result.count("help")) {
     std::cout << _options.help() << std::endl;
+    exit(EXIT_SUCCESS);
+  }
+
+  if (result.count("version")) {
+    std::cout << PROGRAM_NAME << " v" << VERSION_STR << std::endl;  // VERSION_STR is defined in CmakeLists.txt
     exit(EXIT_SUCCESS);
   }
 

@@ -1,24 +1,23 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include <georm_materialsystem.h>
-#include <memory>
-#include <spdlog/spdlog.h>
-#include <vwr_viewer.h>
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
+#include <ecs_light.h>
 #include <ecs_transformutil.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
+#include <georm_fontsystem.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
 #include <gui_system.h>
-#include <gui_lighteditor.h>
+#include <spdlog/spdlog.h>
+#include <vwr_viewer.h>
 #include <wsp_workspace.h>
-#include <georm_fontsystem.h>
-#include <ecs_light.h>
 #include <cxxopts.hpp>
+#include <memory>
+#include "../src/gui_lighteditor.h"
 
 using namespace std;
 using namespace lsw;
