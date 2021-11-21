@@ -70,14 +70,13 @@ int main(int argc, char* argv[]) {
 
     // ==== SCENE SETUP ======================================================
     auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);
-    auto mat = materialSystem->createMaterial("Texture");
+    auto mat = materialSystem->createMaterial("BlinnPhong");
     std::cout << "Number of textures: " << mat->textures.size() << " - " << mat->texturePaths.size() << std::endl;
     for(auto& t : mat->textures) {
       std::cout << t.first << " " << t.second->path << std::endl;
     }
-    mat->texturePaths["textureMap"] = workspace->materialsFile.parent_path() / "models" / "textures" / "tea_set_01_nor_gl_4k.exr";
+//    mat->texturePaths[""] = workspace->materialsFile.parent_path() / "models" / "textures" / "tea_set_01_nor_gl_4k.exr";
     sceneGraph->addGeometry(uvPlane, mat);
-
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
