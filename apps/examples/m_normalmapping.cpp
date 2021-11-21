@@ -5,7 +5,6 @@
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <vwr_viewer.h>
-//#include <res_resourcemanager.h>
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>

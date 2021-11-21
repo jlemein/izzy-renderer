@@ -5,7 +5,6 @@
 
 #include <assimp/scene.h>
 #include <geo_transform.h>
-#include <res_resourcefactory.h>
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <list>

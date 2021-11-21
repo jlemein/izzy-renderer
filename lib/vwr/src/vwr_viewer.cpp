@@ -8,7 +8,6 @@
 #include <ecs_transformsystem.h>
 #include <ecsg_scenegraph.h>
 #include <io_inputsystem.h>
-#include <res_resourcefactory.h>
 #include <vwr_viewer.h>
 #include <vwr_viewerextension.h>
 #include <vwr_windowinputlistener.h>
@@ -47,6 +46,7 @@ Viewer::~Viewer() {}
 void Viewer::setWindowSize(unsigned int width, unsigned int height) {
   m_displayDetails.windowWidth = static_cast<int>(width);
   m_displayDetails.windowHeight = static_cast<int>(height);
+  m_cameraSystem->setFramebufferSize(width, height);
 }
 
 void Viewer::setTitle(const std::string& title) {
@@ -122,6 +122,7 @@ int Viewer::run() {
     glfwGetFramebufferSize(window, &width, &height);
     //    ratio = width / (float)height;
     //    m_renderSystem->setMovementVector(movementVector);
+    m_cameraSystem->setFramebufferSize(width, height);
     //    m_renderSystem->setPerspective(
     //        glm::perspective(45.0F, ratio, 0.01F, 1000.0F));
 

@@ -1,9 +1,8 @@
 //
 // Created by jlemein on 01-01-21.
 //
+#pragma once
 
-#ifndef GLVIEWER_SHP_SHAPEUTIL_H
-#define GLVIEWER_SHP_SHAPEUTIL_H
 #include "geo_boundingbox.h"
 
 namespace lsw {
@@ -38,5 +37,3 @@ public:
 
 } // end of package
 } // end of enterprise
-
-#endif // GLVIEWER_SHP_SHAPEUTIL_H

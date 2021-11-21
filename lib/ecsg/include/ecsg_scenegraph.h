@@ -3,7 +3,6 @@
 
 #include <ecsg_scenegraphentity.h>
 
-#include <res_resource.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <memory>
@@ -116,7 +115,6 @@ class SceneGraph {
    * @return
    */
   SceneGraphEntity makeScene(const geo::Scene&, SceneLoaderFlags flags = SceneLoaderFlags{});
-  SceneGraphEntity makeScene(res::Resource<geo::Scene> sceneResource, SceneLoaderFlags flags = SceneLoaderFlags{});
 
   SceneGraphEntity makeTexture();
   SceneGraphEntity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);

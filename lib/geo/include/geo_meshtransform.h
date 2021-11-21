@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 10-11-20.
 //
-
-#ifndef GLVIEWER_MESH_MESHTRANSFORM_H
-#define GLVIEWER_MESH_MESHTRANSFORM_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -34,5 +32,3 @@ struct MeshTransform {
 
 } // end of package
 } // end of enterprise
-
-#endif  // GLVIEWER_MESH_MESHTRANSFORM_H

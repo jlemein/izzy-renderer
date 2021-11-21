@@ -7,8 +7,7 @@ find_package(glm REQUIRED)
 find_package(assimp REQUIRED)
 find_package(fmt REQUIRED)
 find_package(EnTT REQUIRED)
-find_package(resourcemanager REQUIRED)
 
 target_include_directories(ecsw PUBLIC include PRIVATE src)
 target_link_libraries(ecsw PRIVATE geo glm::glm
-        PUBLIC assimp::assimp fmt::fmt EnTT::EnTT resourcemanager::resourcemanager)
+        PUBLIC assimp::assimp fmt::fmt EnTT::EnTT)

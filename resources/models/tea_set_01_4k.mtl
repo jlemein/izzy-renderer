@@ -1,0 +1,16 @@
+# Blender MTL File: 'tea_set_01_4k.blend'
+# Material Count: 1
+
+newmtl tea_set_01
+Ns 673.402515
+Ka 1.000000 1.000000 1.000000
+Kd 0.780768 0.780768 0.780768
+Ks 0.290000 0.290000 0.290000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Bump textures/tea_set_01_nor_gl_4k.exr
+map_Kd textures/tea_set_01_diff_4k.jpg
+map_Ns textures/tea_set_01_rough_4k.exr
+refl textures/tea_set_01_metal_4k.exr

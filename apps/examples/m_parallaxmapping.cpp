@@ -6,7 +6,6 @@
 #include <vwr_viewer.h>
 #include <cxxopts.hpp>
 #include <memory>
-//#include <res_resourcemanager.h>
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>

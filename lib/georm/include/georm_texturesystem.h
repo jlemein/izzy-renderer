@@ -5,7 +5,6 @@
 
 #include <geo_texture.h>
 #include <geo_textureloader.h>
-#include <res_resource.h>
 
 #include <filesystem>
 #include <memory>

@@ -69,12 +69,14 @@ int main(int argc, char* argv[]) {
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto resourceInspector = make_shared<gui::ResourceInspector>(resourceManager);
     auto guiSystem = make_shared<GuiSystem>(vector<std::shared_ptr<IGuiWindow>>{editor, resourceInspector});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, nullptr);//guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
-    ecs::TransformUtil::Scale(scene->rootNode()->transform, 0.05);
+    ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
+
     for (auto& mesh : scene->m_meshes) {
+//      MeshUtil::ConvertToSmoothNormals(*mesh); // doesnt work yet, buggy
       geo::MeshUtil::GenerateTangents(*mesh);
     }
 
@@ -82,6 +84,8 @@ int main(int argc, char* argv[]) {
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+    auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
+    ptLight.get<ecs::PointLight>().intensity = 4.0F;
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
@@ -89,10 +93,9 @@ int main(int argc, char* argv[]) {
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-    viewer->registerExtension(guiSystem);
-
+//    viewer->registerExtension(guiSystem);
     viewer->setWindowSize(1024, 768);
-    viewer->setTitle("Normal mapping");
+    viewer->setTitle(fmt::format("Izzy Renderer: {}", workspace->sceneFile.filename().string()));
     viewer->initialize();
     viewer->run();
   } catch (runtime_error& e) {

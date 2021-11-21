@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 09-11-20.
 //
-
-#ifndef AFFX_GEO_CURVE_H
-#define AFFX_GEO_CURVE_H
+#pragma once
 
 #include <geo_boundingbox.h>
 #include <vector>
@@ -23,5 +21,3 @@ struct Curve {
 
 } // end package
 } // end enterprise
-
-#endif // AFFX_GEO_CURVE_H

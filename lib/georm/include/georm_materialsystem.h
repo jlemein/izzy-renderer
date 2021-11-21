@@ -8,8 +8,6 @@
 #include <ecsg_scenegraphentity.h>
 #include <geo_material.h>
 #include <glrs_rendersystem.h>
-#include <res_resource.h>
-#include <res_resourcefactory.h>
 #include <uniform_uniformblockmanager.h>
 #include <entt/entt.hpp>
 #include <memory>

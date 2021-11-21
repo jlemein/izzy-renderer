@@ -1,12 +1,9 @@
 //
 // Created by jlemein on 15-11-20.
 //
-
-#ifndef GLVIEWER_FRACTAL_GENERATOR_H
-#define GLVIEWER_FRACTAL_GENERATOR_H
+#pragma once
 
 #include <geo_curve.h>
-#include <geo_mesh.h>
 
 namespace lsw {
 namespace fractal {
@@ -22,5 +19,3 @@ private:
 
 } // end package
 } // end enterprise
-
-#endif // GLVIEWER_FRACTAL_GENERATOR_H

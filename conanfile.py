@@ -22,11 +22,6 @@ class RendererConan(ConanFile):
         "gtest:build_gmock": True
     }
 
-    # def configure(self):
-    #     cmake = CMakeDeps(self)
-    #     cmake.build_context_activated = ["gtest"]
-    #     cmake.generate()
-
     def config_options(self):
         if self.settings.os == "Windows":
             del self.options.fPIC
@@ -40,21 +35,19 @@ class RendererConan(ConanFile):
         cmake = CMake(self)
         cmake.install()
 
-    # def build_requirements(self):
+    def build_requirements(self):
+        self.build_requires("gtest/1.11.0")
 
     def requirements(self):
-        self.requires("gtest/1.11.0")
         self.requires("assimp/5.0.1")
         self.requires("glm/0.9.9.8")
         self.requires("entt/3.7.1")
         self.requires("glfw/3.3.2")
         self.requires("spdlog/1.8.2")
-        self.requires("resourcemanager/0.2@lemon/editable")
         self.requires("imgui/1.80")
         self.requires("nlohmann_json/3.9.1")
         self.requires("stb/20200203")
         self.requires("boost/1.76.0")
         self.requires("cxxopts/2.2.1")
-        self.requires("tinyexr/1.0.0")
         self.requires("openexr/2.5.7")
 

@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 08-02-21.
 //
-
-#ifndef RENDERER_GEO_CAMERA_H
-#define RENDERER_GEO_CAMERA_H
+#pragma once
 
 #include <string>
 #include <glm/glm.hpp>
@@ -24,5 +22,3 @@ public:
 
 } // end of package
 } // end of namespace
-
-#endif // RENDERER_GEO_CAMERA_H

@@ -1,12 +1,8 @@
 //
 // Created by jlemein on 22-02-21.
 //
+#pragma once
 
-#ifndef RENDERER_GEO_TEXTURELOADER_H
-#define RENDERER_GEO_TEXTURELOADER_H
-
-#include <res_resource.h>
-#include <res_resourcefactory.h>
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -30,5 +26,3 @@ class TextureLoader {
 
 }  // namespace geo
 }  // namespace lsw
-
-#endif  // RENDERER_GEO_TEXTURELOADER_H

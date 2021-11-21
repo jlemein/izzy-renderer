@@ -9,8 +9,6 @@
 #include <string>
 #include <unordered_map>
 #include <filesystem>
-#include <res_resource.h>
-
 
 namespace lsw {
 namespace geo {

@@ -79,7 +79,7 @@ struct Renderable_UniformBlockInfo {
 struct Renderable {
   //storage of user defined shader properties
 //  unsigned int materialId;
-  std::shared_ptr<res::Resource<geo::Material>> material;
+  std::shared_ptr<geo::Material> material;
 
 //  std::string name{"Unnamed"};
   GLuint program;

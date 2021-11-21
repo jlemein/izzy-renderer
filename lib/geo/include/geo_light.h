@@ -2,8 +2,7 @@
 // Created by jlemein on 07-02-21.
 //
 
-#ifndef RENDERER_GEO_LIGHT_H
-#define RENDERER_GEO_LIGHT_H
+#pragma once
 
 namespace lsw {
 namespace geo {
@@ -60,13 +59,7 @@ public:
   glm::vec2 radius{1.0F};
 
   glm::vec3 upVector { 0.0F, 1.0F, 0.0F };
-
-
-
-
 };
 
 } // namespace geo
 } // namespace lsw
-
-#endif // RENDERER_GEO_LIGHT_H

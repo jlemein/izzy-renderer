@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 20-01-21.
 //
-
-#ifndef RENDERER_GEO_TRANSFORM_H
-#define RENDERER_GEO_TRANSFORM_H
+#pragma once
 
 namespace lsw {
 namespace geo {
@@ -15,5 +13,3 @@ struct Transform {
 
 } // end of package
 } // end of enterprise
-
-#endif // RENDERER_GEO_TRANSFORM_H

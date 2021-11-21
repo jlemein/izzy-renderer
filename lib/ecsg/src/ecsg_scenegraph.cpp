@@ -17,11 +17,8 @@
 #include <geo_mesh.h>
 #include <geo_meshinstance.h>
 #include <geo_meshtransform.h>
-
 #include <geo_scene.h>
 
-#include <res_resource.h>
-#include <res_resourcefactory.h>
 #include <spdlog/spdlog.h>
 
 using namespace lsw;
@@ -284,15 +281,6 @@ SceneGraphEntity SceneGraph::makeScene(const geo::Scene& scene, SceneLoaderFlags
     processChildren(scene.rootNode(), flags, &rootScene);
 
     return rootScene;
-}
-
-SceneGraphEntity SceneGraph::makeScene(res::Resource<geo::Scene> scene, SceneLoaderFlags flags) {
-  auto rootScene = makeEntity();
-
-  // for geometry and mesh data
-  processChildren(scene->rootNode(), flags, &rootScene);
-
-  return rootScene;
 }
 
 SceneGraphEntity SceneGraph::makeRenderable(const geo::Mesh& mesh, glm::mat4 transform, geo::Material& material) {

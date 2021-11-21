@@ -12,7 +12,6 @@
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
 #include <georm_texturesystem.h>
-#include <res_resourcemanager.h>
 
 #include <assimp/postprocess.h>
 #include <spdlog/spdlog.h>
@@ -120,8 +119,7 @@ void SceneLoader::readTextures(const geo::Scene& scene, const aiMaterial* aiMate
 
   // TODO: read remaining generic textures
   for (auto& [name, texturePath] : material.texturePaths) {
-    auto p = texturePath;  // scene.m_dir / texturePath;
-    material.textures[name] = m_textureSystem->loadTexture(p);
+    material.textures[name] = m_textureSystem->loadTexture(texturePath);
   }
 }
 
@@ -131,7 +129,7 @@ void SceneLoader::readMaterials(const aiScene* scene_p, geo::Scene& scene) {
 
     std::string name = aiMaterial->GetName().C_Str();
     auto material = m_materialSystem->createMaterial(name);
-//    auto material = m_resourceManager->getRawResourceManager()->createResource<geo::Material>(name);
+    //    auto material = m_resourceManager->getRawResourceManager()->createResource<geo::Material>(name);
     //    (*material)->name = mat_p->GetName().C_Str();
 
     spdlog::debug("Read material {} -- mapped to {} (vertex shader: {})", name, material->name, material->vertexShader);

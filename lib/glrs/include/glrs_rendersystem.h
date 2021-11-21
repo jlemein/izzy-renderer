@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 07-11-20.
 //
-
-#ifndef GLVIEWER_VIEWER_RENDERSYSTEM_H
-#define GLVIEWER_VIEWER_RENDERSYSTEM_H
+#pragma once
 
 #include <ecs_debugsystem.h>
 #include <glrs_renderable.h>
@@ -117,5 +115,3 @@ public:
 
 } // namespace ecs
 } // namespace lsw
-
-#endif // GLVIEWER_VIEWER_RENDERSYSTEM_H

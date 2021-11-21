@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 07-08-21.
 //
-
-#ifndef RENDERER_GEO_MESHUTIL_H
-#define RENDERER_GEO_MESHUTIL_H
+#pragma once
 
 #include <glm/glm.hpp>
 
@@ -21,7 +19,7 @@ public:
   * @param m  The mesh for which to transform normals to smooth normals.
   */
   static void ToSmoothNormals(geo::Mesh& m) {
-    spdlog::warn("ToSmoothNormals(geo::Mesh&) - not implemented yet");
+    throw std::runtime_error("ToSmoothNormals(geo::Mesh&) - not implemented yet");
   }
 
   /**
@@ -66,5 +64,3 @@ public:
 
 } // namespace geo
 } // namespace lsw
-
-#endif // RENDERER_GEO_MESHUTIL_H

@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 01-01-21.
 //
-
-#ifndef GLVIEWER_SHP_MESHINSTANCE_H
-#define GLVIEWER_SHP_MESHINSTANCE_H
+#pragma once
 
 #include <memory>
 #include <geo_transform.h>
@@ -23,5 +21,3 @@ struct MeshInstance {
 
 } // end of package
 } // end of enterprise
-
-#endif // GLVIEWER_SHP_MESHINSTANCE_H

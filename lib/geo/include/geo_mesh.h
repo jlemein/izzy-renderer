@@ -1,31 +1,43 @@
 //
 // Created by jlemein on 06-11-20.
 //
+#pragma once
 
-#ifndef INCLUDED_VIEWER_MESH_H_
-#define INCLUDED_VIEWER_MESH_H_
-
-#include <vector>
 #include <stdint.h>
-#include <string>
-#include <unordered_map>
 #include <iostream>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include <geo_boundingbox.h>
 #include <geo_material.h>
-#include <res_resource.h>
+#include <boost/functional/hash.hpp>
 
 namespace lsw {
 namespace geo {
 
-enum class PolygonMode {
-  kTriangles,
-  kQuads
+enum class PolygonMode { kTriangles, kQuads };
+
+struct universal_hash {
+  template <class T>
+  std::size_t operator()(T&& arg) const {
+    // note - boost::hash. A thousand times better.
+
+    using hasher_type = boost::hash<std::decay_t<T>>;
+    auto hasher = hasher_type();
+    return hasher(arg);
+  }
 };
 
-
 struct Mesh {
+  struct Vertex {
+    float x, y, z;
+  };
+  struct Normal {
+    float x, y, z;
+  };
+
   std::string name;
   std::vector<float> vertices;
   std::vector<float> normals;
@@ -35,13 +47,29 @@ struct Mesh {
 
   std::vector<uint32_t> indices;
 
-  std::shared_ptr<Material> material {nullptr};
+  std::shared_ptr<Material> material{nullptr};
 
   // describes the data
-  PolygonMode polygonMode {PolygonMode::kTriangles};
+  PolygonMode polygonMode{PolygonMode::kTriangles};
 };
 
-} // end package
-} // end enterprise
+inline auto as_tuple(Mesh::Vertex const& v) {
+  return std::tie(v.x, v.y, v.z);
+}
 
-#endif // INCLUDED_VIEWER_MESH_H_
+inline bool operator==(Mesh::Vertex const& l, Mesh::Vertex const& r) {
+  return as_tuple(l) == as_tuple(r);
+}
+
+inline bool operator<(Mesh::Vertex const& l, Mesh::Vertex const& r) {
+  return as_tuple(l) < as_tuple(r);
+}
+
+inline std::size_t hash_value(Mesh::Vertex const& arg) {
+  std::size_t seed = 0;
+  boost::hash_combine(seed, as_tuple(arg));
+  return seed;
+}
+
+}  // namespace geo
+}  // namespace lsw

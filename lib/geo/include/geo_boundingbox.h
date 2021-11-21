@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 01-12-20.
 //
-
-#ifndef AFFX_GEO_BOUNDINGBOX_H
-#define AFFX_GEO_BOUNDINGBOX_H
+#pragma once
 
 #include <ostream>
 #include <glm/glm.hpp>
@@ -30,5 +28,3 @@ public:
 };
 } // end of package
 } // end of enterprise
-
-#endif // AFFX_GEO_BOUNDINGBOX_H

@@ -78,7 +78,7 @@ namespace {
         if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
             throw std::runtime_error(
                     fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
-                                renderable.material ? (*renderable.material)->vertexShader : "<no material assigned>"));
+                                renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
         }
 
         glGenBuffers(1, &renderable.uboId);

@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 28-11-20.
 //
-
-#ifndef GLVIEWER_CORE_VERTEXARRAY_H
-#define GLVIEWER_CORE_VERTEXARRAY_H
+#pragma once
 
 /**
  * @brief Efficient vertex storage structure.
@@ -16,4 +14,3 @@ class VertexArray {
   void addVertex(const glm::vec3& p);
 
 };
-#endif  // GLVIEWER_CORE_VERTEXARRAY_H

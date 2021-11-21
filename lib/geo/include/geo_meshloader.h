@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 07-11-20.
 //
-
-#ifndef GLVIEWER_MESH_LOADER_H
-#define GLVIEWER_MESH_LOADER_H
+#pragma once
 
 #include <string>
 
@@ -23,5 +21,3 @@ class MeshLoader
 
 } // end package
 } // end enterprise
-
-#endif // GLVIEWER_MESH_LOADER_H

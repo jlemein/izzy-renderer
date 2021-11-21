@@ -4,6 +4,10 @@
     {
       "from": "WoodCrate",
       "to": "NormalMap"
+    },
+    {
+      "from": "tea_set_01",
+      "to": "TeaSet"
     }
   ],
   "materials": [
@@ -42,6 +46,39 @@
           "type": "texture",
           "name": "textureMap",
           "value": "textures/castle_albedo.jpg"
+        }
+      ]
+    },
+    {
+      "name": "TeaSet",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/fwd-diffuse-map.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/fwd-diffuse-map.frag",
+      "lighting": {
+        "ubo_struct": "ForwardLighting",
+        "blend_mode": "Add"
+      },
+      "properties": [
+        {
+          "type": "texture",
+          "name": "albedoMap",
+          "value": "models/textures/tea_set_01_diff_4k.jpg"
+        },
+        {
+          "type": "texture",
+          "name": "normalMap",
+          "value": "models/textures/tea_set_01_nor_gl_4k.exr"
+        },
+        {
+          "type": "texture",
+          "name": "specularMap",
+          "value": "models/textures/tea_set_01_metal_4k.exr"
+        },
+        {
+          "type": "texture",
+          "name": "roughnessMap",
+          "value": "models/textures/tea_set_01_rough_4k.exr"
         }
       ]
     },

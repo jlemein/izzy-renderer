@@ -1,14 +1,11 @@
 //
 // Created by jlemein on 22-02-21.
 //
-
-#ifndef RENDERER_GEO_MATERIAL_H
-#define RENDERER_GEO_MATERIAL_H
+#pragma once
 
 #include <fmt/format.h>
 #include <geo_texture.h>
 #include <memory>
-#include <res_resource.h>
 #include <glm/glm.hpp>
 #include <spdlog/spdlog.h>
 #include <filesystem>
@@ -124,7 +121,7 @@ struct Material {
    * When programmatically assigned a texture to an entity, set the texturePath instead of loading the texture in textures.
    */
   std::unordered_map<std::string, std::string> texturePaths {};
-
+  std::unordered_map<std::string, std::string> defaultTexturePaths{};
   /**
    * @brief mapping from parameter name to the texture resource.
    * This variable is for bookkeeping purposes only. Never set this attribute directly, your texture will not be loaded.
@@ -219,5 +216,3 @@ struct Material {
 
 } // end of package
 } // end of enterprise
-
-#endif // RENDERER_GEO_MATERIAL_H

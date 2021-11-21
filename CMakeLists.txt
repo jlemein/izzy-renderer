@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.16.3)
 project(Renderer
-        VERSION 1.0.0)
-
-
+        VERSION 0.1.0)
 
 include(CTest)
 enable_testing()
@@ -23,7 +21,6 @@ list(APPEND CMAKE_MODULE_PATH
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake
         )
 list (APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
-
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -73,20 +70,6 @@ file(COPY resources/textures DESTINATION ${CMAKE_BINARY_DIR}/resources)
 #file(GENERATE
 #        OUTPUT $<TARGET_FILE_DIR:normalmap>/WELCOME.md
 #        INPUT ${CMAKE_CURRENT_LIST_DIR}/WELCOME.md)
-
-
-
-set(CPACK_IFW_ROOT "/home/jlemein/Qt/QtIFW-4.1.1/")
-set(CPACK_IFW_VERBOSE ON)
-set(CPACK_GENERATOR "IFW;ZIP")
-set(CPACK_PACKAGE_CHECKSUM "SHA256")
-set(CPACK_PACKAGE_ICON "sun.png")
-set(CPACK_PACKAGE_VENDOR "Lemon Software")
-set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/package-installers")
-set(CPACK_RESOURCE_FILE_LICENSE ${CMAKE_CURRENT_LIST_DIR}/LICENSE.md)
-set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_LIST_DIR}/README.md)
-include(CPack)
-include(CPackIFW)
 
 add_subdirectory(lib)
 add_subdirectory(apps)

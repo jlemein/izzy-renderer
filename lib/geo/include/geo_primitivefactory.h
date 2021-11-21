@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 01-12-20.
 //
-
-#ifndef ARTIFAX_MESH_PRIMITIVEFACTORY_H
-#define ARTIFAX_MESH_PRIMITIVEFACTORY_H
+#pragma once
 
 namespace lsw {
 namespace geo {
@@ -81,5 +79,3 @@ public:
 
 } // end of package
 } // end of enterprise
-
-#endif // GLVIEWER_MESH_PRIMITIVEFACTORY_H
