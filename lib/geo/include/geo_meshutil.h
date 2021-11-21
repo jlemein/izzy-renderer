@@ -36,10 +36,13 @@ public:
    * Converts the normals of the mesh to smooth normals. This method is more efficient
    * than generating the smooth normals from vertex position data only.
    * For a successful result, the mesh should already have normals, position data and indices assigned.
-   * @param mesh The mesh containing already assigned flat surface normals, position data and index data.
+   * @param mesh                The mesh containing already assigned flat surface normals, position data and index data.
+   * @param thresholdDegrees    The threshold in degrees for edge creases to apply smoothing. If set to 90 degrees, then all normals that make an edge
+   *                            smaller than 90 degrees will be smoothened. Sharper angles will be left untouched.
+   *
    * @throws runtime_exception when mesh data is incomplete.
    */
-  static void ConvertToSmoothNormals(geo::Mesh& mesh);
+  static void ConvertToSmoothNormals(geo::Mesh& mesh, float thresholdDegrees = 30.0F);
 
   /**
    * Generates flat normals for a mesh. The mesh should have vertex data defined, otherwise no normals are generated.

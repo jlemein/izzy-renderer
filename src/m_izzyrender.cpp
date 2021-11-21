@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
 
     for (auto& mesh : scene->m_meshes) {
-//      MeshUtil::ConvertToSmoothNormals(*mesh); // doesnt work yet, buggy
+      MeshUtil::ConvertToSmoothNormals(*mesh); // doesnt work yet, buggy
       geo::MeshUtil::GenerateTangents(*mesh);
     }
 
