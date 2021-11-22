@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
     for(auto& t : mat->textures) {
       std::cout << t.first << " " << t.second->path << std::endl;
     }
-//    mat->texturePaths[""] = workspace->materialsFile.parent_path() / "models" / "textures" / "tea_set_01_nor_gl_4k.exr";
     sceneGraph->addGeometry(uvPlane, mat);
+
 
     // ==== LIGHTS SETUP ====================================================
 //    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
