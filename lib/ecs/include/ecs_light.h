@@ -17,7 +17,8 @@ struct AmbientLight {
 
 struct PointLight {
   float intensity{100.0F};
-  float attenuation{0.2F};
+  float linearAttenuation{0.2F};
+  float quadraticAttenuation{0.2F};
   float radius{1.0F};
   glm::vec3 color {1.F};
 };

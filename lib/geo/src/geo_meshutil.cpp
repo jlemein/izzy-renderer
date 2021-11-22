@@ -94,6 +94,7 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
   }
 }
 
+<<<<<<< Updated upstream
 void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh, float thresholdDegrees) {
   std::unordered_map<Mesh::Vertex, int, universal_hash> vertexIndexMap;
   std::vector<Vertex> uniqueVertices;
@@ -164,5 +165,50 @@ void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh, float thresholdDegrees) {
     mesh.normals.push_back(n.z);
 
     std::cout << "\nV" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
+=======
+namespace {
+void SmoothenNormals(Mesh::Vertex* pVertices, Mesh::Normal* pNormals, int numVertices) {
+  std::unordered_map<Mesh::Vertex, glm::vec3, universal_hash> uniqueVertices;
+
+  for (auto i = 0U; i < numVertices; ++i) {
+    auto& vertex = pVertices[i];
+    auto& normal = reinterpret_cast<glm::vec3&>(pNormals[i]);
+
+    if (!uniqueVertices.contains(vertex)) {
+      uniqueVertices[vertex] = normal;
+    } else {
+      uniqueVertices[vertex] += normal;
+    }
+  }
+
+  for (auto i = 0U; i < numVertices; ++i) {
+    const auto& vertex = pVertices[i];
+    auto n = uniqueVertices[vertex];
+    auto normal = glm::normalize(uniqueVertices[vertex]);
+    pNormals[i].x = normal.x;
+    pNormals[i].y = normal.y;
+    pNormals[i].z = normal.z;
+  }
+}
+}
+
+void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
+  auto numVertices = mesh.vertices.size() / 3;
+  auto vertices = reinterpret_cast<Mesh::Vertex*>(mesh.vertices.data());
+  auto normals = reinterpret_cast<Mesh::Normal*>(mesh.normals.data());
+  auto tangents = reinterpret_cast<Mesh::Normal*>(mesh.tangents.data());
+  auto bitangents = reinterpret_cast<Mesh::Normal*>(mesh.bitangents.data());
+
+  if (mesh.normals.size() == mesh.vertices.size()) {
+    SmoothenNormals(vertices, normals, numVertices);
+  }
+
+  if (mesh.tangents.size() == mesh.vertices.size()) {
+    SmoothenNormals(vertices, tangents, numVertices);
+  }
+
+  if (mesh.bitangents.size() == mesh.vertices.size()) {
+    SmoothenNormals(vertices, bitangents, numVertices);
+>>>>>>> Stashed changes
   }
 }

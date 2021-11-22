@@ -81,7 +81,7 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, float light_intens
 void main() {
     vec4 material_color = texture(albedoMap, in_uv);
     vec3 surf_normal = normalize(texture(normalMap, in_uv).rgb*2.0-1.0);// surface normal
-    vec3 geom_normal = normalize(in_normal).xyz;// geometric normal
+    vec3 geom_normal = normalize(in_normal.xyz);// geometric normal
     vec3 light_direction = normalize(in_TangentLightPosition.xyz);
 
     if (numberOfLights.x > 0) {
