@@ -51,14 +51,14 @@ SceneGraphEntity SceneGraph::addGeometry(geo::Mesh mesh, std::shared_ptr<geo::Ma
   return e;
 }
 
-//SceneGraphEntity SceneGraph::addGeometry(geo::Mesh&& mesh, geo::Material&& material) {
-//  auto e = makeEntity(mesh.name);
-//  e.add<glrs::Renderable>();
-//  e.add<geo::Mesh>(std::forward<geo::Mesh>(mesh));
-//  e.add<geo::Material>(std::forward<geo::Material>(material));
+// SceneGraphEntity SceneGraph::addGeometry(geo::Mesh&& mesh, geo::Material&& material) {
+//   auto e = makeEntity(mesh.name);
+//   e.add<glrs::Renderable>();
+//   e.add<geo::Mesh>(std::forward<geo::Mesh>(mesh));
+//   e.add<geo::Material>(std::forward<geo::Material>(material));
 //
-//  return e;
-//}
+//   return e;
+// }
 
 SceneGraphEntity SceneGraph::makeEntity(std::string name) {
   auto e{m_registry.create()};
@@ -100,8 +100,11 @@ SceneGraphEntity SceneGraph::makeLight(const geo::Light& light) {
   } else if (light.type == geo::Light::Type::AMBIENT_LIGHT) {
     lightEntity.add<ecs::AmbientLight>({light.intensity, light.diffuseColor});
   } else if (light.type == geo::Light::Type::POINT_LIGHT) {
-    lightEntity.add<ecs::PointLight>(
-        {light.intensity, light.attenuationQuadratic, 2 * glm::length(light.radius), light.diffuseColor});
+    lightEntity.add<ecs::PointLight>({.intensity = light.intensity,
+                                      .linearAttenuation = light.attenuationLinear,
+                                      .quadraticAttenuation = light.attenuationQuadratic,
+                                      .radius = light.radius.x,
+                                      .color = light.diffuseColor});
   } else {
     throw std::runtime_error("Cannot make light source for unknown geo::Light type.");
   }
@@ -111,7 +114,7 @@ SceneGraphEntity SceneGraph::makeLight(const geo::Light& light) {
 
 SceneGraphEntity SceneGraph::makeAmbientLight(std::string name, glm::vec3 color, float intensity) {
   auto lightEntity = makeEntity(std::move(name));
-  lightEntity.add<ecs::AmbientLight>({.intensity=1.0F, .color = color});
+  lightEntity.add<ecs::AmbientLight>({.intensity = 1.0F, .color = color});
   return lightEntity;
 }
 
@@ -207,16 +210,15 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
   auto block = new glrs::ColorBlock;
   block->color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
   s.setProperty("ColorBlock", block);
-  //TODO: Add color block manager to material system,
-  // OR make a separate list of constantUniformBlocks that dont need management,
-  // OR whenever you look for ColorBlock manager and you cannot find one, then ignore.
-//  s.registerUniformBlock("ColorBlock", block, sizeof(ecs::ColorBlock));
+  // TODO: Add color block manager to material system,
+  //  OR make a separate list of constantUniformBlocks that dont need management,
+  //  OR whenever you look for ColorBlock manager and you cannot find one, then ignore.
+  //  s.registerUniformBlock("ColorBlock", block, sizeof(ecs::ColorBlock));
 
   return curve;
 }
 
-void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, SceneLoaderFlags flags,
-                                 SceneGraphEntity* parent_p) {
+void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p) {
   auto root = makeEntity(node->name);
   root.setTransform(node->transform);
 
@@ -275,12 +277,12 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, Sce
 }
 
 SceneGraphEntity SceneGraph::makeScene(const geo::Scene& scene, SceneLoaderFlags flags) {
-    auto rootScene = makeEntity();
+  auto rootScene = makeEntity();
 
-    // for geometry and mesh data
-    processChildren(scene.rootNode(), flags, &rootScene);
+  // for geometry and mesh data
+  processChildren(scene.rootNode(), flags, &rootScene);
 
-    return rootScene;
+  return rootScene;
 }
 
 SceneGraphEntity SceneGraph::makeRenderable(const geo::Mesh& mesh, glm::mat4 transform, geo::Material& material) {

@@ -30,6 +30,12 @@ struct universal_hash {
   }
 };
 
+struct Vertex {
+  glm::vec3 position {0,0,0};
+  glm::vec3 normal {0, 0, 0};
+  glm::vec2 uv {0, 0};
+};
+
 struct Mesh {
   struct Vertex {
     float x, y, z;
@@ -37,6 +43,7 @@ struct Mesh {
   struct Normal {
     float x, y, z;
   };
+  struct Uv {float x, y;};
 
   std::string name;
   std::vector<float> vertices;

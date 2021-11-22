@@ -2,6 +2,7 @@
 // Created by jlemein on 11-03-21.
 //
 
+
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
@@ -65,8 +66,9 @@ int main(int argc, char* argv[]) {
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
 
     // ==== GUI =============================================================
-
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager);
+    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto guiSystem = make_shared<GuiSystem>(vector<std::shared_ptr<IGuiWindow>>{editor});
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);
@@ -79,7 +81,8 @@ int main(int argc, char* argv[]) {
     sceneGraph->addGeometry(uvPlane, mat);
 
     // ==== LIGHTS SETUP ====================================================
-    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+//    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+    sceneGraph->makePointLight("PointLight", glm::vec3(0.F, .01F, .0F), {.intensity = 1.0, .radius=0.2F, .color=glm::vec3{1.0,0.5, 0.0}, });
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
@@ -88,6 +91,7 @@ int main(int argc, char* argv[]) {
     viewer->setActiveCamera(camera);
     viewer->setWindowSize(1024, 768);
     viewer->setTitle("Normal mapping");
+    viewer->registerExtension(guiSystem);
     viewer->initialize();
     viewer->run();
   } catch (runtime_error& e) {

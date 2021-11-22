@@ -118,7 +118,8 @@ void LightSystem::updateLightProperties() {
     const auto& transform = pointLights.get<ecs::Transform>(e);
 
     auto& ubo = m_forwardLighting.pointLights[i++];
-    ubo.attenuation = light.attenuation;
+    ubo.lAttenuation = light.linearAttenuation;
+    ubo.qAttenuation = light.quadraticAttenuation;
     ubo.color = glm::vec4(light.color, 0.0F);
     ubo.intensity = light.intensity;
     ubo.position = transform.worldTransform[3];

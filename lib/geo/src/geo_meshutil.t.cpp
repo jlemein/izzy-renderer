@@ -122,6 +122,40 @@ TEST_F(MeshUtilTest, MeshVertex_Has_Hash) {
   EXPECT_EQ(v2, v3);
 }
 
+TEST_F(MeshUtilTest, ShouldSmoothenNormalsSimple) {
+  Mesh mesh;
+  mesh.vertices = std::vector<float>{
+      0.0, 1.0, 0.0,  //
+      0.5, 0.5, 0.0,  //        |\    /|
+      0.0, 0.0, 0.0,  //        | \  / |
+      0.5, 0.5, 0.0,  //        |   *  |
+      1.0, 1.0, 0.0,  //        |  / \ |
+      1.0, 0.0, 0.0,  //        | /   \|
+  };
+  mesh.normals = std::vector<float>{-0.707106781, 0.707106781, 0.0,         -0.707106781, 0.707106781, 0.0,         -0.707106781, 0.707106781, 0.0,
+                                     0.707106781, 0.707106781, 0.0,          0.707106781, 0.707106781, 0.0,          0.707106781, 0.707106781, 0.0};
+
+  mesh.indices = std::vector<uint32_t>{0, 1, 2, 3, 4, 5};
+  MeshUtil::ConvertToSmoothNormals(mesh);
+
+  EXPECT_EQ(mesh.vertices.size()/3, 5);
+  EXPECT_EQ(mesh.indices.size(), 6);
+  EXPECT_THAT(mesh.indices, ElementsAre(0, 1, 2, 1, 3, 4));
+
+
+  EXPECT_NEAR(mesh.normals[0], -0.707106781, 0.00001);
+  EXPECT_NEAR(mesh.normals[1], 0.707106781, 0.00001);
+  EXPECT_NEAR(mesh.normals[2], 0.0, 0.00001);
+
+  EXPECT_NEAR(mesh.normals[3], 0.0F, 0.00001);
+  EXPECT_NEAR(mesh.normals[4], 1.0F, 0.00001);
+  EXPECT_NEAR(mesh.normals[5], 0.0F, 0.00001);
+
+  EXPECT_NEAR(mesh.normals[9], 0.707106781, 0.00001);
+  EXPECT_NEAR(mesh.normals[10], 0.707106781, 0.00001);
+  EXPECT_NEAR(mesh.normals[11], 0.0F, 0.00001);
+}
+
 TEST_F(MeshUtilTest, ShouldSmoothenNormals) {
   Mesh mesh;
   mesh.vertices = std::vector<float>{0.0, 1.0, 0.0, //      0 +      +
