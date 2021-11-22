@@ -94,11 +94,10 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
   }
 }
 
-void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
-  using Index = unsigned int;
-  std::unordered_map<Mesh::Vertex, std::tuple<Index, Mesh::Normal>, universal_hash> uniqueVertices;
-
-  auto pVertices = reinterpret_cast<Mesh::Vertex*>(mesh.vertices.data());
+<<<<<<< Updated upstream
+void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh, float thresholdDegrees) {
+  std::unordered_map<Mesh::Vertex, int, universal_hash> vertexIndexMap;
+  std::vector<Vertex> uniqueVertices;
 
   std::cout << "Unique vertices size: " << uniqueVertices.size() << std::endl;
 
@@ -106,19 +105,37 @@ void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
     auto idx = mesh.indices[i];
     Mesh::Vertex* vertex = reinterpret_cast<Mesh::Vertex*>(&mesh.vertices[idx * 3]);
     Mesh::Normal* normal = reinterpret_cast<Mesh::Normal*>(&mesh.normals[idx * 3]);
+    glm::vec2 uv = reinterpret_cast<glm::vec2&>(mesh.uvs[idx*2]);
 
-    if (!uniqueVertices.contains(*vertex)) {
+    auto index = uniqueVertices.size();
+    if (!vertexIndexMap.contains(*vertex)) {
       // if vertex does not exist (so is unique), then add the vertex with the corresponding index
-      uniqueVertices[*vertex] = std::make_tuple(uniqueVertices.size(), Mesh::Normal(0,0,0));
+      vertexIndexMap[*vertex] = index;
+      uniqueVertices.push_back(Vertex{*vertex, Mesh::Normal{0,0,0}, ));
+    } else {
+      index = vertexIndexMap[*vertex];
     }
 
-    auto& [index, summedNormal] = uniqueVertices.at(*vertex);
+    auto& [v, summedNormal] = uniqueVertices[index];
     summedNormal.x += normal->x;
     summedNormal.y += normal->y;
     summedNormal.z += normal->z;
 
+    std::cout << "Summed normal at index " << index << ": " << summedNormal.x << ", " << summedNormal.y << ", " << summedNormal.z << std::endl;
+
     // overwrite mesh index. This is fine, since we already processed it above.
     mesh.indices[i] = index;
+    mesh.uvs[i*2] = uv.x;
+    mesh.uvs[i*2 + 1] = uv.y;
+  }
+
+  mesh.uvs.resize();
+
+  std::cout << "Preprocessing done." << std::endl;
+
+  for (int i=0; i<uniqueVertices.size(); ++i) {
+    auto& [v, n] = uniqueVertices[i];
+    std::cout << "V" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
   }
 
   // Preprocessing done.
@@ -126,22 +143,72 @@ void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
 
   mesh.vertices.clear();
   mesh.normals.clear();
-  mesh.vertices.reserve(uniqueVertices.size());
-  mesh.normals.reserve(uniqueVertices.size());
+  mesh.uvs.clear();
+  mesh.vertices.reserve(uniqueVertices.size()*3);
+  mesh.normals.reserve(uniqueVertices.size()*3);
 
-  for (auto& [v, t] : uniqueVertices) {
+  for (auto i=0U; i<uniqueVertices.size(); ++i) {
+    auto& [v, n] = uniqueVertices[i];
+
     mesh.vertices.push_back(v.x);
     mesh.vertices.push_back(v.y);
     mesh.vertices.push_back(v.z);
 
-    auto& [vertexIndex, normal] = t;
-    auto length = glm::length(*reinterpret_cast<glm::vec3*>(&normal));
-    normal.x /= length;
-    normal.y /= length;
-    normal.z /= length;
+    auto length = glm::length(*reinterpret_cast<glm::vec3*>(&n));
 
-    mesh.normals.push_back(normal.x);
-    mesh.normals.push_back(normal.y);
-    mesh.normals.push_back(normal.z);
+    n.x /= length;
+    n.y /= length;
+    n.z /= length;
+
+    mesh.normals.push_back(n.x);
+    mesh.normals.push_back(n.y);
+    mesh.normals.push_back(n.z);
+
+    std::cout << "\nV" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
+=======
+namespace {
+void SmoothenNormals(Mesh::Vertex* pVertices, Mesh::Normal* pNormals, int numVertices) {
+  std::unordered_map<Mesh::Vertex, glm::vec3, universal_hash> uniqueVertices;
+
+  for (auto i = 0U; i < numVertices; ++i) {
+    auto& vertex = pVertices[i];
+    auto& normal = reinterpret_cast<glm::vec3&>(pNormals[i]);
+
+    if (!uniqueVertices.contains(vertex)) {
+      uniqueVertices[vertex] = normal;
+    } else {
+      uniqueVertices[vertex] += normal;
+    }
+  }
+
+  for (auto i = 0U; i < numVertices; ++i) {
+    const auto& vertex = pVertices[i];
+    auto n = uniqueVertices[vertex];
+    auto normal = glm::normalize(uniqueVertices[vertex]);
+    pNormals[i].x = normal.x;
+    pNormals[i].y = normal.y;
+    pNormals[i].z = normal.z;
+  }
+}
+}
+
+void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
+  auto numVertices = mesh.vertices.size() / 3;
+  auto vertices = reinterpret_cast<Mesh::Vertex*>(mesh.vertices.data());
+  auto normals = reinterpret_cast<Mesh::Normal*>(mesh.normals.data());
+  auto tangents = reinterpret_cast<Mesh::Normal*>(mesh.tangents.data());
+  auto bitangents = reinterpret_cast<Mesh::Normal*>(mesh.bitangents.data());
+
+  if (mesh.normals.size() == mesh.vertices.size()) {
+    SmoothenNormals(vertices, normals, numVertices);
+  }
+
+  if (mesh.tangents.size() == mesh.vertices.size()) {
+    SmoothenNormals(vertices, tangents, numVertices);
+  }
+
+  if (mesh.bitangents.size() == mesh.vertices.size()) {
+    SmoothenNormals(vertices, bitangents, numVertices);
+>>>>>>> Stashed changes
   }
 }

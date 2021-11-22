@@ -12,7 +12,8 @@ struct UPointLight {
   glm::vec4 position;
   glm::vec4 color;
   float intensity;
-  float attenuation;
+  float lAttenuation;
+  float qAttenuation;
 };
 
 struct UDirectionalLight {

@@ -19,6 +19,8 @@ Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float hei
   mesh.uvs = std::vector<float>{.0F, .0F, 1.F, .0F, 1.F, 1.F, .0F, 1.F};  // 0 1 2 3
   mesh.normals = std::vector<float>{.0F, 1.F, .0F, .0F, 1.F, 0.F,         // v0 v1
                                     .0F, 1.F, .0F, .0F, 1.F, 0.F};        // v2 v3
+  mesh.tangents = std::vector<float>{1.F, 0.F, 0.F, 1.F, .0F, .0F, 1.F, .0F, .0F, 1.F, .0F, .0F};
+  mesh.bitangents = std::vector<float>{0.F, 0.F, 1.F, .0F, .0F, 1.F, .0F, .0F, 1.F, .0F, .0F, 1.F};
   mesh.indices = std::vector<uint32_t>{0, 1, 3, 1, 2, 3};
 
   return mesh;

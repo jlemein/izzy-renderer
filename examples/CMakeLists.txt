@@ -10,7 +10,7 @@ target_link_libraries(normalmap PRIVATE common cxxopts::cxxopts)
 add_executable(parallax m_parallaxmapping.cpp ../src/gui_lighteditor.h ../src/gui_lighteditor.cpp)
 target_link_libraries(parallax PRIVATE common cxxopts::cxxopts)
 
-add_executable(debugscene m_debugscene.cpp)
+add_executable(debugscene m_debugscene.cpp ../src/gui_lighteditor.h ../src/gui_lighteditor.cpp)
 target_link_libraries(debugscene PRIVATE common cxxopts::cxxopts)
 
 add_executable(icosphere m_icosphere.cpp)

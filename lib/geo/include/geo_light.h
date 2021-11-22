@@ -18,10 +18,6 @@ namespace geo {
 //  void* LightProperties;
 //};
 
-class PointLight {
-
-};
-
 
 /**!
  * Represents a simple non-physics based description of a light source,
@@ -54,6 +50,7 @@ public:
   glm::vec3 diffuseColor;
   glm::vec3 specularColor;
   glm::vec3 ambientColor;
+  float attenuationLinear {0.0F};
   float attenuationQuadratic {1.0F};
   float intensity = 1.0F;
   glm::vec2 radius{1.0F};
