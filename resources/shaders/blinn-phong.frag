@@ -8,8 +8,14 @@
 struct PointLight {
     vec4 position;
     vec4 color;
+<<<<<<< Updated upstream
     float intensity;
     float attenuation;
+=======
+    float intensity;    // intensity
+    float lAttenuation; // linear attenuation factor
+    float qAttenuation; // quadratic attenuation factor
+>>>>>>> Stashed changes
 };
 
 struct DirectionalLight {
@@ -59,11 +65,18 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 0) uniform sampler2D albedoMap;
 layout(binding = 1) uniform sampler2D normalMap;
 
+float FrostBiteAttenuation() {
+    float theshold = 1.0/(lightRadius * lightRadius);
+    float a = intensity / (dist*dist);
+    float b = saturate(1.0 - pow(x, n) / pow(radius, 4));
+    return a * b*b;
+}
+
 vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
-//    vec3 viewDir = normalize(in_TangentViewPosition);
-//    vec3 halfway = normalize(light_direction + viewDir);
-//    float shininess = 0.2;
-//    float spec = pow(max(dot(surf_normal, halfway), 0.0), shininess);
+    vec3 viewDir = normalize(in_TangentViewPosition);
+    vec3 halfway = normalize(light_direction + viewDir);
+    float shininess = 0.2;
+    float spec = pow(max(dot(surf_normal, halfway), 0.0), shininess);
 
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
     vec4 light_color = directionalLight.color * directionalLight.intensity;
@@ -75,18 +88,18 @@ vec4 computeAmbientLight() {
     return ambientLight.color * ambientLight.intensity;
 }
 
-vec4 computePointLight(vec3 surf_normal, vec3 light_position, float light_intensity, vec4 light_color) {
-//    vec3 viewDir = normalize(in_TangentViewPosition);
-//    vec3 halfway = normalize(normalize(light_position) + viewDir);
-//    float shininess = 0.2;
-//    float spec = pow(max(dot(surf_normal, halfway), 0.0), shininess);
+vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) {
+    vec3 viewDir = normalize(in_TangentViewPosition);
+    vec3 halfway = normalize(normalize(light_position) + viewDir);
+    float shininess = 0.2;
+    float spec = pow(max(dot(surf_normal, halfway), 0.0), shininess);
 
-    float distance = length(light_position);
-    float attenuation = 1.0 / (distance * distance + 1);
+    float dist = length(light_position);
+    float attenuation = 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
     vec3 light_direction = normalize(light_position);
 
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    return (dot_normal_light * attenuation * light_intensity) * light_color;
+    return (dot_normal_light * attenuation * light.intensity) * light.color;
 }
 
 void main() {
@@ -96,13 +109,13 @@ void main() {
     vec3 light_direction = normalize(in_TangentLightPosition.xyz);
 
     if (numberOfLights.x > 0) {
-        outColor += computeDirectionalLight(surf_normal, light_direction) * material_color;
+        outColor += computeDirectionalLight(geom_normal, light_direction) * material_color;
     }
     if (numberOfLights.y > 0) {
         outColor += computeAmbientLight() * material_color;
     }
     for (int i=0; i<numberOfLights.z; ++i) {
         vec3 light_vector = in_TangentPtLightPosition[i].xyz - in_TangentFragPosition;
-        outColor += computePointLight(surf_normal, light_vector, pointLights[i].intensity, pointLights[i].color) * material_color;
+        outColor += computePointLight(surf_normal, light_vector, pointLights[i]) * material_color;
     }
 }

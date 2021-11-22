@@ -7,8 +7,9 @@
 struct PointLight {
     vec4 position;
     vec4 color;
-    float intensity;
-    float attenuation;
+    float intensity;    // intensity
+    float lAttenuation; // linear attenuation factor
+    float qAttenuation; // quadratic attenuation factor
 };
 
 struct DirectionalLight {
