@@ -76,20 +76,16 @@ int main(int argc, char* argv[]) {
     ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
 
     for (auto& mesh : scene->m_meshes) {
-<<<<<<< Updated upstream
-      MeshUtil::ConvertToSmoothNormals(*mesh); // doesnt work yet, buggy
-=======
->>>>>>> Stashed changes
       geo::MeshUtil::GenerateTangents(*mesh);
-      MeshUtil::ConvertToSmoothNormals(*mesh); // doesnt work yet, buggy
+      MeshUtil::ConvertToSmoothNormals(*mesh);
     }
 
     sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
 
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
-//    auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
-//    ptLight.get<ecs::PointLight>().intensity = 4.0F;
+    auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
+    ptLight.get<ecs::PointLight>().intensity = 4.0F;
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
