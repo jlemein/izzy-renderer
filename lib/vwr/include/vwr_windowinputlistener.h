@@ -10,23 +10,23 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-namespace lsw
-{
-namespace io
-{
+namespace lsw {
+namespace io {
 class InputSystem;
 }
 
-namespace viewer
-{
-class WindowInputListener : public io::InputListener
-{
+namespace viewer {
+
+/**
+ * Listens to generic key presses to close the window, and showing the GUI.
+ */
+class WindowInputListener : public io::InputListener {
  public:
   WindowInputListener(GLFWwindow* window);
 
   void init() override;
 
-  void update(const io::InputSystem *inputSystem) override;
+  void update(const io::InputSystem* inputSystem) override;
 
  private:
   GLFWwindow* m_window;

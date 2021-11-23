@@ -19,7 +19,7 @@ struct DebugModel;
 struct SceneGraphEntity;
 
 /**!
- * Debug shape factory creates, different to @PrimitiveShapeFactory, specific
+ * Debug shape factory creates, different to @see PrimitiveFactory, specific
  * shapes for use in debug visualization. Examples are bounding boxes, axis
  * visualization, gizmo visualizations, etcetera. These shapes are built on top
  * of the @see PrimitiveShapeFactory functionality.

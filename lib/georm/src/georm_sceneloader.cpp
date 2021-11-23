@@ -239,15 +239,14 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, geo::Scene& scene) {
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
 
-      if (node_p->mMetaData != nullptr) {
-        for (int k = 0; k < node_p->mMetaData->mNumProperties; ++k) {
-          std::cout << "\t\t" << node_p->mMetaData->mKeys[k].C_Str() << std::endl;
-        }
-      }
+//      if (node_p->mMetaData != nullptr) {
+//        for (int k = 0; k < node_p->mMetaData->mNumProperties; ++k) {
+//          spdlog::debug("\t\t{}", node_p->mMetaData->mKeys[k].C_Str());
+//        }
+//      }
       meshInstance->mesh = mesh;
       meshInstance->name = std::string{node_p->mName.C_Str()};
       meshInstance->material = mesh->material;
-      spdlog::info("Mesh with name {}, has material {} -- vs: {}", mesh->name, mesh->material->name, mesh->material->vertexShader);
       meshInstance->transform = glm::mat4(1.0F);
 
       node->meshInstances.push_back(meshInstance);

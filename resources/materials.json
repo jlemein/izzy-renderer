@@ -7,10 +7,34 @@
     },
     {
       "from": "tea_set_01",
-      "to": "TeaSet"
+      "to": "BlinnPhong"
+    },
+    {
+      "from": "pointlight",
+      "to": "ConstantLight"
     }
   ],
   "materials": [
+    {
+      "name": "ConstantLight",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/constantlight.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/constantlight.frag",
+      "lighting": {
+        "ubo_struct": "ForwardLighting",
+        "blend_mode": "Add"
+      },
+      "properties": [
+        {
+          "type": "uniform",
+          "name": "ConstantLight",
+          "value": {
+            "light_index": 0
+          }
+        }
+      ]
+    },
     {
       "name": "DebugUv",
       "is_binary_shader": false,
@@ -63,12 +87,12 @@
         {
           "type": "texture",
           "name": "albedoMap",
-          "value": "textures/castle_albedo.jpg"
+          "value": "models/textures/tea_set_01_diff_4k.jpg"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "textures/castle_normal.jpg"
+          "value": "models/textures/tea_set_01_nor_gl_4k.exr"
         }
       ]
     },

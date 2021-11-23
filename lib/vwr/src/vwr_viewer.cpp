@@ -151,6 +151,7 @@ int Viewer::run() {
       extensions->beforeRender();
     }
     m_renderSystem->render();
+
     for (auto& extensions : m_viewerExtensions) {
       extensions->afterRender();
     }

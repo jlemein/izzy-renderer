@@ -91,8 +91,7 @@ void GuiLightEditor::render(float dt, float totalTime) {
   }
 
   // render your GUI
-  ImGui::Begin("Demo window");
-  ImGui::Button("Hello!");
+  ImGui::Begin("Light Control");
 
   // == LIGHTS ========================================================
   ImGui::TextColored(ImVec4(1, 1, 0, 1), "Lights in the scene");
@@ -112,29 +111,29 @@ void GuiLightEditor::render(float dt, float totalTime) {
   }
   // ==================================================================
 
-  ImGui::TextColored(ImVec4(1, 1, 0, 1), "Materials");
-  auto materials = m_registry.view<geo::Material>();
-
-  ImGui::BeginChild("Scrolling", ImVec2(400, 400));
-  for (auto e : materials) {
-    auto& m = materials.get<geo::Material>(e);
-    //        ImGui::TextColored(ImVec4(0, 1, 1, 1), "%s", m.name.c_str());
-    for (auto [name, path] : m.texturePaths) {
-      //            ImGui::LabelText(name.c_str(), "%s", path.c_str());
-      if (ImGui::Selectable(name.c_str(), m_selectedTexture == path)) {
-        m_selectedTexture = path;
-        //                renderSystem->getTextureHandle((*m.textures[name]).id());
-      }
-    }
-  }
-  ImGui::EndChild();
-  ImGui::SameLine();
-  ImGui::BeginChild("ImageView", ImVec2(400, 400));
-  //    ImGui::Text("pointer = %p", 1);
-  //    ImGui::Text("size = %d x %d", my_image_width, my_image_height);
-  int id = 1;
-  ImGui::Image((void*)(intptr_t)id, ImVec2(400, 4000));
-  ImGui::EndChild();
+//  ImGui::TextColored(ImVec4(1, 1, 0, 1), "Materials");
+//  auto materials = m_registry.view<geo::Material>();
+//
+//  ImGui::BeginChild("Scrolling", ImVec2(400, 400));
+//  for (auto e : materials) {
+//    auto& m = materials.get<geo::Material>(e);
+//    //        ImGui::TextColored(ImVec4(0, 1, 1, 1), "%s", m.name.c_str());
+//    for (auto [name, path] : m.texturePaths) {
+//      //            ImGui::LabelText(name.c_str(), "%s", path.c_str());
+//      if (ImGui::Selectable(name.c_str(), m_selectedTexture == path)) {
+//        m_selectedTexture = path;
+//        //                renderSystem->getTextureHandle((*m.textures[name]).id());
+//      }
+//    }
+//  }
+//  ImGui::EndChild();
+//  ImGui::SameLine();
+//  ImGui::BeginChild("ImageView", ImVec2(400, 400));
+//  //    ImGui::Text("pointer = %p", 1);
+//  //    ImGui::Text("size = %d x %d", my_image_width, my_image_height);
+//  int id = 1;
+//  ImGui::Image((void*)(intptr_t)id, ImVec2(400, 4000));
+//  ImGui::EndChild();
 
   ImGui::End();
 

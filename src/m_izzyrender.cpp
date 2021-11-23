@@ -22,6 +22,7 @@
 #include <wsp_workspace.h>
 #include "gui_lighteditor.h"
 
+#include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
@@ -64,12 +65,12 @@ int main(int argc, char* argv[]) {
     }
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
+    renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
     // ==== GUI =============================================================
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
-    auto resourceInspector = make_shared<gui::ResourceInspector>(resourceManager);
-    auto guiSystem = make_shared<GuiSystem>(vector<std::shared_ptr<IGuiWindow>>{editor, resourceInspector});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, nullptr);//guiSystem);
+    auto guiSystem = make_shared<GuiSystem>(vector<std::shared_ptr<IGuiWindow>>{editor});
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);//guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
@@ -85,7 +86,10 @@ int main(int argc, char* argv[]) {
     // ==== LIGHTS SETUP ====================================================
     sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
     auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
-    ptLight.get<ecs::PointLight>().intensity = 4.0F;
+    auto& lightComp = ptLight.get<ecs::PointLight>();
+    lightComp.intensity = 4.0;
+    lightComp.color = glm::vec3(0.1, 0.1, 1.0);
+    ptLight.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
@@ -93,7 +97,7 @@ int main(int argc, char* argv[]) {
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-//    viewer->registerExtension(guiSystem);
+    viewer->registerExtension(guiSystem);
     viewer->setWindowSize(1024, 768);
     viewer->setTitle(fmt::format("Izzy Renderer: {}", workspace->sceneFile.filename().string()));
     viewer->initialize();

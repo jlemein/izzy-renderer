@@ -1,8 +1,10 @@
+#include <ecs_light.h>
+#include <ecs_name.h>
+#include <ecs_transform.h>
+#include <geo_mesh.h>
 #include <glrs_lightsystem.h>
 #include <glrs_renderable.h>
-#include <ecs_transform.h>
 #include <spdlog/spdlog.h>
-#include <ecs_light.h>
 using namespace lsw;
 using namespace lsw::glrs;
 
@@ -15,6 +17,28 @@ int LightSystem::getActiveLightCount() const {
   auto ambientLights = m_registry.view<ecs::AmbientLight>();
 
   return pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
+}
+
+void LightSystem::setDefaultPointLightMaterial(std::shared_ptr<geo::Material> material) {
+  m_lightMaterial = material;
+}
+
+void LightSystem::initialize() {
+  for (auto&& [e, light, mesh] : m_registry.view<ecs::PointLight, geo::Mesh>().each()) {
+    spdlog::debug("Initializing light system");
+    if (!m_registry.all_of<geo::Material>(e)) {
+      if (m_lightMaterial == nullptr) {
+        auto name = m_registry.get<ecs::Name>(e).name;
+        spdlog::error("Cannot add a material for point light '{}'. No light material set", name);
+      } else {
+        m_registry.emplace<glrs::Renderable>(e);
+
+        // TODO: find a way to let light shader always point to the same point light index.
+        auto& material = m_registry.emplace<geo::Material>(e, *m_lightMaterial);
+        material.userProperties.setInt("light_index", 0);
+      }
+    }
+  }
 }
 
 void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& material) {
@@ -42,8 +66,7 @@ void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& m
     renderable.pUboLightStruct = &m_forwardLighting;
     renderable.pUboLightStructSize = sizeof(ForwardLighting);
   } else {
-    throw std::runtime_error(
-        fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, uboStructName));
+    throw std::runtime_error(fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, uboStructName));
   }
 
   glGenBuffers(1, &renderable.uboLightingId);
@@ -73,8 +96,7 @@ void LightSystem::updateLightProperties() {
   int numberOfAmbientLights = std::clamp(static_cast<unsigned int>(ambientLights.size()), 0U, 1U);
 
   m_oldModel.numberLights = numberOfDirectionalLights;
-  m_forwardLighting.numberOfLights =
-      glm::ivec4(numberOfDirectionalLights, numberOfAmbientLights, numberOfPointLights, numberOfSpotLights);
+  m_forwardLighting.numberOfLights = glm::ivec4(numberOfDirectionalLights, numberOfAmbientLights, numberOfPointLights, numberOfSpotLights);
 
   m_oldModel.numberLights = 1U;
 
@@ -118,8 +140,8 @@ void LightSystem::updateLightProperties() {
     const auto& transform = pointLights.get<ecs::Transform>(e);
 
     auto& ubo = m_forwardLighting.pointLights[i++];
-    ubo.lAttenuation = light.linearAttenuation;
-    ubo.qAttenuation = light.quadraticAttenuation;
+    ubo.linearAttenuation = light.linearAttenuation;
+    ubo.quadraticAttenuation = light.quadraticAttenuation;
     ubo.color = glm::vec4(light.color, 0.0F);
     ubo.intensity = light.intensity;
     ubo.position = transform.worldTransform[3];

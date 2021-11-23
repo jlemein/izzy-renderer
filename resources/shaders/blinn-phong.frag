@@ -4,7 +4,6 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 2
 
-
 struct PointLight {
     vec4 position;
     vec4 color;
@@ -42,7 +41,7 @@ uniform UniformBufferBlock {
     mat4 model;
     mat4 view;
     mat4 proj;
-    vec3 viewPosition;// position of camera in world coordinates
+    vec3 viewPosition; // position of camera in world coordinates
 };
 
 
@@ -60,11 +59,15 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 0) uniform sampler2D albedoMap;
 layout(binding = 1) uniform sampler2D normalMap;
 
-float FrostBiteAttenuation() {
-    float theshold = 1.0/(lightRadius * lightRadius);
-    float a = intensity / (dist*dist);
-    float b = saturate(1.0 - pow(x, n) / pow(radius, 4));
-    return a * b*b;
+//float FrostBiteAttenuation() {
+//    float theshold = 1.0/(lightRadius * lightRadius);
+//    float a = intensity / (dist*dist);
+//    float b = saturate(1.0 - pow(x, n) / pow(radius, 4));
+//    return a * b*b;
+//}
+
+float attenuation(PointLight light, float dist) {
+    return 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
 }
 
 vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
@@ -76,7 +79,7 @@ vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
     vec4 light_color = directionalLight.color * directionalLight.intensity;
 
-    return (dot_normal_light) * light_color;
+    return dot_normal_light * light_color;
 }
 
 vec4 computeAmbientLight() {
@@ -90,11 +93,12 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) 
     float spec = pow(max(dot(surf_normal, halfway), 0.0), shininess);
 
     float dist = length(light_position);
-    float attenuation = 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
     vec3 light_direction = normalize(light_position);
 
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    return (dot_normal_light * attenuation * light.intensity) * light.color;
+    float attenuation = attenuation(light, dist);
+
+    return dot_normal_light * attenuation * light.intensity * light.color;
 }
 
 void main() {

@@ -17,11 +17,6 @@ namespace ecsg {
 class SceneGraph;
 } // namespace ecsg
 
-namespace ecs {
-struct Shader;
-class TextureSystem;
-}
-
 namespace glrs {
 class IMaterialSystem;
 class LightSystem;
@@ -32,9 +27,7 @@ class ShaderSystem;
  */
 class RenderSystem {
 public:
-  using ShaderProgram = uint64_t;
-
-  RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
+   RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
                std::shared_ptr<glrs::IMaterialSystem> materialSystem);
 
   void init();
@@ -42,12 +35,9 @@ public:
   void render();
 
   /**
-   * Compiles a shader defined by a material and returns a shader program object.
-   * @param material
-   * @param renderable
-   * @return
+   * @returns the light system.
    */
-//  ShaderProgram compileShader(const geo::Material& material, const Renderable& renderable);
+  glrs::LightSystem& getLightSystem();
 
   // register as part of the render pipeline
   void addSubsystem(std::shared_ptr<IRenderSubsystem> system);
@@ -97,7 +87,6 @@ private:
    */
   void updateModelMatrix(entt::entity e);
   void updateCamera(Renderable &renderable);
-  void updateLightProperties();
 
   void initShaderProperties(Renderable& renderable, const geo::Material& material);
 

@@ -1,19 +1,23 @@
 #pragma once
 
-#include <glm/glm.hpp>
 #include <geo_material.h>
 #include <glrs_renderable.h>
 #include <entt/entity/registry.hpp>
+#include <glm/glm.hpp>
 
 namespace lsw {
+namespace geo {
+struct Material;
+}
+
 namespace glrs {
 
 struct UPointLight {
   glm::vec4 position;
   glm::vec4 color;
   float intensity;
-  float lAttenuation;
-  float qAttenuation;
+  float linearAttenuation;
+  float quadraticAttenuation;
 };
 
 struct UDirectionalLight {
@@ -49,32 +53,53 @@ struct ForwardLighting {
 };
 
 struct UniformLighting {
-    glm::vec4 positions[4];
-    glm::vec4 diffuseColors[4];
-    float intensities[4];
-    glm::vec4 _padding1[3];
-    float attenuation[4];
-    glm::vec4 _padding2[3];
+  glm::vec4 positions[4];
+  glm::vec4 diffuseColors[4];
+  float intensities[4];
+  glm::vec4 _padding1[3];
+  float attenuation[4];
+  glm::vec4 _padding2[3];
 
-    /// MAX = 4
-    uint32_t numberLights {0U};
-    static inline const char* PARAM_NAME = "Lighting";
+  /// MAX = 4
+  uint32_t numberLights{0U};
+  static inline const char* PARAM_NAME = "Lighting";
 };
 
 class LightSystem {
  public:
   LightSystem(entt::registry& registry);
 
+  /**
+   * Initialization method called after the scene is defined, but before the simulation loop is started.
+   * Validates the scene registry and assigns renderable and material components, if needed, to light sources
+   * that have a mesh but no material component assigned.
+   */
+  void initialize();
+
   void initLightingUbo(Renderable& r, const geo::Material& material);
   void updateLightProperties();
 
+  /**
+   * Sets the default material to use for point light sources that have meshes assigned to them.
+   * This material gets assigned to entities that define a Mesh and a PointLight component, but do
+   * not set a Material component.
+   * @param material The default material to assign to point light sources if the user does not specify one.
+   */
+  void setDefaultPointLightMaterial(std::shared_ptr<geo::Material> material);
+
+  /**
+   * @returns the number of lights active lights in the scene.
+   */
   int getActiveLightCount() const;
 
  private:
   entt::registry& m_registry;
   UniformLighting m_oldModel;
   ForwardLighting m_forwardLighting;
+
+  /// default material that is assigned for entities with Mesh and PointLight.
+  std::shared_ptr<geo::Material> m_lightMaterial{nullptr};
 };
 
-}  // namespace ecs
+}  // namespace glrs
 }  // namespace lsw

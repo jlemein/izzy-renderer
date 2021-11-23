@@ -19,7 +19,7 @@ struct PointLight {
   float intensity{100.0F};
   float linearAttenuation{0.2F};
   float quadraticAttenuation{0.2F};
-  float radius{1.0F};
+  float radius{0.01F};
   glm::vec3 color {1.F};
 };
 

@@ -44,6 +44,59 @@ The codebase is in transformation right now. The library structure will be simpl
 * `lsw::gui` GUI system. Any
 * `lsw::geo` Additional geometry objects.
 
+# Practical examples
+
+###  Loading a scene file
+
+```shell
+auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
+sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
+```
+
+If the loaded scene is too big, then scale the whole scene by scaling the root node.
+```shell
+ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
+```
+
+If you also want to generate smooth tangent, bitangent and normals
+```shell
+for (auto& mesh : scene->m_meshes) {
+  geo::MeshUtil::GenerateTangents(*mesh);
+  geo::MeshUtil::ConvertToSmoothNormals(*mesh);
+}
+```
+
+### Adding a light source
+
+Adding a directional light source, named "Sun" from direction (0, 1, 1).
+```shell
+sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+```
+
+Adding a point light:
+```shell
+auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
+ptLight.get<ecs::PointLight>().intensity = 4.0F;
+```
+
+#### Visualizing a light source
+
+Usually you also want to render the light source, for example to visualize the point light source, to add bloom effects
+or to make the light into an area light. This is trivial. Just add a `geo::Mesh` component to the same entity as the point
+light source. The lighting system will add a `geo::Material` component to the entity if it does not have one. The default
+lighting shader must be set before the light system is initialized:
+```shell
+lightSystem->setDefaultPointLightMaterial(m_materialSystem->makeMaterial("MyPointLight"));
+```
+
+If you want to use
+a custom shader for the light source, make sure to assign a material before the light system is initialized or overwrite
+the material later on in the simulation.
+
+
+
+
+
 # API Documentation
 
 ### Build

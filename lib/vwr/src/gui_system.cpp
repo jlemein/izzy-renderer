@@ -71,5 +71,5 @@ void GuiSystem::cleanup() {
 }
 
 bool GuiSystem::isProcessingInput() const {
-    return !m_dialogs.empty() && ImGui::IsAnyItemActive() && ImGui::IsAnyMouseDown();
+    return ImGui::IsAnyItemActive() && ImGui::IsAnyMouseDown();
 }

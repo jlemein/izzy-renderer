@@ -8,6 +8,7 @@
 #include <georm_resourcemanager.h>
 #include <georm_texturesystem.h>
 #include <glrs_rendersystem.h>
+#include <uniform_constant.h>
 #include <uniform_lambert.h>
 #include <uniform_parallax.h>
 #include <uniform_ubermaterial.h>
@@ -36,6 +37,11 @@ struct ReservedNames {
   static inline const std::string ROUGHNESS_TEXTURE = "roughTex";
 };
 
+template <typename T>
+bool isFloatArray(const T& array) {
+  return std::all_of(array.begin(), array.end(), [](const json& el) { return el.is_number_float(); });
+}
+
 }  // namespace
 
 MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<georm::ResourceManager> resourceManager)
@@ -46,6 +52,7 @@ MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std
   m_uniformBlockManagers[ufm::Lambert::PARAM_NAME] = std::make_unique<ufm::LambertUniformManager>();
   m_uniformBlockManagers[ufm::Parallax::PARAM_NAME] = std::make_unique<ufm::ParallaxManager>();
   m_uniformBlockManagers[ufm::Uber::PARAM_NAME] = std::make_unique<ufm::UberUniformManager>();
+  m_uniformBlockManagers[ufm::Constant::PARAM_NAME] = std::make_unique<ufm::ConstantManager>();
 }
 
 void MaterialSystem::readMaterialMappings(json& j) {
@@ -116,7 +123,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
       auto& properties = material["properties"];
       for (const auto& prop : properties) {
         // Required: every property must have a name and type.
-        if(!prop.contains("name") || !prop.contains("type")) {
+        if (!prop.contains("name") || !prop.contains("type")) {
           spdlog::warn("Material '{}': property misses required attributes 'name' and/or 'type'. Property will be ignored.", m.name);
           continue;
         }
@@ -138,13 +145,16 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
               auto parameters = prop["value"];
 
               for (const auto& [key, value] : parameters.items()) {
-                if (value.is_array() && value.is_number_float()) {
+                if (value.is_array() && isFloatArray<>(value)) {
                   auto list = value.get<std::vector<float>>();
                   spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
                   m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
                 } else if (value.is_number_float()) {
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
                   m.userProperties.setFloat(key, value.get<float>());
+                } else if (value.is_number_integer()){
+                  spdlog::debug("\t{}::{} = {}", name, key, value.get<int>());
+                  m.userProperties.setInt(key, value.get<int>());
                 } else {
                   spdlog::error("Material {} with parameter '{}' is ignored. Data type is not supported.", m.name, key);
                 }
@@ -314,7 +324,6 @@ void MaterialSystem::synchronizeTextures(glrs::RenderSystem& renderSystem) {
         throw std::runtime_error(fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
       }
     }
-
 
     // A material is parsed in two ways
     // - A material has standard textures assigned in the scene file, such as
