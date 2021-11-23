@@ -31,6 +31,39 @@ void computeTangent(glm::vec3 e1, glm::vec3 e2, glm::vec2 delta_uv1, glm::vec2 d
   B = glm::vec3{f * (-delta_uv2.x * e1.x + delta_uv1.x * e2.x), f * (-delta_uv2.x * e1.y + delta_uv1.x * e2.y),
                 f * (-delta_uv2.x * e1.z + delta_uv1.x * e2.z)};
 }
+
+/**
+ * Smoothens any normal data, be it normals, tangents or bitangents.
+ * @param pVertices Vertices corresponding to the normals.
+ * @param pNormals Normals to be smoothened.
+ * @param numVertices Number of vertices. The number of normals should be "larger than" or "equal to" the number of vertices.
+ */
+void SmoothenNormals(Mesh::Vertex* pVertices, Mesh::Normal* pNormals, int numVertices) {
+  // 1. Do bookkeeping and maintain a map of unique vertices (note the universal hash, needed to allow vertex to be a key in the map).
+  // For every unique vertex, we sum the normals.
+  std::unordered_map<Mesh::Vertex, glm::vec3, universal_hash> uniqueVertices;
+
+  // Every unique vertex becomes a key in the map. For each unique vertex the normals are summed.
+  for (auto i = 0U; i < numVertices; ++i) {
+    auto& vertex = pVertices[i];
+    auto& normal = reinterpret_cast<glm::vec3&>(pNormals[i]);
+
+    if (!uniqueVertices.contains(vertex)) {
+      uniqueVertices[vertex] = normal;
+    } else {
+      uniqueVertices[vertex] += normal;
+    }
+  }
+
+  // Go over the vertices again and replace the vertex normal with the averaged normal.
+  for (auto i = 0U; i < numVertices; ++i) {
+    const auto& vertex = pVertices[i];
+    auto normal = glm::normalize(uniqueVertices[vertex]);
+    pNormals[i].x = normal.x;
+    pNormals[i].y = normal.y;
+    pNormals[i].z = normal.z;
+  }
+}
 }  // namespace
 
 /**
@@ -47,8 +80,8 @@ void computeTangent(glm::vec3 e1, glm::vec3 e2, glm::vec2 delta_uv1, glm::vec2 d
  * @param T     [out]   Reference to tangent vector to be filled with tangent vector.
  * @param B     [out]   Reference to bitangent vector to be filled.
  */
-void MeshUtil::ComputeTangent(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv1, const glm::vec2& uv2,
-                              const glm::vec2& uv3, glm::vec3& T, glm::vec3& B) {
+void MeshUtil::ComputeTangentAndBitangent(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv1, const glm::vec2& uv2,
+                                          const glm::vec2& uv3, glm::vec3& T, glm::vec3& B) {
   computeTangent(p2 - p1, p3 - p1, uv2 - uv1, uv3 - uv1, T, B);
 }
 
@@ -76,7 +109,7 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
     auto uv3 = make_vec2(m.uvs.data() + 2 * t2);
 
     glm::vec3 T, B;
-    ComputeTangent(vertex1, vertex2, vertex3, uv1, uv2, uv3, T, B);
+    ComputeTangentAndBitangent(vertex1, vertex2, vertex3, uv1, uv2, uv3, T, B);
 
     float* pTangent1 = m.tangents.data() + 3 * t0;
     float* pTangent2 = m.tangents.data() + 3 * t1;
@@ -92,104 +125,6 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
     pBtangent1[1] = pBtangent2[1] = pBtangent3[1] = B.y;
     pBtangent1[2] = pBtangent2[2] = pBtangent3[2] = B.z;
   }
-}
-
-<<<<<<< Updated upstream
-void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh, float thresholdDegrees) {
-  std::unordered_map<Mesh::Vertex, int, universal_hash> vertexIndexMap;
-  std::vector<Vertex> uniqueVertices;
-
-  std::cout << "Unique vertices size: " << uniqueVertices.size() << std::endl;
-
-  for (auto i = 0U; i < mesh.indices.size(); ++i) {
-    auto idx = mesh.indices[i];
-    Mesh::Vertex* vertex = reinterpret_cast<Mesh::Vertex*>(&mesh.vertices[idx * 3]);
-    Mesh::Normal* normal = reinterpret_cast<Mesh::Normal*>(&mesh.normals[idx * 3]);
-    glm::vec2 uv = reinterpret_cast<glm::vec2&>(mesh.uvs[idx*2]);
-
-    auto index = uniqueVertices.size();
-    if (!vertexIndexMap.contains(*vertex)) {
-      // if vertex does not exist (so is unique), then add the vertex with the corresponding index
-      vertexIndexMap[*vertex] = index;
-      uniqueVertices.push_back(Vertex{*vertex, Mesh::Normal{0,0,0}, ));
-    } else {
-      index = vertexIndexMap[*vertex];
-    }
-
-    auto& [v, summedNormal] = uniqueVertices[index];
-    summedNormal.x += normal->x;
-    summedNormal.y += normal->y;
-    summedNormal.z += normal->z;
-
-    std::cout << "Summed normal at index " << index << ": " << summedNormal.x << ", " << summedNormal.y << ", " << summedNormal.z << std::endl;
-
-    // overwrite mesh index. This is fine, since we already processed it above.
-    mesh.indices[i] = index;
-    mesh.uvs[i*2] = uv.x;
-    mesh.uvs[i*2 + 1] = uv.y;
-  }
-
-  mesh.uvs.resize();
-
-  std::cout << "Preprocessing done." << std::endl;
-
-  for (int i=0; i<uniqueVertices.size(); ++i) {
-    auto& [v, n] = uniqueVertices[i];
-    std::cout << "V" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
-  }
-
-  // Preprocessing done.
-  // Now recreate the mesh
-
-  mesh.vertices.clear();
-  mesh.normals.clear();
-  mesh.uvs.clear();
-  mesh.vertices.reserve(uniqueVertices.size()*3);
-  mesh.normals.reserve(uniqueVertices.size()*3);
-
-  for (auto i=0U; i<uniqueVertices.size(); ++i) {
-    auto& [v, n] = uniqueVertices[i];
-
-    mesh.vertices.push_back(v.x);
-    mesh.vertices.push_back(v.y);
-    mesh.vertices.push_back(v.z);
-
-    auto length = glm::length(*reinterpret_cast<glm::vec3*>(&n));
-
-    n.x /= length;
-    n.y /= length;
-    n.z /= length;
-
-    mesh.normals.push_back(n.x);
-    mesh.normals.push_back(n.y);
-    mesh.normals.push_back(n.z);
-
-    std::cout << "\nV" << i << ": " << v.x << " " << v.y << " " << v.z << " -- " << n.x << " " << n.y << " " << n.z << std::endl;
-=======
-namespace {
-void SmoothenNormals(Mesh::Vertex* pVertices, Mesh::Normal* pNormals, int numVertices) {
-  std::unordered_map<Mesh::Vertex, glm::vec3, universal_hash> uniqueVertices;
-
-  for (auto i = 0U; i < numVertices; ++i) {
-    auto& vertex = pVertices[i];
-    auto& normal = reinterpret_cast<glm::vec3&>(pNormals[i]);
-
-    if (!uniqueVertices.contains(vertex)) {
-      uniqueVertices[vertex] = normal;
-    } else {
-      uniqueVertices[vertex] += normal;
-    }
-  }
-
-  for (auto i = 0U; i < numVertices; ++i) {
-    const auto& vertex = pVertices[i];
-    auto n = uniqueVertices[vertex];
-    auto normal = glm::normalize(uniqueVertices[vertex]);
-    pNormals[i].x = normal.x;
-    pNormals[i].y = normal.y;
-    pNormals[i].z = normal.z;
-  }
-}
 }
 
 void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
@@ -209,6 +144,5 @@ void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
 
   if (mesh.bitangents.size() == mesh.vertices.size()) {
     SmoothenNormals(vertices, bitangents, numVertices);
->>>>>>> Stashed changes
   }
 }
