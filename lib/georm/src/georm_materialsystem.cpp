@@ -300,6 +300,7 @@ void MaterialSystem::synchronizeTextures(glrs::RenderSystem& renderSystem) {
   for (auto entity : view) {
     auto& renderable = registry.get_or_emplace<glrs::Renderable>(entity);
     auto& geoMaterial = view.get<geo::Material>(entity);
+    spdlog::debug("Attach textures for meterial '{}' to render system", geoMaterial.name);
 
     for (auto& [name, path] : geoMaterial.texturePaths) {
       // TODO: check if name is used in shader object
@@ -313,7 +314,7 @@ void MaterialSystem::synchronizeTextures(glrs::RenderSystem& renderSystem) {
         throw std::runtime_error(fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
       }
     }
-    spdlog::info("Synchronizing textures");
+
 
     // A material is parsed in two ways
     // - A material has standard textures assigned in the scene file, such as

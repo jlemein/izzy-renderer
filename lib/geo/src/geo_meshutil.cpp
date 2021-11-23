@@ -39,8 +39,11 @@ void computeTangent(glm::vec3 e1, glm::vec3 e2, glm::vec2 delta_uv1, glm::vec2 d
  * @param numVertices Number of vertices. The number of normals should be "larger than" or "equal to" the number of vertices.
  */
 void SmoothenNormals(Mesh::Vertex* pVertices, Mesh::Normal* pNormals, int numVertices) {
+  // 1. Do bookkeeping and maintain a map of unique vertices (note the universal hash, needed to allow vertex to be a key in the map).
+  // For every unique vertex, we sum the normals.
   std::unordered_map<Mesh::Vertex, glm::vec3, universal_hash> uniqueVertices;
 
+  // Every unique vertex becomes a key in the map. For each unique vertex the normals are summed.
   for (auto i = 0U; i < numVertices; ++i) {
     auto& vertex = pVertices[i];
     auto& normal = reinterpret_cast<glm::vec3&>(pNormals[i]);
@@ -52,6 +55,7 @@ void SmoothenNormals(Mesh::Vertex* pVertices, Mesh::Normal* pNormals, int numVer
     }
   }
 
+  // Go over the vertices again and replace the vertex normal with the averaged normal.
   for (auto i = 0U; i < numVertices; ++i) {
     const auto& vertex = pVertices[i];
     auto normal = glm::normalize(uniqueVertices[vertex]);
@@ -76,8 +80,8 @@ void SmoothenNormals(Mesh::Vertex* pVertices, Mesh::Normal* pNormals, int numVer
  * @param T     [out]   Reference to tangent vector to be filled with tangent vector.
  * @param B     [out]   Reference to bitangent vector to be filled.
  */
-void MeshUtil::ComputeTangent(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv1, const glm::vec2& uv2,
-                              const glm::vec2& uv3, glm::vec3& T, glm::vec3& B) {
+void MeshUtil::ComputeTangentAndBitangent(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv1, const glm::vec2& uv2,
+                                          const glm::vec2& uv3, glm::vec3& T, glm::vec3& B) {
   computeTangent(p2 - p1, p3 - p1, uv2 - uv1, uv3 - uv1, T, B);
 }
 
@@ -105,7 +109,7 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
     auto uv3 = make_vec2(m.uvs.data() + 2 * t2);
 
     glm::vec3 T, B;
-    ComputeTangent(vertex1, vertex2, vertex3, uv1, uv2, uv3, T, B);
+    ComputeTangentAndBitangent(vertex1, vertex2, vertex3, uv1, uv2, uv3, T, B);
 
     float* pTangent1 = m.tangents.data() + 3 * t0;
     float* pTangent2 = m.tangents.data() + 3 * t1;
@@ -122,7 +126,6 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
     pBtangent1[2] = pBtangent2[2] = pBtangent3[2] = B.z;
   }
 }
-
 
 void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
   auto numVertices = mesh.vertices.size() / 3;
