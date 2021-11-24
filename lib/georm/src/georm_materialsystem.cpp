@@ -52,7 +52,7 @@ MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std
   m_uniformBlockManagers[ufm::Lambert::PARAM_NAME] = std::make_unique<ufm::LambertUniformManager>();
   m_uniformBlockManagers[ufm::Parallax::PARAM_NAME] = std::make_unique<ufm::ParallaxManager>();
   m_uniformBlockManagers[ufm::Uber::PARAM_NAME] = std::make_unique<ufm::UberUniformManager>();
-  m_uniformBlockManagers[ufm::Constant::PARAM_NAME] = std::make_unique<ufm::ConstantManager>();
+  m_uniformBlockManagers[ufm::ConstantLight::PARAM_NAME] = std::make_unique<ufm::ConstantManager>();
 }
 
 void MaterialSystem::readMaterialMappings(json& j) {

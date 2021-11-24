@@ -83,6 +83,8 @@ class LightSystem {
    * Sets the default material to use for point light sources that have meshes assigned to them.
    * This material gets assigned to entities that define a Mesh and a PointLight component, but do
    * not set a Material component.
+   * @details The shader must take a ConstantLight Uniform Block as parameters to the light source. This can
+   * not be customized as of yet.
    * @param material The default material to assign to point light sources if the user does not specify one.
    */
   void setDefaultPointLightMaterial(std::shared_ptr<geo::Material> material);

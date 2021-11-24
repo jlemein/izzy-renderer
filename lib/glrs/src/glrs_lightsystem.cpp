@@ -8,6 +8,14 @@
 using namespace lsw;
 using namespace lsw::glrs;
 
+namespace {
+void updatePointLightVisualization(geo::Material& material, ecs::PointLight light) {
+  material.userProperties.setValue("color", glm::vec4(light.color, 0.0));
+  material.userProperties.setFloat("radius", light.radius);
+  material.userProperties.setFloat("intensity", light.intensity);
+}
+}
+
 LightSystem::LightSystem(entt::registry& registry)
   : m_registry{registry} {}
 
@@ -35,7 +43,7 @@ void LightSystem::initialize() {
 
         // TODO: find a way to let light shader always point to the same point light index.
         auto& material = m_registry.emplace<geo::Material>(e, *m_lightMaterial);
-        material.userProperties.setInt("light_index", 0);
+        updatePointLightVisualization(material, light);
       }
     }
   }
@@ -145,6 +153,12 @@ void LightSystem::updateLightProperties() {
     ubo.color = glm::vec4(light.color, 0.0F);
     ubo.intensity = light.intensity;
     ubo.position = transform.worldTransform[3];
+
+    // if the point light has a point light visualization
+    if (m_registry.all_of<geo::Material>(e)) {
+      auto& material = m_registry.get<geo::Material>(e);
+      updatePointLightVisualization(material, light);
+    }
   }
 
   // -- spotlights - not supported yet -----------------------------

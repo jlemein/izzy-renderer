@@ -71,6 +71,17 @@ struct UserProperties {
     }
   }
 
+  const glm::vec4& getVec4f(const std::string& key) const {
+    if (floatArrayValues.count(key) > 0) {
+      if (floatArrayValues.at(key).size() < 4) {
+        throw std::runtime_error("requesting a vec4f but the requested property is not a vec4f");
+      }
+      return *reinterpret_cast<const glm::vec4*>(floatArrayValues.at(key).data());
+    } else {
+      throw std::runtime_error(fmt::format("Property {} (vec4) does not exist for uniform buffer struct {}", key, ubo_name));
+    }
+  }
+
   void setFloat(const std::string& name, float value) {
     spdlog::debug("UBO {}: Setting property {} (float) to value: {}", ubo_name, name, value);
     floatValues[name] = value;

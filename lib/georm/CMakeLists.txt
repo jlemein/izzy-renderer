@@ -26,7 +26,7 @@ find_package(fmt REQUIRED)
 find_package(assimp REQUIRED)
 find_package(nlohmann_json REQUIRED)
 #find_package(Boost REQUIRED COMPONENTS filesystem)
-find_package(openexr REQUIRED)
+find_package(OpenEXR REQUIRED)
 
 target_link_libraries(georm
         PRIVATE
@@ -38,7 +38,7 @@ target_link_libraries(georm
         assimp::assimp
         stb::stb
         fmt::fmt
-        openexr::openexr
+        OpenEXR::OpenEXR
         )
 
 #if (BUILD_TESTING)

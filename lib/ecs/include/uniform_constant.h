@@ -5,8 +5,10 @@
 namespace lsw {
 namespace ufm {
 
-struct Constant {
-  int lightIndex;
+struct ConstantLight {
+  glm::vec4 color;
+  float intensity;
+  float radius;
 
   static inline const char* PARAM_NAME = "ConstantLight";
 };
@@ -14,17 +16,19 @@ struct Constant {
 class ConstantManager : public UniformBlockManager {
  public:
   void* CreateUniformBlock(size_t& t) override {
-    t = sizeof(Constant);
-    return new Constant;
+    t = sizeof(ConstantLight);
+    return new ConstantLight;
   }
 
   void DestroyUniformBlock(void* data) override {
-    auto constant = reinterpret_cast<Constant*>(data);
+    auto constant = reinterpret_cast<ConstantLight*>(data);
     delete constant;
   }
   void UpdateUniform(void* data, const geo::Material& m) override {
-    auto constant = reinterpret_cast<Constant*>(data);
-    constant->lightIndex = m.userProperties.getInt("light_index");
+    auto constant = reinterpret_cast<ConstantLight*>(data);
+    constant->radius = m.userProperties.getFloat("radius");
+    constant->intensity = m.userProperties.getFloat("intensity");
+    constant->color = m.userProperties.getVec4f("color");
   }
 
 //  ValueSemantic GetSemantic(const char* name) override {
