@@ -44,6 +44,10 @@ uniform UniformBufferBlock {
     vec3 viewPosition; // position of camera in world coordinates
 };
 
+layout(std140, binding = 2)
+uniform BlinnPhong {
+    float shininess;
+};
 
 layout(location = 0) in vec4 in_normal;
 layout(location = 1) in vec2 in_uv;
@@ -59,27 +63,30 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 0) uniform sampler2D albedoMap;
 layout(binding = 1) uniform sampler2D normalMap;
 
-//float FrostBiteAttenuation() {
-//    float theshold = 1.0/(lightRadius * lightRadius);
-//    float a = intensity / (dist*dist);
-//    float b = saturate(1.0 - pow(x, n) / pow(radius, 4));
-//    return a * b*b;
-//}
-
 float attenuation(PointLight light, float dist) {
     return 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
 }
 
 vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
     vec3 viewDir = normalize(in_TangentViewPosition);
-    vec3 halfway = normalize(light_direction + viewDir);
-    float shininess = 0.2;
-    float spec = pow(max(dot(surf_normal, halfway), 0.0), shininess);
 
+    // DIFFUSE PART
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
     vec4 light_color = directionalLight.color * directionalLight.intensity;
+    vec4 diffuse = dot_normal_light * light_color;
 
-    return dot_normal_light * light_color;
+    // SPECULAR PART (BLINN-PHONG)
+    vec3 halfway = normalize(light_direction + viewDir);
+    float shininess = 16.0;
+    float spec = pow(max(dot(surf_normal, halfway), 0.0), shininess);
+
+    // PHONG PART
+    //vec3 reflectDir = reflect(-lightDir, surf_normal);
+    //float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
+
+    vec4 specular = light_color * spec;
+
+    return diffuse + specular;
 }
 
 vec4 computeAmbientLight() {
@@ -104,11 +111,11 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) 
 void main() {
     vec4 material_color = texture(albedoMap, in_uv);
     vec3 surf_normal = normalize(texture(normalMap, in_uv).rgb*2.0-1.0);// surface normal
-    vec3 geom_normal = normalize(in_normal).xyz;// geometric normal
+    vec3 geom_normal = normalize(in_normal.xyz);// geometric normal
     vec3 light_direction = normalize(in_TangentLightPosition.xyz);
 
     if (numberOfLights.x > 0) {
-        outColor += computeDirectionalLight(geom_normal, light_direction) * material_color;
+        outColor += computeDirectionalLight(surf_normal, light_direction) * material_color;
     }
     if (numberOfLights.y > 0) {
         outColor += computeAmbientLight() * material_color;

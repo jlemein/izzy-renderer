@@ -21,6 +21,8 @@ Izzy renderer takes two input arguments:
 ## Screenshots
 ![Rendering a teapot](doc/screenshot_teaset.png)
 
+![Adjust light params](doc/screenshot_light_controls.png)
+Adding point lights and real time control over the light, making use of ECS' strengths.
 
 The following examples are delivered as part of the renderer:
 * Normal mapping example

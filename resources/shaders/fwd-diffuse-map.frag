@@ -4,12 +4,12 @@
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 2
 
-
 struct PointLight {
     vec4 position;
     vec4 color;
     float intensity;
-    float attenuation;
+    float lAttenuation;
+    float qAttenuation;
 };
 
 struct DirectionalLight {
@@ -59,6 +59,10 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 0) uniform sampler2D albedoMap;
 layout(binding = 1) uniform sampler2D normalMap;
 
+float attenuation(PointLight light, float dist) {
+    return 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
+}
+
 vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
     vec4 light_color = directionalLight.color * directionalLight.intensity;
@@ -69,13 +73,14 @@ vec4 computeAmbientLight() {
     return ambientLight.color * ambientLight.intensity;
 }
 
-vec4 computePointLight(vec3 surf_normal, vec3 light_position, float light_intensity, vec4 light_color) {
-    float distance = length(light_position);
-    float attenuation = 1.0 / (distance * distance + 1);
+vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) {
+    float dist = length(light_position);
     vec3 light_direction = normalize(light_position);
 
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    return dot_normal_light * attenuation * light_intensity * light_color;
+    float attenuation = attenuation(light, dist);
+
+    return dot_normal_light * attenuation * light.intensity * light.color;
 }
 
 void main() {
@@ -92,6 +97,6 @@ void main() {
     }
     for (int i=0; i<numberOfLights.z; ++i) {
         vec3 light_vector = in_TangentPtLightPosition[i].xyz - in_TangentFragPosition;
-        outColor += computePointLight(surf_normal, light_vector, pointLights[i].intensity, pointLights[i].color) * material_color;
+        outColor += computePointLight(surf_normal, light_vector, pointLights[i]) * material_color;
     }
 }

@@ -175,39 +175,6 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
       }
     }
 
-    //        else {
-    //        if (prop["value"].is_array()) {
-    //            auto floatArray = prop["value"].get<std::vector<float>>();
-    //            m.setFloatArray(name, floatArray);
-    //            spdlog::debug("\t{}: [{}, {}, {}]", name, floatArray[0], floatArray[1], floatArray[2]);
-    //          } else {
-    //            auto value = prop["value"].get<float>();
-    //            m.setFloat(name, value);
-    //            m.setProperty(name.c_str(), nullptr);
-    //            spdlog::debug("\t{}: {}", name, value);
-    //          }
-    //        }
-
-    // TODO: for now we parse properties here
-    // Every material property needs to be converted to a representation in
-    // the shader unit. This is done using Uniform buffer objects. Some
-    // materials might be able to reuse the data block. The data block is
-    // specified with a layout attribute in the json file.
-    //    if (material.count("layout") > 0) {
-    //      auto layout = material["layout"].get<std::string>();
-    //
-    //      if (layout == "_Lambert") {
-    //        m.setProperty(ufm::LambertData::FromMaterial(m));
-    //      } else if (layout == "_UberMaterial") {
-    //        m.setProperty(UberMaterialData::FromMaterial(m));
-    //      } else {
-    //        spdlog::error(
-    //            "{} layout structure is unknown. Continue without "
-    //            "which may lead to shading anomalies.",
-    //            layout);
-    //      }
-    //    }
-
     m_materials[m.name] = m;  // std::move(m);
   }
 }
@@ -241,19 +208,25 @@ bool MaterialSystem::isMaterialDefined(const std::string& materialName) {
 }
 
 std::shared_ptr<geo::Material> MaterialSystem::createMaterial(const std::string& name) {
+  // 1. First process material mapping to material name
   auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
 
+  // 2. Match the specified name with a known material
   Material material;
   if (m_materials.count(materialName) > 0) {
     material = m_materials.at(materialName);
   } else {
     if (m_materials.count(m_defaultMaterial) > 0) {
+      // 2. If material does not occur, assign a default one (if available)
       spdlog::warn("Material with name '{}' not found, default material used.", materialName);
       material = m_materials.at(m_defaultMaterial);
+
     } else if (!m_materials.empty()) {
+      // 3. Otherwise choose the first one
       material = m_materials.begin()->second;
       spdlog::warn("Material '{}' is not defined. No default material is set. Using the first defined material (0: '{}') instead.", name, material.name);
     } else {
+      // 4. Otherwise throw an error
       throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", materialName));
     }
   }
@@ -264,21 +237,6 @@ std::shared_ptr<geo::Material> MaterialSystem::createMaterial(const std::string&
 std::shared_ptr<geo::Material> MaterialSystem::makeDefaultMaterial() {
   return createMaterial(m_defaultMaterial);
 }
-
-// void MaterialSystem::update(float time, float dt) {
-//   auto& registry = m_sceneGraph->getRegistry();
-//   auto view = registry.view<geo::Material, ecs::Renderable>();
-//
-//   for (auto e : view) {
-//     auto& material = view.get<geo::Material>(e);
-//     auto& renderable = view.get<ecs::Renderable>(e);
-//
-//     if (!material.userProperties.ubo_name.empty()) {
-//       m_uniformBlockManagers[renderable.]
-//     }
-//     m_uniformBlockManagers
-//   }
-// }
 
 void MaterialSystem::update(float time, float dt) {
   auto view = m_sceneGraph->getRegistry().view<geo::Material, glrs::Renderable>();
