@@ -1,4 +1,4 @@
-#include "gui_lighteditor.h"
+#include <gui_lighteditor.h>
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>

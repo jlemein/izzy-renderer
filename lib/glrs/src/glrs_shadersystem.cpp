@@ -1,3 +1,4 @@
+#include <GL/glew.h>
 #include <glrs_shadersystem.h>
 #include <geo_material.h>
 #include <fstream>

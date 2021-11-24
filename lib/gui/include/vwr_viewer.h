@@ -11,7 +11,7 @@
 
 #include <ecsg_scenegraphentity.h>
 #include <entt/entt.hpp>
-#include <gui_system.h>
+#include <gui_guisystem.h>
 
 namespace lsw {
 
@@ -71,7 +71,7 @@ public:
   Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
          std::shared_ptr<glrs::RenderSystem> renderSystem,
          std::shared_ptr<georm::ResourceManager> resourceManager,
-         std::shared_ptr<GuiSystem> guiSystem = nullptr);
+         std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
 
   ~Viewer();
 
@@ -94,7 +94,7 @@ public:
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
   std::shared_ptr<georm::ResourceManager> m_resourceManager;
-  std::shared_ptr<GuiSystem> m_guiSystem {nullptr};
+  std::shared_ptr<gui::GuiSystem> m_guiSystem {nullptr};
   std::shared_ptr<anim::AnimationSystem> m_animationSystem;
   entt::registry &m_registry;
 

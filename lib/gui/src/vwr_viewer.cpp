@@ -3,17 +3,17 @@
 //
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
+#include <anim_animationsystem.h>
 #include <ecs_camerasystem.h>
-#include <glrs_rendersystem.h>
 #include <ecs_transformsystem.h>
 #include <ecsg_scenegraph.h>
+#include <georm_resourcemanager.h>
+#include <glrs_rendersystem.h>
 #include <io_inputsystem.h>
 #include <vwr_viewer.h>
 #include <vwr_viewerextension.h>
 #include <vwr_windowinputlistener.h>
-#include <anim_animationsystem.h>
-#include <gui_system.h>
-#include <georm_resourcemanager.h>
+#include <gui_guiwindow.h>
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -30,7 +30,7 @@ static void error_callback(int error, const char* description) {
 }  // namespace
 
 Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
-               std::shared_ptr<georm::ResourceManager> resourceManager, std::shared_ptr<GuiSystem> guiSystem)
+               std::shared_ptr<georm::ResourceManager> resourceManager, std::shared_ptr<gui::GuiSystem> guiSystem)
   : m_sceneGraph{sceneGraph}
   , m_resourceManager{resourceManager}
   , m_guiSystem(guiSystem)

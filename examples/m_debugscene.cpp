@@ -2,7 +2,6 @@
 // Created by jlemein on 11-03-21.
 //
 
-
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
@@ -18,10 +17,10 @@
 #include <georm_sceneloader.h>
 #include <georm_stbtextureloader.h>
 #include <georm_texturesystem.h>
-#include <gui_system.h>
+#include <gui_lighteditor.h>
 #include <vwr_viewer.h>
 #include <wsp_workspace.h>
-#include "../src/gui_lighteditor.h"
+#include "gui_guiwindow.h"
 
 #include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
@@ -67,7 +66,7 @@ int main(int argc, char* argv[]) {
 
     // ==== GUI =============================================================
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<GuiSystem>(vector<std::shared_ptr<IGuiWindow>>{editor});
+    auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
 
     // ==== SCENE SETUP ======================================================

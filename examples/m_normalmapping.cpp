@@ -11,13 +11,13 @@
 #include <georm_fontsystem.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
-#include <gui_system.h>
+#include <gui_lighteditor.h>
 #include <spdlog/spdlog.h>
 #include <vwr_viewer.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <memory>
-#include "../src/gui_lighteditor.h"
+#include "gui_guiwindow.h"
 
 using namespace std;
 using namespace lsw;
@@ -63,12 +63,8 @@ int main(int argc, char* argv[]) {
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<GuiSystem>(editor);
+    auto guiSystem = make_shared<gui::GuiSystem>(editor);
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
-
-    // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
-    //    sceneGraph->setDefaultMaterial(
-    //        resourceManager->createSharedMaterial("DefaultMaterial"));
 
     // ==== SCENE SETUP ======================================================
     auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("Box"), *resourceManager->getMaterialSystem()->createMaterial("NormalMap"));

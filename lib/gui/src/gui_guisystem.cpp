@@ -1,16 +1,19 @@
 //
 // Created by jlemein on 08-02-21.
 //
-#include <gui_system.h>
+#include <gui_guisystem.h>
+#include <gui_guiwindow.h>
 #include <vwr_viewer.h>
-#include <imgui.h>
+
 #include <GLFW/glfw3.h>
+#include <imgui.h>
 #include <memory>
 
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
 using namespace lsw;
+using namespace lsw::gui;
 
 GuiSystem::GuiSystem(std::shared_ptr<IGuiWindow> dialog)
         : m_dialogs{dialog} {}

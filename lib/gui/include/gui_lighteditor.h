@@ -1,12 +1,11 @@
 #pragma once
 
 #include <ecsg_scenegraph.h>
+#include <georm_fontsystem.h>
+#include <imgui.h>
 #include <entt/entt.hpp>
 #include <memory>
-#include <georm_fontsystem.h>
-#include <gui_system.h>
-#include <imgui.h>
-
+#include "gui_guiwindow.h"
 
 namespace lsw {
 
