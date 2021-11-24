@@ -90,7 +90,7 @@ int main(int argc, char* argv[]) {
     viewer->setActiveCamera(camera);
     viewer->setWindowSize(1024, 768);
     viewer->setTitle("Normal mapping");
-    viewer->registerExtension(guiSystem);
+
     viewer->initialize();
     viewer->run();
   } catch (runtime_error& e) {

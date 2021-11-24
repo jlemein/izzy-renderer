@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     viewer->setActiveCamera(camera);
 
     // ==== UI SETUP ========================================================
-    viewer->registerExtension(guiSystem);
+
     viewer->setWindowSize(1024, 768);
     viewer->setTitle(fmt::format("Izzy Renderer: {}", workspace->sceneFile.filename().string()));
     viewer->initialize();

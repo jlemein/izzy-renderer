@@ -103,9 +103,7 @@ void Viewer::initialize() {
   m_firstPersonSystem->init();
   m_transformSystem->init();
 
-  for (auto& extensions : m_viewerExtensions) {
-    extensions->initialize(this);
-  }
+  m_guiSystem->initialize(this);
 }
 
 int Viewer::run() {
@@ -140,21 +138,14 @@ int Viewer::run() {
     }
     m_transformSystem->update(time, dt);
     m_cameraSystem->update(dt);
-
-    for (auto& extensions : m_viewerExtensions) {
-      extensions->update(time, dt);
-    }
-
+    m_guiSystem->update(time, dt);
     m_renderSystem->update(time, dt);
 
-    for (auto& extensions : m_viewerExtensions) {
-      extensions->beforeRender();
-    }
+    m_guiSystem->beforeRender();
+
     m_renderSystem->render();
 
-    for (auto& extensions : m_viewerExtensions) {
-      extensions->afterRender();
-    }
+    m_guiSystem->afterRender();
 
     glfwSwapBuffers(window);
     glfwPollEvents();
@@ -176,12 +167,4 @@ DisplayDetails Viewer::getDisplayDetails() {
 
 void Viewer::setActiveCamera(ecsg::SceneGraphEntity cameraEntity) {
   m_renderSystem->setActiveCamera(cameraEntity.handle());
-}
-
-void Viewer::registerExtension(std::shared_ptr<ecs::IViewerExtension> interactable) {
-  m_viewerExtensions.emplace_back(move(interactable));
-}
-
-void Viewer::registerRenderSubsystem(std::shared_ptr<glrs::IRenderSubsystem> renderSubsystem) {
-  m_renderSystem->addSubsystem(renderSubsystem);
 }

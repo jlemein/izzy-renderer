@@ -87,9 +87,7 @@ public:
 
   void setActiveCamera(ecsg::SceneGraphEntity cameraEntity);
 
-  void registerExtension(std::shared_ptr<ecs::IViewerExtension> interactable);
-  void registerRenderSubsystem(
-      std::shared_ptr<glrs::IRenderSubsystem> renderSubsystem);
+
 
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
@@ -97,8 +95,6 @@ private:
   std::shared_ptr<gui::GuiSystem> m_guiSystem {nullptr};
   std::shared_ptr<anim::AnimationSystem> m_animationSystem;
   entt::registry &m_registry;
-
-  std::list<std::shared_ptr<ecs::IViewerExtension>> m_viewerExtensions;
 
   std::shared_ptr<glrs::RenderSystem> m_renderSystem;
   std::shared_ptr<ecs::TransformSystem> m_transformSystem;
