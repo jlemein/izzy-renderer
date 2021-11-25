@@ -91,6 +91,16 @@
           "type": "texture",
           "name": "normalMap",
           "value": "models/textures/tea_set_01_nor_gl_4k.exr"
+        },
+        {
+          "type": "texture",
+          "name": "specularMap",
+          "value": "models/textures/tea_set_01_metal_4k.exr"
+        },
+        {
+          "type": "texture",
+          "name": "roughnessMap",
+          "value": "models/textures/tea_set_01_rough_4k.exr"
         }
       ]
     },
