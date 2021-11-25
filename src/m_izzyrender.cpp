@@ -48,8 +48,8 @@ int main(int argc, char* argv[]) {
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
 
     auto textureSystem = make_shared<georm::TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>());
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>());
+    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
     resourceManager->setTextureSystem(textureSystem);
 
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
@@ -70,7 +70,7 @@ int main(int argc, char* argv[]) {
     // ==== GUI =============================================================
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);//guiSystem);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);

@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
     auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto textureSystem = make_shared<georm::TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>());
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>());
+    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
     resourceManager->setTextureSystem(textureSystem);
 
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);

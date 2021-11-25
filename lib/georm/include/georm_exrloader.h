@@ -17,12 +17,17 @@ namespace georm {
  * Loads EXR high dynamic range images.
  */
 class ExrLoader : public geo::TextureLoader {
-public:
-    virtual ~ExrLoader() = default;
-    geo::Texture loadTexture(const std::filesystem::path &path) override;
+ public:
+  ExrLoader(bool flipVertical = false);
 
-    geo::ExtensionList getSupportedExtensions() const override;
+  virtual ~ExrLoader() = default;
+  geo::Texture loadTexture(const std::filesystem::path& path) override;
+
+  geo::ExtensionList getSupportedExtensions() const override;
+
+ private:
+  bool m_flipVertical{false};
 };
 
-} // end of package
-} // end of enterprise
+}  // namespace georm
+}  // namespace lsw

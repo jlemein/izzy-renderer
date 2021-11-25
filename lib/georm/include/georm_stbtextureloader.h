@@ -22,6 +22,7 @@ namespace georm {
  */
 class StbTextureLoader : public geo::TextureLoader {
  public:
+  StbTextureLoader(bool flipVertical = false);
   virtual ~StbTextureLoader() = default;
 
   /// @inherit
@@ -29,6 +30,9 @@ class StbTextureLoader : public geo::TextureLoader {
 
   /// @inherit
   geo::ExtensionList getSupportedExtensions() const override;
+
+ private:
+  bool m_flipVertical {false};
 };
 
 }  // namespace georm

@@ -1,8 +1,8 @@
 //
 // Created by jlemein on 22-02-21.
 //
-#include <georm_stbtextureloader.h>
 #include <geo_texture.h>
+#include <georm_stbtextureloader.h>
 
 #include <wsp_workspace.h>
 
@@ -22,9 +22,15 @@ namespace {
 const std::vector<std::string> SUPPORTED_EXTENSIONS = {".bmp", ".hdr", ".jpg", ".jpeg", ".png", ".exr"};
 }  // namespace
 
+StbTextureLoader::StbTextureLoader(bool flipVertical)
+  : m_flipVertical{flipVertical}
+  {}
+
 geo::Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
   int desiredChannels = 4;
   int width, height, channels;
+
+  stbi_set_flip_vertically_on_load_thread(m_flipVertical);
   unsigned char* pixelData = stbi_load(path.c_str(), &width, &height, &channels, desiredChannels);
 
   if (pixelData == nullptr) {
@@ -39,7 +45,7 @@ geo::Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
     throw std::runtime_error(fmt::format("Cannot load texture from file '{}': width or height is 0", path.c_str()));
   }
 
-  geo::Texture texture {.path = path, .width = width, .height = height, .channels = desiredChannels};
+  geo::Texture texture{.path = path, .width = width, .height = height, .channels = desiredChannels};
 
   // number of pixels * channels * 8 bit
   uint64_t sizeImageData = width * height * desiredChannels;
