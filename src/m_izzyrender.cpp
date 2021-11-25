@@ -121,7 +121,7 @@ const char* DEBUG_MODE = "false";
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
   const std::string PROGRAM_NAME = "wera3d";
-  cxxopts::Options _options(PROGRAM_NAME, "Wera3d renderer.\nCopyright reserved to jlemein.nl\n");
+  cxxopts::Options _options(PROGRAM_NAME, "Wera3d renderer.\n");
   _options.add_options()("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))(
       "s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())("m,materials", "Reference to a materials json file",
                                                                                                  cxxopts::value<std::string>())(
@@ -146,16 +146,16 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
 
   auto workspace = wsp::WorkspaceManager::GetActiveWorkspace();
   workspace->sceneFile = result["scene"].as<std::string>();
-  workspace->path = workspace->sceneFile.parent_path();
+//  workspace->path = workspace->sceneFile.parent_path();
   workspace->materialsFile = result["materials"].as<std::string>();
 
-  const char* weraHomeEnv = getenv("WERA3D_HOME");
-  if (weraHomeEnv) {
-    workspace->lsw_home_directory = weraHomeEnv;
-    workspace->path = argv[0];
-  } else {
-    workspace->isStrictMode = true;  // no default materials to read from, which implies strict mode.
-  }
+//  const char* weraHomeEnv = getenv("WERA3D_HOME");
+//  if (weraHomeEnv) {
+//    workspace->lsw_home_directory = weraHomeEnv;
+//    workspace->path = argv[0];
+//  } else {
+//    workspace->isStrictMode = true;  // no default materials to read from, which implies strict mode.
+//  }
 
   workspace->debugMode = result["debug"].as<bool>();
 

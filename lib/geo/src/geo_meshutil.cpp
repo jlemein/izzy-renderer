@@ -88,6 +88,9 @@ void MeshUtil::ComputeTangentAndBitangent(const glm::vec3& p1, const glm::vec3& 
 void MeshUtil::GenerateTangents(geo::Mesh& m) {
   auto numTriangles = m.indices.size() / 3;
 
+  if ((m.uvs.size()/2) < (m.vertices.size()/3)) {
+    throw std::runtime_error(fmt::format("Failed call to GenerateTangents(\"{}\"). Mesh has less uv coordinates than vertices, {} vs {}.", m.name, m.uvs.size()/2, m.vertices.size()/3));
+  }
   m.tangents.resize(m.vertices.size());
   m.bitangents.resize(m.vertices.size());
 

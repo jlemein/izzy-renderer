@@ -21,6 +21,7 @@
 #include <fstream>
 #include <memory>
 #include <sstream>
+#include <uniform_blinnphongsimple.h>
 
 using json = nlohmann::json;
 
@@ -53,6 +54,7 @@ MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std
   m_uniformBlockManagers[ufm::Parallax::PARAM_NAME] = std::make_unique<ufm::ParallaxManager>();
   m_uniformBlockManagers[ufm::Uber::PARAM_NAME] = std::make_unique<ufm::UberUniformManager>();
   m_uniformBlockManagers[ufm::ConstantLight::PARAM_NAME] = std::make_unique<ufm::ConstantManager>();
+  m_uniformBlockManagers[ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<ufm::BlinnPhongSimpleManager>();
 }
 
 void MaterialSystem::readMaterialMappings(json& j) {

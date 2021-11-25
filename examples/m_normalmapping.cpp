@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
 
-    materialSystem->loadMaterialsFromFile(wsp::R("materials.json"));
+//    materialSystem->loadMaterialsFromFile(wsp::R("materials.json"));
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));

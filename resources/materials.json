@@ -72,6 +72,29 @@
       ]
     },
     {
+      "name": "BlinnPhongSimple",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/blinn-phong-simple.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/blinn-phong-simple.frag",
+      "lighting": {
+        "ubo_struct": "ForwardLighting",
+        "blend_mode": "Add"
+      },
+      "properties": [
+        {
+          "type": "uniform",
+          "name": "BlinnPhongSimple",
+          "value": {
+            "max_shininess": 100.0,
+            "albedo": [1.0, 0.0, 0.0, 0.0],
+            "specular": [0.0, 0.0, 0.0, 0.0],
+            "roughness": [0.0, 0.0, 0.0, 0.0]
+          }
+        }
+      ]
+    },
+    {
       "name": "BlinnPhong",
       "is_binary_shader": false,
       "vertex_shader": "shaders/blinn-phong.vert",

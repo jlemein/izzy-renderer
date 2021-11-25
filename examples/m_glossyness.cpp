@@ -38,13 +38,15 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 int main(int argc, char* argv[]) {
   auto workspace = parseProgramArguments(argc, argv);
   if (workspace->debugMode) {
-    spdlog::set_level(spdlog::level::debug);
+    spdlog::set_level(spdlog::level::info);
   }
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
+
     auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
+
     auto textureSystem = make_shared<georm::TextureSystem>();
     textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
     textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
@@ -56,35 +58,59 @@ int main(int argc, char* argv[]) {
     auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
     resourceManager->setSceneLoader(sceneLoader);
 
+    if (workspace->materialsFile.empty()) {
+      spdlog::warn("No materials provided. Rendering results may be different than expected.");
+    } else {
+      materialSystem->loadMaterialsFromFile(workspace->materialsFile);
+    }
+
+    sceneGraph->setDefaultMaterial(materialSystem->createMaterial("BlinnPhongSimple"));
+
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
+    renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
     // ==== GUI =============================================================
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);
-    auto mat = materialSystem->createMaterial("BlinnPhong");
-    std::cout << "Number of textures: " << mat->textures.size() << " - " << mat->texturePaths.size() << std::endl;
-    for(auto& t : mat->textures) {
-      std::cout << t.first << " " << t.second->path << std::endl;
-    }
-    sceneGraph->addGeometry(uvPlane, mat);
+    auto sphere11 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere11", .5F));
+    ecs::TransformUtil::SetPosition(sphere11.get<ecs::Transform>(), glm::vec3(-1.25F, .75F, 0.0F));
+
+    auto sphere12 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere12", .5F));
+    ecs::TransformUtil::SetPosition(sphere12.get<ecs::Transform>(), glm::vec3(.0F, .75F, 0.0F));
+
+    auto sphere13 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere13", .5F));
+    ecs::TransformUtil::SetPosition(sphere13.get<ecs::Transform>(), glm::vec3(1.25F, .75F, 0.0F));
+
+    auto sphere21 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere21", .5F));
+    ecs::TransformUtil::SetPosition(sphere21.get<ecs::Transform>(), glm::vec3(-1.25F, -.75F, 0.0F));
+
+    auto sphere22 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere22", .5F));
+    ecs::TransformUtil::SetPosition(sphere22.get<ecs::Transform>(), glm::vec3(.0F, -.75F, 0.0F));
+
+    auto sphere23 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere23", .5F));
+    ecs::TransformUtil::SetPosition(sphere23.get<ecs::Transform>(), glm::vec3(1.25F, -.75F, 0.0F));
 
 
     // ==== LIGHTS SETUP ====================================================
-//    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
-    sceneGraph->makePointLight("PointLight", glm::vec3(0.F, .01F, .0F), {.intensity = 1.0, .radius=0.2F, .color=glm::vec3{1.0,0.5, 0.0}, });
+    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+    auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
+    auto& lightComp = ptLight.get<ecs::PointLight>();
+    lightComp.intensity = 4.0;
+    lightComp.color = glm::vec3(0.1, 0.1, 1.0);
+    ptLight.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-
     viewer->setActiveCamera(camera);
-    viewer->setWindowSize(1024, 768);
-    viewer->setTitle("Normal mapping");
 
+    // ==== UI SETUP ========================================================
+
+    viewer->setWindowSize(1024, 768);
+    viewer->setTitle(fmt::format("Izzy Renderer: {}", workspace->sceneFile.filename().string()));
     viewer->initialize();
     viewer->run();
   } catch (runtime_error& e) {
@@ -105,12 +131,15 @@ const char* DEBUG_MODE = "false";
 }  // namespace
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
-  const std::string PROGRAM_NAME = "wera3d";
-  cxxopts::Options _options(PROGRAM_NAME, "Wera3d renderer.\n");
-  _options.add_options()("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))(
-      "s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())("m,materials", "Reference to a materials json file",
-                                                                                                 cxxopts::value<std::string>())(
-      "w,workspace", "Workspace directory", cxxopts::value<std::string>())("v,version", "Version information")("h,help", "Print usage");
+  const std::string PROGRAM_NAME = "glossyness";
+  cxxopts::Options _options(PROGRAM_NAME, "Glossyness example.\n");
+  _options.add_options()
+      ("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))
+//      ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
+      ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>())
+//      ("w,workspace", "Workspace directory", cxxopts::value<std::string>())
+      ("v,version", "Version information")
+      ("h,help", "Print usage");
   auto result = _options.parse(argc, argv);
 
   if (result.count("help")) {
@@ -118,20 +147,15 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
     exit(EXIT_SUCCESS);
   }
 
-  if (!result.count("scene")) {
-    spdlog::error("Missing required command line argument --scene.");
-    std::cout << _options.help() << std::endl;
-    exit(EXIT_FAILURE);
+  if (result.count("version")) {
+    std::cout << PROGRAM_NAME << " v" << VERSION_STR << std::endl;  // VERSION_STR is defined in CmakeLists.txt
+    exit(EXIT_SUCCESS);
   }
 
   auto workspace = wsp::WorkspaceManager::GetActiveWorkspace();
-  workspace->sceneFile = result["scene"].as<std::string>();
-//  workspace->path = workspace->sceneFile.parent_path();
   workspace->materialsFile = result["materials"].as<std::string>();
-
   workspace->debugMode = result["debug"].as<bool>();
 
-  cout << "Scene file: " << workspace->sceneFile << endl;
   cout << "Materials file: " << (workspace->materialsFile.empty() ? "<not specified>" : workspace->materialsFile) << endl;
   cout << "Strict mode: " << (workspace->isStrictMode ? "enabled" : "disabled") << endl;
 

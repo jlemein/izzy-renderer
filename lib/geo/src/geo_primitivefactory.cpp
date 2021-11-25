@@ -215,7 +215,9 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
   int numVertices = numSides * (numSides - 2) + 2;
   int numTriangles = (numSides - 2) * numSides;
 
-  mesh.vertices.reserve(numVertices);
+  mesh.vertices.reserve(numVertices*3);
+  mesh.normals.reserve(numVertices*3);
+  mesh.uvs.reserve(numVertices*2);
   mesh.indices.reserve(numTriangles * 3);
 
   for (int h = 0; h < numSides; ++h) {
@@ -225,6 +227,11 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
       mesh.vertices.push_back(.0F);
       mesh.vertices.push_back(h > 0 ? radius : -radius);
       mesh.vertices.push_back(.0F);
+      mesh.normals.push_back(.0F);
+      mesh.normals.push_back(h > 0 ? 1.0 : -1.0);
+      mesh.normals.push_back(.0F);
+      mesh.uvs.push_back(0.5);
+      mesh.uvs.push_back(h > 0 ? 1.0 : 0.0);
       continue;
     }
 
@@ -240,6 +247,15 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
       mesh.vertices.push_back(x * radius);
       mesh.vertices.push_back(y * radius);
       mesh.vertices.push_back(z * radius);
+
+      mesh.normals.push_back(x);
+      mesh.normals.push_back(y);
+      mesh.normals.push_back(z);
+
+      float u = atan2(x, z) / (2.0*M_PI) + 0.5;
+      float v = y * 0.5 + 0.5;
+      mesh.uvs.push_back(u);
+      mesh.uvs.push_back(v);
     }
   }
 
@@ -289,7 +305,7 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
     }
   }
 
-  std::cout << mesh.indices.size() << " capacity: " << mesh.indices.capacity() << std::endl;
+  MeshUtil::GenerateTangents(mesh);
   return mesh;
 }
 

@@ -30,10 +30,6 @@ class ConstantManager : public UniformBlockManager {
     constant->intensity = m.userProperties.getFloat("intensity");
     constant->color = m.userProperties.getVec4f("color");
   }
-
-//  ValueSemantic GetSemantic(const char* name) override {
-//    return ValueSemantic::COLOR_RGB
-//  }
 };
 
 

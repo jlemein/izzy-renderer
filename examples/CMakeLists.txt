@@ -16,6 +16,10 @@ target_link_libraries(debugscene PRIVATE lsw-gui common cxxopts::cxxopts lsw-gui
 add_executable(icosphere m_icosphere.cpp)
 target_link_libraries(icosphere PRIVATE common cxxopts::cxxopts lsw-gui)
 
+add_executable(glossyness m_glossyness.cpp)
+target_link_libraries(glossyness PRIVATE lsw-gui common cxxopts::cxxopts)
+target_compile_definitions(glossyness PRIVATE -DVERSION_STR="1.0.0")
+
 install(TARGETS normalmap icosphere
         COMPONENT examples
         RUNTIME DESTINATION bin

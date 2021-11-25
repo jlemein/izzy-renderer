@@ -24,7 +24,7 @@ using lsw::core::Util;
 std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char* argv[]) {
   const std::string PROGRAM_NAME = "parallax";
   const std::string VERSION_STR = "1.0";
-  cxxopts::Options _options(PROGRAM_NAME, "Parallax Example.\nCopyright reserved to lemonsoftware.nl\n");
+  cxxopts::Options _options(PROGRAM_NAME, "Parallax Example.\n");
   _options.add_options()("m,materials", "Reference to a materials json file", cxxopts::value<std::string>())("h,help", "Print usage");
   auto result = _options.parse(argc, argv);
 
@@ -46,7 +46,7 @@ std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char* argv[]) {
 
   auto workspace = wsp::WorkspaceManager::GetActiveWorkspace();
   workspace->materialsFile = result["materials"].as<std::string>();
-  workspace->path = workspace->materialsFile.parent_path();
+//  workspace->path = workspace->materialsFile.parent_path();
 
   return wsp::WorkspaceManager::GetActiveWorkspace();
 }
