@@ -44,8 +44,9 @@ uniform UniformBufferBlock {
     vec3 viewPosition; // position of camera in world coordinates
 };
 
-layout(std140, binding = 2)
+layout(std140, binding = 3)
 uniform BlinnPhong {
+    vec4 specular_color;
     float shininess;
 };
 
@@ -62,10 +63,6 @@ layout(location = 0) out vec4 outColor;
 
 layout(binding = 0) uniform sampler2D albedoMap;
 layout(binding = 1) uniform sampler2D normalMap;
-layout(binding = 2) uniform sampler2D specularMap;
-layout(binding = 2) uniform sampler2D roughnessMap;
-
-const float MAX_SHININESS = 100.0;
 
 float attenuation(PointLight light, float dist) {
     return 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
@@ -74,24 +71,16 @@ float attenuation(PointLight light, float dist) {
 vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
     vec3 viewDir = normalize(in_TangentViewPosition);
     vec4 light_color = directionalLight.color * directionalLight.intensity;
-    float specularity = texture(specularMap, in_uv).r;
 
     // DIFFUSE PART
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    vec4 diffuse = dot_normal_light * light_color * (1.0 - specularity);
+    float diffuse = dot_normal_light;// * (1.0 - specularity);
 
     // SPECULAR PART (BLINN-PHONG)
     vec3 halfway = normalize(light_direction + viewDir);
-    float glossyness = 1.0 - texture(roughnessMap, in_uv).r;
-    vec4 specular = pow(max(dot(surf_normal, halfway), 0.0), glossyness*MAX_SHININESS) * light_color * specularity;
+    vec4 specular = pow(max(dot(surf_normal, halfway), 0.0), shininess) * specular_color;
 
-    // PHONG PART
-    //vec3 reflectDir = reflect(-lightDir, surf_normal);
-    //float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-
-//    diffuse *= (1.0 - specularity);
-
-    return diffuse + specular;
+    return (diffuse + specular) * light_color;
 }
 
 vec4 computeAmbientLight() {
@@ -102,31 +91,27 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) 
     vec3 viewDir = normalize(in_TangentViewPosition);
     vec4 light_color = light.color * light.intensity;
     vec3 light_direction = normalize(light_position);
-    float specularity = texture(specularMap, in_uv).r;
 
     // DIFFUSE PART
     float dist = length(light_position);
     float attenuation = attenuation(light, dist);
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    vec4 diffuse = attenuation * dot_normal_light * light_color * (1.0 - specularity);
+    float diffuse = attenuation * dot_normal_light;//* (1.0 - specularity);
 
     // SPECULAR PART (BLINN-PHONG)
     vec3 halfway = normalize(light_direction + viewDir);
-    float glossyness = 1.0 - texture(roughnessMap, in_uv).r;
-    vec4 specular = pow(max(dot(surf_normal, halfway), 0.0), glossyness*MAX_SHININESS) * light_color * specularity;
+    vec4 specular = attenuation * pow(max(dot(surf_normal, halfway), 0.0), shininess) * specular_color;
 
-
-    return diffuse + specular;
-    //return dot_normal_light * attenuation * light.intensity * light.color;
+    return (diffuse + specular) * light_color;
 }
 
 void main() {
     vec4 material_color = texture(albedoMap, in_uv);
     vec3 surf_normal = normalize(texture(normalMap, in_uv).rgb*2.0-1.0);// surface normal
     vec3 geom_normal = normalize(in_normal.xyz);// geometric normal
-    vec3 light_direction = normalize(in_TangentLightPosition.xyz);
 
     if (numberOfLights.x > 0) {
+        vec3 light_direction = normalize(in_TangentLightPosition.xyz);
         outColor += computeDirectionalLight(surf_normal, light_direction) * material_color;
     }
     if (numberOfLights.y > 0) {

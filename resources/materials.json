@@ -116,14 +116,12 @@
           "value": "models/textures/tea_set_01_nor_gl_4k.exr"
         },
         {
-          "type": "texture",
-          "name": "specularMap",
-          "value": "models/textures/tea_set_01_metal_4k.exr"
-        },
-        {
-          "type": "texture",
-          "name": "roughnessMap",
-          "value": "models/textures/tea_set_01_rough_4k.exr"
+          "type": "uniform",
+          "name": "BlinnPhong",
+          "value": {
+            "shininess": 16.0,
+            "specular_color": [1.0, 0.0, 0.0, 0.0]
+          }
         }
       ]
     },

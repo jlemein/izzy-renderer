@@ -77,8 +77,8 @@ int main(int argc, char* argv[]) {
     ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
 
     for (auto& mesh : scene->m_meshes) {
-      geo::MeshUtil::GenerateTangents(*mesh);
-      MeshUtil::ConvertToSmoothNormals(*mesh);
+      geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+      MeshUtil::GenerateSmoothNormals(*mesh);
     }
 
     sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());

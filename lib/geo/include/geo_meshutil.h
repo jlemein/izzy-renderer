@@ -12,6 +12,7 @@ class Mesh;
 
 /**
  * Contains utility methods to transform mesh data.
+ * Methods are divided in three categories:
  */
 class MeshUtil {
  public:
@@ -48,14 +49,20 @@ class MeshUtil {
    * @param mesh The mesh containing already assigned flat surface normals, position data and index data.
    * @throws std::runtime_error when mesh data is incomplete.
    */
-  static void ConvertToSmoothNormals(geo::Mesh& mesh);
+  static void GenerateSmoothNormals(geo::Mesh& mesh);
+
+  /**
+   * Generates bitangents for a mesh that contains vertex and tangent dat, using the cross product.
+   * @param mesh Mesh with vertex and tangent data.
+   */
+  static void GenerateBitangentsByCrossProduct(geo::Mesh& mesh);
 
   /**
    * Given a mesh with normal data and uv coordinates defined, generate the tangent and bitangent data.
    * @throw std::runtime_error when mesh does not have data or uv coordinates defined.
    * @param [in, out] mesh Input mesh to compute the tangent and bitangent data for.
    */
-  static void GenerateTangents(geo::Mesh& mesh);
+  static void GenerateTangentsAndBitangentsFromUvCoords(geo::Mesh& mesh);
 
   /**
    * Computes the tangent and bitangent for vertex at position p1, defined by edges p1-p2 and p1-p3,

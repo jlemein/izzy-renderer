@@ -115,7 +115,7 @@ Mesh PrimitiveFactory::MakeBox(const std::string& name, float width, float heigh
     mesh.vertices[i + 2] *= depth;
   }
 
-  MeshUtil::GenerateTangents(mesh);
+  MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(mesh);
 
   return mesh;
 }
@@ -240,6 +240,7 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
     for (int i = 0; i < numSides; ++i) {
       float phi = i / static_cast<float>(numSides) * 2.0 * M_PI;
 
+      // spherical coordinates -> cartesian
       float x = cos(phi) * sin(theta);
       float z = sin(phi) * sin(theta);
       float y = -cos(theta);
@@ -305,7 +306,7 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
     }
   }
 
-  MeshUtil::GenerateTangents(mesh);
+  MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(mesh);
   return mesh;
 }
 

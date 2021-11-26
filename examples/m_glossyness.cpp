@@ -135,9 +135,7 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
   cxxopts::Options _options(PROGRAM_NAME, "Glossyness example.\n");
   _options.add_options()
       ("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))
-//      ("s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())
-      ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>())
-//      ("w,workspace", "Workspace directory", cxxopts::value<std::string>())
+      ("m,materials", "Reference to a materials json file", cxxopts::value<std::string>()->default_value(""))
       ("v,version", "Version information")
       ("h,help", "Print usage");
   auto result = _options.parse(argc, argv);

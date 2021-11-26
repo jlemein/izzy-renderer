@@ -85,7 +85,7 @@ void MeshUtil::ComputeTangentAndBitangent(const glm::vec3& p1, const glm::vec3& 
   computeTangent(p2 - p1, p3 - p1, uv2 - uv1, uv3 - uv1, T, B);
 }
 
-void MeshUtil::GenerateTangents(geo::Mesh& m) {
+void MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(geo::Mesh& m) {
   auto numTriangles = m.indices.size() / 3;
 
   if ((m.uvs.size()/2) < (m.vertices.size()/3)) {
@@ -130,7 +130,7 @@ void MeshUtil::GenerateTangents(geo::Mesh& m) {
   }
 }
 
-void MeshUtil::ConvertToSmoothNormals(geo::Mesh& mesh) {
+void MeshUtil::GenerateSmoothNormals(geo::Mesh& mesh) {
   auto numVertices = mesh.vertices.size() / 3;
   auto vertices = reinterpret_cast<Mesh::Vertex*>(mesh.vertices.data());
   auto normals = reinterpret_cast<Mesh::Normal*>(mesh.normals.data());
