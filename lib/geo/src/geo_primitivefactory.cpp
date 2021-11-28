@@ -8,13 +8,13 @@
 using namespace lsw;
 using namespace lsw::geo;
 
-Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float height) {
+Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float depth) {
   Mesh mesh{.name = name};
   mesh.vertices = std::vector<float>{
-      -.5F, .0F, .5F,   // v0
-      .5F,  .0F, .5F,   // v1
-      .5F,  .0F, -.5F,  // v2
-      -.5F, .0F, -.5F,  // v3
+      -.5F*width, .0F, .5F*depth,   // v0
+      .5F*width,  .0F, .5F*depth,   // v1
+      .5F*width,  .0F, -.5F*depth,  // v2
+      -.5F*width, .0F, -.5F*depth,  // v3
   };
   mesh.uvs = std::vector<float>{.0F, .0F, 1.F, .0F, 1.F, 1.F, .0F, 1.F};  // 0 1 2 3
   mesh.normals = std::vector<float>{.0F, 1.F, .0F, .0F, 1.F, 0.F,         // v0 v1

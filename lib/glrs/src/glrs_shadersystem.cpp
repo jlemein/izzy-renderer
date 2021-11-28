@@ -82,19 +82,19 @@ bool ShaderSystem::hasBinaryShaderSupport() {
     return m_hasBinaryShaderSupport;
 }
 
-ShaderSystem::Program ShaderSystem::compileShader(const std::string& vertexShader, const std::string& fragmentShader) {
+ShaderSystem::Program ShaderSystem::compileShader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
     std::vector<const char*> vertexShaderSource {}, fragmentShaderSource {};
     std::vector<GLint> vertexShaderSourceLengths {}, fragmentShaderSourceLengths {};
 
     // Read vertex shader line by line
-    auto vertexShaderLines = readFile(vertexShader);
+    auto vertexShaderLines = readFile(vertexShaderPath);
     for (const auto &s : vertexShaderLines) {
         vertexShaderSource.emplace_back(s.c_str());
         vertexShaderSourceLengths.emplace_back(s.size());
     }
 
     // Read fragment shader line by line
-    auto fragmentShaderLines = readFile(fragmentShader);
+    auto fragmentShaderLines = readFile(fragmentShaderPath);
     for (const auto &s : fragmentShaderLines) {
         fragmentShaderSource.emplace_back(s.c_str());
         fragmentShaderSourceLengths.emplace_back(s.size());
@@ -112,11 +112,11 @@ ShaderSystem::Program ShaderSystem::compileShader(const std::string& vertexShade
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &fsCompiled);
 
     if (!fsCompiled) {
-        spdlog::log(spdlog::level::err, "Failed to compile fragment shader\n{}", getShaderLog(fragment_shader));
+        spdlog::log(spdlog::level::err, "Failed to compile fragment shader '{}'\n{}", fragmentShaderPath, getShaderLog(fragment_shader));
     }
 
     if (!vsCompiled) {
-        spdlog::log(spdlog::level::err, "Failed to compile vertex shader\n{}", getShaderLog(vertex_shader));
+        spdlog::log(spdlog::level::err, "Failed to compile vertex shader '{}'\n{}", vertexShaderPath, getShaderLog(vertex_shader));
     }
 
     if (!fsCompiled || !vsCompiled) {
@@ -131,7 +131,7 @@ ShaderSystem::Program ShaderSystem::compileShader(const std::string& vertexShade
     glGetProgramiv(program, GL_LINK_STATUS, &linked);
 
     if (linked == GL_FALSE) {
-        spdlog::log(spdlog::level::err, "Linking failed for vs: {}, fs: {}", vertexShader, fragmentShader);
+        spdlog::log(spdlog::level::err, "Linking failed for vs: {}, fs: {}", vertexShaderPath, fragmentShaderPath);
         printLinkingLog(program);
     }
 

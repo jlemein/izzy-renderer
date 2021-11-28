@@ -8,8 +8,7 @@ namespace ufm {
 struct BlinnPhongSimple {
   glm::vec4 albedo;
   glm::vec4 specular;
-  glm::vec4 roughness;
-  float max_shininess;
+  float shininess;
 
   static inline const char* PARAM_NAME = "BlinnPhongSimple";
 };
@@ -17,8 +16,8 @@ struct BlinnPhongSimple {
 class BlinnPhongSimpleManager : public UniformBlockManager {
  public:
   void* CreateUniformBlock(size_t& t) override {
-    t = sizeof(ConstantLight);
-    return new ConstantLight;
+    t = sizeof(BlinnPhongSimple);
+    return new BlinnPhongSimple;
   }
 
   void DestroyUniformBlock(void* data) override {
@@ -27,10 +26,9 @@ class BlinnPhongSimpleManager : public UniformBlockManager {
   }
   void UpdateUniform(void* data, const geo::Material& m) override {
     auto blinn = reinterpret_cast<BlinnPhongSimple*>(data);
-    blinn->max_shininess = m.userProperties.getFloat("max_shininess");
+    blinn->shininess = m.userProperties.getFloat("shininess");
     blinn->albedo = m.userProperties.getVec4f("albedo");
     blinn->specular = m.userProperties.getVec4f("specular");
-    blinn->roughness = m.userProperties.getVec4f("roughness");
   }
 };
 

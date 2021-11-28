@@ -22,6 +22,8 @@
 #include <wsp_workspace.h>
 #include "gui_guiwindow.h"
 
+#include <uniform_blinnphongsimple.h>
+
 #include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
@@ -43,8 +45,6 @@ int main(int argc, char* argv[]) {
 
   try {
     auto resourceManager = make_shared<georm::ResourceManager>();
-
-    auto fontSystem = make_shared<georm::FontSystem>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
 
     auto textureSystem = make_shared<georm::TextureSystem>();
@@ -64,31 +64,38 @@ int main(int argc, char* argv[]) {
       materialSystem->loadMaterialsFromFile(workspace->materialsFile);
     }
 
-    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
+    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
     renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
     // ==== GUI =============================================================
+    auto fontSystem = make_shared<georm::FontSystem>();
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
-    ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
+//    auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
+//    ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
+//    for (auto& mesh : scene->m_meshes) {
+//      geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+//      MeshUtil::GenerateSmoothNormals(*mesh);
+//    }
+//    sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
 
-    for (auto& mesh : scene->m_meshes) {
-      geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
-      MeshUtil::GenerateSmoothNormals(*mesh);
-    }
-
-    sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
+    // add a plane
+    auto plane = PrimitiveFactory::MakePlane("Plane", 150.0, 150.0);
+    auto blinn = materialSystem->createMaterial("BlinnPhongSimple");
+    blinn->userProperties.setValue("albedo", glm::vec4(1.0, 1.0, 1.0, 0.0));
+    blinn->userProperties.setValue("specular", glm::vec4(1.0, 1.0, 0.0, 0.0));
+    blinn->userProperties.setFloat("shininess", 100.0);
+    sceneGraph->addGeometry(plane, blinn);
 
     // ==== LIGHTS SETUP ====================================================
-    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+    //    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
     auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
     auto& lightComp = ptLight.get<ecs::PointLight>();
-    lightComp.intensity = 4.0;
-    lightComp.color = glm::vec3(0.1, 0.1, 1.0);
+    lightComp.intensity = 1.0;
+    lightComp.color = glm::vec3(1.0, 1.0, 1.0);
     ptLight.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
     // ==== CAMERA SETUP ====================================================
@@ -120,7 +127,7 @@ const char* DEBUG_MODE = "false";
 }  // namespace
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
-  const std::string PROGRAM_NAME = "wera3d";
+  const std::string PROGRAM_NAME = "izzyrender";
   cxxopts::Options _options(PROGRAM_NAME, "Wera3d renderer.\n");
   _options.add_options()("d,debug", "Enable debug mode", cxxopts::value<bool>()->default_value(DEBUG_MODE))(
       "s,scene", "A scene file for visualization (*.fbx, *.obj)", cxxopts::value<std::string>())("m,materials", "Reference to a materials json file",
@@ -146,17 +153,7 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]) {
 
   auto workspace = wsp::WorkspaceManager::GetActiveWorkspace();
   workspace->sceneFile = result["scene"].as<std::string>();
-//  workspace->path = workspace->sceneFile.parent_path();
   workspace->materialsFile = result["materials"].as<std::string>();
-
-//  const char* weraHomeEnv = getenv("WERA3D_HOME");
-//  if (weraHomeEnv) {
-//    workspace->lsw_home_directory = weraHomeEnv;
-//    workspace->path = argv[0];
-//  } else {
-//    workspace->isStrictMode = true;  // no default materials to read from, which implies strict mode.
-//  }
-
   workspace->debugMode = result["debug"].as<bool>();
 
   cout << "Scene file: " << workspace->sceneFile << endl;

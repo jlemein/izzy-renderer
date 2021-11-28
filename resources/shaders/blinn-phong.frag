@@ -64,17 +64,20 @@ layout(location = 0) out vec4 outColor;
 layout(binding = 0) uniform sampler2D albedoMap;
 layout(binding = 1) uniform sampler2D normalMap;
 
+// Computes attenuation for a pointlight at a certain distance using
+// a nonphysics based attenuation formula.
 float attenuation(PointLight light, float dist) {
     return 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
 }
 
 vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
+    vec4 material_color = texture(albedoMap, in_uv);
     vec3 viewDir = normalize(in_TangentViewPosition);
     vec4 light_color = directionalLight.color * directionalLight.intensity;
 
     // DIFFUSE PART
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    float diffuse = dot_normal_light;// * (1.0 - specularity);
+    vec4 diffuse = dot_normal_light * material_color;
 
     // SPECULAR PART (BLINN-PHONG)
     vec3 halfway = normalize(light_direction + viewDir);
@@ -88,6 +91,7 @@ vec4 computeAmbientLight() {
 }
 
 vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) {
+    vec4 material_color = texture(albedoMap, in_uv);
     vec3 viewDir = normalize(in_TangentViewPosition);
     vec4 light_color = light.color * light.intensity;
     vec3 light_direction = normalize(light_position);
@@ -96,7 +100,7 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) 
     float dist = length(light_position);
     float attenuation = attenuation(light, dist);
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    float diffuse = attenuation * dot_normal_light;//* (1.0 - specularity);
+    vec4 diffuse = attenuation * dot_normal_light * material_color;
 
     // SPECULAR PART (BLINN-PHONG)
     vec3 halfway = normalize(light_direction + viewDir);
@@ -112,13 +116,13 @@ void main() {
 
     if (numberOfLights.x > 0) {
         vec3 light_direction = normalize(in_TangentLightPosition.xyz);
-        outColor += computeDirectionalLight(surf_normal, light_direction) * material_color;
+        outColor += computeDirectionalLight(surf_normal, light_direction);
     }
     if (numberOfLights.y > 0) {
         outColor += computeAmbientLight() * material_color;
     }
     for (int i=0; i<numberOfLights.z; ++i) {
         vec3 light_vector = in_TangentPtLightPosition[i].xyz - in_TangentFragPosition;
-        outColor += computePointLight(surf_normal, light_vector, pointLights[i]) * material_color;
+        outColor += computePointLight(surf_normal, light_vector, pointLights[i]);
     }
 }

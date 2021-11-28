@@ -44,7 +44,6 @@ uniform UniformBufferBlock {
     vec3 viewPosition; // position of camera in world coordinates
 };
 
-
 // Model attributes
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;

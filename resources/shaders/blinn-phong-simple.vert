@@ -74,6 +74,7 @@ void main() {
     out_uv = aUv;
     mat4 invTranspose = inverse(transpose(model));
     out_normal = invTranspose * vec4(aNormal, 1.0);
+    out_normal = vec4(TBN * out_normal.xyz, 0.0F);
 
     // directional light source
     out_TangentLightPosition = vec4(TBN * directionalLight.direction.xyz, 0.0F);

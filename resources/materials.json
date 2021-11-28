@@ -86,10 +86,9 @@
           "type": "uniform",
           "name": "BlinnPhongSimple",
           "value": {
-            "max_shininess": 100.0,
-            "albedo": [1.0, 0.0, 0.0, 0.0],
-            "specular": [0.0, 0.0, 0.0, 0.0],
-            "roughness": [0.0, 0.0, 0.0, 0.0]
+            "shininess": 100.0,
+            "albedo": [1.0, 1.0, 1.0, 0.0],
+            "specular": [1.0, 0.0, 0.0, 0.0]
           }
         }
       ]

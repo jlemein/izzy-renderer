@@ -46,40 +46,100 @@ The codebase is in transformation right now. The library structure will be simpl
 * `lsw::gui` GUI system. Any
 * `lsw::geo` Additional geometry objects.
 
-# Practical examples
+# Getting started
+
+### Setting up systems
+
+THe renderer is designed on the entity component system (ECS) principles. This means the objects in the scene are called **entities**. Behavior is controlled
+by using **components** to the entities. The systems will iterate over the components and perform the behavior by updating the state of the entity.
+THis is different compared to traditional OO design. The data is public and the behavior is part of the system. Controlling the behavior of entities
+is done by adding a specific set of components to an entity so that the systems update the entity in the way you want.
+
+THe first thing to setup are the systems. The systems are the heart of the simulation. Without systems nothing will happen.
+Izzy renderer will contain a huge amount of systems. Setting up the systems can be tricky because the order is important.
+In future this will likely be hidden in factory methods.
+
+Setting up the systems for an interactive renderer:
+
+```shell
+std::shared_ptr<georm::ResourceManager> resourceManager {nullptr};
+std::shared_ptr<ecsg::SceneGraph> sceneGraph {nullptr};
+std::shared_ptr<viewer::Viewer> window {nullptr};
+
+void setupSystems() {
+    resourceManager = make_shared<georm::ResourceManager>();
+    sceneGraph = make_shared<ecsg::SceneGraph>();
+    
+    auto textureSystem = make_shared<georm::TextureSystem>();
+    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
+    resourceManager->setTextureSystem(textureSystem);
+
+    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    resourceManager->setMaterialSystem(materialSystem);
+
+    auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
+    resourceManager->setSceneLoader(sceneLoader);
+
+    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
+
+    auto fontSystem = make_shared<georm::FontSystem>();
+    auto guiSystem = make_shared<gui::GuiSystem>();
+    window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
+}
+```
+
 
 ###  Loading a scene file
 
 ```shell
-auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
-sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
+auto scene = resourceManager->getSceneLoader()->loadScene("models/mymodel.fbx");
+sceneGraph->makeScene(*scene);
 ```
 
-If the loaded scene is too big, then scale the whole scene by scaling the root node.
+The `makeScene` method has a second optional argument `ecsg::SceneLoaderFlags` that describes which components of the
+scene file to load. By default, it loads geometry, materials and animations. If you also want to load the cameras and light
+sources from the scene file, you need to explicitly enable that, for example by specifying to load all data, i.e. `ecsg::SceneLoaderFlags::All()`.
+
+If the loaded scene is too large, then scale the entire scene by scaling the root node.
 ```shell
 ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
 ```
 
-If you also want to generate smooth tangent, bitangent and normals
+If you also want to generate smooth normals, tangents and bitangents:
 ```shell
 for (auto& mesh : scene->m_meshes) {
-  geo::MeshUtil::GenerateTangents(*mesh);
-  geo::MeshUtil::ConvertToSmoothNormals(*mesh);
+  geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+  geo::MeshUtil::GenerateSmoothNormals(*mesh);
 }
 ```
 
 ### Adding a light source
 
 Adding a directional light source, named "Sun" from direction (0, 1, 1).
-```shell
+```cpp
 sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
 ```
 
 Adding a point light:
-```shell
+```cpp
 auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
 ptLight.get<ecs::PointLight>().intensity = 4.0F;
 ```
+
+### Adding geometry
+
+Izzy renderer comes with a `PrimitiveFactory` that can generate simple primitive meshes, such as spheres, boxes and planes.
+The primitive factory exists to facilitate easy spawning objects to the scene without needing to specify your own vertex
+buffers, uv coordinates and normal data.
+
+Generating a plane:
+```cpp
+auto plane = PrimitiveFactory::MakePlane("Plane", 15.0, 15.0); // plane with dimensions 15 x 15
+auto blinnPhong = materialSystem->createMaterial("BlinnPhong");
+sceneGraph->addGeometry(plane, blinnPhong);
+```
+
 
 #### Visualizing a light source
 

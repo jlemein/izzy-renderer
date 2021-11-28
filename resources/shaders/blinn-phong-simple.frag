@@ -46,10 +46,9 @@ uniform UniformBufferBlock {
 
 layout(std140, binding = 3)
 uniform BlinnPhongSimple {
-    vec4 albedo;
-    vec4 specular;
-    vec4 roughness;
-    float max_shininess;
+    vec4 material_color;
+    vec4 specular_color;
+    float shininess;
 };
 
 layout(location = 0) in vec4 in_normal;
@@ -63,8 +62,8 @@ layout(location = 7) in vec4 in_TangentPtLightPosition[MAX_POINT_LIGHTS];
 
 layout(location = 0) out vec4 outColor;
 
-const float MAX_SHININESS = 100.0;
-
+// Computes attenuation for a pointlight at a certain distance using
+// a nonphysics based attenuation formula.
 float attenuation(PointLight light, float dist) {
     return 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
 }
@@ -72,22 +71,16 @@ float attenuation(PointLight light, float dist) {
 vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
     vec3 viewDir = normalize(in_TangentViewPosition);
     vec4 light_color = directionalLight.color * directionalLight.intensity;
-    float specularity = specular.r;
 
     // DIFFUSE PART
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    vec4 diffuse = dot_normal_light * light_color * (1.0 - specularity);
+    vec4 diffuse = dot_normal_light * material_color;
 
     // SPECULAR PART (BLINN-PHONG)
     vec3 halfway = normalize(light_direction + viewDir);
-    float glossyness = 1.0 - roughness.r;
-    vec4 _specular = pow(max(dot(surf_normal, halfway), 0.0), glossyness*MAX_SHININESS) * light_color * specularity;
+    vec4 specular = pow(max(dot(surf_normal, halfway), 0.0), shininess) * specular_color;
 
-    // PHONG PART
-    //vec3 reflectDir = reflect(-lightDir, surf_normal);
-    //float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
-
-    return diffuse + _specular;
+    return (diffuse + specular) * light_color;
 }
 
 vec4 computeAmbientLight() {
@@ -98,35 +91,32 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) 
     vec3 viewDir = normalize(in_TangentViewPosition);
     vec4 light_color = light.color * light.intensity;
     vec3 light_direction = normalize(light_position);
-    float specularity = specular.r;
 
     // DIFFUSE PART
     float dist = length(light_position);
     float attenuation = attenuation(light, dist);
     float dot_normal_light = clamp(dot(light_direction, surf_normal), 0.0, 1.0);
-    vec4 diffuse = attenuation * dot_normal_light * light_color * (1.0 - specularity);
+    vec4 diffuse = attenuation * dot_normal_light * material_color;
 
     // SPECULAR PART (BLINN-PHONG)
     vec3 halfway = normalize(light_direction + viewDir);
-    float glossyness = 1.0 - roughness.r;
-    vec4 _specular = pow(max(dot(surf_normal, halfway), 0.0), glossyness*MAX_SHININESS) * light_color * specularity;
+    vec4 specular = attenuation * pow(max(dot(surf_normal, halfway), 0.0), shininess) * specular_color;
 
-    return diffuse + _specular;
+    return (diffuse + specular) * light_color;
 }
 
 void main() {
-    vec4 material_color = albedo;
     vec3 geom_normal = normalize(in_normal.xyz);// geometric normal
-    vec3 light_direction = normalize(in_TangentLightPosition.xyz);
 
     if (numberOfLights.x > 0) {
-        outColor += computeDirectionalLight(geom_normal, light_direction) * material_color;
+        vec3 light_direction = normalize(in_TangentLightPosition.xyz);
+        outColor += computeDirectionalLight(geom_normal, light_direction);
     }
     if (numberOfLights.y > 0) {
         outColor += computeAmbientLight() * material_color;
     }
     for (int i=0; i<numberOfLights.z; ++i) {
         vec3 light_vector = in_TangentPtLightPosition[i].xyz - in_TangentFragPosition;
-        outColor += computePointLight(geom_normal, light_vector, pointLights[i]) * material_color;
+        outColor += computePointLight(geom_normal, light_vector, pointLights[i]);
     }
 }
