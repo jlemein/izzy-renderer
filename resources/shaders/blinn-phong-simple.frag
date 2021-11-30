@@ -68,8 +68,7 @@ float attenuation(PointLight light, float dist) {
     return 1.0 / (1.0 + light.lAttenuation * dist + light.qAttenuation * dist*dist);
 }
 
-vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
-    vec3 viewDir = normalize(in_TangentViewPosition);
+vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction, vec3 view_direction) {
     vec4 light_color = directionalLight.color * directionalLight.intensity;
 
     // DIFFUSE PART
@@ -77,7 +76,7 @@ vec4 computeDirectionalLight(vec3 surf_normal, vec3 light_direction) {
     vec4 diffuse = dot_normal_light * material_color;
 
     // SPECULAR PART (BLINN-PHONG)
-    vec3 halfway = normalize(light_direction + viewDir);
+    vec3 halfway = normalize(light_direction + view_direction);
     vec4 specular = pow(max(dot(surf_normal, halfway), 0.0), shininess) * specular_color;
 
     return (diffuse + specular) * light_color;
@@ -87,8 +86,7 @@ vec4 computeAmbientLight() {
     return ambientLight.color * ambientLight.intensity;
 }
 
-vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) {
-    vec3 viewDir = normalize(in_TangentViewPosition);
+vec4 computePointLight(vec3 surf_normal, vec3 light_position, vec3 view_direction, PointLight light) {
     vec4 light_color = light.color * light.intensity;
     vec3 light_direction = normalize(light_position);
 
@@ -99,24 +97,26 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, PointLight light) 
     vec4 diffuse = attenuation * dot_normal_light * material_color;
 
     // SPECULAR PART (BLINN-PHONG)
-    vec3 halfway = normalize(light_direction + viewDir);
-    vec4 specular = attenuation * pow(max(dot(surf_normal, halfway), 0.0), shininess) * specular_color;
+    vec3 halfway = normalize(light_direction + view_direction);
+    vec4 specular = attenuation * pow(max(dot(surf_normal, halfway), 0.0), 2*shininess) * specular_color;
 
     return (diffuse + specular) * light_color;
 }
 
 void main() {
     vec3 geom_normal = normalize(in_normal.xyz);// geometric normal
+    vec3 view_direction = normalize(in_TangentViewPosition - in_TangentFragPosition);
 
+    outColor = vec4(0,0,0,0);
     if (numberOfLights.x > 0) {
         vec3 light_direction = normalize(in_TangentLightPosition.xyz);
-        outColor += computeDirectionalLight(geom_normal, light_direction);
+        outColor += computeDirectionalLight(geom_normal, light_direction, view_direction);
     }
     if (numberOfLights.y > 0) {
         outColor += computeAmbientLight() * material_color;
     }
     for (int i=0; i<numberOfLights.z; ++i) {
         vec3 light_vector = in_TangentPtLightPosition[i].xyz - in_TangentFragPosition;
-        outColor += computePointLight(geom_normal, light_vector, pointLights[i]);
+        outColor += computePointLight(geom_normal, light_vector, view_direction, pointLights[i]);
     }
 }

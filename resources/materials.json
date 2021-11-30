@@ -86,9 +86,9 @@
           "type": "uniform",
           "name": "BlinnPhongSimple",
           "value": {
-            "shininess": 100.0,
+            "shininess": 32.0,
             "albedo": [1.0, 1.0, 1.0, 0.0],
-            "specular": [1.0, 0.0, 0.0, 0.0]
+            "specular": [0.1, 0.1, 0.1, 0.0]
           }
         }
       ]
@@ -118,8 +118,8 @@
           "type": "uniform",
           "name": "BlinnPhong",
           "value": {
-            "shininess": 16.0,
-            "specular_color": [1.0, 0.0, 0.0, 0.0]
+            "shininess": 32.0,
+            "specular_color": [0.3, 0.3, 0.3, 0.0]
           }
         }
       ]

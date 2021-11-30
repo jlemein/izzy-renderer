@@ -67,15 +67,6 @@ private:
 
   entt::entity m_activeCamera{entt::null};
 
-  /// Lighting parameters needed for the uniform buffer object in the shader.
-  /// These lighting properties are for forward lighting (not deferred).
-  UniformLighting m_uLightData;
-  // UniformDeferredLighting m_uDeferredLightData;
-
-  // groups for performance considerations
-  //  entt::group<Renderable> m_renderables;
-  //  entt::group<Renderable, Debug> m_debuggables;
-
   /// makes sure the transformations applied to meshes and cameras are reflected
   /// in the renderable component.
   void synchMvpMatrices();

@@ -43,6 +43,7 @@ void LightSystem::initialize() {
 
         // TODO: find a way to let light shader always point to the same point light index.
         auto& material = m_registry.emplace<geo::Material>(e, *m_lightMaterial);
+
         updatePointLightVisualization(material, light);
       }
     }
@@ -67,10 +68,7 @@ void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& m
   renderable.isLightingSupported = true;
 
   // now of all the supported light systems, find the one the shader needs and store the size and address of it.
-  if (uboStructName == UniformLighting::PARAM_NAME) {
-    renderable.pUboLightStruct = &m_oldModel;
-    renderable.pUboLightStructSize = sizeof(UniformLighting);
-  } else if (uboStructName == ForwardLighting::PARAM_NAME) {
+  if (uboStructName == ForwardLighting::PARAM_NAME) {
     renderable.pUboLightStruct = &m_forwardLighting;
     renderable.pUboLightStructSize = sizeof(ForwardLighting);
   } else {
@@ -94,33 +92,21 @@ void LightSystem::updateLightProperties() {
   auto ambientLights = m_registry.view<ecs::AmbientLight>();
   auto numLights = pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 
-  //  if (numLights > 4) {
-  //    throw std::runtime_error("Too many lights in the scene. Max supported is 4");
-  //  }
-
   int numberOfPointLights = std::clamp(static_cast<unsigned int>(pointLights.size_hint()), 0U, 4U);
   int numberOfSpotLights = 0U;
   int numberOfDirectionalLights = std::clamp(static_cast<unsigned int>(dirLights.size_hint()), 0U, 1U);
   int numberOfAmbientLights = std::clamp(static_cast<unsigned int>(ambientLights.size()), 0U, 1U);
 
-  m_oldModel.numberLights = numberOfDirectionalLights;
   m_forwardLighting.numberOfLights = glm::ivec4(numberOfDirectionalLights, numberOfAmbientLights, numberOfPointLights, numberOfSpotLights);
-
-  m_oldModel.numberLights = 1U;
 
   // -- Directional lights ------------------------------
   auto i = 0U;
   for (auto e : dirLights) {
-    if (i > numberOfDirectionalLights) {
+    if (i++ > numberOfDirectionalLights) {
       break;
     }
     const auto& light = dirLights.get<ecs::DirectionalLight>(e);
     const auto& transform = dirLights.get<ecs::Transform>(e);
-
-    m_oldModel.diffuseColors[0] = glm::vec4(light.color, 0.0F);
-    m_oldModel.intensities[0] = light.intensity;
-    m_oldModel.positions[0] = transform.worldTransform[3];
-    m_oldModel.attenuation[0] = 0.0;
 
     m_forwardLighting.directionalLight.direction = transform.worldTransform[3];
     m_forwardLighting.directionalLight.color = glm::vec4(light.color, 0.0F);
@@ -130,7 +116,7 @@ void LightSystem::updateLightProperties() {
   // -- Ambient lights ------------------------------
   i = 0U;
   for (auto e : ambientLights) {
-    if (i > numberOfAmbientLights) {
+    if (i++ > numberOfAmbientLights) {
       break;
     }
     auto& light = ambientLights.get<ecs::AmbientLight>(e);

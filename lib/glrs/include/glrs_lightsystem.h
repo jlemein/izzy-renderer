@@ -52,19 +52,6 @@ struct ForwardLighting {
   static inline const char* PARAM_NAME = "ForwardLighting";
 };
 
-struct UniformLighting {
-  glm::vec4 positions[4];
-  glm::vec4 diffuseColors[4];
-  float intensities[4];
-  glm::vec4 _padding1[3];
-  float attenuation[4];
-  glm::vec4 _padding2[3];
-
-  /// MAX = 4
-  uint32_t numberLights{0U};
-  static inline const char* PARAM_NAME = "Lighting";
-};
-
 class LightSystem {
  public:
   LightSystem(entt::registry& registry);
@@ -96,7 +83,6 @@ class LightSystem {
 
  private:
   entt::registry& m_registry;
-  UniformLighting m_oldModel;
   ForwardLighting m_forwardLighting;
 
   /// default material that is assigned for entities with Mesh and PointLight.

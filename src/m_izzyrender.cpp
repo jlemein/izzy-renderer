@@ -74,29 +74,33 @@ int main(int argc, char* argv[]) {
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================
-//    auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
-//    ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
-//    for (auto& mesh : scene->m_meshes) {
-//      geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
-//      MeshUtil::GenerateSmoothNormals(*mesh);
-//    }
-//    sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
+    auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
+    ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
+    for (auto& mesh : scene->m_meshes) {
+      geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+      MeshUtil::GenerateSmoothNormals(*mesh);
+    }
+    sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
 
     // add a plane
-    auto plane = PrimitiveFactory::MakePlane("Plane", 150.0, 150.0);
+    auto plane = PrimitiveFactory::MakePlane("Plane", 10.0, 10.0);
     auto blinn = materialSystem->createMaterial("BlinnPhongSimple");
-    blinn->userProperties.setValue("albedo", glm::vec4(1.0, 1.0, 1.0, 0.0));
-    blinn->userProperties.setValue("specular", glm::vec4(1.0, 1.0, 0.0, 0.0));
-    blinn->userProperties.setFloat("shininess", 100.0);
+    blinn->userProperties.setValue("albedo", glm::vec4(0.3, 0.7, 0.2, 0.0));
+    blinn->userProperties.setValue("specular", glm::vec4(0.1, 0.1, 0.1, 0.0));
+    blinn->userProperties.setFloat("shininess", 32.0);
     sceneGraph->addGeometry(plane, blinn);
 
     // ==== LIGHTS SETUP ====================================================
-    //    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
-    auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
-    auto& lightComp = ptLight.get<ecs::PointLight>();
+    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+    auto ptLight1 = sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
+    auto& lightComp = ptLight1.get<ecs::PointLight>();
     lightComp.intensity = 1.0;
     lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-    ptLight.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+    ptLight1.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+
+    auto ptLight2 = sceneGraph->makePointLight("PointLight 2", glm::vec3(5.F, 2.0F, 0.0F));
+    ptLight2.get<ecs::PointLight>().intensity = 0.8;
+    ptLight2.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);

@@ -51,19 +51,6 @@ struct UniformPointLights {
     static inline const char* PARAM_NAME = "PointLight";
 };
 
-//struct UniformLighting {
-//  glm::vec4 positions[4];
-//  glm::vec4 diffuseColors[4];
-//  float intensities[4];
-//  glm::vec4 _padding1[3];
-//  float attenuation[4];
-//  glm::vec4 _padding2[3];
-//
-//  /// MAX = 4
-//  uint32_t numberLights {0U};
-//  static inline const char* PARAM_NAME = "Lighting";
-//};
-
 struct VertexAttribArray {
   GLint size;
   GLuint buffer_offset;
