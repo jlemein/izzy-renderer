@@ -6,7 +6,6 @@ target_link_libraries(common INTERFACE
         fractal
         fractalgenerator
         EnTT::EnTT geo
-        georm
         glm::glm
         glfw::glfw)
 target_include_directories(common INTERFACE .)
@@ -17,7 +16,7 @@ find_package(glfw3 REQUIRED)
 find_package(cxxopts REQUIRED)
 
 add_executable(izzyrender m_izzyrender.cpp)
-target_link_libraries(izzyrender PRIVATE lsw-gui common cxxopts::cxxopts)
+target_link_libraries(izzyrender PRIVATE izzy lsw-gui common cxxopts::cxxopts)
 target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
 
 install(TARGETS izzyrender

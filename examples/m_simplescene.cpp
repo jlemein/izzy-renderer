@@ -1,18 +1,18 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include <georm_materialsystem.h>
+#include "../lib/core/include/georm_materialsystem.h"
 #include <memory>
 #include <spdlog/spdlog.h>
 #include <vwr_viewer.h>
-#include <anim_localrotation.h>
+#include "../lib/core/include/anim_localrotation.h"
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
-#include <georm_materialsystem.h>
-#include <georm_resourcemanager.h>
+#include "../lib/core/include/georm_materialsystem.h"
+#include "../lib/core/include/georm_resourcemanager.h"
 
 using namespace std;
 using namespace lsw;
@@ -27,10 +27,10 @@ int main(int argc, char **argv) {
 //    std::cout << "Usage: program --materials=materials.json --scene=hello.fbx"
 
   try {
-    auto resourceManager = make_shared<georm::ResourceManager>();
+    auto resourceManager = make_shared<ResourceManager>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem =
-        make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+        make_shared<MaterialSystem>(sceneGraph, resourceManager);
     materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");
     resourceManager->setMaterialSystem(materialSystem);
 

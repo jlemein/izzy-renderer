@@ -10,13 +10,13 @@
 #include <ecsg_scenegraph.h>
 #include <geo_meshutil.h>
 #include <geo_scene.h>
-#include <georm_exrloader.h>
-#include <georm_fontsystem.h>
-#include <georm_materialsystem.h>
-#include <georm_resourcemanager.h>
-#include <georm_sceneloader.h>
-#include <georm_stbtextureloader.h>
-#include <georm_texturesystem.h>
+#include <izz_exrloader.h>
+#include <izz_fontsystem.h>
+#include <izz_materialsystem.h>
+#include <izz_resourcemanager.h>
+#include <izz_sceneloader.h>
+#include <izz_stbtextureloader.h>
+#include <izz_texturesystem.h>
 #include <gui_lighteditor.h>
 #include <vwr_viewer.h>
 #include <wsp_workspace.h>
@@ -44,18 +44,18 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    auto resourceManager = make_shared<georm::ResourceManager>();
+    auto resourceManager = make_shared<ResourceManager>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
 
-    auto textureSystem = make_shared<georm::TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
+    auto textureSystem = make_shared<TextureSystem>();
+    textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
     resourceManager->setTextureSystem(textureSystem);
 
-    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
     resourceManager->setMaterialSystem(materialSystem);
 
-    auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
+    auto sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
     resourceManager->setSceneLoader(sceneLoader);
 
     if (workspace->materialsFile.empty()) {
@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
     renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
     // ==== GUI =============================================================
-    auto fontSystem = make_shared<georm::FontSystem>();
+    auto fontSystem = make_shared<FontSystem>();
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
     auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);

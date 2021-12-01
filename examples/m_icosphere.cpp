@@ -4,8 +4,8 @@
 #include <ecs_wireframe.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
-#include <georm_materialsystem.h>
-#include <georm_resourcemanager.h>
+#include <izz_materialsystem.h>
+#include <izz_resourcemanager.h>
 #include <vwr_viewer.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
@@ -52,9 +52,9 @@ int main(int argc, char* argv[]) {
   auto workspace = parseProgramArguments(argc, argv);
 
   try {
-    auto resourceManager = make_shared<georm::ResourceManager>();
+    auto resourceManager = make_shared<ResourceManager>();
     auto sceneGraph = make_shared<ecsg::SceneGraph>();
-    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
     materialSystem->loadMaterialsFromFile(workspace->materialsFile);
     resourceManager->setMaterialSystem(materialSystem);
 

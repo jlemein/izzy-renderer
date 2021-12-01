@@ -6,4 +6,4 @@ add_library(ecsg STATIC
 
 target_include_directories(ecsg PUBLIC include
         PRIVATE src)
-target_link_libraries(ecsg PUBLIC ecs glrs geo)
+target_link_libraries(ecsg PUBLIC ecs lsw-gl geo)

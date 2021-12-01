@@ -61,28 +61,28 @@ In future this will likely be hidden in factory methods.
 Setting up the systems for an interactive renderer:
 
 ```shell
-std::shared_ptr<georm::ResourceManager> resourceManager {nullptr};
+std::shared_ptr<ResourceManager> resourceManager {nullptr};
 std::shared_ptr<ecsg::SceneGraph> sceneGraph {nullptr};
 std::shared_ptr<viewer::Viewer> window {nullptr};
 
 void setupSystems() {
-    resourceManager = make_shared<georm::ResourceManager>();
+    resourceManager = make_shared<ResourceManager>();
     sceneGraph = make_shared<ecsg::SceneGraph>();
     
-    auto textureSystem = make_shared<georm::TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
+    auto textureSystem = make_shared<TextureSystem>();
+    textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
     resourceManager->setTextureSystem(textureSystem);
 
-    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
     resourceManager->setMaterialSystem(materialSystem);
 
-    auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
+    auto sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
     resourceManager->setSceneLoader(sceneLoader);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
 
-    auto fontSystem = make_shared<georm::FontSystem>();
+    auto fontSystem = make_shared<FontSystem>();
     auto guiSystem = make_shared<gui::GuiSystem>();
     window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
 }
@@ -155,18 +155,15 @@ a custom shader for the light source, make sure to assign a material before the 
 the material later on in the simulation.
 
 
-
-
-
-# API Documentation
-
 ### Build
+
+The software has been built using the following dependencies.
 
 Requirements:
 * GLEW libraries - `sudo apt install libglew-dev`
-* Conan 1.40+ - https://docs.conan.io/en/latest/installation.html
-* CMake 3.15+
-* C++17
+* Conan 1.42.0 - https://docs.conan.io/en/latest/installation.html
+* CMake 3.21.1
+* GCC 10
 
 Project makes use of Git LFS.
 

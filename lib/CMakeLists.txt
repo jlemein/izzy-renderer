@@ -1,8 +1,9 @@
 # A lot of libraries here
 # The major libraries will be the first subset on the next following lines.
 # Refactoring in progress.
-add_subdirectory(core)  # lsw::core     Core vocabulary, systems and services of izzy.
-add_subdirectory(gui)   # lsw::gui - Gui implementations using ImGui
+add_subdirectory(lsw)  # lsw     Core vocabulary, systems and services of izzy.
+add_subdirectory(lsw-gui)   # lsw::gui - Gui implementations using ImGui
+add_subdirectory(lsw-gl)  # OpenGL based Render System
 
 # the following libraries will be refactored
 add_subdirectory(workspace)
@@ -13,5 +14,3 @@ add_subdirectory(ecs)
 add_subdirectory(ecsg)
 add_subdirectory(ecsw)
 add_subdirectory(geo)
-add_subdirectory(georm)
-add_subdirectory(glrs)  # OpenGL based Render System
