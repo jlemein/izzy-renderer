@@ -46,44 +46,55 @@ Take a look at `examples/m_izzyrender.cpp`. Most of the code will look intuitive
 
 For more detailed explanations, continue reading.
 
+### Introduction
+
+The renderer is designed on the entity component system (ECS) pattern. An ECS system builds on entities. Items or subjects in the scene are called **entities**.
+Entities are just a number. There is nothing more to it. By adding **components** to the entities you can control the behavior of an entity.
+Components by definition only contain data. The behavior of the entities is implemented in **systems**. Hence the name 
+"entity component system".
+
+This is a fundamentally different technique compared to object oriented (OO) design. OO tries to encapsulate implementation
+details behind interfaces and classes., whereas ECS works with public data. ECS is mainly used for simulations or game
+applications, where a lot of different entities are present with varying behaviors. More on ECS systems can be found
+on [skypjack's github page](https://github.com/skypjack/entt), writer and maintainer of the EnTT library that is used in izzy renderer as well.
+
 ### Setting up systems
-
-THe renderer is designed on the entity component system (ECS) principles. This means the objects in the scene are called **entities**. Behavior is controlled
-by using **components** to the entities. The systems will iterate over the components and perform the behavior by updating the state of the entity.
-THis is different compared to traditional OO design. The data is public and the behavior is part of the system. Controlling the behavior of entities
-is done by adding a specific set of components to an entity so that the systems update the entity in the way you want.
-
-THe first thing to setup are the systems. The systems are the heart of the simulation. Without systems nothing will happen.
+The first thing to setup are the systems. The systems are the heart of the simulation. Without systems nothing will happen.
 Izzy renderer will contain a huge amount of systems. Setting up the systems can be tricky because the order is important.
 In future this will likely be hidden in factory methods.
 
 Setting up the systems for an interactive renderer:
 
 ```shell
-std::shared_ptr<ResourceManager> resourceManager {nullptr};
-std::shared_ptr<ecsg::SceneGraph> sceneGraph {nullptr};
-std::shared_ptr<viewer::Viewer> window {nullptr};
+namespace {
+std::shared_ptr<Workspace> programArguments{nullptr};
+std::shared_ptr<ResourceManager> resourceManager{nullptr};
+std::shared_ptr<MaterialSystem> materialSystem{nullptr};
+std::shared_ptr<ecsg::SceneGraph> sceneGraph{nullptr};
+std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
+std::shared_ptr<SceneLoader> sceneLoader{nullptr};
+std::shared_ptr<FontSystem> fontSystem {nullptr};
+std::shared_ptr<gui::GuiSystem> guiSystem {nullptr};
+}  // namespace
 
 void setupSystems() {
-    resourceManager = make_shared<ResourceManager>();
-    sceneGraph = make_shared<ecsg::SceneGraph>();
-    
-    auto textureSystem = make_shared<TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
-    resourceManager->setTextureSystem(textureSystem);
+  resourceManager = make_shared<ResourceManager>();
+  sceneGraph = make_shared<ecsg::SceneGraph>();
 
-    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
-    resourceManager->setMaterialSystem(materialSystem);
+  auto textureSystem = make_shared<TextureSystem>();
+  textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
+  textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
+  resourceManager->setTextureSystem(textureSystem);
 
-    auto sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
-    resourceManager->setSceneLoader(sceneLoader);
+  materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
+  resourceManager->setMaterialSystem(materialSystem);
 
-    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
+  sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
+  resourceManager->setSceneLoader(sceneLoader);
 
-    auto fontSystem = make_shared<FontSystem>();
-    auto guiSystem = make_shared<gui::GuiSystem>();
-    window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
+  renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
+  fontSystem = make_shared<FontSystem>();
+  guiSystem = make_shared<gui::GuiSystem>();
 }
 ```
 
@@ -91,7 +102,7 @@ void setupSystems() {
 ###  Loading a scene file
 
 ```shell
-auto scene = resourceManager->getSceneLoader()->loadScene("models/mymodel.fbx");
+auto scene = sceneLoader->loadScene("models/mymodel.fbx");
 sceneGraph->makeScene(*scene);
 ```
 

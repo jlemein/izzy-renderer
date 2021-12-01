@@ -62,7 +62,6 @@ void setupSystems() {
   resourceManager->setSceneLoader(sceneLoader);
 
   renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
-
   fontSystem = make_shared<FontSystem>();
   guiSystem = make_shared<gui::GuiSystem>();
 }
