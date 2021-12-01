@@ -3,8 +3,13 @@
 The Izzy renderer is a flexible lightweight renderer for Linux. The renderer is a rasterized renderer using OpenGL.
 The renderer can render a diverse collection of scene file formats.
 The renderer does not require much apriori knowledge. 
-The renderer is designed to facilitate experimentation of rendering techniques. Therefore it is set up in a very
-flexible way using an ECS scene graph. 
+The renderer is designed to facilitate experimentation of rendering techniques. Therefore, it is set up in a very
+flexible way using the ECS architectural design pattern.
+
+Izzy came to the world because of my fascination for computer graphics. I wanted a controlled environment to write
+shaders and test rendering techniques. Most popular engines do not provide the fine grained control you want. And so Izzy
+renderer is born. For now Izzy makes use of OpenGL, but Vulkan is on the radar. Also, the idea is to support physics
+based renderer as well.
 
 There are two ways to use Izzy renderer.
 1. By making use of a scene file and materials file.
@@ -18,6 +23,10 @@ Izzy renderer takes two input arguments:
 * `--scene` Any of the supported scene file formats, such as *.fbx or *.collada files.
 * `--materials` Materials file, which is a JSON file mapping the materials in the scene file to concrete shaders.
 
+The library has been tested on:
+* Ubuntu 18.04
+* Ubuntu 20.04 (with AMD Ryzen 5700G)
+
 ## Screenshots
 Tea set rendered using Blinn-Phong shading and a diffuse plane, acting as table cloth.
 All materials use textures for the albedo and normal maps.
@@ -25,20 +34,6 @@ All materials use textures for the albedo and normal maps.
 
 Brass vase is rendered using Blinn-Phong shading once again. The shininess can be observed clearly.
 ![Brase Vass](doc/brase_vass.png)
-
-Adding point lights and real time control over the light, making use of ECS' strengths.
-
-The following examples are delivered as part of the renderer:
-* Normal mapping example
-* Parallax mapping example
-
-Aside from the scene file and materials file oriented approach, the library can be used as a C++ library as well.
-Take a look at the API documentation and the hello world demo code on how to get started
-using the library.
-
-The library has been tested on:
-* Ubuntu 18.04
-* Ubuntu 20.04 (with AMD Ryzen 5700G)
 
 # Getting started
 
