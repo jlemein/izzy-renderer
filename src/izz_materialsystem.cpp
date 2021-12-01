@@ -66,7 +66,7 @@ void MaterialSystem::readMaterialMappings(json& j) {
       throw std::runtime_error("Failed to read material mappings");
     }
     if (m_materials.count(toMaterial) <= 0) {
-      throw std::runtime_error(fmt::format("Material mapping '{}' -> '{}' does not occur in the list of materials", fromMaterial, toMaterial));
+      throw std::runtime_error(fmt::format("Material instance '{}' -> '{}' does not occur in the list of materials", fromMaterial, toMaterial));
     }
 
     m_materialMappings[fromMaterial] = toMaterial;
@@ -83,7 +83,7 @@ void MaterialSystem::readMaterialInstances(json& j) {
       throw std::runtime_error("Failed to read material mappings");
     }
     if (m_materials.count(toMaterial) <= 0) {
-      throw std::runtime_error(fmt::format("Material mapping '{}' -> '{}' does not occur in the list of materials", fromMaterial, toMaterial));
+      throw std::runtime_error(fmt::format("Material instance '{}' -> '{}' does not occur in the list of materials", fromMaterial, toMaterial));
     }
 
     m_materialInstances[fromMaterial] = m_materials[toMaterial];
@@ -92,22 +92,31 @@ void MaterialSystem::readMaterialInstances(json& j) {
     if (md.contains("properties")) {
       auto properties = md["properties"];
       for (const auto& [key, value] : properties.items()) {
-        auto type = mat.propertyTypes.at(key);
-        switch (type) {
-          case Material::PropertyType::TEXTURE2D:
-            mat.setTexture(key, value.get<std::string>()); break;
+        try {
+          auto type = mat.propertyTypes.at(key);
+          switch (type) {
+            case Material::PropertyType::TEXTURE2D:
+              mat.setTexture(key, value.get<std::string>());
+              break;
 
-          case Material::PropertyType::FLOAT4:
-            mat.userProperties.setFloatArray(key, value.get<std::vector<float>>()); break;
+            case Material::PropertyType::FLOAT4:
+              mat.userProperties.setFloatArray(key, value.get<std::vector<float>>());
+              break;
 
-          case Material::PropertyType::FLOAT:
-            mat.userProperties.setFloat(key, value.get<float>()); break;
+            case Material::PropertyType::FLOAT:
+              mat.userProperties.setFloat(key, value.get<float>());
+              break;
 
-          case Material::PropertyType::INT:
-            mat.userProperties.setInt(key, value.get<int>()); break;
+            case Material::PropertyType::INT:
+              mat.userProperties.setInt(key, value.get<int>());
+              break;
 
-          default:
-            spdlog::warn("Material property {} is not part of the material definition. Ignored.", key); break;
+            default:
+              spdlog::warn("Material property {} is not part of the material definition. Ignored.", key);
+              break;
+          }
+        } catch (std::out_of_range&) {
+          throw std::runtime_error(fmt::format("Property '{}' of instance '{}' is not part of material definition '{}'.", key, fromMaterial, toMaterial));
         }
       }
       }

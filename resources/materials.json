@@ -2,10 +2,6 @@
   "default_material": "NormalMap",
   "material_mapping": [
     {
-      "from": "WoodCrate",
-      "to": "NormalMap"
-    },
-    {
       "from": "tea_set_01",
       "to": "BlinnPhong",
       "properties": {
@@ -22,7 +18,7 @@
         "albedoMap": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg",
         "normalMap": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr",
         "shininess": 32.0,
-        "specular_color": [1.0, 0.0, 0.0, 0.0]
+        "specular_color": [0.5, 0.5, 0.5, 0.0]
       }
     },
     {
