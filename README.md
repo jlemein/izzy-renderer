@@ -19,8 +19,11 @@ Izzy renderer takes two input arguments:
 * `--materials` Materials file, which is a JSON file mapping the materials in the scene file to concrete shaders.
 
 ## Screenshots
+Tea set rendered using Blinn-Phong shading and a diffuse plane, acting as table cloth.
+All materials use textures for the albedo and normal maps.
 ![Rendering a teapot](doc/teaset_on_tablecloth.png)
 
+Brass vase is rendered using Blinn-Phong shading once again. The shininess can be observed clearly.
 ![Brase Vass](doc/brase_vass.png)
 
 Adding point lights and real time control over the light, making use of ECS' strengths.
@@ -37,17 +40,11 @@ The library has been tested on:
 * Ubuntu 18.04
 * Ubuntu 20.04 (with AMD Ryzen 5700G)
 
-# Architecture overview
-
-> :warning: the current libraries will be refactored soon to reflect the design described below.
-
-The codebase is in transformation right now. The library structure will be simplified. The following libraries are distinguished:
-* `lsw` Core components needed for a rendering system. Think about materials, scene file representations, transformation matrices, light sources.
-* `lsw::gl` GL render system. Contains openGL specific code for rendering. Aside from this library, nothing deals with OpenGL. In future, there will be Vulkan support.
-* `lsw::gui` GUI system. Any
-* `lsw::geo` Additional geometry objects.
-
 # Getting started
+
+Take a look at `examples/m_izzyrender.cpp`. Most of the code will look intuitive enough to start exploring izzy renderer.
+
+For more detailed explanations, continue reading.
 
 ### Setting up systems
 
