@@ -18,6 +18,7 @@ struct UPointLight {
   float intensity;
   float linearAttenuation;
   float quadraticAttenuation;
+  float __padding;
 };
 
 struct UDirectionalLight {

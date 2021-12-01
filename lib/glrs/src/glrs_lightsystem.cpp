@@ -1,6 +1,8 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>
+#include <geo_material.h>
+#include <geo_materialutil.h>
 #include <geo_mesh.h>
 #include <glrs_lightsystem.h>
 #include <glrs_renderable.h>
@@ -41,8 +43,7 @@ void LightSystem::initialize() {
       } else {
         m_registry.emplace<glrs::Renderable>(e);
 
-        // TODO: find a way to let light shader always point to the same point light index.
-        auto& material = m_registry.emplace<geo::Material>(e, *m_lightMaterial);
+        auto& material = m_registry.emplace<geo::Material>(e, geo::MaterialUtil::CloneMaterial(*m_lightMaterial));
 
         updatePointLightVisualization(material, light);
       }

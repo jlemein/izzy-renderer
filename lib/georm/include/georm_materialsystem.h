@@ -40,7 +40,10 @@ class MaterialSystem : public glrs::IMaterialSystem {
   void loadMaterialsFromFile(const std::filesystem::path& path);
 
   /**
-   * @brief Loads the material associated with the specified material name.
+   * @brief Creates a new material associated with the specified material name.
+   * A new material means that there is no relationship between different instances
+   * using the same material name.
+   *
    * @details the material is loaded based on material name. There are four
    * possibilities:
    *  1. The provided material name is mapped to a different material name

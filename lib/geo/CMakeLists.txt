@@ -2,6 +2,8 @@
 add_library(geo STATIC src/geo_meshloader.cpp
         include/geo_meshloader.h
         include/geo_meshtransform.h
+        include/geo_materialutil.h
+        src/geo_materialutil.cpp
         src/geo_meshtransform.cpp
         include/geo_primitivefactory.h
         src/geo_primitivefactory.cpp

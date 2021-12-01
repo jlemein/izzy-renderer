@@ -22,7 +22,6 @@
 #include <uniform_blinnphongsimple.h>
 #include <fstream>
 #include <memory>
-#include <sstream>
 
 using json = nlohmann::json;
 

@@ -8,14 +8,13 @@
 #include <glrs_rendersubsystem.h>
 #include <memory>
 
-#include <glm/glm.hpp>
 #include <glrs_lightsystem.h>
 
 namespace lsw {
 
 namespace ecsg {
 class SceneGraph;
-} // namespace ecsg
+}  // namespace ecsg
 
 namespace glrs {
 class IMaterialSystem;
@@ -23,13 +22,20 @@ class LightSystem;
 class ShaderSystem;
 
 /**!
- * Responsible
+ * Render system that interacts with the GPU using OpenGL.
  */
 class RenderSystem {
-public:
-   RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
-               std::shared_ptr<glrs::IMaterialSystem> materialSystem);
+ public:
+  /**
+   * Constructor.
+   * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
+   * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
+   */
+  RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::IMaterialSystem> materialSystem);
 
+  /**
+   * Traverses the scene graph and creates corresponding objects in the render system so that the entities can be rendered.
+   */
   void init();
   void update(float time, float dt);
   void render();
@@ -51,14 +57,12 @@ public:
    * @param paramName
    * @return
    */
-  void attachTexture(glrs::Renderable &renderable,
-                             const geo::Texture &geoTexture,
-                             const std::string &paramName);
+  void attachTexture(glrs::Renderable& renderable, const geo::Texture& geoTexture, const std::string& paramName);
 
   void activateTextures(entt::entity e);
 
-private:
-  entt::registry &m_registry;
+ private:
+  entt::registry& m_registry;
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
   std::shared_ptr<IMaterialSystem> m_materialSystem;
@@ -77,7 +81,7 @@ private:
    * @param renderable
    */
   void updateModelMatrix(entt::entity e);
-  void updateCamera(Renderable &renderable);
+  void updateCamera(Renderable& renderable);
 
   void initShaderProperties(Renderable& renderable, const geo::Material& material);
 
@@ -85,13 +89,12 @@ private:
 };
 
 class IMaterialSystem {
-public:
+ public:
   virtual ~IMaterialSystem() = default;
   virtual void synchronizeTextures(RenderSystem& renderSystem) = 0;
 
   virtual void update(float time, float dt) = 0;
-
 };
 
-} // namespace ecs
-} // namespace lsw
+}  // namespace glrs
+}  // namespace lsw
