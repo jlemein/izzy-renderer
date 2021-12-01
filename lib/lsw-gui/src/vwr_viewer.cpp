@@ -90,7 +90,7 @@ void Viewer::initialize() {
   glDisable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glFrontFace(GL_CCW);
-  glClearColor(0.25F, 0.25F, 0.35F, 0.0F);
+  glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
 
   m_cameraSystem->init();
   m_debugSystem->init();      // for debug visualizations

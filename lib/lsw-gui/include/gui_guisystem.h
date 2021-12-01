@@ -19,8 +19,11 @@ namespace gui {
 
 class GuiSystem : public lsw::ecs::IViewerExtension {
  public:
+  GuiSystem() = default;
   GuiSystem(std::shared_ptr<IGuiWindow> dialog);
   GuiSystem(std::vector<std::shared_ptr<IGuiWindow>> dialogs);
+
+  void addDialog(std::shared_ptr<IGuiWindow> dialog);
 
   void initialize(lsw::viewer::Viewer* viewer) override;
   void update(float time, float dt) override;

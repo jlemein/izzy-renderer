@@ -10,6 +10,8 @@
 #include "ecsg_scenegraph.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
+#include "gui_guiwindow.h"
+#include "gui_lighteditor.h"
 #include "izz_exrloader.h"
 #include "izz_fontsystem.h"
 #include "izz_materialsystem.h"
@@ -17,103 +19,132 @@
 #include "izz_sceneloader.h"
 #include "izz_stbtextureloader.h"
 #include "izz_texturesystem.h"
-#include "gui_lighteditor.h"
 #include "vwr_viewer.h"
 #include "wsp_workspace.h"
-#include "gui_guiwindow.h"
 
-#include "uniform_blinnphongsimple.h"
-
-#include "geo_primitivefactory.h"
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
+#include "geo_primitivefactory.h"
 using namespace std;
 using namespace lsw;
 using namespace geo;
-using lsw::core::Util;
 using namespace glm;
+using lsw::core::Util;
 using lsw::wsp::Workspace;
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
-int main(int argc, char* argv[]) {
-  auto workspace = parseProgramArguments(argc, argv);
-  if (workspace->debugMode) {
-    spdlog::set_level(spdlog::level::info);
+namespace {
+std::shared_ptr<Workspace> programArguments{nullptr};
+std::shared_ptr<ResourceManager> resourceManager{nullptr};
+std::shared_ptr<MaterialSystem> materialSystem{nullptr};
+std::shared_ptr<ecsg::SceneGraph> sceneGraph{nullptr};
+std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
+std::shared_ptr<SceneLoader> sceneLoader{nullptr};
+std::shared_ptr<FontSystem> fontSystem {nullptr};
+std::shared_ptr<gui::GuiSystem> guiSystem {nullptr};
+}  // namespace
+
+void setupSystems() {
+  resourceManager = make_shared<ResourceManager>();
+  sceneGraph = make_shared<ecsg::SceneGraph>();
+
+  auto textureSystem = make_shared<TextureSystem>();
+  textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
+  textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
+  resourceManager->setTextureSystem(textureSystem);
+
+  materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
+  resourceManager->setMaterialSystem(materialSystem);
+
+  sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
+  resourceManager->setSceneLoader(sceneLoader);
+
+  renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
+
+  fontSystem = make_shared<FontSystem>();
+  guiSystem = make_shared<gui::GuiSystem>();
+}
+
+void setupLights() {
+  // Sun
+  sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+
+  // Point light 1
+  auto ptLight1 = sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
+  auto& lightComp = ptLight1.get<ecs::PointLight>();
+  lightComp.intensity = 1.0;
+  lightComp.color = glm::vec3(1.0, 1.0, 1.0);
+  ptLight1.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+
+  // Point light 2
+  auto ptLight2 = sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
+  ptLight2.get<ecs::PointLight>().intensity = 1.4;
+  ptLight2.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+}
+
+void setupScene() {
+  auto scene = sceneLoader->loadScene(programArguments->sceneFile);
+
+  // post process meshes in scene file
+  for (auto& mesh : scene->m_meshes) {
+    geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+    MeshUtil::GenerateSmoothNormals(*mesh);
   }
 
+  // add to scene graph
+  sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
+
+  // adding a custom primitive to the scene
+  //    auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
+  //    MeshUtil::ScaleUvCoords(plane, 3, 3);
+  //    auto tableCloth = materialSystem->createMaterial("table_cloth");
+  //    sceneGraph->addGeometry(plane, tableCloth);
+
+}
+
+void setupUserInterface() {
+  guiSystem->addDialog(make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem));
+}
+
+int main(int argc, char* argv[]) {
+  using namespace lsw::ecs;
+
   try {
-    auto resourceManager = make_shared<ResourceManager>();
-    auto sceneGraph = make_shared<ecsg::SceneGraph>();
+    programArguments = parseProgramArguments(argc, argv);
 
-    auto textureSystem = make_shared<TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
-    resourceManager->setTextureSystem(textureSystem);
+    setupSystems();
 
-    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
-    resourceManager->setMaterialSystem(materialSystem);
-
-    auto sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
-    resourceManager->setSceneLoader(sceneLoader);
-
-    if (workspace->materialsFile.empty()) {
+    // enable debug logging if requested
+    if (programArguments->debugMode) {
+      spdlog::set_level(spdlog::level::info);
+    }
+    if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
-      materialSystem->loadMaterialsFromFile(workspace->materialsFile);
+      materialSystem->loadMaterialsFromFile(programArguments->materialsFile);
     }
 
-    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
+    // visualize point lights using a custom material.
     renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
-    // ==== GUI =============================================================
-    auto fontSystem = make_shared<FontSystem>();
-    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
+    setupScene();
+    setupLights();
+    setupUserInterface();
 
-    // ==== SCENE SETUP ======================================================
-    auto scene = resourceManager->getSceneLoader()->loadScene(workspace->sceneFile);
-    ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
-    for (auto& mesh : scene->m_meshes) {
-      geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
-      MeshUtil::GenerateSmoothNormals(*mesh);
-    }
-    sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
-
-    // add a plane
-    auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
-    MeshUtil::ScaleUvCoords(plane, 3, 3);
-    auto tableCloth = materialSystem->createMaterial("table_cloth");
-//    blinn->userProperties.setValue("albedo", glm::vec4(0.3, 0.7, 0.2, 0.0));
-//    blinn->userProperties.setValue("specular", glm::vec4(0.1, 0.1, 0.1, 0.0));
-//    blinn->userProperties.setFloat("shininess", 32.0);
-    sceneGraph->addGeometry(plane, tableCloth);
-
-    // ==== LIGHTS SETUP ====================================================
-    sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
-    auto ptLight1 = sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
-    auto& lightComp = ptLight1.get<ecs::PointLight>();
-    lightComp.intensity = 1.0;
-    lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-    ptLight1.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
-
-    auto ptLight2 = sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
-    ptLight2.get<ecs::PointLight>().intensity = 1.4;
-    ptLight2.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
-
-    // ==== CAMERA SETUP ====================================================
+    // setup camera
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-    viewer->setActiveCamera(camera);
 
-    // ==== UI SETUP ========================================================
+    // setup window
+    auto window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
+    window->setActiveCamera(camera);
+    window->setWindowSize(1024, 768);
+    window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
+    window->initialize();
+    window->run();
 
-    viewer->setWindowSize(1024, 768);
-    viewer->setTitle(fmt::format("Izzy Renderer: {}", workspace->sceneFile.filename().string()));
-    viewer->initialize();
-    viewer->run();
   } catch (runtime_error& e) {
     spdlog::error(e.what());
     spdlog::error("Aborting the application with exit code ({})", EXIT_FAILURE);
@@ -124,6 +155,8 @@ int main(int argc, char* argv[]) {
 }
 
 namespace {
+// DEBUG_MODE is assumed tru as a default when built in Debug mode.
+// In release mode, by default we don't want debug logging.
 #ifndef NDEBUG
 const char* DEBUG_MODE = "true";
 #else

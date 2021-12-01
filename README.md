@@ -21,6 +21,8 @@ Izzy renderer takes two input arguments:
 ## Screenshots
 ![Rendering a teapot](doc/teaset_on_tablecloth.png)
 
+![Brase Vass](doc/brase_vass.png)
+
 Adding point lights and real time control over the light, making use of ECS' strengths.
 
 The following examples are delivered as part of the renderer:

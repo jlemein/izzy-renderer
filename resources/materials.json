@@ -129,6 +129,37 @@
       ]
     },
     {
+      "name": "brass_vase_001",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/blinn-phong.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/blinn-phong.frag",
+      "lighting": {
+        "ubo_struct": "ForwardLighting",
+        "blend_mode": "Add"
+      },
+      "properties": [
+        {
+          "type": "texture",
+          "name": "albedoMap",
+          "value": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg"
+        },
+        {
+          "type": "texture",
+          "name": "normalMap",
+          "value": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr"
+        },
+        {
+          "type": "uniform",
+          "name": "BlinnPhong",
+          "value": {
+            "shininess": 32.0,
+            "specular_color": [0.5, 0.5, 0.5, 0.0]
+          }
+        }
+      ]
+    },
+    {
       "name": "TeaSet",
       "is_binary_shader": false,
       "vertex_shader": "shaders/diffuse.vert",

@@ -21,6 +21,10 @@ GuiSystem::GuiSystem(std::shared_ptr<IGuiWindow> dialog)
 GuiSystem::GuiSystem(std::vector<std::shared_ptr<IGuiWindow>> dialogs)
         : m_dialogs{dialogs.begin(), dialogs.end()} {}
 
+void GuiSystem::addDialog(std::shared_ptr<IGuiWindow> dialog) {
+  m_dialogs.emplace_back(dialog);
+}
+
 void GuiSystem::initialize(lsw::viewer::Viewer *viewer) {
     m_windowHandle = viewer->getDisplayDetails().window;
     m_shadingLanguage = viewer->getDisplayDetails().shadingLanguage;
