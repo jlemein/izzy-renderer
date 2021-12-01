@@ -4,6 +4,26 @@ find_package(glm REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(cxxopts REQUIRED)
 
+add_library(common INTERFACE)
+target_link_libraries(common INTERFACE
+        workspace
+        ecs
+        fractal
+        fractalgenerator
+        EnTT::EnTT geo
+        glm::glm
+        glfw::glfw)
+target_include_directories(common INTERFACE .)
+
+add_executable(izzyrender m_izzyrender.cpp)
+target_link_libraries(izzyrender PRIVATE izzy lsw-gui common cxxopts::cxxopts)
+target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
+
+install(TARGETS izzyrender
+        COMPONENT izzyrender
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib)
+
 add_executable(normalmap m_normalmapping.cpp)
 target_link_libraries(normalmap PRIVATE izzy lsw-gui common cxxopts::cxxopts)
 
