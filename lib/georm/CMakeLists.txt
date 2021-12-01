@@ -31,7 +31,6 @@ find_package(OpenEXR REQUIRED)
 target_link_libraries(georm
         PRIVATE
         geo ecsg
-#        Boost::filesystem
         workspace
         spdlog::spdlog
         nlohmann_json::nlohmann_json

@@ -10,6 +10,10 @@
       "to": "BlinnPhong"
     },
     {
+      "from": "table_cloth",
+      "to": "Diffuse"
+    },
+    {
       "from": "pointlight",
       "to": "ConstantLight"
     }
@@ -127,9 +131,9 @@
     {
       "name": "TeaSet",
       "is_binary_shader": false,
-      "vertex_shader": "shaders/fwd-diffuse-map.vert",
+      "vertex_shader": "shaders/diffuse.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/fwd-diffuse-map.frag",
+      "fragment_shader": "shaders/diffuse.frag",
       "lighting": {
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
@@ -158,11 +162,34 @@
       ]
     },
     {
+      "name": "Diffuse",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/diffuse.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/diffuse.frag",
+      "lighting": {
+        "ubo_struct": "ForwardLighting",
+        "blend_mode": "Add"
+      },
+      "properties": [
+        {
+          "type": "texture",
+          "name": "albedoMap",
+          "value": "textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"
+        },
+        {
+          "type": "texture",
+          "name": "normalMap",
+          "value": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
+        }
+      ]
+    },
+    {
       "name": "NormalMap",
       "is_binary_shader": false,
-      "vertex_shader": "shaders/fwd-diffuse-map.vert",
+      "vertex_shader": "shaders/diffuse.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/fwd-diffuse-map.frag",
+      "fragment_shader": "shaders/diffuse.frag",
       "lighting": {
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
@@ -183,9 +210,9 @@
     {
       "name": "ParallaxMap",
       "is_binary_shader": false,
-      "vertex_shader": "shaders/fwd-parallax-map.vert",
+      "vertex_shader": "shaders/parallax-map.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/fwd-parallax-map.frag",
+      "fragment_shader": "shaders/parallax-map.frag",
       "lighting": {
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"

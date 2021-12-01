@@ -145,7 +145,6 @@ void SceneLoader::readMaterials(const aiScene* scene_p, geo::Scene& scene) {
       material->diffuse.g = color.g;
       material->diffuse.b = color.b;
     }
-    std::cout << material->name << " has diffuse: " << color.r << " " << color.g << " " << color.b << std::endl;
 
     if (!material->hasSpecular) {
       aiMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
@@ -153,7 +152,6 @@ void SceneLoader::readMaterials(const aiScene* scene_p, geo::Scene& scene) {
       material->specular.g = color.g;
       material->specular.b = color.b;
     }
-    std::cout << material->name << " has specular: " << color.r << " " << color.g << " " << color.b << std::endl;
 
     if (!material->hasAmbient) {
       aiMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color);

@@ -78,6 +78,16 @@ class MeshUtil {
    */
   static void ComputeTangentAndBitangent(const glm::vec3& p1, const glm::vec3& p2, const glm::vec3& p3, const glm::vec2& uv1, const glm::vec2& uv2,
                                          const glm::vec2& uv3, glm::vec3& T, glm::vec3& B);
+
+  /**
+   * Scales the uv coordinates by u over the u-axis and v over the v-axis.
+   * The uv coordinates are wrapped in the range [0, 1].
+   *
+   * @param mesh Mesh to scale the uv coordinates for.
+   * @param u Scale factor for u axis.
+   * @param v Scale factor for v axis.
+   */
+  static void ScaleUvCoords(geo::Mesh& mesh, float u, float v);
 };
 
 }  // namespace geo

@@ -149,3 +149,11 @@ void MeshUtil::GenerateSmoothNormals(geo::Mesh& mesh) {
     SmoothenNormals(vertices, bitangents, numVertices);
   }
 }
+
+void MeshUtil::ScaleUvCoords(geo::Mesh& mesh, float u, float v) {
+  auto uvs = reinterpret_cast<glm::vec2*>(mesh.uvs.data());
+  for (int i=0; i<mesh.uvs.size()/2; ++i) {
+    uvs[i].x *= u;
+    uvs[i].y *= v;
+  }
+}
