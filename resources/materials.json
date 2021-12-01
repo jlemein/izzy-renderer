@@ -7,7 +7,23 @@
     },
     {
       "from": "tea_set_01",
-      "to": "BlinnPhong"
+      "to": "BlinnPhong",
+      "properties": {
+        "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
+        "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr",
+        "shininess": 32.0,
+        "specular_color": [1.0, 0.1, 0.3, 0.0]
+      }
+    },
+    {
+      "from": "brass_vase_001",
+      "to": "BlinnPhong",
+      "properties": {
+        "albedoMap": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg",
+        "normalMap": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr",
+        "shininess": 32.0,
+        "specular_color": [1.0, 0.0, 0.0, 0.0]
+      }
     },
     {
       "from": "table_cloth",
@@ -129,70 +145,6 @@
       ]
     },
     {
-      "name": "brass_vase_001",
-      "is_binary_shader": false,
-      "vertex_shader": "shaders/blinn-phong.vert",
-      "geometry_shader": "",
-      "fragment_shader": "shaders/blinn-phong.frag",
-      "lighting": {
-        "ubo_struct": "ForwardLighting",
-        "blend_mode": "Add"
-      },
-      "properties": [
-        {
-          "type": "texture",
-          "name": "albedoMap",
-          "value": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg"
-        },
-        {
-          "type": "texture",
-          "name": "normalMap",
-          "value": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr"
-        },
-        {
-          "type": "uniform",
-          "name": "BlinnPhong",
-          "value": {
-            "shininess": 32.0,
-            "specular_color": [0.5, 0.5, 0.5, 0.0]
-          }
-        }
-      ]
-    },
-    {
-      "name": "TeaSet",
-      "is_binary_shader": false,
-      "vertex_shader": "shaders/diffuse.vert",
-      "geometry_shader": "",
-      "fragment_shader": "shaders/diffuse.frag",
-      "lighting": {
-        "ubo_struct": "ForwardLighting",
-        "blend_mode": "Add"
-      },
-      "properties": [
-        {
-          "type": "texture",
-          "name": "albedoMap",
-          "value": "models/textures/tea_set_01_diff_4k.jpg"
-        },
-        {
-          "type": "texture",
-          "name": "normalMap",
-          "value": "models/textures/tea_set_01_nor_gl_4k.exr"
-        },
-        {
-          "type": "texture",
-          "name": "specularMap",
-          "value": "models/textures/tea_set_01_metal_4k.exr"
-        },
-        {
-          "type": "texture",
-          "name": "roughnessMap",
-          "value": "models/textures/tea_set_01_rough_4k.exr"
-        }
-      ]
-    },
-    {
       "name": "Diffuse",
       "is_binary_shader": false,
       "vertex_shader": "shaders/diffuse.vert",
@@ -212,29 +164,6 @@
           "type": "texture",
           "name": "normalMap",
           "value": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
-        }
-      ]
-    },
-    {
-      "name": "NormalMap",
-      "is_binary_shader": false,
-      "vertex_shader": "shaders/diffuse.vert",
-      "geometry_shader": "",
-      "fragment_shader": "shaders/diffuse.frag",
-      "lighting": {
-        "ubo_struct": "ForwardLighting",
-        "blend_mode": "Add"
-      },
-      "properties": [
-        {
-          "type": "texture",
-          "name": "albedoMap",
-          "value": "textures/castle_albedo.jpg"
-        },
-        {
-          "type": "texture",
-          "name": "normalMap",
-          "value": "textures/castle_normal.jpg"
         }
       ]
     },

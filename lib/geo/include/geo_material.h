@@ -101,6 +101,15 @@ struct UserProperties {
 };
 
 struct Material {
+  enum PropertyType {
+    TEXTURE2D,
+    CUBEMAP,
+    FLOAT,
+    FLOAT4,
+    FLOAT3,
+    INT,
+    UNIFORM_BUFFER_OBJECT
+  };
   std::string name;
 
   /// Indicates whether the vertex and fragment shader files are in binary format (e.g. pre-compiled SPIRV format).
@@ -135,6 +144,9 @@ struct Material {
   std::shared_ptr<geo::Texture> opacityTexture{nullptr};
 
   UserProperties userProperties;
+
+  // contains map from name to property type
+  std::unordered_map<std::string, Material::PropertyType> propertyTypes;
 
   std::filesystem::path diffuseTexturePath{""};
   std::filesystem::path specularTexturePath{""};

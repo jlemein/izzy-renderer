@@ -73,6 +73,47 @@ void MaterialSystem::readMaterialMappings(json& j) {
   }
 }
 
+
+void MaterialSystem::readMaterialInstances(json& j) {
+  for (auto md : j["material_mapping"]) {
+    auto fromMaterial = md["from"].get<std::string>();
+    auto toMaterial = md["to"].get<std::string>();
+
+    if (fromMaterial.empty() || toMaterial.empty()) {
+      throw std::runtime_error("Failed to read material mappings");
+    }
+    if (m_materials.count(toMaterial) <= 0) {
+      throw std::runtime_error(fmt::format("Material mapping '{}' -> '{}' does not occur in the list of materials", fromMaterial, toMaterial));
+    }
+
+    m_materialInstances[fromMaterial] = m_materials[toMaterial];
+    auto& mat = m_materialInstances[fromMaterial];
+
+    if (md.contains("properties")) {
+      auto properties = md["properties"];
+      for (const auto& [key, value] : properties.items()) {
+        auto type = mat.propertyTypes.at(key);
+        switch (type) {
+          case Material::PropertyType::TEXTURE2D:
+            mat.setTexture(key, value.get<std::string>()); break;
+
+          case Material::PropertyType::FLOAT4:
+            mat.userProperties.setFloatArray(key, value.get<std::vector<float>>()); break;
+
+          case Material::PropertyType::FLOAT:
+            mat.userProperties.setFloat(key, value.get<float>()); break;
+
+          case Material::PropertyType::INT:
+            mat.userProperties.setInt(key, value.get<int>()); break;
+
+          default:
+            spdlog::warn("Material property {} is not part of the material definition. Ignored.", key); break;
+        }
+      }
+      }
+  }
+}
+
 void addTextureToMaterial(const std::string& textureName, const std::string& path, geo::Material& material) {
   if (textureName == ReservedNames::DIFFUSE_TEXTURE) {
     material.diffuseTexturePath = path;
@@ -139,6 +180,8 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
               throw std::runtime_error(
                   fmt::format("Material {}: Uniform block '{}' is not registered to the material system. Shader will likely misbehave.", m.name, name));
             } else {
+              m.propertyTypes[name] = Material::PropertyType::UNIFORM_BUFFER_OBJECT;
+
               std::size_t sizeOfStruct = 0;
               auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
               m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
@@ -148,13 +191,16 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
 
               for (const auto& [key, value] : parameters.items()) {
                 if (value.is_array() && isFloatArray<>(value)) {
+                  m.propertyTypes[key] = Material::PropertyType::FLOAT4;
                   auto list = value.get<std::vector<float>>();
                   spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
                   m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
                 } else if (value.is_number_float()) {
+                  m.propertyTypes[key] = Material::PropertyType::FLOAT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
                   m.userProperties.setFloat(key, value.get<float>());
                 } else if (value.is_number_integer()){
+                  m.propertyTypes[key] = Material::PropertyType::INT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<int>());
                   m.userProperties.setInt(key, value.get<int>());
                 } else {
@@ -163,6 +209,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
               }
             }
           } else if (type == "texture") {
+            m.propertyTypes[name] = Material::TEXTURE2D;
             auto path = prop["value"].get<std::string>();
             spdlog::debug("\t{} texture: {}", name, path);
             addTextureToMaterial(name, path, m);
@@ -193,7 +240,8 @@ void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
   // initialization of material system needs to be done in order.
   // first material definitions are read.
   readMaterialDefinitions(path.parent_path(), j);
-  readMaterialMappings(j);
+//  readMaterialMappings(j);
+  readMaterialInstances(j);
 
   if (j.contains("default_material")) {
     auto defaultMaterial = j["default_material"];
@@ -210,6 +258,10 @@ bool MaterialSystem::isMaterialDefined(const std::string& materialName) {
 }
 
 std::shared_ptr<geo::Material> MaterialSystem::createMaterial(const std::string& name) {
+  if (m_materialInstances.count(name) > 0) {
+    return std::make_shared<geo::Material>(m_materialInstances.at(name));
+  }
+
   // 1. First process material mapping to material name
   auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
 

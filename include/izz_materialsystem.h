@@ -97,10 +97,15 @@ class MaterialSystem : public glrs::IMaterialSystem {
   /// that are defined in a material definition.
   std::unordered_map<std::string, std::string> m_materialMappings;
 
+  /// materials instances are instanced from an existing material definition.
+  /// similar to how classes and objects work.
+  std::unordered_map<std::string, geo::Material> m_materialInstances;
+
   std::string m_defaultMaterial{""};
   unsigned int m_nextId = {1U};
 
   void readMaterialMappings(nlohmann::json& json);
+  void readMaterialInstances(nlohmann::json& json);
   void readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json& json);
 
   // @see IRenderSubsystem
