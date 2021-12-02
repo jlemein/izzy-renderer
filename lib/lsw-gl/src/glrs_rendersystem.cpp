@@ -2,6 +2,7 @@
 // Created by jlemein on 07-11-20.
 //
 #include <glrs_rendersystem.h>
+#include <glrs_common.h>
 
 #include <ecs_camera.h>
 #include <ecs_light.h>
@@ -99,19 +100,6 @@ glrs::LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
-/**
- * @brief Sets up the render component (i.e. the handle to the render system)
- * with the assigned material properties for this entity. Every material has a
- * uniform properties attribute that gets filled based on ....
- *
- * @details
- * The material component (@see geo::Material) contains a set of attributes,
- * easily editable in the code. Eventually the attributes gets mapped to a
- * uniform property attribute.
- *
- * @param renderable The render component
- * @param properties The material properties.
- */
 void RenderSystem::initShaderProperties(Renderable& renderable, const geo::Material& material) {
   glUseProgram(renderable.program);
 
@@ -159,8 +147,7 @@ RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::sh
   , m_debugSystem(sceneGraph->getRegistry())
   , m_materialSystem(materialSystem)
   , m_shaderSystem(std::make_shared<ShaderSystem>())
-  , m_lightSystem{std::make_shared<LightSystem>(m_registry)} {
-}
+  , m_lightSystem{std::make_shared<LightSystem>(m_registry)} {}
 
 void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
@@ -238,6 +225,8 @@ void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
 }
 
 void RenderSystem::init() {
+  m_framebuffer.initialize();
+
   glShadeModel(GL_SMOOTH);
   glEnable(GL_MULTISAMPLE);
 
@@ -409,6 +398,9 @@ void RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system) {
 
 void RenderSystem::render() {
   // 1. Select buffer to render into
+  m_framebuffer.bindFramebuffer();
+
+
   auto view = m_registry.view<const Renderable>();
 
   for (auto entity : view) {
@@ -467,6 +459,8 @@ void RenderSystem::render() {
     // handle debug
     checkError(entity);
   }
+
+  m_framebuffer.finish();
 }
 
 void RenderSystem::checkError(entt::entity e) {

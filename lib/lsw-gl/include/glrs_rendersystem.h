@@ -9,6 +9,7 @@
 #include <memory>
 
 #include <glrs_lightsystem.h>
+#include "glrs_multipassframebuffer.h"
 
 namespace lsw {
 
@@ -62,6 +63,9 @@ class RenderSystem {
   void activateTextures(entt::entity e);
 
  private:
+  // framebuffer mechanism
+  MultipassFramebuffer m_framebuffer;
+
   entt::registry& m_registry;
   std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
@@ -83,6 +87,19 @@ class RenderSystem {
   void updateModelMatrix(entt::entity e);
   void updateCamera(Renderable& renderable);
 
+  /**
+   * @brief Sets up the render component (i.e. the handle to the render system)
+   * with the assigned material properties for this entity. Every material has a
+   * uniform properties attribute that gets filled based on ....
+   *
+   * @details
+   * The material component (@see geo::Material) contains a set of attributes,
+   * easily editable in the code. Eventually the attributes gets mapped to a
+   * uniform property attribute.
+   *
+   * @param renderable The render component
+   * @param properties The material properties.
+   */
   void initShaderProperties(Renderable& renderable, const geo::Material& material);
 
   void checkError(entt::entity e);
