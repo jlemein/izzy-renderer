@@ -57,37 +57,20 @@ MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std
   m_uniformBlockManagers[ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<ufm::BlinnPhongSimpleManager>();
 }
 
-void MaterialSystem::readMaterialMappings(json& j) {
-  for (auto md : j["material_mapping"]) {
-    auto fromMaterial = md["from"].get<std::string>();
-    auto toMaterial = md["to"].get<std::string>();
-
-    if (fromMaterial.empty() || toMaterial.empty()) {
-      throw std::runtime_error("Failed to read material mappings");
-    }
-    if (m_materials.count(toMaterial) <= 0) {
-      throw std::runtime_error(fmt::format("Material instance '{}' -> '{}' does not occur in the list of materials", fromMaterial, toMaterial));
-    }
-
-    m_materialMappings[fromMaterial] = toMaterial;
-  }
-}
-
-
 void MaterialSystem::readMaterialInstances(json& j) {
-  for (auto md : j["material_mapping"]) {
-    auto fromMaterial = md["from"].get<std::string>();
-    auto toMaterial = md["to"].get<std::string>();
+  for (auto md : j["material_instances"]) {
+    auto instanceName = md["name"].get<std::string>();
+    auto materialDefinition = md["material_definition"].get<std::string>();
 
-    if (fromMaterial.empty() || toMaterial.empty()) {
-      throw std::runtime_error("Failed to read material mappings");
+    if (instanceName.empty() || materialDefinition.empty()) {
+      throw std::runtime_error("Failed to read material instance");
     }
-    if (m_materials.count(toMaterial) <= 0) {
-      throw std::runtime_error(fmt::format("Material instance '{}' -> '{}' does not occur in the list of materials", fromMaterial, toMaterial));
+    if (m_materials.count(materialDefinition) <= 0) {
+      throw std::runtime_error(fmt::format("Material instance '{}', instanced from '{}' does not occur in the list of material definitions.", instanceName, materialDefinition));
     }
 
-    m_materialInstances[fromMaterial] = m_materials[toMaterial];
-    auto& mat = m_materialInstances[fromMaterial];
+    m_materialInstances[instanceName] = m_materials[materialDefinition];
+    auto& mat = m_materialInstances[instanceName];
 
     if (md.contains("properties")) {
       auto properties = md["properties"];
@@ -116,7 +99,7 @@ void MaterialSystem::readMaterialInstances(json& j) {
               break;
           }
         } catch (std::out_of_range&) {
-          throw std::runtime_error(fmt::format("Property '{}' of instance '{}' is not part of material definition '{}'.", key, fromMaterial, toMaterial));
+          throw std::runtime_error(fmt::format("Property '{}' of instance '{}' is not part of material definition '{}'.", key, instanceName, materialDefinition));
         }
       }
       }
@@ -196,7 +179,10 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
               m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
               m.userProperties.ubo_name = name;
 
-              auto parameters = prop["value"];
+              if (!prop.contains("default_value")) {
+                throw std::runtime_error(fmt::format("Missing 'default_value' for {}::{}", m.name, name));
+              }
+              auto parameters = prop["default_value"];
 
               for (const auto& [key, value] : parameters.items()) {
                 if (value.is_array() && isFloatArray<>(value)) {
@@ -219,7 +205,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
             }
           } else if (type == "texture") {
             m.propertyTypes[name] = Material::TEXTURE2D;
-            auto path = prop["value"].get<std::string>();
+            auto path = prop["default_value"].get<std::string>();
             spdlog::debug("\t{} texture: {}", name, path);
             addTextureToMaterial(name, path, m);
           } else {
@@ -249,7 +235,6 @@ void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
   // initialization of material system needs to be done in order.
   // first material definitions are read.
   readMaterialDefinitions(path.parent_path(), j);
-//  readMaterialMappings(j);
   readMaterialInstances(j);
 
   if (j.contains("default_material")) {

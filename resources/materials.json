@@ -1,19 +1,19 @@
 {
   "default_material": "NormalMap",
-  "material_mapping": [
+  "material_instances": [
     {
-      "from": "tea_set_01",
-      "to": "BlinnPhong",
+      "name": "tea_set_01",
+      "material_definition": "BlinnPhong",
       "properties": {
         "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
         "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr",
         "shininess": 32.0,
-        "specular_color": [1.0, 0.1, 0.3, 0.0]
+        "specular_color": [0.5, 0.5, 0.5, 0.0]
       }
     },
     {
-      "from": "brass_vase_001",
-      "to": "BlinnPhong",
+      "name": "brass_vase_001",
+      "material_definition": "BlinnPhong",
       "properties": {
         "albedoMap": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg",
         "normalMap": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr",
@@ -22,12 +22,12 @@
       }
     },
     {
-      "from": "table_cloth",
-      "to": "Diffuse"
+      "name": "table_cloth",
+      "material_definition": "Diffuse"
     },
     {
-      "from": "pointlight",
-      "to": "ConstantLight"
+      "name": "pointlight",
+      "material_definition": "ConstantLight"
     }
   ],
   "materials": [
@@ -41,7 +41,7 @@
         {
           "type": "uniform",
           "name": "ConstantLight",
-          "value": {
+          "default_value": {
             "color": [1.0, 1.0, 1.0, 0.0],
             "intensity": 1.0,
             "radius": 0.1
@@ -83,7 +83,7 @@
         {
           "type": "texture",
           "name": "textureMap",
-          "value": "textures/castle_albedo.jpg"
+          "default_value": "textures/castle_albedo.jpg"
         }
       ]
     },
@@ -101,7 +101,7 @@
         {
           "type": "uniform",
           "name": "BlinnPhongSimple",
-          "value": {
+          "default_value": {
             "shininess": 32.0,
             "albedo": [1.0, 1.0, 1.0, 0.0],
             "specular": [0.1, 0.1, 0.1, 0.0]
@@ -123,17 +123,17 @@
         {
           "type": "texture",
           "name": "albedoMap",
-          "value": "models/textures/tea_set_01_diff_4k.jpg"
+          "default_value": "models/textures/tea_set_01_diff_4k.jpg"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "models/textures/tea_set_01_nor_gl_4k.exr"
+          "default_value": "models/textures/tea_set_01_nor_gl_4k.exr"
         },
         {
           "type": "uniform",
           "name": "BlinnPhong",
-          "value": {
+          "default_value": {
             "shininess": 32.0,
             "specular_color": [0.3, 0.3, 0.3, 0.0]
           }
@@ -154,12 +154,12 @@
         {
           "type": "texture",
           "name": "albedoMap",
-          "value": "textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"
+          "default_value": "textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
+          "default_value": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
         }
       ]
     },
@@ -177,24 +177,24 @@
         {
           "type": "uniform",
           "name": "Parallax",
-          "value": {
+          "default_value": {
             "height_scale": 1.0
           }
         },
         {
           "type": "texture",
           "name": "albedoMap",
-          "value": "textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+          "default_value": "textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
         },
         {
           "type": "texture",
           "name": "normalMap",
-          "value": "textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+          "default_value": "textures/cobble_stone/StreetCobblestone3_1K_normal.png"
         },
         {
           "type": "texture",
           "name": "heightMap",
-          "value": "textures/cobble_stone/StreetCobblestone3_1K_height.png"
+          "default_value": "textures/cobble_stone/StreetCobblestone3_1K_height.png"
         }
       ]
     },
