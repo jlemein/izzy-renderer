@@ -22,6 +22,16 @@
       }
     },
     {
+      "name": "Barrel_01",
+      "material_definition": "BlinnPhong",
+      "properties": {
+        "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
+        "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
+        "shininess": 32.0,
+        "specular_color": [0.5, 0.5, 0.5, 0.0]
+      }
+    },
+    {
       "name": "table_cloth",
       "material_definition": "Diffuse"
     },
