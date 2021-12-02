@@ -35,6 +35,10 @@ All materials use textures for the albedo and normal maps.
 Brass vase is rendered using Blinn-Phong shading once again. The shininess can be observed clearly.
 ![Brase Vass](doc/brase_vass.png)
 
+Brass vase is rendered using Blinn-Phong shading. The effect of normal mapping is clearly visible in this 
+rendering, since the model itself is a smooth barrel.
+![Barrel](doc/barrel.png)
+
 # Getting started
 
 Take a look at `examples/m_izzyrender.cpp`. Most of the code will look intuitive enough to start exploring izzy renderer.
