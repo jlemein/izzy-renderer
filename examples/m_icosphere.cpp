@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeUVSphere("UvSphere"), *resourceManager->getMaterialSystem()->createMaterial("Wireframe"));
     box.add<ecs::Wireframe>();
 
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager /*, guiSystem*/);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem /*, guiSystem*/);
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);

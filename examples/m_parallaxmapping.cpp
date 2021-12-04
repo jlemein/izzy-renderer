@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
-    auto viewer = std::make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager);
+    auto viewer = std::make_shared<viewer::Viewer>(sceneGraph, renderSystem);
 
     // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
     //    sceneGraph->setDefaultMaterial(

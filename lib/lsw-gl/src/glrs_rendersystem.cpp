@@ -229,6 +229,11 @@ void RenderSystem::init() {
 
   glShadeModel(GL_SMOOTH);
   glEnable(GL_MULTISAMPLE);
+  glEnable(GL_DEPTH_TEST);
+  glDisable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CCW);
+  glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
 
   // initialize light system first. Light system may add renderable and material component for light sources.
   m_lightSystem->initialize();
@@ -400,6 +405,8 @@ void RenderSystem::render() {
   // 1. Select buffer to render into
   m_framebuffer.bindFramebuffer();
 
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 
   auto view = m_registry.view<const Renderable>();
 
@@ -461,6 +468,10 @@ void RenderSystem::render() {
   }
 
   m_framebuffer.finish();
+}
+
+MultipassFramebuffer& RenderSystem::getFramebuffer() {
+  return m_framebuffer;
 }
 
 void RenderSystem::checkError(entt::entity e) {

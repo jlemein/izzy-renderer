@@ -83,7 +83,6 @@ struct UserProperties {
   }
 
   void setFloat(const std::string& name, float value) {
-    spdlog::debug("UBO {}: Setting property {} (float) to value: {}", ubo_name, name, value);
     floatValues[name] = value;
   }
 

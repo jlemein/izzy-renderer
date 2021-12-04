@@ -41,6 +41,9 @@ class RenderSystem {
   void update(float time, float dt);
   void render();
 
+//  void setFramebuffer()
+  MultipassFramebuffer& getFramebuffer();
+
   /**
    * @returns the light system.
    */

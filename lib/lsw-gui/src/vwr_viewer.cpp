@@ -30,9 +30,8 @@ static void error_callback(int error, const char* description) {
 }  // namespace
 
 Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
-               std::shared_ptr<ResourceManager> resourceManager, std::shared_ptr<gui::GuiSystem> guiSystem)
+               std::shared_ptr<gui::GuiSystem> guiSystem)
   : m_sceneGraph{sceneGraph}
-  , m_resourceManager{resourceManager}
   , m_guiSystem(guiSystem)
   , m_registry(sceneGraph->getRegistry())
   , m_animationSystem{make_shared<anim::AnimationSystem>(sceneGraph)}
@@ -65,6 +64,16 @@ void Viewer::initialize() {
   GLFWwindow* window =
       glfwCreateWindow(m_displayDetails.windowWidth, m_displayDetails.windowHeight, m_title.c_str(), NULL, NULL);
 
+  if (!window) {
+    glfwTerminate();
+    exit(EXIT_FAILURE);
+  }
+
+  glfwSetWindowUserPointer(window, this);
+  glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height) {
+    static_cast<Viewer*>(glfwGetWindowUserPointer(window))->onWindowResize(width, height);
+  });
+
   m_displayDetails.window = reinterpret_cast<WindowHandle*>(window);
   m_displayDetails.shadingLanguage = "glsl";
   m_displayDetails.shadingLanguageVersion = "#version 130";
@@ -74,11 +83,6 @@ void Viewer::initialize() {
   m_inputSystem->registerInputListener(m_genericInputListener);
   m_firstPersonSystem = std::make_shared<ecs::FirstPersonMovementSystem>(m_registry, m_inputSystem.get());
 
-  if (!window) {
-    glfwTerminate();
-    exit(EXIT_FAILURE);
-  }
-
   glfwMakeContextCurrent(window);
   if (glewInit() != GLEW_OK) {
     std::cout << "Failed initializing GLEW\n";
@@ -86,11 +90,11 @@ void Viewer::initialize() {
 
   glfwSwapInterval(1);
 
-  glEnable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
-  glCullFace(GL_BACK);
-  glFrontFace(GL_CCW);
-  glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
+//  glEnable(GL_DEPTH_TEST);
+//  glDisable(GL_CULL_FACE);
+//  glCullFace(GL_BACK);
+//  glFrontFace(GL_CCW);
+//  glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
 
   m_cameraSystem->init();
   m_debugSystem->init();      // for debug visualizations
@@ -118,6 +122,7 @@ int Viewer::run() {
     prevTime = time;
 
     glfwGetFramebufferSize(window, &width, &height);
+
     //    ratio = width / (float)height;
     //    m_renderSystem->setMovementVector(movementVector);
     m_cameraSystem->setFramebufferSize(width, height);
@@ -125,7 +130,7 @@ int Viewer::run() {
     //        glm::perspective(45.0F, ratio, 0.01F, 1000.0F));
 
     glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // update systems
     m_animationSystem->update(time, dt);
@@ -167,4 +172,10 @@ DisplayDetails Viewer::getDisplayDetails() {
 
 void Viewer::setActiveCamera(ecsg::SceneGraphEntity cameraEntity) {
   m_renderSystem->setActiveCamera(cameraEntity.handle());
+}
+
+void Viewer::onWindowResize(int width, int height) {
+  spdlog::info("Window is resized to: {} x {}", width, height);
+  m_renderSystem->getFramebuffer().resize(width, height);
+  glViewport(0, 0, width, height);
 }

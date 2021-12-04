@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
     // ==== GUI =============================================================
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);

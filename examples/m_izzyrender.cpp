@@ -113,12 +113,12 @@ int main(int argc, char* argv[]) {
   try {
     programArguments = parseProgramArguments(argc, argv);
 
+    if (programArguments->debugMode) {
+      spdlog::set_level(spdlog::level::debug);
+    }
+
     setupSystems();
 
-    // enable debug logging if requested
-    if (programArguments->debugMode) {
-      spdlog::set_level(spdlog::level::info);
-    }
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
@@ -137,7 +137,7 @@ int main(int argc, char* argv[]) {
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 
     // setup window
-    auto window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
+    auto window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
     window->setActiveCamera(camera);
     window->setWindowSize(1024, 768);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));

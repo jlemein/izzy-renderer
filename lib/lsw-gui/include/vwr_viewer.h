@@ -1,4 +1,3 @@
-// Copyright 2020 Jeffrey Lemein
 #pragma once
 
 #include <ecs_firstpersoncontrolsystem.h>
@@ -12,6 +11,8 @@
 #include <ecsg_scenegraphentity.h>
 #include <entt/entt.hpp>
 #include <gui_guisystem.h>
+
+#include <GLFW/glfw3.h>
 
 namespace lsw {
 
@@ -50,7 +51,7 @@ struct DisplayDetails {
   WindowHandle *window{nullptr};
   std::string shadingLanguage{""};
   std::string shadingLanguageVersion{""};
-  int windowWidth, windowHeight;
+  int windowWidth {800}, windowHeight {600};
 };
 
 class Viewer {
@@ -65,7 +66,6 @@ public:
    */
   Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
          std::shared_ptr<glrs::RenderSystem> renderSystem,
-         std::shared_ptr<ResourceManager> resourceManager,
          std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
 
   ~Viewer();
@@ -82,7 +82,8 @@ public:
 
   void setActiveCamera(ecsg::SceneGraphEntity cameraEntity);
 
-
+// callbacks
+  void onWindowResize(int width, int height);
 
 private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
@@ -101,7 +102,7 @@ private:
   std::shared_ptr<WindowInputListener> m_genericInputListener;
 
   DisplayDetails m_displayDetails;
-  std::string m_title = "Hello LSW Renderer";
+  std::string m_title = "Izzy Renderer";
 };
 
 } // namespace viewer
