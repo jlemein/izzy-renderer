@@ -8,9 +8,18 @@
 namespace lsw {
 namespace glrs {
 
+/**
+ * Consists of two framebuffers
+ * * fbo: color attachment which is a render buffer
+ * * intermediate fbo: with a texture color attachment
+ */
 class MultipassFramebuffer {
  public:
-  MultipassFramebuffer();
+  /**
+   * Constructor.
+   * @param numSamplesMSAA  Preferred number of MSAA samples for the framebuffer.
+   */
+  MultipassFramebuffer(int numSamplesMSAA = 4);
 
   /**
    * @brief Updates the frame buffer size. Regenerates the underlying buffers to match the specified width and height.
@@ -30,12 +39,18 @@ class MultipassFramebuffer {
   void bindFramebuffer();
 
   /**
+   * Makes sure the result of the previous output is bound as a texture target.
+   */
+  void nextPass();
+
+  /**
    * Renders the framebuffer
    */
   void finish();
 
  private:
   GLuint m_msFbo{0U}, m_intermediateFbo {0U};
+
   GLuint m_textureMSAA, m_texture; // render to texture
   GLuint m_renderbuffer {0U}; // for depth and stencil buffer
 

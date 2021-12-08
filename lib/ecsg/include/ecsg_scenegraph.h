@@ -73,9 +73,11 @@ class SceneGraph {
 
       void setActiveCamera(const SceneGraphEntity* activeCamera);
 
+  SceneGraphEntity makeEntity(std::string name = "");
+
   /// @brief Creates a simple barebone entity containing minimum components
   /// Minum components are: Transform, Name, Relationship
-  SceneGraphEntity makeEntity(std::string name = "");
+  SceneGraphEntity makeMoveableEntity(std::string name = "");
 
   /// @brief Creates a camera at a Z distance of 5 meter from the origin,
   /// looking at the origin
@@ -119,6 +121,8 @@ class SceneGraph {
   SceneGraphEntity makeTexture();
   SceneGraphEntity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);
   SceneGraphEntity makeDebugVisualization(entt::entity target);
+
+  SceneGraphEntity makePosteffect(const std::string name, const geo::Material& material);
 
  private:
   /// Uses EnTT in the background for scene management

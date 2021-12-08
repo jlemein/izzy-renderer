@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ecs_firstpersoncontrolsystem.h>
-#include <glrs_rendersubsystem.h>
 #include <vwr_viewerextension.h>
 
 #include <list>

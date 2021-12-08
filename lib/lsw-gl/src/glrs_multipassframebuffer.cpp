@@ -18,12 +18,8 @@ void checkError(const char* name) {
 }
 }  // namespace
 
-MultipassFramebuffer::MultipassFramebuffer() {
-  GLint maxColorSamples{0}, maxDepthSamples{0};
-  glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &maxColorSamples);
-  glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &maxDepthSamples);
-  spdlog::debug("Maximum color samples: {}, maximum depth samples: {}", maxColorSamples, maxDepthSamples);
-}
+MultipassFramebuffer::MultipassFramebuffer(int numSamplesMSAA)
+  : m_numSamplesMSAA{numSamplesMSAA} {}
 
 void MultipassFramebuffer::resize(int width, int height) {
   m_width = width;
@@ -47,6 +43,13 @@ void MultipassFramebuffer::resize(int width, int height) {
 }
 
 void MultipassFramebuffer::initialize() {
+  GLint maxColorSamples{0}, maxDepthSamples{0}, maxRenderBufferSize{0};
+  glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &maxColorSamples);
+  glGetIntegerv(GL_MAX_DEPTH_TEXTURE_SAMPLES, &maxDepthSamples);
+  glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxRenderBufferSize);
+  spdlog::debug("Maximum render buffer size: {}", maxRenderBufferSize);
+  spdlog::debug("Maximum color samples: {}, maximum depth samples: {}", maxColorSamples, maxDepthSamples);
+
   // prepare quad for collecting
   float vertices[] = {// pos        // tex
                       -1.0f, -1.f, 0.0f, 0.0f, 1.f, 1.f,  1.0f, 1.0f, -1.f, 1.f, 0.0f, 1.0f,
@@ -122,16 +125,15 @@ void MultipassFramebuffer::bindFramebuffer() {
   glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
 }
 
-void MultipassFramebuffer::finish() {
-  // finished rendering off-screen.
+void MultipassFramebuffer::nextPass() {
+  // blit renderbuffer to texbuffer
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msFbo);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_intermediateFbo);
   glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  // bind render framebuffer again
+  glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
 
-  glUseProgram(m_program);
   glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(m_vao);  // make the vertex descriptor of vbo active
@@ -139,7 +141,38 @@ void MultipassFramebuffer::finish() {
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_texture);
 
-  glDrawArrays(GL_TRIANGLES, 0, 6);
+  //
+  //  glBindVertexArray(0);
 
-  glBindVertexArray(0);
+  // bind the texture from the intermediate fbo//
+//  glDrawArrays(GL_TRIANGLES, 0, 6);
+//
+//  glBindVertexArray(0);
+}
+
+void MultipassFramebuffer::finish() {
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msFbo);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  checkError("A");
+  glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+//  // finished rendering off-screen.
+//  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msFbo);
+//  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_intermediateFbo);
+//  glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+//
+//  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//  glUseProgram(m_program);
+//  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
+//  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//  glBindVertexArray(m_vao);  // make the vertex descriptor of vbo active
+//
+//  glActiveTexture(GL_TEXTURE0);
+//  glBindTexture(GL_TEXTURE_2D, m_texture);
+//
+//  glDrawArrays(GL_TRIANGLES, 0, 6);
+//
+//  glBindVertexArray(0);
 }

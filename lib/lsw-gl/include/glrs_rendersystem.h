@@ -5,7 +5,6 @@
 
 #include <ecs_debugsystem.h>
 #include <glrs_renderable.h>
-#include <glrs_rendersubsystem.h>
 #include <memory>
 
 #include <glrs_lightsystem.h>
@@ -49,10 +48,6 @@ class RenderSystem {
    */
   glrs::LightSystem& getLightSystem();
 
-  // register as part of the render pipeline
-  void addSubsystem(std::shared_ptr<IRenderSubsystem> system);
-  void removeSubsystem(std::shared_ptr<IRenderSubsystem> system);
-
   void setActiveCamera(entt::entity cameraEntity);
 
   /**
@@ -70,7 +65,6 @@ class RenderSystem {
   MultipassFramebuffer m_framebuffer;
 
   entt::registry& m_registry;
-  std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
   std::shared_ptr<IMaterialSystem> m_materialSystem;
   ecs::DebugSystem m_debugSystem;
@@ -103,7 +97,7 @@ class RenderSystem {
    * @param renderable The render component
    * @param properties The material properties.
    */
-  void initShaderProperties(Renderable& renderable, const geo::Material& material);
+  void initShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material);
 
   void checkError(entt::entity e);
 };

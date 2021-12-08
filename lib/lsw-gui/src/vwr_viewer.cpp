@@ -59,7 +59,7 @@ void Viewer::initialize() {
 
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  glfwWindowHint(GLFW_SAMPLES, 16);
+  glfwWindowHint(GLFW_SAMPLES, 8);
 
   GLFWwindow* window =
       glfwCreateWindow(m_displayDetails.windowWidth, m_displayDetails.windowHeight, m_title.c_str(), NULL, NULL);
@@ -85,7 +85,7 @@ void Viewer::initialize() {
 
   glfwMakeContextCurrent(window);
   if (glewInit() != GLEW_OK) {
-    std::cout << "Failed initializing GLEW\n";
+    throw std::runtime_error("Failed initializing GLEW");
   }
 
   glfwSwapInterval(1);

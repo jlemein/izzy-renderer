@@ -63,6 +63,15 @@ struct Renderable_UniformBlockInfo {
   const geo::UniformBlockInfo* pData {nullptr};
 };
 
+struct Posteffect {
+  GLuint program;
+
+  /// @brief contains ID of the vertex buffer; Usually shared for posteffects applied to same
+  GLuint vertex_buffer_object;
+  GLuint vertex_array_object;
+
+
+};
 struct Renderable {
   //storage of user defined shader properties
 //  unsigned int materialId;
@@ -79,6 +88,7 @@ struct Renderable {
   GLuint drawElementCount;
 
   /* shader specific details */
+  bool isMvpSupported {false};
   GLuint uboId {0};  // id of the buffer object
   GLint uboBlockIndex {-1};  // arbitrary location in the shader (decided upon by GLSL compiler)
   GLint uboBlockBinding {-1}; //

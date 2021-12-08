@@ -80,6 +80,8 @@ void initMVPUniformBlock(Renderable& renderable) {
                                          renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
   }
 
+  renderable.isMvpSupported = true;
+
   glGenBuffers(1, &renderable.uboId);
 
   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
@@ -100,11 +102,13 @@ glrs::LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
-void RenderSystem::initShaderProperties(Renderable& renderable, const geo::Material& material) {
+void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material) {
   glUseProgram(renderable.program);
 
-  // allocates the MVP matrices on the GPU.
-  initMVPUniformBlock(renderable);
+  if (!m_registry.all_of<glrs::Posteffect>(entity)) {
+    initMVPUniformBlock(renderable);
+  }
+
   m_lightSystem->initLightingUbo(renderable, material);
 
   // every shader usually has custom attributes
@@ -266,21 +270,9 @@ void RenderSystem::init() {
   // * Push the remaining uniform parameter values to the shader.
 
   // handling curves
-  auto curveView = m_registry.view<geo::Curve, Renderable>();
-  for (auto entity : curveView) {
-    auto& curve = m_registry.get<geo::Curve>(entity);
-    auto& renderable = m_registry.get<Renderable>(entity);
-    auto& material = m_registry.get<geo::Material>(entity);
-
+  for (auto [entity, curve, renderable] : m_registry.view<geo::Curve, Renderable>().each()) {
     try {
       initCurveBuffers(renderable, curve);
-
-      if (material.isBinaryShader) {
-        renderable.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
-      } else {
-        renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
-      }
-      initShaderProperties(renderable, material);
     } catch (std::exception& e) {
       auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
 
@@ -290,8 +282,7 @@ void RenderSystem::init() {
   }
 
   // handling meshes
-  auto view = m_registry.view<geo::Mesh, geo::Material, Renderable>();
-  for (auto entity : view) {
+  for (auto [entity, mesh, renderable] : m_registry.view<geo::Mesh, Renderable>().each()) {
     auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
 
     try {
@@ -299,7 +290,15 @@ void RenderSystem::init() {
       auto& mesh = m_registry.get<geo::Mesh>(entity);
       initMeshBuffers(renderable, mesh);
 
-      auto& material = m_registry.get<geo::Material>(entity);
+    } catch (std::exception& e) {
+      auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
+      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
+    }
+  }
+
+  // handling materials
+  for (auto [entity, material, renderable] : m_registry.view<geo::Material, Renderable>().each()) {
+    try {
       spdlog::debug("Compiling shaders -- vs: {} fs: {}", material.vertexShader, material.fragmentShader);
 
       if (material.isBinaryShader) {
@@ -308,13 +307,14 @@ void RenderSystem::init() {
         renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
       }
 
-      initShaderProperties(renderable, material);
+      initShaderProperties(entity, renderable, material);
 
     } catch (std::exception& e) {
       auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
-      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
+      throw std::runtime_error(fmt::format("Failed initializing material for entity with name '{}': {}", name, e.what()));
     }
   }
+//  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
 }
 
 void RenderSystem::update(float time, float dt) {
@@ -356,28 +356,6 @@ void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
     throw std::runtime_error("Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
-
-  // determine frame buffers
-  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
-    GLuint framebufferName = 0;
-    glGenFramebuffers(1, &framebufferName);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebufferName);
-
-    // texture we are going to render to
-    GLuint renderedTexture;
-    glGenTextures(1, &renderedTexture);
-    glBindTexture(GL_TEXTURE_2D, renderedTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    // The depth buffer
-    GLuint depthrenderbuffer;
-    glGenRenderbuffers(1, &depthrenderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
-  }
 }
 
 void RenderSystem::updateCamera(Renderable& renderable) {
@@ -393,20 +371,11 @@ void RenderSystem::updateCamera(Renderable& renderable) {
   renderable.uniformBlock.viewPos = glm::vec3(transform.worldTransform[3]);
 }
 
-void RenderSystem::addSubsystem(std::shared_ptr<IRenderSubsystem> system) {
-  m_renderSubsystems.emplace_back(system);
-}
-
-void RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system) {
-  // todo
-}
-
 void RenderSystem::render() {
   // 1. Select buffer to render into
   m_framebuffer.bindFramebuffer();
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
   auto view = m_registry.view<const Renderable>();
 
@@ -433,16 +402,12 @@ void RenderSystem::render() {
 
     for (unsigned int i = 0U; i < renderable.vertexAttribCount; ++i) {
       const VertexAttribArray& attrib = renderable.vertexAttribArray[i];
+      //todo: use VAOs
       glEnableVertexAttribArray(i);
       glVertexAttribPointer(i, attrib.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrib.buffer_offset));
     }
 
     //    glBindVertexArray(renderable.vertex_array_object);
-
-    // assign textures
-    for (auto& subsystem : m_renderSubsystems) {
-      subsystem->onRender(m_registry, entity);
-    }
 
     // TODO: check if shader is dirty
     //  reason: if we push properties every frame (Except for MVP), we might
@@ -465,6 +430,13 @@ void RenderSystem::render() {
 
     // handle debug
     checkError(entity);
+  }
+
+  for (auto e : m_registry.get<ecs::Camera>(m_activeCamera).posteffects) {
+    m_framebuffer.nextPass();
+    const auto& renderable = m_registry.get<Renderable>(e);
+    glUseProgram(renderable.program);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
   }
 
   m_framebuffer.finish();

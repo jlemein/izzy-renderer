@@ -42,6 +42,8 @@ struct Camera {
   float fovx {120.0F};
   float aspect {1.0};
   float zNear {0.1F}, zFar {1000.0F};
+
+  std::vector<entt::entity> posteffects {};
 };
 
 } // end of package
