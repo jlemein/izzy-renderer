@@ -46,6 +46,7 @@ void Viewer::setWindowSize(unsigned int width, unsigned int height) {
   m_displayDetails.windowWidth = static_cast<int>(width);
   m_displayDetails.windowHeight = static_cast<int>(height);
   m_cameraSystem->setFramebufferSize(width, height);
+  m_renderSystem->getFramebuffer().setSize(width, height);
 }
 
 void Viewer::setTitle(const std::string& title) {

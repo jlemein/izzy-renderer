@@ -19,7 +19,9 @@ class MultipassFramebuffer {
    * Constructor.
    * @param numSamplesMSAA  Preferred number of MSAA samples for the framebuffer.
    */
-  MultipassFramebuffer(int numSamplesMSAA = 4);
+  MultipassFramebuffer(int width = 800, int height = 600, int numSamplesMSAA = 4);
+
+  void setSize(int width, int height);
 
   /**
    * @brief Updates the frame buffer size. Regenerates the underlying buffers to match the specified width and height.
@@ -60,9 +62,8 @@ class MultipassFramebuffer {
   GLuint m_vertexAttrib {0};    // 0 is the index in the vertex shader for position data.
   GLuint m_uvAttrib {1};        // 1 is the index in the vertex shader for uv coordinates.
 
-  int m_numSamplesMSAA {8};
-
   int m_width {800}, m_height{600};
+  int m_numSamplesMSAA {8};
 
   void createMsaaFramebuffer();
   void createIntermediaFbo();
