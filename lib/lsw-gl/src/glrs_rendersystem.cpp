@@ -445,15 +445,18 @@ void RenderSystem::render() {
   }
 
   // render post processing effects
-  for (auto e : m_registry.get<ecs::Camera>(m_activeCamera).posteffects) {
-    m_framebuffer.nextPass();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
+    const auto& posteffectCollection = m_registry.get<ecs::PosteffectCollection>(m_activeCamera);
+    for (auto e : posteffectCollection.posteffects) {
+      m_framebuffer.nextPass();
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    const auto& renderable = m_registry.get<Renderable>(e);
+      const auto& renderable = m_registry.get<Renderable>(e);
 
-    glUseProgram(renderable.program);
-    glDrawArrays(GL_TRIANGLES, 0, 6);
-    glBindVertexArray(0);
+      glUseProgram(renderable.program);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      glBindVertexArray(0);
+    }
   }
 
   m_framebuffer.blitToDefaultFramebuffer();

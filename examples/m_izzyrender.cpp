@@ -136,13 +136,11 @@ int main(int argc, char* argv[]) {
     // setup camera
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-
     auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
     auto vignette = materialSystem->createMaterial("VignettePostEffect");
     auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
     auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
-
-    camera.get<ecs::Camera>().posteffects = {pe1, pe2};
+    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
 
     // setup window
     auto window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
