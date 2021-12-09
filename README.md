@@ -179,7 +179,7 @@ auto camera = sceneGraph->makeCamera("DummyCamera", 4);
 auto grayscale = sceneGraph->makePosteffect("GrayScale", *materialSystem->createMaterial("GrayScalePostEffect"));
 auto vignette = sceneGraph->makePosteffect("Vignette", *materialSystem->createMaterial("VignettePostEffect"));
 
-// add post-processign effects. 
+// add post-processing effects. 
 // i.e. multipass: first pass grayscale; second pass vignette.
 camera.add<PosteffectCollection>({.posteffects = {grayscale, vignette}});
 ```
