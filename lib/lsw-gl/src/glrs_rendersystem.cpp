@@ -1,6 +1,7 @@
 //
 // Created by jlemein on 07-11-20.
 //
+#include <glrs_common.h>
 #include <glrs_rendersystem.h>
 
 #include <ecs_camera.h>
@@ -79,6 +80,8 @@ void initMVPUniformBlock(Renderable& renderable) {
                                          renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
   }
 
+  renderable.isMvpSupported = true;
+
   glGenBuffers(1, &renderable.uboId);
 
   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
@@ -99,24 +102,13 @@ glrs::LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
-/**
- * @brief Sets up the render component (i.e. the handle to the render system)
- * with the assigned material properties for this entity. Every material has a
- * uniform properties attribute that gets filled based on ....
- *
- * @details
- * The material component (@see geo::Material) contains a set of attributes,
- * easily editable in the code. Eventually the attributes gets mapped to a
- * uniform property attribute.
- *
- * @param renderable The render component
- * @param properties The material properties.
- */
-void RenderSystem::initShaderProperties(Renderable& renderable, const geo::Material& material) {
+void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material) {
   glUseProgram(renderable.program);
 
-  // allocates the MVP matrices on the GPU.
-  initMVPUniformBlock(renderable);
+  if (!m_registry.all_of<glrs::Posteffect>(entity)) {
+    initMVPUniformBlock(renderable);
+  }
+
   m_lightSystem->initLightingUbo(renderable, material);
 
   // every shader usually has custom attributes
@@ -159,8 +151,7 @@ RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::sh
   , m_debugSystem(sceneGraph->getRegistry())
   , m_materialSystem(materialSystem)
   , m_shaderSystem(std::make_shared<ShaderSystem>())
-  , m_lightSystem{std::make_shared<LightSystem>(m_registry)} {
-}
+  , m_lightSystem{std::make_shared<LightSystem>(m_registry)} {}
 
 void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
@@ -168,14 +159,21 @@ void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
   glBufferData(GL_ARRAY_BUFFER, curve.vertices.size() * sizeof(float), curve.vertices.data(), GL_STATIC_DRAW);
 
   renderable.index_buffer = 0U;
-  renderable.vertexAttribCount = 1;
-  renderable.vertexAttribArray[0].size = 3U;
-  renderable.vertexAttribArray[0].buffer_offset = 0U;
+  //  renderable.vertexAttribCount = 1;
+  //  renderable.vertexAttribArray[0].size = 3U;
+  //  renderable.vertexAttribArray[0].buffer_offset = 0U;
   renderable.drawElementCount = curve.vertices.size() / 3;
   renderable.primitiveType = GL_LINES;
 
+  glGenVertexArrays(1, &renderable.vertex_array_object);
+  glBindVertexArray(renderable.vertex_array_object);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+  // disable the buffers to prevent accidental manipulation
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
@@ -227,19 +225,31 @@ void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
   renderable.drawElementCount = mesh.indices.size();
   renderable.primitiveType = GL_TRIANGLES;
 
+  glGenVertexArrays(1, &renderable.vertex_array_object);
+  glBindVertexArray(renderable.vertex_array_object);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize));
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize));
+  glEnableVertexAttribArray(3);
   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize));
+  glEnableVertexAttribArray(4);
   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize + tangentSize));
+  glBindVertexArray(0);
 }
 
 void RenderSystem::init() {
+  m_framebuffer.initialize();
+
   glShadeModel(GL_SMOOTH);
   glEnable(GL_MULTISAMPLE);
+  glEnable(GL_DEPTH_TEST);
+  glEnable(GL_CULL_FACE);
+  glCullFace(GL_BACK);
+  glFrontFace(GL_CCW);
+  glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
 
   // initialize light system first. Light system may add renderable and material component for light sources.
   m_lightSystem->initialize();
@@ -272,21 +282,9 @@ void RenderSystem::init() {
   // * Push the remaining uniform parameter values to the shader.
 
   // handling curves
-  auto curveView = m_registry.view<geo::Curve, Renderable>();
-  for (auto entity : curveView) {
-    auto& curve = m_registry.get<geo::Curve>(entity);
-    auto& renderable = m_registry.get<Renderable>(entity);
-    auto& material = m_registry.get<geo::Material>(entity);
-
+  for (auto [entity, curve, renderable] : m_registry.view<geo::Curve, Renderable>().each()) {
     try {
       initCurveBuffers(renderable, curve);
-
-      if (material.isBinaryShader) {
-        renderable.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
-      } else {
-        renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
-      }
-      initShaderProperties(renderable, material);
     } catch (std::exception& e) {
       auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
 
@@ -296,8 +294,7 @@ void RenderSystem::init() {
   }
 
   // handling meshes
-  auto view = m_registry.view<geo::Mesh, geo::Material, Renderable>();
-  for (auto entity : view) {
+  for (auto [entity, mesh, renderable] : m_registry.view<geo::Mesh, Renderable>().each()) {
     auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
 
     try {
@@ -305,7 +302,15 @@ void RenderSystem::init() {
       auto& mesh = m_registry.get<geo::Mesh>(entity);
       initMeshBuffers(renderable, mesh);
 
-      auto& material = m_registry.get<geo::Material>(entity);
+    } catch (std::exception& e) {
+      auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
+      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
+    }
+  }
+
+  // handling materials
+  for (auto [entity, material, renderable] : m_registry.view<geo::Material, Renderable>().each()) {
+    try {
       spdlog::debug("Compiling shaders -- vs: {} fs: {}", material.vertexShader, material.fragmentShader);
 
       if (material.isBinaryShader) {
@@ -314,13 +319,14 @@ void RenderSystem::init() {
         renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
       }
 
-      initShaderProperties(renderable, material);
+      initShaderProperties(entity, renderable, material);
 
     } catch (std::exception& e) {
       auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
-      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
+      throw std::runtime_error(fmt::format("Failed initializing material for entity with name '{}': {}", name, e.what()));
     }
   }
+  //  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
 }
 
 void RenderSystem::update(float time, float dt) {
@@ -341,8 +347,10 @@ void RenderSystem::synchMvpMatrices() {
   for (auto entity : view) {
     auto& renderable = m_registry.get<Renderable>(entity);
 
-    updateModelMatrix(entity);
-    updateCamera(renderable);
+    if (renderable.isMvpSupported) {
+      updateModelMatrix(entity);
+      updateCamera(renderable);
+    }
   }
 }
 
@@ -362,28 +370,6 @@ void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
     throw std::runtime_error("Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
-
-  // determine frame buffers
-  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
-    GLuint framebufferName = 0;
-    glGenFramebuffers(1, &framebufferName);
-    glBindFramebuffer(GL_FRAMEBUFFER, framebufferName);
-
-    // texture we are going to render to
-    GLuint renderedTexture;
-    glGenTextures(1, &renderedTexture);
-    glBindTexture(GL_TEXTURE_2D, renderedTexture);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 1024, 768, 0, GL_RGB, GL_UNSIGNED_BYTE, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
-    // The depth buffer
-    GLuint depthrenderbuffer;
-    glGenRenderbuffers(1, &depthrenderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, depthrenderbuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 768);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, depthrenderbuffer);
-  }
 }
 
 void RenderSystem::updateCamera(Renderable& renderable) {
@@ -399,20 +385,13 @@ void RenderSystem::updateCamera(Renderable& renderable) {
   renderable.uniformBlock.viewPos = glm::vec3(transform.worldTransform[3]);
 }
 
-void RenderSystem::addSubsystem(std::shared_ptr<IRenderSubsystem> system) {
-  m_renderSubsystems.emplace_back(system);
-}
-
-void RenderSystem::removeSubsystem(std::shared_ptr<IRenderSubsystem> system) {
-  // todo
-}
-
 void RenderSystem::render() {
-  // 1. Select buffer to render into
-  auto view = m_registry.view<const Renderable>();
+  //  // 1. Select buffer to render into
+  m_framebuffer.bindFramebuffer();
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  for (auto entity : view) {
-    const auto& renderable = view.get<const Renderable>(entity);
+  // render 3D scene
+  for (const auto& [entity, renderable, transform] : m_registry.view<const Renderable, const ecs::Transform>().each()) {
     const auto& name = m_registry.get<ecs::Name>(entity);
 
     // activate shader program
@@ -431,25 +410,22 @@ void RenderSystem::render() {
     // bind the vertex buffers
     glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
+    //    glBindVertexArray(renderable.vertex_array_object);
 
     for (unsigned int i = 0U; i < renderable.vertexAttribCount; ++i) {
       const VertexAttribArray& attrib = renderable.vertexAttribArray[i];
+      // todo: use VAOs
       glEnableVertexAttribArray(i);
       glVertexAttribPointer(i, attrib.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrib.buffer_offset));
-    }
-
-    //    glBindVertexArray(renderable.vertex_array_object);
-
-    // assign textures
-    for (auto& subsystem : m_renderSubsystems) {
-      subsystem->onRender(m_registry, entity);
     }
 
     // TODO: check if shader is dirty
     //  reason: if we push properties every frame (Except for MVP), we might
     //  unnecessary spend time doing that while we can immediately just render.
     pushShaderProperties(renderable);
-    pushModelViewProjection(renderable);
+    if (renderable.isMvpSupported) {
+      pushModelViewProjection(renderable);
+    }
 
     // TODO this one needs to change per glUseProgram, which is the case right
     //  now. In future we might optimize changing of glUseProgram in that
@@ -467,6 +443,27 @@ void RenderSystem::render() {
     // handle debug
     checkError(entity);
   }
+
+  // render post processing effects
+  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
+    const auto& posteffectCollection = m_registry.get<ecs::PosteffectCollection>(m_activeCamera);
+    for (auto e : posteffectCollection.posteffects) {
+      m_framebuffer.nextPass();
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      const auto& renderable = m_registry.get<Renderable>(e);
+
+      glUseProgram(renderable.program);
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      glBindVertexArray(0);
+    }
+  }
+
+  m_framebuffer.blitToDefaultFramebuffer();
+}
+
+MultipassFramebuffer& RenderSystem::getFramebuffer() {
+  return m_framebuffer;
 }
 
 void RenderSystem::checkError(entt::entity e) {

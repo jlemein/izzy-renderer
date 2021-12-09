@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
     // ==== GUI =============================================================
     auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto sphere11 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere11", .5F));

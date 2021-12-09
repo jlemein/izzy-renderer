@@ -1,18 +1,18 @@
 //
 // Created by jlemein on 05-08-21.
 //
-#include "../include/izz_materialsystem.h"
+#include <izz_materialsystem.h>
 
-#include "ecsg_scenegraph.h"
-#include "geo_textureloader.h"
-#include "../include/izz_resourcemanager.h"
-#include "../include/izz_texturesystem.h"
-#include "glrs_rendersystem.h"
-#include "uniform_constant.h"
-#include "uniform_lambert.h"
-#include "uniform_parallax.h"
-#include "uniform_ubermaterial.h"
-#include "wsp_workspace.h"
+#include <ecsg_scenegraph.h>
+#include <geo_textureloader.h>
+#include <izz_resourcemanager.h>
+#include <izz_texturesystem.h>
+#include <glrs_rendersystem.h>
+#include <uniform_constant.h>
+#include <uniform_lambert.h>
+#include <uniform_parallax.h>
+#include <uniform_ubermaterial.h>
+#include <wsp_workspace.h>
 
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>

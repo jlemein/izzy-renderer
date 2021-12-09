@@ -35,7 +35,6 @@ struct PosteffectCollection {
 };
 
 struct Posteffect {
-
 };
 
 struct Camera {

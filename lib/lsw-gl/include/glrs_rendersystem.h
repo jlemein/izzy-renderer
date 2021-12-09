@@ -5,10 +5,10 @@
 
 #include <ecs_debugsystem.h>
 #include <glrs_renderable.h>
-#include <glrs_rendersubsystem.h>
 #include <memory>
 
 #include <glrs_lightsystem.h>
+#include "glrs_multipassframebuffer.h"
 
 namespace lsw {
 
@@ -40,14 +40,13 @@ class RenderSystem {
   void update(float time, float dt);
   void render();
 
+//  void setFramebuffer()
+  MultipassFramebuffer& getFramebuffer();
+
   /**
    * @returns the light system.
    */
   glrs::LightSystem& getLightSystem();
-
-  // register as part of the render pipeline
-  void addSubsystem(std::shared_ptr<IRenderSubsystem> system);
-  void removeSubsystem(std::shared_ptr<IRenderSubsystem> system);
 
   void setActiveCamera(entt::entity cameraEntity);
 
@@ -62,8 +61,10 @@ class RenderSystem {
   void activateTextures(entt::entity e);
 
  private:
+  // framebuffer mechanism
+  MultipassFramebuffer m_framebuffer;
+
   entt::registry& m_registry;
-  std::list<std::shared_ptr<IRenderSubsystem>> m_renderSubsystems;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
   std::shared_ptr<IMaterialSystem> m_materialSystem;
   ecs::DebugSystem m_debugSystem;
@@ -83,7 +84,20 @@ class RenderSystem {
   void updateModelMatrix(entt::entity e);
   void updateCamera(Renderable& renderable);
 
-  void initShaderProperties(Renderable& renderable, const geo::Material& material);
+  /**
+   * @brief Sets up the render component (i.e. the handle to the render system)
+   * with the assigned material properties for this entity. Every material has a
+   * uniform properties attribute that gets filled based on ....
+   *
+   * @details
+   * The material component (@see geo::Material) contains a set of attributes,
+   * easily editable in the code. Eventually the attributes gets mapped to a
+   * uniform property attribute.
+   *
+   * @param renderable The render component
+   * @param properties The material properties.
+   */
+  void initShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material);
 
   void checkError(entt::entity e);
 };

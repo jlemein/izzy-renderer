@@ -84,9 +84,7 @@ class MaterialSystem : public glrs::IMaterialSystem {
  private:
   std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
   std::shared_ptr<ResourceManager> m_resourceManager;
-
   std::unordered_map<std::string, std::unique_ptr<ufm::UniformBlockManager>> m_uniformBlockManagers;
-
   std::unordered_map<std::string, geo::Material> m_materials;
 
   /// @brief Fbx specific material names are mapped to canonical material names
@@ -99,7 +97,6 @@ class MaterialSystem : public glrs::IMaterialSystem {
 
   std::string m_defaultMaterial{""};
 
-  void readMaterialMappings(nlohmann::json& json);
   void readMaterialInstances(nlohmann::json& json);
   void readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json& json);
 

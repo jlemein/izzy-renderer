@@ -1,12 +1,10 @@
 //
 // Created by jlemein on 09-08-21.
 //
-#include "../include/anim_animationsystem.h"
-#include "../include/anim_localrotation.h"
-#include "glrs_rendersubsystem.h"
+#include "anim_animationsystem.h"
+#include "anim_localrotation.h"
 #include "ecs_transform.h"
 #include "ecsg_scenegraph.h"
-#include <iostream>
 using namespace lsw::anim;
 using namespace lsw::ecs;
 

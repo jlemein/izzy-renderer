@@ -1,5 +1,5 @@
 {
-  "default_material": "NormalMap",
+  "default_material": "BlinnPhong",
   "material_instances": [
     {
       "name": "tea_set_01",
@@ -36,11 +36,37 @@
       "material_definition": "Diffuse"
     },
     {
+      "name": "Barrel_01",
+      "material_definition": "BlinnPhong",
+      "properties": {
+        "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
+        "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
+        "shininess": 32.0,
+        "specular_color": [0.5, 0.5, 0.5, 0.0]
+      }
+    },
+    {
       "name": "pointlight",
       "material_definition": "ConstantLight"
     }
   ],
   "materials": [
+    {
+      "name": "GrayScalePostEffect",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/postprocess/grayscale.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/grayscale.frag",
+      "properties": []
+    },
+    {
+      "name": "VignettePostEffect",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/postprocess/vignette.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/vignette.frag",
+      "properties": []
+    },
     {
       "name": "ConstantLight",
       "is_binary_shader": false,
