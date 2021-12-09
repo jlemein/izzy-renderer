@@ -1,8 +1,8 @@
 //
 // Created by jlemein on 07-11-20.
 //
-#include <glrs_rendersystem.h>
 #include <glrs_common.h>
+#include <glrs_rendersystem.h>
 
 #include <ecs_camera.h>
 #include <ecs_light.h>
@@ -159,14 +159,21 @@ void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
   glBufferData(GL_ARRAY_BUFFER, curve.vertices.size() * sizeof(float), curve.vertices.data(), GL_STATIC_DRAW);
 
   renderable.index_buffer = 0U;
-  renderable.vertexAttribCount = 1;
-  renderable.vertexAttribArray[0].size = 3U;
-  renderable.vertexAttribArray[0].buffer_offset = 0U;
+  //  renderable.vertexAttribCount = 1;
+  //  renderable.vertexAttribArray[0].size = 3U;
+  //  renderable.vertexAttribArray[0].buffer_offset = 0U;
   renderable.drawElementCount = curve.vertices.size() / 3;
   renderable.primitiveType = GL_LINES;
 
+  glGenVertexArrays(1, &renderable.vertex_array_object);
+  glBindVertexArray(renderable.vertex_array_object);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
+
+  // disable the buffers to prevent accidental manipulation
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
@@ -218,14 +225,19 @@ void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
   renderable.drawElementCount = mesh.indices.size();
   renderable.primitiveType = GL_TRIANGLES;
 
+  glGenVertexArrays(1, &renderable.vertex_array_object);
+  glBindVertexArray(renderable.vertex_array_object);
   glEnableVertexAttribArray(0);
   glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize));
   glEnableVertexAttribArray(2);
   glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize));
+  glEnableVertexAttribArray(3);
   glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize));
+  glEnableVertexAttribArray(4);
   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize + tangentSize));
+  glBindVertexArray(0);
 }
 
 void RenderSystem::init() {
@@ -234,7 +246,7 @@ void RenderSystem::init() {
   glShadeModel(GL_SMOOTH);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
+  glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glFrontFace(GL_CCW);
   glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
@@ -314,7 +326,7 @@ void RenderSystem::init() {
       throw std::runtime_error(fmt::format("Failed initializing material for entity with name '{}': {}", name, e.what()));
     }
   }
-//  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
+  //  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
 }
 
 void RenderSystem::update(float time, float dt) {
@@ -335,8 +347,10 @@ void RenderSystem::synchMvpMatrices() {
   for (auto entity : view) {
     auto& renderable = m_registry.get<Renderable>(entity);
 
-    updateModelMatrix(entity);
-    updateCamera(renderable);
+    if (renderable.isMvpSupported) {
+      updateModelMatrix(entity);
+      updateCamera(renderable);
+    }
   }
 }
 
@@ -372,15 +386,12 @@ void RenderSystem::updateCamera(Renderable& renderable) {
 }
 
 void RenderSystem::render() {
-  // 1. Select buffer to render into
+  //  // 1. Select buffer to render into
   m_framebuffer.bindFramebuffer();
-
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  auto view = m_registry.view<const Renderable>();
-
-  for (auto entity : view) {
-    const auto& renderable = view.get<const Renderable>(entity);
+  // render 3D scene
+  for (const auto& [entity, renderable, transform] : m_registry.view<const Renderable, const ecs::Transform>().each()) {
     const auto& name = m_registry.get<ecs::Name>(entity);
 
     // activate shader program
@@ -399,21 +410,22 @@ void RenderSystem::render() {
     // bind the vertex buffers
     glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
+    //    glBindVertexArray(renderable.vertex_array_object);
 
     for (unsigned int i = 0U; i < renderable.vertexAttribCount; ++i) {
       const VertexAttribArray& attrib = renderable.vertexAttribArray[i];
-      //todo: use VAOs
+      // todo: use VAOs
       glEnableVertexAttribArray(i);
       glVertexAttribPointer(i, attrib.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrib.buffer_offset));
     }
-
-    //    glBindVertexArray(renderable.vertex_array_object);
 
     // TODO: check if shader is dirty
     //  reason: if we push properties every frame (Except for MVP), we might
     //  unnecessary spend time doing that while we can immediately just render.
     pushShaderProperties(renderable);
-    pushModelViewProjection(renderable);
+    if (renderable.isMvpSupported) {
+      pushModelViewProjection(renderable);
+    }
 
     // TODO this one needs to change per glUseProgram, which is the case right
     //  now. In future we might optimize changing of glUseProgram in that
@@ -432,14 +444,19 @@ void RenderSystem::render() {
     checkError(entity);
   }
 
+  // render post processing effects
   for (auto e : m_registry.get<ecs::Camera>(m_activeCamera).posteffects) {
     m_framebuffer.nextPass();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     const auto& renderable = m_registry.get<Renderable>(e);
+
     glUseProgram(renderable.program);
     glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
   }
 
-  m_framebuffer.finish();
+  m_framebuffer.blitToDefaultFramebuffer();
 }
 
 MultipassFramebuffer& RenderSystem::getFramebuffer() {

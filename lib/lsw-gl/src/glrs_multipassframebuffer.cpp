@@ -28,27 +28,6 @@ void MultipassFramebuffer::setSize(int width, int height) {
   m_height = height;
 }
 
-void MultipassFramebuffer::resize(int width, int height) {
-  m_width = width;
-  m_height = height;
-
-  spdlog::debug("Framebuffer resizes to {} x {}", width, height);
-
-  // MSAA framebuffer
-  glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
-  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_textureMSAA);
-  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_numSamplesMSAA, GL_RGB, m_width, m_height, GL_TRUE);
-  glBindRenderbuffer(GL_RENDERBUFFER, m_renderbuffer);
-  glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_numSamplesMSAA, GL_DEPTH_COMPONENT, width, height);
-
-  // intermediate framebuffer
-  glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFbo);
-  glBindTexture(GL_TEXTURE_2D, m_textureMSAA);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void MultipassFramebuffer::initialize() {
   GLint maxColorSamples{0}, maxDepthSamples{0}, maxRenderBufferSize{0};
   glGetIntegerv(GL_MAX_COLOR_TEXTURE_SAMPLES, &maxColorSamples);
@@ -74,9 +53,6 @@ void MultipassFramebuffer::initialize() {
   glEnableVertexAttribArray(1);
   glVertexAttribPointer(m_uvAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), izz::gl::BUFFER_OFFSET(2 * sizeof(float)));
 
-  ShaderSystem m_shaderSystem;
-  m_program = m_shaderSystem.compileShader("shaders/postprocess/copybuffer.vert", "shaders/postprocess/copybuffer.frag");
-
   createMsaaFramebuffer();
   checkError("MSAA Framebuffer");
 
@@ -88,21 +64,47 @@ void MultipassFramebuffer::initialize() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void MultipassFramebuffer::resize(int width, int height) {
+  m_width = width;
+  m_height = height;
+
+  // ---- multisampling ----------------------------------
+  //  glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
+  //  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_textureMSAA);
+  //  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_numSamplesMSAA, GL_RGB, m_width, m_height, GL_TRUE);
+  //  glBindRenderbuffer(GL_RENDERBUFFER, m_renderbuffer);
+  //  glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_numSamplesMSAA, GL_DEPTH_COMPONENT, width, height);
+
+  // ---- no MSAA buffer --------------------------------
+  glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
+  glBindTexture(GL_TEXTURE_2D, m_textureMSAA);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+  glBindRenderbuffer(GL_RENDERBUFFER, m_renderbuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+
+  // intermediate framebuffer
+  glBindFramebuffer(GL_FRAMEBUFFER, m_intermediateFbo);
+  glBindTexture(GL_TEXTURE_2D, m_texture);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, m_width, m_height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void MultipassFramebuffer::createMsaaFramebuffer() {
   glGenTextures(1, &m_textureMSAA);
 
   // ---- multisampling -------
-//  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_textureMSAA);
-//  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_numSamplesMSAA, GL_RGB, m_width, m_height, GL_TRUE);
-//
-//  glGenRenderbuffers(1, &m_renderbuffer);
-//  glBindRenderbuffer(GL_RENDERBUFFER, m_renderbuffer);
-//  glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_numSamplesMSAA, GL_DEPTH_COMPONENT, m_width, m_height);
-//
-//  glGenFramebuffers(1, &m_msFbo);
-//  glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
-//  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_textureMSAA, 0);
-//  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_renderbuffer);
+  //  glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, m_textureMSAA);
+  //  glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, m_numSamplesMSAA, GL_RGB, m_width, m_height, GL_TRUE);
+  //
+  //  glGenRenderbuffers(1, &m_renderbuffer);
+  //  glBindRenderbuffer(GL_RENDERBUFFER, m_renderbuffer);
+  //  glRenderbufferStorageMultisample(GL_RENDERBUFFER, m_numSamplesMSAA, GL_DEPTH_COMPONENT, m_width, m_height);
+  //
+  //  glGenFramebuffers(1, &m_msFbo);
+  //  glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
+  //  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, m_textureMSAA, 0);
+  //  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_renderbuffer);
 
   //---- No multisampling -----
   glBindTexture(GL_TEXTURE_2D, m_textureMSAA);
@@ -147,7 +149,7 @@ void MultipassFramebuffer::bindFramebuffer() {
 }
 
 void MultipassFramebuffer::nextPass() {
-  // blit renderbuffer to texbuffer
+  // blit renderbuffer to texture buffer
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msFbo);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_intermediateFbo);
   glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -161,39 +163,10 @@ void MultipassFramebuffer::nextPass() {
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_texture);
-
-  //
-  //  glBindVertexArray(0);
-
-  // bind the texture from the intermediate fbo//
-  //  glDrawArrays(GL_TRIANGLES, 0, 6);
-  //
-  //  glBindVertexArray(0);
 }
 
-void MultipassFramebuffer::finish() {
+void MultipassFramebuffer::blitToDefaultFramebuffer() {
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msFbo);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  checkError("A");
   glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-
-  //  // finished rendering off-screen.
-  //  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msFbo);
-  //  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_intermediateFbo);
-  //  glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-  //
-  //  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-  //  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  //
-  //  glUseProgram(m_program);
-  //  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-  //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  //  glBindVertexArray(m_vao);  // make the vertex descriptor of vbo active
-  //
-  //  glActiveTexture(GL_TEXTURE0);
-  //  glBindTexture(GL_TEXTURE_2D, m_texture);
-  //
-  //  glDrawArrays(GL_TRIANGLES, 0, 6);
-  //
-  //  glBindVertexArray(0);
 }

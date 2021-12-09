@@ -17,38 +17,47 @@ class MultipassFramebuffer {
  public:
   /**
    * Constructor.
+   * @param width   Width of the framebuffer.
+   * @param height  Height of the framebuffer.
    * @param numSamplesMSAA  Preferred number of MSAA samples for the framebuffer.
    */
   MultipassFramebuffer(int width = 800, int height = 600, int numSamplesMSAA = 4);
 
+  /**
+   * Sets the size of the frame buffer. This call should be called before a window context is active.
+   * Alternative is providing the dimensions via the constructor.
+   * @param [in] width   The width of the framebuffer.
+   * @param [in] height  The height of the framebuffer.
+   */
   void setSize(int width, int height);
 
   /**
-   * @brief Updates the frame buffer size. Regenerates the underlying buffers to match the specified width and height.
-   * @param width
-   * @param height
+   * @brief Resizes the frame buffer size. Regenerates the underlying buffers to match the specified width and height.
+   * Should be called when the window is resized.
+   * @param width   Width of the framebuffer.
+   * @param height  Height of the framebuffer.
    */
   void resize(int width, int height);
 
   /**
-   * Initializes the framebuffer and creates buffers needed to apply post processing effects.
+   * Creates the internal framebuffers.
    */
   void initialize();
 
   /**
-   * Binds the framebuffer
+   * @brief Binds the framebuffer for rendering purposes.
    */
   void bindFramebuffer();
 
   /**
-   * Makes sure the result of the previous output is bound as a texture target.
+   * @brief Blits the render buffer to texture attachment, ready for a new render pass.
    */
   void nextPass();
 
   /**
-   * Renders the framebuffer
+   * @brief Blits the render buffer to the default framebuffer to visualize the result
    */
-  void finish();
+  void blitToDefaultFramebuffer();
 
  private:
   GLuint m_msFbo{0U}, m_intermediateFbo {0U};
@@ -57,7 +66,6 @@ class MultipassFramebuffer {
   GLuint m_renderbuffer {0U}; // for depth and stencil buffer
 
   GLuint m_vbo {0U}, m_vao {0U};
-  GLuint m_program {0U};
 
   GLuint m_vertexAttrib {0};    // 0 is the index in the vertex shader for position data.
   GLuint m_uvAttrib {1};        // 1 is the index in the vertex shader for uv coordinates.

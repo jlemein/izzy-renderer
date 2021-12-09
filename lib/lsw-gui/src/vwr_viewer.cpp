@@ -91,12 +91,6 @@ void Viewer::initialize() {
 
   glfwSwapInterval(1);
 
-//  glEnable(GL_DEPTH_TEST);
-//  glDisable(GL_CULL_FACE);
-//  glCullFace(GL_BACK);
-//  glFrontFace(GL_CCW);
-//  glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
-
   m_cameraSystem->init();
   m_debugSystem->init();      // for debug visualizations
   m_animationSystem->init();  // possible bone initialization

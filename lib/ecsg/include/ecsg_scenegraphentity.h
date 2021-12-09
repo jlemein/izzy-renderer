@@ -29,6 +29,8 @@ class SceneGraphEntity {
   uint64_t id() const;
   entt::entity handle();
 
+  operator entt::entity() const { return m_handle; }
+
   /**!
    * @returns the name of the scene graph entity, which is a readable name and
    * not guaranteed to be unique in the scene.

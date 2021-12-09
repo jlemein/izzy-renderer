@@ -1,5 +1,5 @@
 {
-  "default_material": "NormalMap",
+  "default_material": "BlinnPhong",
   "material_instances": [
     {
       "name": "tea_set_01",
@@ -41,6 +41,22 @@
     }
   ],
   "materials": [
+    {
+      "name": "GrayScalePostEffect",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/postprocess/grayscale.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/grayscale.frag",
+      "properties": []
+    },
+    {
+      "name": "VignettePostEffect",
+      "is_binary_shader": false,
+      "vertex_shader": "shaders/postprocess/vignette.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/vignette.frag",
+      "properties": []
+    },
     {
       "name": "ConstantLight",
       "is_binary_shader": false,
