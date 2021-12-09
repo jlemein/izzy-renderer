@@ -163,6 +163,26 @@ If you want to use
 a custom shader for the light source, make sure to assign a material before the light system is initialized or overwrite
 the material later on in the simulation.
 
+#### Adding post processing effects
+
+Post-processing is supported via camera entities. A camera entity can have zero, one or multiple post-processing
+effects assigned to it. This is done by assigning a `PostprocessCollection` component.
+A postprocess collection component maintains an ordered list of post-processing effects. Each post-processing effect is an entity
+in itself and should be assigned the `Postprocess`, `Renderable` and `Material` component.
+
+Example of adding two post-processing effects. Note that the post-processing effects are materials. They behave
+the same as standard materials, except for the fact they have different uniform shader parameters.
+
+```cpp
+// setup camera
+auto camera = sceneGraph->makeCamera("DummyCamera", 4);
+auto grayscale = sceneGraph->makePosteffect("GrayScale", *materialSystem->createMaterial("GrayScalePostEffect"));
+auto vignette = sceneGraph->makePosteffect("Vignette", *materialSystem->createMaterial("VignettePostEffect"));
+
+// add post-processign effects. 
+// i.e. multipass: first pass grayscale; second pass vignette.
+camera.add<PosteffectCollection>({.posteffects = {grayscale, vignette}});
+```
 
 ### Build
 
