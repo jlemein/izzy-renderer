@@ -5,9 +5,9 @@
 
 #include <ecsg_scenegraph.h>
 #include <geo_textureloader.h>
+#include <glrs_rendersystem.h>
 #include <izz_resourcemanager.h>
 #include <izz_texturesystem.h>
-#include <glrs_rendersystem.h>
 #include <uniform_constant.h>
 #include <uniform_lambert.h>
 #include <uniform_parallax.h>
@@ -18,10 +18,10 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
-#include "uniform_blinnphong.h"
-#include "uniform_blinnphongsimple.h"
 #include <fstream>
 #include <memory>
+#include "uniform_blinnphong.h"
+#include "uniform_blinnphongsimple.h"
 
 using json = nlohmann::json;
 
@@ -66,7 +66,8 @@ void MaterialSystem::readMaterialInstances(json& j) {
       throw std::runtime_error("Failed to read material instance");
     }
     if (m_materials.count(materialDefinition) <= 0) {
-      throw std::runtime_error(fmt::format("Material instance '{}', instanced from '{}' does not occur in the list of material definitions.", instanceName, materialDefinition));
+      throw std::runtime_error(
+          fmt::format("Material instance '{}', instanced from '{}' does not occur in the list of material definitions.", instanceName, materialDefinition));
     }
 
     m_materialInstances[instanceName] = m_materials[materialDefinition];
@@ -99,10 +100,11 @@ void MaterialSystem::readMaterialInstances(json& j) {
               break;
           }
         } catch (std::out_of_range&) {
-          throw std::runtime_error(fmt::format("Property '{}' of instance '{}' is not part of material definition '{}'.", key, instanceName, materialDefinition));
+          throw std::runtime_error(
+              fmt::format("Property '{}' of instance '{}' is not part of material definition '{}'.", key, instanceName, materialDefinition));
         }
       }
-      }
+    }
   }
 }
 
@@ -153,24 +155,46 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
       throw std::runtime_error(fmt::format("Failed parsing shader names: {}", e.what()));
     }
 
-    // load generic attributes
-    if (material.contains("properties")) {
-      auto& properties = material["properties"];
-      for (const auto& prop : properties) {
-        // Required: every property must have a name and type.
-        if (!prop.contains("name") || !prop.contains("type")) {
-          spdlog::warn("Material '{}': property misses required attributes 'name' and/or 'type'. Property will be ignored.", m.name);
+    if (material.contains("textures")) {
+      for (const auto& [name, value] : material["textures"].items()) {
+        if (!value.contains("type")) {
+          spdlog::warn("Material '{}': texture misses required attributes 'type'. Property will be ignored.", m.name);
           continue;
         }
 
-        std::string name = prop["name"];
-        std::string type = prop["type"];
+        std::string type = value["type"];
 
-        try {
-          if (type == "uniform") {
+        if (type == "texture") {
+          m.propertyTypes[name] = Material::TEXTURE2D;
+          auto path = value["default_value"].get<std::string>();
+          spdlog::debug("\t{} texture: {}", name, path);
+          addTextureToMaterial(name, path, m);
+        } else {
+          spdlog::warn("Material '{}' defines property {} of type {} that is not supported. Property will be ignored.", m.name, name, type);
+        }
+      }
+    }
+
+    if (material.contains("properties")) {
+      // dealing with uniform props not in an interface block
+      for (const auto& [key, value] : material["properties"].items()) {
+        if (value.is_boolean()) {
+          m.unscopedUniforms.setBoolean(key, value.get<bool>());
+        } else if (value.is_number_float()) {
+          m.unscopedUniforms.setFloat(key, value.get<float>());
+        } else if (value.is_number_integer()) {
+          m.unscopedUniforms.setInt(key, value.get<int>());
+        } else if (value.is_array() && isFloatArray<>(value)) {
+          m.unscopedUniforms.setFloatArray(key, value.get<std::vector<float>>());
+        } else if (value.is_object()) {
+          // scoped uniform (i.e. using interface block)
+          auto name = key;
+
+          try {
             if (m_uniformBlockManagers.count(name) <= 0) {
-              throw std::runtime_error(
-                  fmt::format("Material {}: Uniform block '{}' is not registered to the material system. Shader will likely misbehave.", m.name, name));
+              throw std::runtime_error(fmt::format(
+                  "{} with uniform block '{}': material system does not contain an UBO handler for this UBO name. Shader will likely misbehave.", m.name,
+                  name));
             } else {
               m.propertyTypes[name] = Material::PropertyType::UNIFORM_BUFFER_OBJECT;
 
@@ -179,12 +203,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
               m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
               m.userProperties.ubo_name = name;
 
-              if (!prop.contains("default_value")) {
-                throw std::runtime_error(fmt::format("Missing 'default_value' for {}::{}", m.name, name));
-              }
-              auto parameters = prop["default_value"];
-
-              for (const auto& [key, value] : parameters.items()) {
+              for (const auto& [key, value] : value.items()) {
                 if (value.is_array() && isFloatArray<>(value)) {
                   m.propertyTypes[key] = Material::PropertyType::FLOAT4;
                   auto list = value.get<std::vector<float>>();
@@ -194,7 +213,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
                   m.propertyTypes[key] = Material::PropertyType::FLOAT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
                   m.userProperties.setFloat(key, value.get<float>());
-                } else if (value.is_number_integer()){
+                } else if (value.is_number_integer()) {
                   m.propertyTypes[key] = Material::PropertyType::INT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<int>());
                   m.userProperties.setInt(key, value.get<int>());
@@ -203,18 +222,11 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
                 }
               }
             }
-          } else if (type == "texture") {
-            m.propertyTypes[name] = Material::TEXTURE2D;
-            auto path = prop["default_value"].get<std::string>();
-            spdlog::debug("\t{} texture: {}", name, path);
-            addTextureToMaterial(name, path, m);
-          } else {
-            spdlog::warn("Material '{}' defines property {} of type {} that is not supported. Property will be ignored.", m.name, name, type);
-          }
 
-        } catch (std::runtime_error& e) {
-          spdlog::error("Failed to parse property {} for material {}, details: {}", name, m.name, e.what());
-          throw e;
+          } catch (std::runtime_error& e) {
+            spdlog::error("Failed to parse property {} for material {}, details: {}", name, m.name, e.what());
+            throw e;
+          }
         }
       }
     }

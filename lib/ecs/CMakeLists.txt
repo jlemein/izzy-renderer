@@ -8,7 +8,8 @@ set (HEADERS
         include/uniform_parallax.h
         include/uniform_ubermaterial.h
         include/uniform_lambert.h
-        src/uniform_ubermaterial.cpp include/uniform_uniformblockmanager.h include/ecs_wireframe.h ../workspace/include/wsp_workspace.h include/ecs_postprocess.h ../lsw-gl/include/glrs_postprocessingsystem.h)
+        src/uniform_ubermaterial.cpp include/uniform_uniformblockmanager.h
+        include/ecs_wireframe.h include/ecs_postprocess.h)
 
 add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrol.h

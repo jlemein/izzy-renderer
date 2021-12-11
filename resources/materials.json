@@ -53,79 +53,77 @@
   "materials": [
     {
       "name": "GrayScalePostEffect",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/postprocess/grayscale.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/postprocess/grayscale.frag",
-      "properties": []
+      "fragment_shader": "shaders/postprocess/grayscale.frag"
+    },
+    {
+      "name": "FilterBrightPostEffect",
+      "vertex_shader": "shaders/postprocess/filter_bright.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/filter_bright.frag"
+    },
+    {
+      "name": "GaussianBlur",
+      "vertex_shader": "shaders/postprocess/gaussianblur.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/gaussianblur.frag",
+      "properties": {
+        "weights": [0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216],
+        "horizontal": true
+      }
     },
     {
       "name": "VignettePostEffect",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/postprocess/vignette.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/postprocess/vignette.frag",
-      "properties": []
+      "fragment_shader": "shaders/postprocess/vignette.frag"
     },
     {
       "name": "ConstantLight",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/constantlight.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/constantlight.frag",
-      "properties": [
-        {
-          "type": "uniform",
-          "name": "ConstantLight",
-          "default_value": {
+      "properties": {
+        "ConstantLight": {
             "color": [1.0, 1.0, 1.0, 0.0],
             "intensity": 1.0,
             "radius": 0.1
-          }
         }
-      ]
+      }
     },
     {
       "name": "DebugUv",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/uv.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/uv.frag",
-      "properties": []
+      "fragment_shader": "shaders/uv.frag"
     },
     {
       "name": "DebugNormal",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/normal.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/normal.frag",
-      "properties": []
+      "fragment_shader": "shaders/normal.frag"
     },
     {
       "name": "DebugBinormal",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/tangent.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/tangent.frag",
-      "properties": []
+      "fragment_shader": "shaders/tangent.frag"
     },
     {
       "name": "Texture",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/texture.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/texture.frag",
-      "properties": [
-        {
+      "textures": {
+        "textureMap": {
           "type": "texture",
-          "name": "textureMap",
           "default_value": "textures/castle_albedo.jpg"
         }
-      ]
+      }
     },
     {
       "name": "BlinnPhongSimple",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/blinn-phong-simple.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/blinn-phong-simple.frag",
@@ -133,21 +131,16 @@
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
       },
-      "properties": [
-        {
-          "type": "uniform",
-          "name": "BlinnPhongSimple",
-          "default_value": {
-            "shininess": 32.0,
-            "albedo": [1.0, 1.0, 1.0, 0.0],
-            "specular": [0.1, 0.1, 0.1, 0.0]
-          }
+      "properties": {
+        "BlinnPhongSimple": {
+          "shininess": 32.0,
+          "albedo": [1.0, 1.0, 1.0, 0.0],
+          "specular": [0.1, 0.1, 0.1, 0.0]
         }
-      ]
+      }
     },
     {
       "name": "BlinnPhong",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/blinn-phong.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/blinn-phong.frag",
@@ -155,30 +148,25 @@
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
       },
-      "properties": [
-        {
+      "textures": {
+        "albedoMap": {
           "type": "texture",
-          "name": "albedoMap",
           "default_value": "models/textures/tea_set_01_diff_4k.jpg"
         },
-        {
+        "normalMap": {
           "type": "texture",
-          "name": "normalMap",
           "default_value": "models/textures/tea_set_01_nor_gl_4k.exr"
-        },
-        {
-          "type": "uniform",
-          "name": "BlinnPhong",
-          "default_value": {
-            "shininess": 32.0,
-            "specular_color": [0.3, 0.3, 0.3, 0.0]
-          }
         }
-      ]
+      },
+      "properties": {
+        "BlinnPhong": {
+          "shininess": 32.0,
+          "specular_color": [0.3, 0.3, 0.3, 0.0]
+        }
+      }
     },
     {
       "name": "Diffuse",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/diffuse.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/diffuse.frag",
@@ -186,22 +174,19 @@
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
       },
-      "properties": [
-        {
+      "textures": {
+        "albedoMap": {
           "type": "texture",
-          "name": "albedoMap",
           "default_value": "textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"
         },
-        {
+        "normalMap": {
           "type": "texture",
-          "name": "normalMap",
           "default_value": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
         }
-      ]
+      }
     },
     {
       "name": "ParallaxMap",
-      "is_binary_shader": false,
       "vertex_shader": "shaders/parallax-map.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/parallax-map.frag",
@@ -209,30 +194,25 @@
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
       },
-      "properties": [
-        {
-          "type": "uniform",
-          "name": "Parallax",
-          "default_value": {
-            "height_scale": 1.0
-          }
-        },
-        {
+      "properties": {
+        "Parallax": {
+          "height_scale": 1.0
+        }
+      },
+      "textures": {
+        "albedoMap": {
           "type": "texture",
-          "name": "albedoMap",
           "default_value": "textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
         },
-        {
+        "normalMap": {
           "type": "texture",
-          "name": "normalMap",
           "default_value": "textures/cobble_stone/StreetCobblestone3_1K_normal.png"
         },
-        {
+        "heightMap": {
           "type": "texture",
-          "name": "heightMap",
           "default_value": "textures/cobble_stone/StreetCobblestone3_1K_height.png"
         }
-      ]
+      }
     },
     {
       "name": "Wireframe",

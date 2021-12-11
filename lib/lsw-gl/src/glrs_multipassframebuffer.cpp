@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 02-12-21.
 //
-#include <glrs_common.h>
+//#include <glrs_common.h>
 #include <glrs_multipassframebuffer.h>
 #include <glrs_shadersystem.h>
 #include <iostream>
@@ -36,32 +36,11 @@ void MultipassFramebuffer::initialize() {
   spdlog::debug("Maximum render buffer size: {}", maxRenderBufferSize);
   spdlog::debug("Maximum color samples: {}, maximum depth samples: {}", maxColorSamples, maxDepthSamples);
 
-  // prepare quad for collecting
-  float vertices[] = {// pos        // tex
-                      -1.0f, -1.f, 0.0f, 0.0f, 1.f, 1.f,  1.0f, 1.0f, -1.f, 1.f, 0.0f, 1.0f,
-
-                      -1.f,  -1.f, 0.0f, 0.0f, 1.f, -1.f, 1.0f, 0.0f, 1.f,  1.f, 1.0f, 1.0f};
-
-  // vao 1
-  glGenVertexArrays(1, &m_vao);
-  glGenBuffers(1, &m_vbo);
-  glBindVertexArray(m_vao);
-  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + 4, vertices, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(m_vertexAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), izz::gl::BUFFER_OFFSET(0));
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(m_uvAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), izz::gl::BUFFER_OFFSET(2 * sizeof(float)));
-
   createMsaaFramebuffer();
-  checkError("MSAA Framebuffer");
+//  checkError("MSAA Framebuffer");
 
   createIntermediaFbo();
-  checkError("Intermediate framebuffer");
-
-  glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+//  checkError("Intermediate framebuffer");
 }
 
 void MultipassFramebuffer::resize(int width, int height) {
@@ -144,7 +123,7 @@ void MultipassFramebuffer::createIntermediaFbo() {
   }
 }
 
-void MultipassFramebuffer::bindFramebuffer() {
+void MultipassFramebuffer::bind() {
   glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
 }
 
@@ -157,15 +136,11 @@ void MultipassFramebuffer::nextPass() {
   // bind render framebuffer again
   glBindFramebuffer(GL_FRAMEBUFFER, m_msFbo);
 
-  glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glBindVertexArray(m_vao);  // make the vertex descriptor of vbo active
-
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_texture);
 }
 
-void MultipassFramebuffer::blitToDefaultFramebuffer() {
+void MultipassFramebuffer::apply() {
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_msFbo);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);

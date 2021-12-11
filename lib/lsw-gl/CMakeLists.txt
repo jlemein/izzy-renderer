@@ -5,16 +5,13 @@ add_library(lsw-gl STATIC
         include/glrs_rendersystem.h
         include/glrs_multipassframebuffer.h
         include/glrs_hdrframebuffer.h
-        include/glrs_postprocessingsystem.h
         src/glrs_rendersystem.cpp
         src/glrs_shadersystem.cpp
         src/glrs_shadersystem.h
         src/glrs_lightsystem.cpp
         src/glrs_multipassframebuffer.cpp
         src/glrs_hdrframebuffer.cpp
-        src/glrs_postprocessingsystem.cpp
-
-        src/glrs_postprocessingsystem.cpp)
+        include/glrs_iframebuffer.h)
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)

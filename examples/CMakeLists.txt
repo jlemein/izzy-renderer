@@ -19,6 +19,10 @@ add_executable(izzyrender m_izzyrender.cpp)
 target_link_libraries(izzyrender PRIVATE izzy lsw-gui common cxxopts::cxxopts)
 target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
 
+add_executable(bloom m_bloom.cpp)
+target_link_libraries(bloom PRIVATE izzy lsw-gui common cxxopts::cxxopts)
+target_compile_definitions(bloom PRIVATE -DVERSION_STR="1.0.0")
+
 install(TARGETS izzyrender
         COMPONENT izzyrender
         RUNTIME DESTINATION bin

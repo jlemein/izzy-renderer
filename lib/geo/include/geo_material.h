@@ -46,6 +46,7 @@ struct UserProperties {
   std::unordered_map<std::string, float> floatValues;
   std::unordered_map<std::string, int> intValues;
   std::unordered_map<std::string, std::vector<float>> floatArrayValues;
+  std::unordered_map<std::string, bool> booleanValues;
 
   float getFloat(const std::string& key) const {
     if (floatValues.count(key) > 0) {
@@ -97,6 +98,14 @@ struct UserProperties {
   void setInt(const std::string& name, int value) {
     intValues[name] = value;
   }
+
+  bool getBoolean(const std::string& name) {
+    return booleanValues.at(name);
+  }
+
+  void setBoolean(const std::string& name, bool value) {
+    booleanValues[name] = value;
+  }
 };
 
 struct Material {
@@ -142,7 +151,8 @@ struct Material {
   std::shared_ptr<geo::Texture> roughnessTexture{nullptr};
   std::shared_ptr<geo::Texture> opacityTexture{nullptr};
 
-  UserProperties userProperties;
+  UserProperties unscopedUniforms;  /// @brief uniforms not in an interface block (less efficient).
+  UserProperties userProperties;    /// @brief uniforms as part of a interface block (i.e. named uniform buffer object).
 
   // contains map from name to property type
   std::unordered_map<std::string, Material::PropertyType> propertyTypes;

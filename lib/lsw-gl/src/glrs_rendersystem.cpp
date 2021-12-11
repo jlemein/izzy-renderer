@@ -27,6 +27,17 @@ using namespace lsw::glrs;
 
 namespace {
 
+int getUniformLocation(GLint program, const char* name, const std::string& materialName) {
+  int location = glGetUniformLocation(program, name);
+  if (location == -1) {
+    throw std::runtime_error(fmt::format("unknown uniform parameter '{}' (material: '{}').", name, materialName));
+  }
+  return location;
+}
+
+void pushShaderProperties(const Renderable&);
+void pushUnscopedUniforms(const Renderable&);
+
 constexpr void* BUFFER_OFFSET(unsigned int offset) {
   uint8_t* pAddress = 0;
   return pAddress + offset;
@@ -43,6 +54,35 @@ void pushShaderProperties(const Renderable& r) {
     void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
     glUnmapBuffer(GL_UNIFORM_BUFFER);
+  }
+
+  pushUnscopedUniforms(r);
+}
+
+void pushUnscopedUniforms(const Renderable& r) {
+  for (unsigned int i = 0; i < r.unscopedUniforms.numProperties; ++i) {
+    const auto& uniform = r.unscopedUniforms.pProperties[i];
+
+    switch (uniform.type) {
+      case lsw::glrs::UType::BOOL:
+      case lsw::glrs::UType::INT:
+        glUniform1i(uniform.location, *reinterpret_cast<int*>(r.unscopedUniforms.pData + uniform.offset));
+        break;
+
+      case lsw::glrs::UType::FLOAT_ARRAY:
+      case lsw::glrs::UType::FLOAT2:
+      case lsw::glrs::UType::FLOAT3:
+      case lsw::glrs::UType::FLOAT4:
+        glUniform1fv(uniform.location, uniform.length, reinterpret_cast<float*>(r.unscopedUniforms.pData + uniform.offset));
+        break;
+
+      case lsw::glrs::UType::INT_ARRAY:
+      case lsw::glrs::UType::INT2:
+      case lsw::glrs::UType::INT3:
+      case lsw::glrs::UType::INT4:
+        glUniform1iv(uniform.location, uniform.length, reinterpret_cast<GLint*>(r.unscopedUniforms.pData + uniform.offset));
+        break;
+    }
   }
 }
 
@@ -133,16 +173,89 @@ void RenderSystem::initShaderProperties(entt::entity entity, Renderable& rendera
     }
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
 
-    //    auto p = reinterpret_cast<ufm::UberMaterial*>(blockData.data);
-    //    std::cout << "Ubermaterial: hasDiffuse " << std::boolalpha << p->hasDiffuseTex << std::endl;
-    //    std::cout << "   --- Init " << renderable.name << ">" << name << "
-    //    with "
-    //              << p->diffuse.r << " " << p->diffuse.g << " " <<
-    //              p->diffuse.b
-    //              << std::endl;
-
     // store block handle in renderable
     renderable.userProperties[name] = Renderable_UniformBlockInfo{uboHandle, blockIndex, blockBinding, &blockData};
+  }
+
+  initUnscopedShaderProperties(entity, renderable, material);
+}
+
+void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material) {
+  // first memory allocation. For this we need to know the number of properties and length of data properties.
+  int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
+                      material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
+  uint64_t sizeBytes = 0U;
+  sizeBytes += material.unscopedUniforms.booleanValues.size() * sizeof(GLint);
+  sizeBytes += material.unscopedUniforms.intValues.size() * sizeof(GLint);
+  sizeBytes += material.unscopedUniforms.floatValues.size() * sizeof(GLfloat);
+  for (const auto& array : material.unscopedUniforms.floatArrayValues) {
+    sizeBytes += array.second.size() * sizeof(GLfloat);
+  }
+
+  renderable.unscopedUniforms = UnscopedUniforms::Allocate(numProperties, sizeBytes);
+
+  auto pData = renderable.unscopedUniforms.pData;
+  auto pUniform = renderable.unscopedUniforms.pProperties;
+  unsigned int offset = 0U;
+
+  for (auto [name, value] : material.unscopedUniforms.booleanValues) {
+    *reinterpret_cast<int*>(pData) = value;
+    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->type = UType::BOOL;
+    pUniform->offset = offset;
+    pUniform->length = 1;
+
+    glUniform1i(pUniform->location, *reinterpret_cast<int*>(renderable.unscopedUniforms.pData + pUniform->offset));
+    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+
+    offset += sizeof(GLint);
+    pData += sizeof(GLint);
+    pUniform++;
+  }
+
+  for (auto [name, value] : material.unscopedUniforms.intValues) {
+    *reinterpret_cast<int*>(pData) = value;
+    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->type = UType::INT;
+    pUniform->offset = offset;
+    pUniform->length = 1;
+
+    glUniform1i(pUniform->location, *reinterpret_cast<int*>(renderable.unscopedUniforms.pData + pUniform->offset));
+    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+
+    offset += sizeof(GLint);
+    pData += sizeof(GLint);
+    pUniform++;
+  }
+
+  for (auto [name, value] : material.unscopedUniforms.floatValues) {
+    *reinterpret_cast<float*>(pData) = value;
+    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->type = UType::FLOAT;
+    pUniform->offset = offset;
+    pUniform->length = 1;
+
+    glUniform1f(pUniform->location, *reinterpret_cast<float*>(renderable.unscopedUniforms.pData + pUniform->offset));
+    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+
+    offset += sizeof(float);
+    pData += sizeof(float);
+    pUniform++;
+  }
+
+  for (auto [name, value] : material.unscopedUniforms.floatArrayValues) {
+    memcpy(reinterpret_cast<float*>(pData), value.data(), sizeof(float) * value.size());
+    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->type = UType::FLOAT_ARRAY;
+    pUniform->offset = offset;
+    pUniform->length = value.size();
+
+    glUniform1fv(pUniform->location, pUniform->length, reinterpret_cast<float*>(renderable.unscopedUniforms.pData + pUniform->offset));
+    spdlog::info("Initialized: {}.{} = [{}]", material.name, name, fmt::join(value, ", "));
+
+    offset += sizeof(float) * value.size();
+    pData += sizeof(float) * value.size();
+    pUniform++;
   }
 }
 
@@ -151,7 +264,8 @@ RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::sh
   , m_debugSystem(sceneGraph->getRegistry())
   , m_materialSystem(materialSystem)
   , m_shaderSystem(std::make_shared<ShaderSystem>())
-  , m_lightSystem{std::make_shared<LightSystem>(m_registry)} {}
+  , m_lightSystem{std::make_shared<LightSystem>(m_registry)}
+  , m_framebuffer{std::make_unique<HdrFramebuffer>()} {}
 
 void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
@@ -240,9 +354,28 @@ void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
   glBindVertexArray(0);
 }
 
-void RenderSystem::init() {
-  m_framebuffer.initialize();
+void RenderSystem::initPostprocessBuffers() {
+  // prepare quad for collecting
+  float vertices[] = {
+      // pos        // tex
+      -1.0f, -1.f, 0.0f, 0.0f, 1.f, 1.f, 1.0f, 1.0f, -1.f, 1.f, 0.0f, 1.0f, -1.f, -1.f, 0.0f, 0.0f, 1.f, -1.f, 1.0f, 0.0f, 1.f, 1.f, 1.0f, 1.0f};
+  // vao 1
+  glGenVertexArrays(1, &m_quadVao);
+  glGenBuffers(1, &m_quadVbo);
+  glBindVertexArray(m_quadVao);
+  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + 4, vertices, GL_STATIC_DRAW);
+  glEnableVertexAttribArray(0);
+  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), izz::gl::BUFFER_OFFSET(0));
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), izz::gl::BUFFER_OFFSET(2 * sizeof(float)));
 
+  glBindVertexArray(0);
+  glBindBuffer(GL_ARRAY_BUFFER, 0);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
+void RenderSystem::init() {
   glShadeModel(GL_SMOOTH);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH_TEST);
@@ -251,11 +384,14 @@ void RenderSystem::init() {
   glFrontFace(GL_CCW);
   glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
 
-  // initialize light system first. Light system may add renderable and material component for light sources.
+  m_framebuffer->initialize();
   m_lightSystem->initialize();
 
   // convert material descriptions to openGL specific material data.
   m_materialSystem->synchronizeTextures(*this);
+
+  // setup postprocessing screen quad
+  initPostprocessBuffers();
 
   auto numMaterials = m_registry.view<geo::Material>().size();
   auto numLights = m_lightSystem->getActiveLightCount();
@@ -323,7 +459,7 @@ void RenderSystem::init() {
 
     } catch (std::exception& e) {
       auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
-      throw std::runtime_error(fmt::format("Failed initializing material for entity with name '{}': {}", name, e.what()));
+      throw std::runtime_error(fmt::format("Entity {}: {}", name, e.what()));
     }
   }
   //  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
@@ -387,7 +523,7 @@ void RenderSystem::updateCamera(Renderable& renderable) {
 
 void RenderSystem::render() {
   //  // 1. Select buffer to render into
-  m_framebuffer.bindFramebuffer();
+  m_framebuffer->bind();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // render 3D scene
@@ -444,26 +580,35 @@ void RenderSystem::render() {
     checkError(entity);
   }
 
-  // render post processing effects
+  renderPosteffects();
+
+  m_framebuffer->apply();
+}
+
+void RenderSystem::renderPosteffects() {
+  // activate screen quad
+  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glBindVertexArray(m_quadVao);
+
   if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
-    const auto& posteffectCollection = m_registry.get<ecs::PosteffectCollection>(m_activeCamera);
-    for (auto e : posteffectCollection.posteffects) {
-      m_framebuffer.nextPass();
+    for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
+      m_framebuffer->nextPass();
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      const auto& renderable = m_registry.get<Renderable>(e);
-
+      auto& renderable = m_registry.get<Renderable>(e);
       glUseProgram(renderable.program);
+      pushShaderProperties(renderable);
+
       glDrawArrays(GL_TRIANGLES, 0, 6);
-      glBindVertexArray(0);
     }
   }
 
-  m_framebuffer.blitToDefaultFramebuffer();
+  glBindVertexArray(0);
 }
 
-MultipassFramebuffer& RenderSystem::getFramebuffer() {
-  return m_framebuffer;
+IFramebuffer& RenderSystem::getFramebuffer() {
+  return *m_framebuffer;
 }
 
 void RenderSystem::checkError(entt::entity e) {

@@ -3,7 +3,9 @@
 //
 #pragma once
 
+#include <GL/glew.h>
 #include <cstdint>
+#include <iostream>
 
 namespace izz {
 namespace gl {
@@ -13,17 +15,12 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
   return pAddress + offset;
 }
 
-/**
- * Abstracts away a frame buffer object.
- */
-//struct Framebuffer {
-//  GLuint fbo;
-//  GLuint sreenQuadVbo {0U};
-//};
-//
-//class FramebufferFactory {
-// public:
-//  static void CreateDefaultFramebuffer();
-//};
-};
-};
+void checkError(const char* name) {
+  GLenum err;
+  if ((err = glGetError()) != GL_NO_ERROR) {
+    std::cerr << "OpenGL error occurred for " << name << ": " << err << std::endl;
+  }
+}
+
+}  // namespace gl
+}  // namespace izz

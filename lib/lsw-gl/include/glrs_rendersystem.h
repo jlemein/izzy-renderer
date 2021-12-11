@@ -8,7 +8,8 @@
 #include <memory>
 
 #include <glrs_lightsystem.h>
-#include "glrs_multipassframebuffer.h"
+#include <glrs_multipassframebuffer.h>
+#include "glrs_hdrframebuffer.h"
 
 namespace lsw {
 
@@ -40,8 +41,7 @@ class RenderSystem {
   void update(float time, float dt);
   void render();
 
-//  void setFramebuffer()
-  MultipassFramebuffer& getFramebuffer();
+  IFramebuffer& getFramebuffer();
 
   /**
    * @returns the light system.
@@ -61,8 +61,7 @@ class RenderSystem {
   void activateTextures(entt::entity e);
 
  private:
-  // framebuffer mechanism
-  MultipassFramebuffer m_framebuffer;
+  std::unique_ptr<IFramebuffer> m_framebuffer;
 
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
@@ -71,6 +70,8 @@ class RenderSystem {
   std::shared_ptr<LightSystem> m_lightSystem;
 
   entt::entity m_activeCamera{entt::null};
+
+  GLuint m_quadVbo, m_quadVao;
 
   /// makes sure the transformations applied to meshes and cameras are reflected
   /// in the renderable component.
@@ -99,7 +100,19 @@ class RenderSystem {
    */
   void initShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material);
 
+  /**
+   * Unscoped shader properties are global uniform variables in the material. They are not placed in an
+   * interface block. Therefore, each of them are queried the location and stored in an efficient
+   * data structure as part of the Renderable component.
+   * @param renderable  Renderable component
+   * @param material    Material containing the unscoped shader properties.
+   */
+  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material);
+
   void checkError(entt::entity e);
+
+  void initPostprocessBuffers();
+  void renderPosteffects();
 };
 
 class IMaterialSystem {
