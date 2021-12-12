@@ -1,32 +1,37 @@
 //
 // Created by jeffrey on 12-12-21.
 //
-#include <gui_materialeditor.h>
 #include <ecsg_scenegraph.h>
-#include <entt/entt.hpp>
+#include <geo_material.h>
+#include <gui_materialeditor.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include <geo_material.h>
-#include "glrs_renderable.h"
+#include <entt/entt.hpp>
 #include "ecs_name.h"
+#include "glrs_renderable.h"
 using namespace izz::gui;
 
-static bool p_open {false};
+static bool p_open{false};
 
 MaterialEditor::MaterialEditor(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph)
-  : m_sceneGraph{sceneGraph} {}
+  : m_sceneGraph{sceneGraph}
+  , m_shaderEditor{sceneGraph} {}
 
-void MaterialEditor::init() {}
+void MaterialEditor::init() {
+  m_shaderEditor.init();
+}
 
 void MaterialEditor::render(float time, float dt) {
+  static bool showEditor = false;
+  lsw::geo::Material mat;
 
   if (m_show) {
     if (ImGui::Begin("Material Editor", &m_show)) {
       auto flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_Borders;
       if (ImGui::BeginTable("Table1", 2, flags, ImVec2(0, 0), 0)) {
-
         ImGui::TableSetupColumn("Program ID");
         ImGui::TableSetupColumn("Material");
+        //        ImGui::TableSetupColumn("Actions");
         ImGui::TableHeadersRow();
 
         for (const auto& [e, material] : m_sceneGraph->getRegistry().view<lsw::geo::Material>().each()) {
@@ -36,8 +41,15 @@ void MaterialEditor::render(float time, float dt) {
           ImGui::TableNextColumn();
           ImGui::Text(r != nullptr ? std::to_string(static_cast<int>(r->program)).c_str() : "N.A.");
           ImGui::TableNextColumn();
+
+          ImGui::PushID(static_cast<int>(e));
           ImGui::Text(fmt::format("{} ({})", name, material.name).c_str());
-          ImGui::TableNextRow();
+          ImGui::SameLine();
+          if (ImGui::Button("Edit")) {
+            m_shaderEditor.openDialog(e);
+            spdlog::info("Open material editor for program id: {}", r->program);
+          }
+          ImGui::PopID();
         }
         ImGui::EndTable();
       }
@@ -45,6 +57,7 @@ void MaterialEditor::render(float time, float dt) {
     }
   }
 
+  m_shaderEditor.render(time, dt);
 }
 
 void MaterialEditor::open() {

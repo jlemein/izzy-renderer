@@ -72,7 +72,7 @@ int main(int argc, char* argv[]) {
 
     // ==== GUI =============================================================
     auto editor = make_shared<gui::LightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
+    auto guiSystem = make_shared<gui::GuiSystem>(fontSystem, vector<std::shared_ptr<gui::IGuiWindow>>{editor});
     auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================

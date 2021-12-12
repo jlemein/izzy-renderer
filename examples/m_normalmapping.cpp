@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
     auto editor = make_shared<gui::LightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<gui::GuiSystem>(editor);
+    auto guiSystem = make_shared<gui::GuiSystem>(fontSystem, editor);
     auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);
 
     // ==== SCENE SETUP ======================================================
