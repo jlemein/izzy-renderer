@@ -18,9 +18,9 @@
 #include <izz_stbtextureloader.h>
 #include <izz_texturesystem.h>
 #include <gui_lighteditor.h>
-#include <vwr_viewer.h>
+#include <gui_window.h>
 #include <wsp_workspace.h>
-#include "gui_guiwindow.h"
+#include "gui_iguiwindow.h"
 
 #include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
@@ -28,6 +28,7 @@
 #include <memory>
 using namespace std;
 using namespace lsw;
+using namespace izz;
 using namespace geo;
 using lsw::core::Util;
 using namespace glm;
@@ -70,9 +71,9 @@ int main(int argc, char* argv[]) {
     renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
     // ==== GUI =============================================================
-    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto editor = make_shared<gui::LightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
+    auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto sphere11 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere11", .5F));

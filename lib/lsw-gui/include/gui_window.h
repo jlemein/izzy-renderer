@@ -1,15 +1,15 @@
 #pragma once
 
 #include <ecs_firstpersoncontrolsystem.h>
-#include <vwr_viewerextension.h>
+#include <gui_iwindowextension.h>
 
 #include <list>
 #include <memory>
 #include <string>
 
 #include <ecsg_scenegraphentity.h>
-#include <entt/entt.hpp>
 #include <gui_guisystem.h>
+#include <entt/entt.hpp>
 
 #include <GLFW/glfw3.h>
 
@@ -30,31 +30,33 @@ class TransformSystem;
 class CameraSystem;
 class DebugSystem;
 class IViewerExtension;
-} // namespace ecs
+}  // namespace ecs
 
 namespace ecsg {
 class SceneGraph;
-} // namespace ecsg
+}  // namespace ecsg
 
 namespace io {
 class InputSystem;
-} // namespace io
+}  // namespace io
+}  // namespace lsw
 
-namespace viewer {
+namespace izz {
+namespace gui {
 class WindowInputListener;
 
 typedef struct WindowHandle {
 } WindowHandle;
 
 struct DisplayDetails {
-  WindowHandle *window{nullptr};
+  WindowHandle* window{nullptr};
   std::string shadingLanguage{""};
   std::string shadingLanguageVersion{""};
-  int windowWidth {800}, windowHeight {600};
+  int windowWidth{800}, windowHeight{600};
 };
 
-class Viewer {
-public:
+class Window {
+ public:
   typedef entt::registry SceneGraph;
 
   /**!
@@ -63,13 +65,12 @@ public:
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph,
-         std::shared_ptr<glrs::RenderSystem> renderSystem,
+  Window(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph, std::shared_ptr<lsw::glrs::RenderSystem> renderSystem,
          std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
 
-  ~Viewer();
+  ~Window();
 
-  ecsg::SceneGraph &getSceneGraph();
+  lsw::ecsg::SceneGraph& getSceneGraph();
 
   DisplayDetails getDisplayDetails();
 
@@ -77,26 +78,26 @@ public:
   int run();
 
   void setWindowSize(unsigned int width, unsigned int height);
-  void setTitle(const std::string &title);
+  void setTitle(const std::string& title);
 
-  void setActiveCamera(ecsg::SceneGraphEntity cameraEntity);
+  void setActiveCamera(lsw::ecsg::SceneGraphEntity cameraEntity);
 
-// callbacks
+  // callbacks
   void onWindowResize(int width, int height);
 
-private:
-  std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
-  std::shared_ptr<ResourceManager> m_resourceManager;
-  std::shared_ptr<gui::GuiSystem> m_guiSystem {nullptr};
-  std::shared_ptr<anim::AnimationSystem> m_animationSystem;
-  entt::registry &m_registry;
+ private:
+  std::shared_ptr<lsw::ecsg::SceneGraph> m_sceneGraph;
+  std::shared_ptr<lsw::ResourceManager> m_resourceManager;
+  std::shared_ptr<gui::GuiSystem> m_guiSystem{nullptr};
+  std::shared_ptr<lsw::anim::AnimationSystem> m_animationSystem;
+  entt::registry& m_registry;
 
-  std::shared_ptr<glrs::RenderSystem> m_renderSystem;
-  std::shared_ptr<ecs::TransformSystem> m_transformSystem;
-  std::shared_ptr<ecs::CameraSystem> m_cameraSystem;
-  std::shared_ptr<ecs::DebugSystem> m_debugSystem;
-  std::shared_ptr<io::InputSystem> m_inputSystem;
-  std::shared_ptr<ecs::FirstPersonMovementSystem> m_firstPersonSystem;
+  std::shared_ptr<lsw::glrs::RenderSystem> m_renderSystem;
+  std::shared_ptr<lsw::ecs::TransformSystem> m_transformSystem;
+  std::shared_ptr<lsw::ecs::CameraSystem> m_cameraSystem;
+  std::shared_ptr<lsw::ecs::DebugSystem> m_debugSystem;
+  std::shared_ptr<lsw::io::InputSystem> m_inputSystem;
+  std::shared_ptr<lsw::ecs::FirstPersonMovementSystem> m_firstPersonSystem;
 
   std::shared_ptr<WindowInputListener> m_genericInputListener;
 
@@ -104,5 +105,5 @@ private:
   std::string m_title = "Izzy Renderer";
 };
 
-} // namespace viewer
-} // namespace lsw
+}  // namespace gui
+}  // namespace izz

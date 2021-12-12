@@ -1,9 +1,9 @@
-#include <gui_lighteditor.h>
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>
 #include <ecsg_scenegraph.h>
 #include <geo_material.h>
+#include <gui_lighteditor.h>
 #include <izz_resourcemanager.h>
 #include <izz_texturesystem.h>
 
@@ -11,16 +11,16 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-using namespace lsw::gui;
+using namespace izz::gui;
 using namespace lsw;
 using namespace std;
 
-GuiLightEditor::GuiLightEditor(shared_ptr<ecsg::SceneGraph> sceneGraph, shared_ptr<lsw::FontSystem> fontSystem)
+LightEditor::LightEditor(shared_ptr<ecsg::SceneGraph> sceneGraph, shared_ptr<lsw::FontSystem> fontSystem)
   : m_sceneGraph{sceneGraph}
   , m_fontSystem(fontSystem)
   , m_registry(sceneGraph->getRegistry()) {}
 
-void GuiLightEditor::init() {
+void LightEditor::init() {
   // Setup Dear ImGui style
   // ImGui::StyleColorsDark();
   ImGui::StyleColorsDark();
@@ -28,8 +28,8 @@ void GuiLightEditor::init() {
   ImGuiIO& io = ImGui::GetIO();
 
   for (auto font : m_fontSystem->getAvailableFonts()) {
-    m_fonts.push_back(io.Fonts->AddFontFromFileTTF(font.c_str(), 20));
-    spdlog::info("Loaded font: {}", font);
+    m_fonts.push_back(io.Fonts->AddFontFromFileTTF(font.name.c_str(), 20));
+    spdlog::info("Loaded font: {}", font.name);
   }
   spdlog::debug("Gui window initialized");
 }
@@ -80,41 +80,43 @@ void RenderAmbientLightWindow(ecs::AmbientLight& light, const char* name, bool c
 }
 }  // namespace
 
-void GuiLightEditor::render(float dt, float totalTime) {
-  // set next window position. call before Begin(). use pivot=(0.5f,0.5f) to center on given point, etc.
-  ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
-  ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-  //  ImGui::StyleColorsLight();
+void LightEditor::render(float dt, float totalTime) {
+  if (LightEditor::Show) {
+    // set next window position. call before Begin(). use pivot=(0.5f,0.5f) to center on given point, etc.
+    ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
+    ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
+    //  ImGui::StyleColorsLight();
 
-  if (!m_fonts.empty()) {
-    ImGui::PushFont(*m_fonts.begin());
-  }
+    if (!m_fonts.empty()) {
+      ImGui::PushFont(*m_fonts.begin());
+    }
 
-  // render your GUI
-  ImGui::Begin("Light Control");
+    // render your GUI
+    ImGui::Begin("Light Control", &LightEditor::Show);
 
-  // == LIGHTS ========================================================
-  ImGui::TextColored(ImVec4(1, 1, 0, 1), "Lights in the scene");
+    // == LIGHTS ========================================================
+    ImGui::TextColored(ImVec4(1, 1, 0, 1), "Lights in the scene");
 
-  auto dirLights = m_registry.view<ecs::DirectionalLight, ecs::Name, ecs::Transform>();
-  for (auto [e, light, name, transform] : dirLights.each()) {
-    RenderDirectionalLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
-  }
+    auto dirLights = m_registry.view<ecs::DirectionalLight, ecs::Name, ecs::Transform>();
+    for (auto [e, light, name, transform] : dirLights.each()) {
+      RenderDirectionalLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
+    }
 
-  auto ambientLights = m_registry.view<ecs::AmbientLight, ecs::Name>();
-  for (auto [e, light, name] : ambientLights.each()) {
-    RenderAmbientLightWindow(light, name.name.c_str(), ImGui::Button(name.name.c_str()));
-  }
-  auto pointLights = m_registry.view<ecs::PointLight, ecs::Name, ecs::Transform>();
-  for (auto [e, light, name, transform] : pointLights.each()) {
-    RenderPointLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
-  }
-  // ==================================================================
+    auto ambientLights = m_registry.view<ecs::AmbientLight, ecs::Name>();
+    for (auto [e, light, name] : ambientLights.each()) {
+      RenderAmbientLightWindow(light, name.name.c_str(), ImGui::Button(name.name.c_str()));
+    }
+    auto pointLights = m_registry.view<ecs::PointLight, ecs::Name, ecs::Transform>();
+    for (auto [e, light, name, transform] : pointLights.each()) {
+      RenderPointLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
+    }
+    // ==================================================================
 
-  ImGui::End();
+    ImGui::End();
 
-  if (!m_fonts.empty()) {
-    ImGui::PopFont();
+    if (!m_fonts.empty()) {
+      ImGui::PopFont();
+    }
   }
 }
 

@@ -3,7 +3,7 @@
 //
 #include <izz_materialsystem.h>
 #include <spdlog/spdlog.h>
-#include <vwr_viewer.h>
+#include <gui_window.h>
 #include <cxxopts.hpp>
 #include <memory>
 #include <anim_localrotation.h>
@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
-    auto viewer = std::make_shared<viewer::Viewer>(sceneGraph, renderSystem);
+    auto viewer = std::make_shared<izz::gui::Window>(sceneGraph, renderSystem);
 
     // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
     //    sceneGraph->setDefaultMaterial(

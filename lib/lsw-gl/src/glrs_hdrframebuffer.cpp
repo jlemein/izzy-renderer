@@ -49,14 +49,21 @@ void HdrFramebuffer::initialize() {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_intermediateHdr, 0);
+
+  glGenTextures(1, &m_sceneHdr);
+  glBindTexture(GL_TEXTURE_2D, m_sceneHdr);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_width, m_height, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_sceneHdr, 0);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
     spdlog::info("Successfully created intermediate HDR framebuffer");
   } else {
     throw std::runtime_error("Failed creating a valid intermediate HDR frame buffer");
   }
+
 
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   // depth component
@@ -93,21 +100,36 @@ void HdrFramebuffer::resize(int width, int height) {
 }
 
 void HdrFramebuffer::bind() {
+  passIndex = 0;
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 }
 
 void HdrFramebuffer::nextPass() {
+
   // blit renderbuffer to texture buffer
   glBindFramebuffer(GL_READ_FRAMEBUFFER, m_fbo);  // read from scene drawing
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo1); // bind the intermediate buffer
-  glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+  if (passIndex == 0) {
+    // only the first pass, we copy to color attachments 0 and 1
+    GLenum buffs[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT0+1};
+    glDrawBuffers(2, buffs);
+    glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+  } else {
+    glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+  }
+
 
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_intermediateHdr);
 
+  glActiveTexture(GL_TEXTURE0+1);
+  glBindTexture(GL_TEXTURE_2D, m_sceneHdr);
+
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo); // render to the scene again
 
-
+  ++passIndex;
 }
 
 void HdrFramebuffer::apply() {

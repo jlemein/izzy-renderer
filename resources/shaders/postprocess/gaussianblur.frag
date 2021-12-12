@@ -17,13 +17,13 @@ void main() {
 
     if (horizontal) {
         for (int i=1; i<5; ++i) {
-            result += texture(scene, in_uv + vec2(tex_offset.x * i, 0.0)).rgb * weights[i];
-            result += texture(scene, in_uv - vec2(tex_offset.x * i, 0.0)).rgb * weights[i];
+            result += texture(scene, in_uv + vec2(tex_offset.x * i*2, 0.0)).rgb * weights[i];
+            result += texture(scene, in_uv - vec2(tex_offset.x * i*2, 0.0)).rgb * weights[i];
         }
     } else {
         for (int i=1; i<5; ++i) {
-            result += texture(scene, in_uv + vec2(0.0, tex_offset.x * i)).rgb * weights[i];
-            result += texture(scene, in_uv - vec2(0.0, tex_offset.x * i)).rgb * weights[i];
+            result += texture(scene, in_uv + vec2(0.0, tex_offset.x * i*2)).rgb * weights[i];
+            result += texture(scene, in_uv - vec2(0.0, tex_offset.x * i*2)).rgb * weights[i];
         }
     }
 

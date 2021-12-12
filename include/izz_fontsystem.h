@@ -6,6 +6,11 @@
 
 namespace lsw {
 
+struct Font {
+  std::string name;
+  int preferredSize;
+};
+
 /**
  * Font system handles the loading and managing of fonts.
  * For now this is a simple place to add and retrieve font files.
@@ -17,17 +22,12 @@ class FontSystem {
    */
   FontSystem() = default;
 
-  /**
-   * Reads the directory and adds the fonts in the directory to the font system.
-   * @param directory   [in] Directory containing font files (.TTF).
-   * @return The number of fonts successfully read in.
-   */
-  int addFontsFromDirectory(std::filesystem::path directory);
+  void addFont(std::filesystem::path fontFile, int preferredSize = 20);
 
-  std::vector<std::string> getAvailableFonts();
+  std::vector<Font> getAvailableFonts();
 
  private:
-  std::vector<std::string> m_availableFontFiles;
+  std::vector<Font> m_availableFontFiles;
 };
 
 } // namespace lsw

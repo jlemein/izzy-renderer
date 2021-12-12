@@ -10,10 +10,10 @@
 #include <izz_resourcemanager.h>
 #include <glrs_rendersystem.h>
 #include <io_inputsystem.h>
-#include <vwr_viewer.h>
-#include <vwr_viewerextension.h>
-#include <vwr_windowinputlistener.h>
-#include <gui_guiwindow.h>
+#include <gui_window.h>
+#include <gui_iwindowextension.h>
+#include <gui_windowinputlistener.h>
+#include <gui_iguiwindow.h>
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -21,7 +21,7 @@
 
 using namespace std;
 using namespace lsw;
-using namespace lsw::viewer;
+using namespace izz::gui;
 
 namespace {
 static void error_callback(int error, const char* description) {
@@ -29,7 +29,7 @@ static void error_callback(int error, const char* description) {
 }
 }  // namespace
 
-Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
+Window::Window(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
                std::shared_ptr<gui::GuiSystem> guiSystem)
   : m_sceneGraph{sceneGraph}
   , m_guiSystem(guiSystem)
@@ -40,20 +40,20 @@ Viewer::Viewer(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glr
   , m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)}
   , m_transformSystem{make_shared<ecs::TransformSystem>(m_registry)} {}
 
-Viewer::~Viewer() {}
+Window::~Window() {}
 
-void Viewer::setWindowSize(unsigned int width, unsigned int height) {
+void Window::setWindowSize(unsigned int width, unsigned int height) {
   m_displayDetails.windowWidth = static_cast<int>(width);
   m_displayDetails.windowHeight = static_cast<int>(height);
   m_cameraSystem->setFramebufferSize(width, height);
   m_renderSystem->getFramebuffer().setSize(width, height);
 }
 
-void Viewer::setTitle(const std::string& title) {
+void Window::setTitle(const std::string& title) {
   m_title = title;
 }
 
-void Viewer::initialize() {
+void Window::initialize() {
   glfwSetErrorCallback(error_callback);
 
   if (!glfwInit()) exit(EXIT_FAILURE);
@@ -72,14 +72,14 @@ void Viewer::initialize() {
 
   glfwSetWindowUserPointer(window, this);
   glfwSetWindowSizeCallback(window, [](GLFWwindow* window, int width, int height) {
-    static_cast<Viewer*>(glfwGetWindowUserPointer(window))->onWindowResize(width, height);
+    static_cast<Window*>(glfwGetWindowUserPointer(window))->onWindowResize(width, height);
   });
 
   m_displayDetails.window = reinterpret_cast<WindowHandle*>(window);
   m_displayDetails.shadingLanguage = "glsl";
   m_displayDetails.shadingLanguageVersion = "#version 130";
 
-  m_inputSystem = std::make_shared<io::InputSystem>(window, 640, 640);
+  m_inputSystem = std::make_shared<lsw::io::InputSystem>(window, m_displayDetails.windowWidth, m_displayDetails.windowHeight);
   m_genericInputListener = std::make_shared<WindowInputListener>(window);
   m_inputSystem->registerInputListener(m_genericInputListener);
   m_firstPersonSystem = std::make_shared<ecs::FirstPersonMovementSystem>(m_registry, m_inputSystem.get());
@@ -105,7 +105,7 @@ void Viewer::initialize() {
   m_guiSystem->initialize(this);
 }
 
-int Viewer::run() {
+int Window::run() {
   GLFWwindow* window = reinterpret_cast<GLFWwindow*>(m_displayDetails.window);
 
   float prevTime = 0.0F;
@@ -157,20 +157,23 @@ int Viewer::run() {
   return 0;
 }
 
-ecsg::SceneGraph& Viewer::getSceneGraph() {
+ecsg::SceneGraph& Window::getSceneGraph() {
   return *m_sceneGraph;
 }
 
-DisplayDetails Viewer::getDisplayDetails() {
+DisplayDetails Window::getDisplayDetails() {
   return m_displayDetails;
 }
 
-void Viewer::setActiveCamera(ecsg::SceneGraphEntity cameraEntity) {
+void Window::setActiveCamera(ecsg::SceneGraphEntity cameraEntity) {
   m_renderSystem->setActiveCamera(cameraEntity.handle());
 }
 
-void Viewer::onWindowResize(int width, int height) {
+void Window::onWindowResize(int width, int height) {
   spdlog::info("Window is resized to: {} x {}", width, height);
   m_renderSystem->getFramebuffer().resize(width, height);
   glViewport(0, 0, width, height);
+
+  // indicate to input system
+  m_inputSystem->setWindowSize(width, height);
 }

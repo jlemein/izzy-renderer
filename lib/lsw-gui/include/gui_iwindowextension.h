@@ -1,31 +1,27 @@
 //
 // Created by jlemein on 06-11-20.
 //
+#pragma once
 
-#ifndef GLVIEWER_ECS_INTERACTABLE_H
-#define GLVIEWER_ECS_INTERACTABLE_H
-
-#include <entt/entt.hpp>
 #include <entt/entity/registry.hpp>
+#include <entt/entt.hpp>
 
-namespace lsw {
-namespace viewer {
-class Viewer;
-}
+namespace izz {
+namespace gui {
+class Window;
 
-namespace ecs
-{
-class IViewerExtension
-{
+class IWindowExtension {
  public:
-  virtual ~IViewerExtension() = default;
+  virtual ~IWindowExtension() = default;
 
   /**
    * Place to initialize your system with viewer specific variables.
    * At this point the viewer has initialized a window context, and you can
    * query device metrics.
+   *
+   * @param window[in]  Pointer to owner window. Cannot be nullptr.
    */
-  virtual void initialize(lsw::viewer::Viewer* viewer) = 0;
+  virtual void initialize(Window* window) = 0;
 
   /**
    * Called every frame to do update behavior. Check for changed state and update
@@ -49,15 +45,9 @@ class IViewerExtension
 
   virtual void beforeRender() = 0;
   virtual void afterRender() = 0;
-
-  // beforeRender
-  // afterRender
-
-  virtual void
-  cleanup() {}
+  
+  virtual void cleanup() {}
 };
 
-} // end package
-} // end enterprise namespace
-
-#endif  // GLVIEWER_ECS_INTERACTABLE_H
+}  // namespace gui
+}  // namespace izz

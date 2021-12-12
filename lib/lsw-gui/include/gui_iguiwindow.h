@@ -3,15 +3,14 @@
 //
 #pragma once
 
-namespace lsw {
+namespace izz {
 namespace gui {
-
 
 class IGuiWindow {
  public:
-  virtual void init() = 0 ;
+  virtual void init() = 0;
   virtual void render(float time, float dt) = 0;
 };
 
-} // end of package
-} // end of enterprise
+}  // namespace gui
+}  // namespace izz

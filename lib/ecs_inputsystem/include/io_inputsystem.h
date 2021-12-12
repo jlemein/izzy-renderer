@@ -25,7 +25,7 @@ class InputSystem
 {
  public:
   using KeyboardState = bool[26];
-  InputSystem(GLFWwindow *window, int screenWidth, int screenHeight);
+  InputSystem(GLFWwindow *window, int width, int height);
 
   void init();
   void update();
@@ -38,6 +38,11 @@ class InputSystem
 
   void registerInputListener(std::shared_ptr<InputListener> listener);
   void unregisterInputListener(std::shared_ptr<InputListener> listener);
+
+  /**
+   * @brief invalidates the window region. Used to indicate the input system should retrieve the window size again.
+   */
+  void setWindowSize(int width, int height);
 
  private:
   GLFWwindow *m_window;

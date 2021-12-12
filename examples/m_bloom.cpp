@@ -10,7 +10,7 @@
 #include "ecsg_scenegraph.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
-#include "gui_guiwindow.h"
+#include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
 #include "izz_exrloader.h"
 #include "izz_fontsystem.h"
@@ -19,7 +19,7 @@
 #include "izz_sceneloader.h"
 #include "izz_stbtextureloader.h"
 #include "izz_texturesystem.h"
-#include "vwr_viewer.h"
+#include "gui_window.h"
 #include "wsp_workspace.h"
 
 #include <spdlog/spdlog.h>
@@ -29,6 +29,7 @@
 #include "ecs_camera.h"
 using namespace std;
 using namespace lsw;
+using namespace izz;
 using namespace geo;
 using namespace glm;
 using lsw::core::Util;
@@ -105,7 +106,7 @@ void setupScene() {
 }
 
 void setupUserInterface() {
-  guiSystem->addDialog(make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem));
+  guiSystem->addDialog(make_shared<gui::LightEditor>(sceneGraph, fontSystem));
 }
 
 int main(int argc, char* argv[]) {
@@ -150,10 +151,13 @@ int main(int argc, char* argv[]) {
     auto peGaussianBlur1 = sceneGraph->makePosteffect("GuassianBlur1", *gaussianBlurH);
     auto peGaussianBlur2 = sceneGraph->makePosteffect("GuassianBlur2", *gaussianBlurV);
 
-    camera.add<PosteffectCollection>({.posteffects = {peFilterBright, peGaussianBlur1, peGaussianBlur2}});
+    auto combine = materialSystem->createMaterial("CombineTextures");
+    auto pe = sceneGraph->makePosteffect("Combine", *combine);
+
+    camera.add<PosteffectCollection>({.posteffects = {peFilterBright, peGaussianBlur1, peGaussianBlur2, pe}});
 
     // setup window
-    auto window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
+    auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
     window->setActiveCamera(camera);
     window->setWindowSize(1024, 768);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));

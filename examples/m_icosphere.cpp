@@ -6,7 +6,7 @@
 #include <geo_primitivefactory.h>
 #include <izz_materialsystem.h>
 #include <izz_resourcemanager.h>
-#include <vwr_viewer.h>
+#include <gui_window.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <iostream>
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeUVSphere("UvSphere"), *resourceManager->getMaterialSystem()->createMaterial("Wireframe"));
     box.add<ecs::Wireframe>();
 
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem /*, guiSystem*/);
+    auto viewer = make_shared<izz::gui::Window>(sceneGraph, renderSystem /*, guiSystem*/);
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);

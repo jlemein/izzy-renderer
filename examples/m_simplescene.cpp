@@ -4,18 +4,19 @@
 #include "../lib/core/include/georm_materialsystem.h"
 #include <memory>
 #include <spdlog/spdlog.h>
-#include <vwr_viewer.h>
+#include <gui_window.h>
 #include "../lib/core/include/anim_localrotation.h"
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
-#include "../lib/core/include/georm_materialsystem.h"
-#include "../lib/core/include/georm_resourcemanager.h"
+#include <georm_materialsystem.h>
+#include <georm_resourcemanager.h>
 
 using namespace std;
 using namespace lsw;
+using namespace izz;
 using namespace geo;
 using lsw::core::Util;
 
@@ -48,7 +49,7 @@ int main(int argc, char **argv) {
             {.radiansPerSecond = Util::ToRadians(2.0F),
              .axis = glm::vec3(0.0, 1.0, 0.0)});
 
-    auto viewer = std::make_shared<viewer::Viewer>(
+    auto viewer = std::make_shared<gui::Window>(
         sceneGraph, renderSystem, resourceManager->getRawResourceManager());
 
     auto sun =

@@ -18,9 +18,9 @@
 #include <izz_stbtextureloader.h>
 #include <izz_texturesystem.h>
 #include <gui_lighteditor.h>
-#include <vwr_viewer.h>
+#include <gui_window.h>
 #include <wsp_workspace.h>
-#include "gui_guiwindow.h"
+#include "gui_iguiwindow.h"
 
 #include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
@@ -28,6 +28,7 @@
 #include <memory>
 using namespace std;
 using namespace lsw;
+using namespace izz;
 using namespace geo;
 using lsw::core::Util;
 using namespace glm;
@@ -59,9 +60,9 @@ int main(int argc, char* argv[]) {
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
 
     // ==== GUI =============================================================
-    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto editor = make_shared<gui::LightEditor>(sceneGraph, fontSystem);
     auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);
+    auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);

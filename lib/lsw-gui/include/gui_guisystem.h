@@ -3,29 +3,32 @@
 //
 #pragma once
 
-#include <gui_guiwindow.h>
-#include <vwr_viewerextension.h>
+#include <gui_iguiwindow.h>
+#include <gui_iwindowextension.h>
 
 #include <imgui.h>
 #include <vector>
 
 namespace lsw {
-namespace viewer {
-class Viewer;
-struct DisplayDetails;
-}
+class FontSystem;
+}  // namespace lsw
 
+namespace izz {
 namespace gui {
 
-class GuiSystem : public lsw::ecs::IViewerExtension {
+class Window;
+struct DisplayDetails;
+
+class GuiSystem : public IWindowExtension {
  public:
   GuiSystem() = default;
-  GuiSystem(std::shared_ptr<IGuiWindow> dialog);
-  GuiSystem(std::vector<std::shared_ptr<IGuiWindow>> dialogs);
+  GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem);
+  GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem, std::shared_ptr<IGuiWindow> dialog);
+  GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem, std::vector<std::shared_ptr<IGuiWindow>> dialogs);
 
   void addDialog(std::shared_ptr<IGuiWindow> dialog);
 
-  void initialize(lsw::viewer::Viewer* viewer) override;
+  void initialize(izz::gui::Window* viewer) override;
   void update(float time, float dt) override;
   void beforeRender() override;
   void afterRender() override;
@@ -35,6 +38,7 @@ class GuiSystem : public lsw::ecs::IViewerExtension {
 
  private:
   //  std::shared_ptr<IGuiWindow> m_window {nullptr};
+  std::shared_ptr<lsw::FontSystem> m_fontSystem;
   std::vector<std::shared_ptr<IGuiWindow>> m_dialogs{};
 
   void* m_windowHandle{nullptr};
@@ -44,7 +48,8 @@ class GuiSystem : public lsw::ecs::IViewerExtension {
   ImVec4 m_clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
   bool show_demo_window = true;
   bool show_another_window = false;
+  std::vector<ImFont*> m_fonts;
 };
 
-} // end of package
-} // end of enterprise
+}  // namespace gui
+}  // namespace izz

@@ -2,21 +2,23 @@
 add_library(lsw-gui
         include/gui_guisystem.h
         include/gui_lighteditor.h
+        include/gui_mainmenu.h
         src/gui_lighteditor.cpp
         src/gui_guisystem.cpp
+        src/gui_mainmenu.cpp
 
         # VWR - need to be extracted to a lib independent of GUI
-        include/vwr_viewer.h
-        include/vwr_viewerextension.h
-        include/vwr_windowinputlistener.h
-        src/vwr_viewer.cpp
-        src/vwr_windowinputlistener.cpp
+        include/gui_window.h
+        include/gui_iwindowextension.h
+        include/gui_windowinputlistener.h
+        src/gui_window.cpp
+        src/gui_windowinputlistener.cpp
 
         # IMGUI
         src/imgui_impl_glfw.h
         src/imgui_impl_glfw.cpp
         src/imgui_impl_opengl3.h
-        src/imgui_impl_opengl3.cpp)
+        src/imgui_impl_opengl3.cpp include/gui_mainmenu.h src/gui_mainmenu.cpp include/gui_materialeditor.h src/gui_materialeditor.cpp)
 
 target_include_directories(lsw-gui PRIVATE src PUBLIC include)
 

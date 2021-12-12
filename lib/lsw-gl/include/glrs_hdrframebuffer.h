@@ -65,7 +65,7 @@ class HdrFramebuffer : public IFramebuffer {
   GLuint m_fbo1 {0U}; /// @brief postprocessed buffer with bright spots
   GLuint m_fbo2 {0U};
 
-  GLuint m_hdrTexture, m_intermediateHdr; // render to texture
+  GLuint m_hdrTexture, m_intermediateHdr, m_sceneHdr; // render to texture
   GLuint m_renderbuffer {0U}; // for depth and stencil buffer
 
   GLuint m_vertexAttrib {0};    // 0 is the index in the vertex shader for position data.
@@ -73,6 +73,9 @@ class HdrFramebuffer : public IFramebuffer {
 
   int m_width {800}, m_height{600};
   int m_numSamplesMSAA {8};
+
+  // temporarily added for bloom.
+  int passIndex {0};
 };
 
 }  // namespace glrs

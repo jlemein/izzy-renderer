@@ -1,37 +1,34 @@
 //
 // Created by jlemein on 29-11-20.
 //
-
-#ifndef GLVIEWER_VIEWER_WINDOWINPUTLISTENER_H
-#define GLVIEWER_VIEWER_WINDOWINPUTLISTENER_H
+#pragma once
 
 #include <io_inputlistener.h>
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-namespace lsw {
+namespace izz {
 namespace io {
 class InputSystem;
 }
 
-namespace viewer {
+namespace gui {
 
 /**
  * Listens to generic key presses to close the window, and showing the GUI.
  */
-class WindowInputListener : public io::InputListener {
+class WindowInputListener : public lsw::io::InputListener {
  public:
   WindowInputListener(GLFWwindow* window);
 
   void init() override;
 
-  void update(const io::InputSystem* inputSystem) override;
+  void update(const lsw::io::InputSystem* inputSystem) override;
 
  private:
   GLFWwindow* m_window;
 };
 
-}  // namespace viewer
-}  // namespace lsw
-#endif  // GLVIEWER_VIEWER_WINDOWINPUTLISTENER_H
+}  // namespace gui
+}  // namespace izz

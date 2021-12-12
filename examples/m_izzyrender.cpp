@@ -10,7 +10,7 @@
 #include "ecsg_scenegraph.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
-#include "gui_guiwindow.h"
+#include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
 #include "izz_exrloader.h"
 #include "izz_fontsystem.h"
@@ -19,7 +19,7 @@
 #include "izz_sceneloader.h"
 #include "izz_stbtextureloader.h"
 #include "izz_texturesystem.h"
-#include "vwr_viewer.h"
+#include "gui_window.h"
 #include "wsp_workspace.h"
 
 #include <spdlog/spdlog.h>
@@ -27,8 +27,10 @@
 #include <memory>
 #include "geo_primitivefactory.h"
 #include "ecs_camera.h"
+#include "gui_mainmenu.h"
 using namespace std;
 using namespace lsw;
+using namespace izz;
 using namespace geo;
 using namespace glm;
 using lsw::core::Util;
@@ -44,7 +46,7 @@ std::shared_ptr<ecsg::SceneGraph> sceneGraph{nullptr};
 std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
-std::shared_ptr<gui::GuiSystem> guiSystem {nullptr};
+std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
 }  // namespace
 
 void setupSystems() {
@@ -64,7 +66,9 @@ void setupSystems() {
 
   renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
   fontSystem = make_shared<FontSystem>();
-  guiSystem = make_shared<gui::GuiSystem>();
+  fontSystem->addFont("fonts/SegoeUi.ttf", 20);
+//  fontSystem->addFont("fonts/DroidSans.ttf", 20);
+  guiSystem = make_shared<gui::GuiSystem>(fontSystem);
 }
 
 void setupLights() {
@@ -105,7 +109,8 @@ void setupScene() {
 }
 
 void setupUserInterface() {
-  guiSystem->addDialog(make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem));
+  guiSystem->addDialog(make_shared<gui::LightEditor>(sceneGraph, fontSystem));
+  guiSystem->addDialog(make_shared<gui::MainMenu>(sceneGraph));
 }
 
 int main(int argc, char* argv[]) {
@@ -136,14 +141,14 @@ int main(int argc, char* argv[]) {
     // setup camera
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
-    auto vignette = materialSystem->createMaterial("VignettePostEffect");
-    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
-    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
-    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
+//    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
+//    auto vignette = materialSystem->createMaterial("VignettePostEffect");
+//    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
+//    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
+//    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
 
     // setup window
-    auto window = make_shared<viewer::Viewer>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
+    auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
     window->setActiveCamera(camera);
     window->setWindowSize(1024, 768);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));

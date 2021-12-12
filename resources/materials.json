@@ -61,7 +61,10 @@
       "name": "FilterBrightPostEffect",
       "vertex_shader": "shaders/postprocess/filter_bright.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/postprocess/filter_bright.frag"
+      "fragment_shader": "shaders/postprocess/filter_bright.frag",
+      "properties": {
+        "brightnessThreshold": 0.7
+      }
     },
     {
       "name": "GaussianBlur",
@@ -72,6 +75,12 @@
         "weights": [0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216],
         "horizontal": true
       }
+    },
+    {
+      "name": "CombineTextures",
+      "vertex_shader": "shaders/postprocess/add.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/add.frag"
     },
     {
       "name": "VignettePostEffect",
