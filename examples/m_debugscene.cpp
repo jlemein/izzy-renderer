@@ -29,7 +29,7 @@
 using namespace std;
 using namespace lsw;
 using namespace izz;
-using namespace geo;
+using namespace lsw::geo;
 using lsw::core::Util;
 using namespace glm;
 using lsw::wsp::Workspace;
@@ -65,7 +65,7 @@ int main(int argc, char* argv[]) {
     auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);
+    auto uvPlane = PrimitiveFactory::MakePlane("UVPlane", 10, 10);
     auto mat = materialSystem->createMaterial("BlinnPhong");
     std::cout << "Number of textures: " << mat->textures.size() << " - " << mat->texturePaths.size() << std::endl;
     for(auto& t : mat->textures) {

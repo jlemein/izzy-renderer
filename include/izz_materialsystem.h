@@ -1,9 +1,7 @@
 //
 // Created by jlemein on 05-08-21.
 //
-
-#ifndef RENDERER_GEORM_MATERIALSYSTEM_H
-#define RENDERER_GEORM_MATERIALSYSTEM_H
+#pragma once
 
 #include "ecsg_scenegraphentity.h"
 #include "geo_material.h"
@@ -105,5 +103,3 @@ class MaterialSystem : public glrs::IMaterialSystem {
 };
 
 }  // namespace lsw
-
-#endif  // RENDERER_GEORM_MATERIALSYSTEM_H

@@ -8,7 +8,12 @@
         "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
         "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr",
         "shininess": 32.0,
-        "specular_color": [0.5, 0.5, 0.5, 0.0]
+        "specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
       }
     },
     {
@@ -18,7 +23,12 @@
         "albedoMap": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg",
         "normalMap": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr",
         "shininess": 32.0,
-        "specular_color": [0.5, 0.5, 0.5, 0.0]
+        "specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
       }
     },
     {
@@ -28,7 +38,12 @@
         "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
         "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
         "shininess": 32.0,
-        "specular_color": [0.5, 0.5, 0.5, 0.0]
+        "specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
       }
     },
     {
@@ -42,7 +57,12 @@
         "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
         "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
         "shininess": 32.0,
-        "specular_color": [0.5, 0.5, 0.5, 0.0]
+        "specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
       }
     },
     {
@@ -72,7 +92,13 @@
       "geometry_shader": "",
       "fragment_shader": "shaders/postprocess/gaussianblur.frag",
       "properties": {
-        "weights": [0.227027, 0.1945946, 0.1216216, 0.054054, 0.016216],
+        "weights": [
+          0.227027,
+          0.1945946,
+          0.1216216,
+          0.054054,
+          0.016216
+        ],
         "horizontal": true
       }
     },
@@ -95,9 +121,14 @@
       "fragment_shader": "shaders/constantlight.frag",
       "properties": {
         "ConstantLight": {
-            "color": [1.0, 1.0, 1.0, 0.0],
-            "intensity": 1.0,
-            "radius": 0.1
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "intensity": 1.0,
+          "radius": 0.1
         }
       }
     },
@@ -143,8 +174,18 @@
       "properties": {
         "BlinnPhongSimple": {
           "shininess": 32.0,
-          "albedo": [1.0, 1.0, 1.0, 0.0],
-          "specular": [0.1, 0.1, 0.1, 0.0]
+          "albedo": [
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ],
+          "specular": [
+            0.1,
+            0.1,
+            0.1,
+            0.0
+          ]
         }
       }
     },
@@ -170,7 +211,12 @@
       "properties": {
         "BlinnPhong": {
           "shininess": 32.0,
-          "specular_color": [0.3, 0.3, 0.3, 0.0]
+          "specular_color": [
+            0.3,
+            0.3,
+            0.3,
+            0.0
+          ]
         }
       }
     },
@@ -228,6 +274,68 @@
       "vertex_shader": "shaders/wireframe.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/wireframe.frag"
+    }
+  ],
+  "effects": [
+    {
+      "name": "Bloom",
+      "passes": [
+        {
+          "material": "ExtractBrightness",
+          "framebuffer": "Bloom1"
+        },
+        {
+          "material": "GaussianBlur",
+          "framebuffer": "Bloom2"
+        },
+        {
+          "material": "GaussianBlur",
+          "framebuffer": "Bloom2"
+        },
+        {
+          "material": "Combine",
+          "framebuffer": "2Color_1Color"
+        },
+        {
+          "material": {
+            "name": "tea_set_01",
+            "material_definition": "BlinnPhong",
+            "properties": {
+              "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
+              "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr",
+              "shininess": 32.0,
+              "specular_color": [
+                0.5,
+                0.5,
+                0.5,
+                0.0
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "framebuffers": [
+    {
+      "name": "SimplePostEffect",
+      "input": {
+        "0": "COLOR",
+        "1": "DEPTH"
+      },
+      "output": {
+        "0": "COLOR"
+      }
+    },
+    {
+      "name": "Bloom1",
+      "input": {
+        "0": "COLOR",
+        "1": "DEPTH"
+      },
+      "output": {
+        "0": "COLOR"
+      }
     }
   ]
 }

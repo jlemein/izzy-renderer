@@ -1,15 +1,12 @@
 //
 // Created by jlemein on 08-11-20.
 //
-
-#ifndef GLVIEWER_VIEWER_RENDERABLE_H
-#define GLVIEWER_VIEWER_RENDERABLE_H
+#pragma once
 
 #include <GL/glew.h>
 #include <glm/glm.hpp>
-
-//#include <ecs_shader.h>
 #include <geo_material.h>
+#include <geo_effect.h>
 
 #include <cstring>
 #include <iostream>
@@ -100,6 +97,7 @@ struct Renderable {
   // storage of user defined shader properties
   //  unsigned int materialId;
   std::shared_ptr<geo::Material> material;
+  std::shared_ptr<izz::geo::Effect> effect {nullptr};
 
   //  std::string name{"Unnamed"};
   GLuint program;
@@ -143,5 +141,3 @@ struct Renderable {
 
 }  // namespace glrs
 }  // namespace lsw
-
-#endif  // GLVIEWER_VIEWER_RENDERABLE_H

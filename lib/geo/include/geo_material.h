@@ -108,6 +108,16 @@ struct UserProperties {
   }
 };
 
+enum class ColorBuffer { UNUSED, CUBEMAP, BUFFER_1D, BUFFER_2D, TEXTURE_2D, TEXTURE_2D_MULTISAMPLE };
+
+enum class FramebufferFormat { UNUSED, RGBA_FLOAT32, RGBA_UINT8 };
+class FramebufferConfiguration {
+ public:
+  FramebufferFormat colorBuffers[4] = {FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED};
+  FramebufferFormat depthBuffer;
+  FramebufferFormat outColorBuffers[4] = {FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED};
+};
+
 struct Material {
   enum PropertyType {
     TEXTURE2D,
@@ -119,6 +129,13 @@ struct Material {
     UNIFORM_BUFFER_OBJECT
   };
   std::string name;
+
+  /// @brief Specifies input and output buffers for the shader.
+  /// Materials can be chained to create multi-pass effects.
+  FramebufferConfiguration framebufferConfiguration;
+
+  /// Framebuffer object id
+  unsigned int fbo {0U};
 
   /// Indicates whether the vertex and fragment shader files are in binary format (e.g. pre-compiled SPIRV format).
   bool isBinaryShader{false};

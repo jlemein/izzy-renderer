@@ -9,7 +9,7 @@ add_library(geo STATIC src/geo_meshloader.cpp
         src/geo_primitivefactory.cpp
         include/geo_mesh.h
         include/geo_boundingbox.h include/geo_meshinstance.h include/geo_shapeutil.h src/geo_boundingbox.cpp include/geo_transform.h
-        include/geo_texture.h include/geo_textureloader.h include/geo_material.h include/geo_meshutil.h src/geo_meshutil.cpp include/geo_scenetransform.h)
+        include/geo_texture.h include/geo_textureloader.h include/geo_material.h include/geo_meshutil.h src/geo_meshutil.cpp include/geo_scenetransform.h include/geo_effect.h)
 
 target_include_directories(geo
         PUBLIC include

@@ -29,7 +29,7 @@
 using namespace std;
 using namespace lsw;
 using namespace izz;
-using namespace geo;
+using namespace lsw::geo;
 using lsw::core::Util;
 using namespace glm;
 using lsw::wsp::Workspace;
@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     auto& lightComp = ptLight.get<ecs::PointLight>();
     lightComp.intensity = 4.0;
     lightComp.color = glm::vec3(0.1, 0.1, 1.0);
-    ptLight.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+    ptLight.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);

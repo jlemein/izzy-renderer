@@ -30,7 +30,7 @@
 using namespace std;
 using namespace lsw;
 using namespace izz;
-using namespace geo;
+using namespace lsw::geo;
 using namespace glm;
 using lsw::core::Util;
 using lsw::wsp::Workspace;
@@ -77,12 +77,12 @@ void setupLights() {
   auto& lightComp = ptLight1.get<ecs::PointLight>();
   lightComp.intensity = 1.0;
   lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-  ptLight1.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
   // Point light 2
   auto ptLight2 = sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
   ptLight2.get<ecs::PointLight>().intensity = 1.4;
-  ptLight2.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 }
 
 void setupScene() {
@@ -90,7 +90,7 @@ void setupScene() {
 
   // post process meshes in scene file
   for (auto& mesh : scene->m_meshes) {
-    geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+    MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
     MeshUtil::GenerateSmoothNormals(*mesh);
   }
 
