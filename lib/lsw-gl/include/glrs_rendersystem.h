@@ -11,11 +11,14 @@
 #include <glrs_multipassframebuffer.h>
 #include "glrs_hdrframebuffer.h"
 
-namespace lsw {
-
-namespace ecsg {
+namespace izz {
 class SceneGraph;
-}  // namespace ecsg
+namespace gl {
+class EffectSystem;
+class MaterialSystem;
+}
+}
+namespace lsw {
 
 namespace glrs {
 class IMaterialSystem;
@@ -32,7 +35,8 @@ class RenderSystem {
    * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
    */
-  RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::IMaterialSystem> materialSystem);
+  RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<glrs::IMaterialSystem> materialSystem,
+               std::shared_ptr<izz::gl::EffectSystem> effectSystem);
 
   /**
    * Traverses the scene graph and creates corresponding objects in the render system so that the entities can be rendered.
@@ -66,6 +70,7 @@ class RenderSystem {
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
   std::shared_ptr<IMaterialSystem> m_materialSystem;
+  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
   ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;
 

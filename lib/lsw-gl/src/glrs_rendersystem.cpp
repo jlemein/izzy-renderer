@@ -10,13 +10,14 @@
 #include <ecs_relationship.h>
 #include <ecs_transform.h>
 #include <ecs_wireframe.h>
-#include <ecsg_scenegraph.h>
+#include "izz_scenegraph.h"
 #include <geo_curve.h>
-#include <geo_material.h>
 #include <geo_effect.h>
+#include <geo_material.h>
 #include <geo_mesh.h>
 #include <glrs_lightsystem.h>
 #include <glrs_shadersystem.h>
+#include <izzgl_effectsystem.h>
 #include <spdlog/spdlog.h>
 #include <uniform_ubermaterial.h>
 #include <cstring>
@@ -260,10 +261,12 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
   }
 }
 
-RenderSystem::RenderSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<IMaterialSystem> materialSystem)
+RenderSystem::RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<IMaterialSystem> materialSystem,
+                           std::shared_ptr<izz::gl::EffectSystem> effectSystem)
   : m_registry{sceneGraph->getRegistry()}
   , m_debugSystem(sceneGraph->getRegistry())
   , m_materialSystem(materialSystem)
+  , m_effectSystem{effectSystem}
   , m_shaderSystem(std::make_shared<ShaderSystem>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry)}
   , m_framebuffer{std::make_unique<HdrFramebuffer>()} {}
@@ -387,9 +390,12 @@ void RenderSystem::init() {
 
   m_framebuffer->initialize();
   m_lightSystem->initialize();
+  m_effectSystem->initialize();
 
   // convert material descriptions to openGL specific material data.
   m_materialSystem->synchronizeTextures(*this);
+
+  m_effectSystem->initialize();
 
   // setup postprocessing screen quad
   initPostprocessBuffers();
@@ -448,13 +454,13 @@ void RenderSystem::init() {
   // handling materials
   for (auto [entity, material, renderable] : m_registry.view<geo::Material, Renderable>().each()) {
     try {
-      spdlog::debug("Compiling shaders -- vs: {} fs: {}", material.vertexShader, material.fragmentShader);
-
       if (material.isBinaryShader) {
         renderable.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
       } else {
         renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
       }
+
+      spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", renderable.program, material.vertexShader, material.fragmentShader);
 
       initShaderProperties(entity, renderable, material);
 
@@ -597,25 +603,22 @@ void RenderSystem::renderPosteffects() {
 
     for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
       auto& effect = m_registry.get<izz::geo::Effect>(e);
-      for (int i=0; i<effect.graph.nodes.size(); ++i) {
-//        glUseProgram(effect.graph.nodes[i].material.programId);
+      for (int i = 0; i < effect.graph.nodes.size(); ++i) {
+        //        glUseProgram(effect.graph.nodes[i].material.programId);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes[passId-1].material->fbo);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes[passId - 1].material->fbo);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes[passId].material->fbo);
 
         // setup textures for next call
-        
       }
-
 
       auto& renderable = m_registry.get<Renderable>(e);
 
-//      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
-//      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
+      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
+      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
 
       m_framebuffer->nextPass();
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
       glUseProgram(renderable.program);
       pushShaderProperties(renderable);

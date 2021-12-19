@@ -33,7 +33,8 @@ find_package(imgui REQUIRED)
 target_link_libraries(lsw-gui
         PRIVATE
         izzy
-        ecsg
+        ecs
+        lsw-gl
         glfw::glfw
         OpenGL::GL
         GLEW::GLEW

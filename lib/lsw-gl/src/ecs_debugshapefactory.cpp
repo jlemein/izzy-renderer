@@ -1,16 +1,16 @@
 //
 // Created by jlemein on 10-01-21.
 //
-#include <ecs_debugmodel.h>
-#include <ecs_debugshapefactory.h>
+#include "../include/ecs_debugmodel.h"
+#include "../include/ecs_debugshapefactory.h"
 #include <glrs_renderable.h>
-#include <ecs_transformutil.h>
+#include "ecs_transformutil.h"
 
 #include <entt/entt.hpp>
-#include <geo_mesh.h>
-#include <geo_meshtransform.h>
-#include <geo_primitivefactory.h>
-#include <geo_shapeutil.h>
+#include "geo_mesh.h"
+#include "geo_meshtransform.h"
+#include "geo_primitivefactory.h"
+#include "geo_shapeutil.h"
 
 using namespace lsw::ecs;
 using namespace lsw;

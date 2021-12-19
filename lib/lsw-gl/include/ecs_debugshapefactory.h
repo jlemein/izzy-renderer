@@ -5,7 +5,7 @@
 #ifndef ARTIFAX_ECS_DEBUGSHAPEFACTORY_H
 #define ARTIFAX_ECS_DEBUGSHAPEFACTORY_H
 
-#include <ecs_debug.h>
+#include "ecs_debug.h"
 
 namespace lsw {
 

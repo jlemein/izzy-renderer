@@ -1,7 +1,7 @@
 //
 // Created by jeffrey on 12-12-21.
 //
-#include <ecsg_scenegraph.h>
+#include "izz_scenegraph.h"
 #include <geo_material.h>
 #include <gui_materialeditor.h>
 #include <imgui.h>
@@ -13,7 +13,7 @@ using namespace izz::gui;
 
 static bool p_open{false};
 
-MaterialEditor::MaterialEditor(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph)
+MaterialEditor::MaterialEditor(std::shared_ptr<izz::SceneGraph> sceneGraph)
   : m_sceneGraph{sceneGraph}
   , m_shaderEditor{sceneGraph} {}
 
@@ -24,6 +24,13 @@ void MaterialEditor::init() {
 void MaterialEditor::render(float time, float dt) {
   static bool showEditor = false;
   lsw::geo::Material mat;
+
+  ImGui::Begin("TRYOUT");
+  ImGui::BeginChild("Hello", ImVec2(100, 100), false, ImGuiWindowFlags_NoMove);
+  ImGui::Button("Hello");
+  ImGui::SetWindowPos(ImVec2(0, 768 - ImGui::GetWindowHeight() - 40), true);
+  ImGui::EndChild();
+  ImGui::End();
 
   if (m_show) {
     if (ImGui::Begin("Material Editor", &m_show)) {

@@ -5,10 +5,10 @@
 #ifndef ARTIFAX_ECS_DEBUGMODEL_H
 #define ARTIFAX_ECS_DEBUGMODEL_H
 
-#include <glrs_renderable.h>
-#include <ecs_transform.h>
-#include <ecs_name.h>
-#include <geo_mesh.h>
+#include "glrs_renderable.h"
+#include "ecs_transform.h"
+#include "ecs_name.h"
+#include "geo_mesh.h"
 
 namespace lsw {
 namespace ecs {

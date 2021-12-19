@@ -30,19 +30,16 @@ add_library(ecs STATIC include/ecs_camera.h
         src/ecs_transformutil.cpp
         include/ecs_debug.h
         include/ecs_debugsystem.h
-        src/ecs_debugsystem.cpp
-        include/ecs_debugshapefactory.h
         include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h
-        include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp
-        include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h
-#        ../core/include/core_exceptions.h
+        include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp
+        include/ecs_name.h include/ecs_light.h
         include/core_util.h
         ${HEADERS})
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(ecs PUBLIC include PRIVATE src)
-target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog ecsg)
+target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog)
 
 find_package(GTest REQUIRED)
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)

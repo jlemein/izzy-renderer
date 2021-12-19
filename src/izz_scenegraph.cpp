@@ -1,61 +1,61 @@
-#include <ecsg_scenegraph.h>
-#include <ecsg_scenegraphentity.h>
+#include "izz_scenegraph.h"
+#include "izz_scenegraphentity.h"
 
-#include <ecs_camera.h>
-#include <ecs_light.h>
-#include <ecs_name.h>
-#include <ecs_relationship.h>
-#include <ecs_texture.h>
-#include <ecs_transform.h>
+#include "ecs_camera.h"
+#include "ecs_light.h"
+#include "ecs_name.h"
+#include "ecs_relationship.h"
+#include "ecs_texture.h"
+#include "ecs_transform.h"
 
-#include <glrs_renderable.h>
+#include "glrs_renderable.h"
 
-#include <geo_camera.h>
-#include <geo_curve.h>
-#include <geo_light.h>
-#include <geo_material.h>
-#include <geo_mesh.h>
-#include <geo_meshinstance.h>
-#include <geo_meshtransform.h>
-#include <geo_scene.h>
+#include "geo_camera.h"
+#include "geo_curve.h"
+#include "geo_light.h"
+#include "geo_material.h"
+#include "geo_mesh.h"
+#include "geo_meshinstance.h"
+#include "geo_meshtransform.h"
+#include "geo_scene.h"
 
 #include <spdlog/spdlog.h>
 
+using namespace izz;
 using namespace lsw;
-using namespace lsw::ecsg;
 using namespace lsw::ecs;
 
 SceneGraph::SceneGraph() {}
 
-void SceneGraph::setDefaultMaterial(std::shared_ptr<geo::Material> material) {
+void SceneGraph::setDefaultMaterial(std::shared_ptr<lsw::geo::Material> material) {
   m_defaultMaterial = material;
 }
 
-SceneGraphEntity SceneGraph::addGeometry(geo::Mesh mesh, geo::Material mat) {
+SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, lsw::geo::Material mat) {
   auto e = makeMoveableEntity(mesh.name);
   e.add<glrs::Renderable>();
-  e.add<geo::Mesh>(mesh);
-  e.add<geo::Material>(mat);
+  e.add<lsw::geo::Mesh>(mesh);
+  e.add<lsw::geo::Material>(mat);
 
   return e;
 }
 
-SceneGraphEntity SceneGraph::addGeometry(geo::Mesh mesh, std::shared_ptr<geo::Material> mat) {
+SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<lsw::geo::Material> mat) {
   auto e = makeMoveableEntity(mesh.name);
   e.add<glrs::Renderable>();
-  e.add<geo::Mesh>(mesh);
+  e.add<lsw::geo::Mesh>(mesh);
   // TODO: make sure we store a shared ptr instead of a copy.
   //  shared materials offer option to share materials.
-  e.add<geo::Material>(*mat);
+  e.add<lsw::geo::Material>(*mat);
 
   return e;
 }
 
-// SceneGraphEntity SceneGraph::addGeometry(geo::Mesh&& mesh, geo::Material&& material) {
+// SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material) {
 //   auto e = makeEntity(mesh.name);
 //   e.add<glrs::Renderable>();
-//   e.add<geo::Mesh>(std::forward<geo::Mesh>(mesh));
-//   e.add<geo::Material>(std::forward<geo::Material>(material));
+//   e.add<lsw::geo::Mesh>(std::forward<lsw::geo::Mesh>(mesh));
+//   e.add<lsw::geo::Material>(std::forward<lsw::geo::Material>(material));
 //
 //   return e;
 // }
@@ -83,7 +83,7 @@ SceneGraphEntity SceneGraph::makeCamera(std::string name, float zDistance, float
   return cameraEntity;
 }
 
-SceneGraphEntity SceneGraph::makeCamera(const geo::Camera& geoCamera) {
+SceneGraphEntity SceneGraph::makeCamera(const lsw::geo::Camera& geoCamera) {
   auto cameraEntity = makeMoveableEntity(geoCamera.name);
   ecs::Camera camera{.fovx = geoCamera.fovx, .aspect = geoCamera.aspect, .zNear = geoCamera.near, .zFar = geoCamera.far};
   cameraEntity.add<ecs::Camera>(std::move(camera));
@@ -94,25 +94,25 @@ SceneGraphEntity SceneGraph::makeCamera(const geo::Camera& geoCamera) {
   return cameraEntity;
 }
 
-SceneGraphEntity SceneGraph::makeLight(const geo::Light& light) {
+SceneGraphEntity SceneGraph::makeLight(const lsw::geo::Light& light) {
   auto lightEntity = makeMoveableEntity(light.name);
 
   auto& transform = lightEntity.get<Transform>();
   transform.localTransform[3] = glm::vec4(light.position, 1.0F);
 
-  if (light.type == geo::Light::Type::DIRECTIONAL_LIGHT) {
+  if (light.type == lsw::geo::Light::Type::DIRECTIONAL_LIGHT) {
     transform.localTransform[3].w = 0.0F;
     lightEntity.add<ecs::DirectionalLight>({light.intensity, light.diffuseColor});
-  } else if (light.type == geo::Light::Type::AMBIENT_LIGHT) {
+  } else if (light.type == lsw::geo::Light::Type::AMBIENT_LIGHT) {
     lightEntity.add<ecs::AmbientLight>({light.intensity, light.diffuseColor});
-  } else if (light.type == geo::Light::Type::POINT_LIGHT) {
+  } else if (light.type == lsw::geo::Light::Type::POINT_LIGHT) {
     lightEntity.add<ecs::PointLight>({.intensity = light.intensity,
                                       .linearAttenuation = light.attenuationLinear,
                                       .quadraticAttenuation = light.attenuationQuadratic,
                                       .radius = light.radius.x,
                                       .color = light.diffuseColor});
   } else {
-    throw std::runtime_error("Cannot make light source for unknown geo::Light type.");
+    throw std::runtime_error("Cannot make light source for unknown Light type.");
   }
 
   return lightEntity;
@@ -151,19 +151,19 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 di
   return lightEntity;
 }
 
-SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh& mesh) {
+SceneGraphEntity SceneGraph::makeMesh(const lsw::geo::Mesh& mesh) {
   auto meshEntity = makeMoveableEntity(mesh.name);
 
   meshEntity.add<glrs::Renderable>();
-  meshEntity.add<geo::Mesh>(mesh);
+  meshEntity.add<lsw::geo::Mesh>(mesh);
 
-  // Watch out here, geo::Material is a value type so we can do this.
+  // Watch out here, lsw::geo::Material is a value type so we can do this.
   // It is very tricky, because we ignore the resource itself here, possibly
   // causing dangling pointers in the end
   if (m_defaultMaterial == nullptr) {
     throw std::runtime_error("No default material set, cannot create mesh");
   }
-  meshEntity.add<geo::Material>(*m_defaultMaterial);
+  meshEntity.add<lsw::geo::Material>(*m_defaultMaterial);
 
   //  auto& shader = meshEntity.add<ecs::Shader>(
   //      {"assets/shaders/diffuse.vert.spv",
@@ -175,24 +175,24 @@ SceneGraphEntity SceneGraph::makeMesh(const geo::Mesh& mesh) {
   return meshEntity;
 }
 
-SceneGraphEntity SceneGraph::makeEmptyMesh(const geo::Mesh& mesh) {
+SceneGraphEntity SceneGraph::makeEmptyMesh(const lsw::geo::Mesh& mesh) {
   auto sge = makeMoveableEntity(mesh.name);
   auto e = sge.handle();
 
   auto& renderable = m_registry.emplace<glrs::Renderable>(e);
 
-  m_registry.emplace<geo::Mesh>(e, mesh);
+  m_registry.emplace<lsw::geo::Mesh>(e, mesh);
   return sge;
 }
 
-// SceneGraphEntity SceneGraph::makeMeshInstance(const geo::Mesh &mesh) {
+// SceneGraphEntity SceneGraph::makeMeshInstance(const lsw::geo::Mesh &mesh) {
 //  auto sge = makeEntity(mesh.name);
 //  auto e = sge.id();
 //
 //  auto &renderable = m_registry.emplace<ecs::Renderable>(e);
 //  renderable.name = mesh.name;
 //
-//  m_registry.emplace<geo::Mesh>(e, mesh);
+//  m_registry.emplace<lsw::geo::Mesh>(e, mesh);
 //  m_registry.emplace<ecs::Shader>(
 //      e, ecs::Shader{"assets/shaders/diffuse.vert.spv",
 //                     "assets/shaders/diffuse.frag.spv"});
@@ -207,9 +207,9 @@ SceneGraphEntity SceneGraph::makeEmptyMesh(const geo::Mesh& mesh) {
 SceneGraphEntity SceneGraph::makeCurve(std::string name) {
   auto curve = makeMoveableEntity(std::move(name));
 
-  curve.add<geo::Curve>();
+  curve.add<lsw::geo::Curve>();
   curve.add<glrs::Renderable>();
-  auto& s = curve.add<geo::Material>({.name = "default curve material",
+  auto& s = curve.add<lsw::geo::Material>({.name = "default curve material",
                                       .vertexShader = "assets/shaders/default_curve.vert.spv",
                                       .fragmentShader = "assets/shaders/default_curve.frag.spv"});
 
@@ -224,7 +224,7 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
   return curve;
 }
 
-void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p) {
+void SceneGraph::processChildren(std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p) {
   auto root = makeMoveableEntity(node->name);
   root.setTransform(node->transform);
 
@@ -256,11 +256,11 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, Sce
       // make shader from material
       // TODO: make a material system that loads a default
       //    auto material =
-      //        m_resourceManager->getResource<geo::Material>("UberMaterial");
+      //        m_resourceManager->getResource<lsw::geo::Material>("UberMaterial");
       //
       //    (*material)->diffuseTexture = (*instance->material)->diffuseTexture;
       //
-      //    (*material)->setProperty<geo::UberMaterialData>(
+      //    (*material)->setProperty<lsw::geo::UberMaterialData>(
       //        {.diffuse = glm::vec4((*instance->material)->diffuse, 1.0F),
       //         .specular = glm::vec4((*instance->material)->specular, 1.0F),
       //         .ambient = glm::vec4((*instance->material)->ambient, 1.0F),
@@ -282,7 +282,7 @@ void SceneGraph::processChildren(std::shared_ptr<const geo::SceneNode> node, Sce
   }
 }
 
-SceneGraphEntity SceneGraph::makeScene(const geo::Scene& scene, SceneLoaderFlags flags) {
+SceneGraphEntity SceneGraph::makeScene(const lsw::geo::Scene& scene, SceneLoaderFlags flags) {
   auto rootScene = makeMoveableEntity();
 
   // for geometry and mesh data
@@ -291,44 +291,44 @@ SceneGraphEntity SceneGraph::makeScene(const geo::Scene& scene, SceneLoaderFlags
   return rootScene;
 }
 
-SceneGraphEntity SceneGraph::makeRenderable(const geo::Mesh& mesh, glm::mat4 transform, geo::Material& material) {
+SceneGraphEntity SceneGraph::makeRenderable(const lsw::geo::Mesh& mesh, glm::mat4 transform, lsw::geo::Material& material) {
   auto e = makeMoveableEntity(mesh.name);
   e.setTransform(std::move(transform));
 
   //  auto materialId =
-  //  m_resourceManager->getResource<geo::Material>(materialName)->id();
+  //  m_resourceManager->getResource<lsw::geo::Material>(materialName)->id();
   e.add<glrs::Renderable>();
-  e.add<geo::Mesh>(mesh);
-  e.add<geo::Material>(material);
+  e.add<lsw::geo::Mesh>(mesh);
+  e.add<lsw::geo::Material>(material);
 
   return e;
 }
 
-SceneGraphEntity SceneGraph::makeRenderable(geo::Mesh&& mesh, const geo::Material& material) {
+SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Mesh&& mesh, const lsw::geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<glrs::Renderable>(e);
-  m_registry.emplace<geo::Mesh>(e, std::move(mesh));
-  m_registry.emplace<geo::Material>(e, material);
+  m_registry.emplace<lsw::geo::Mesh>(e, std::move(mesh));
+  m_registry.emplace<lsw::geo::Material>(e, material);
 
   return SceneGraphEntity{m_registry, e};
 }
 
-SceneGraphEntity SceneGraph::makeRenderable(geo::Curve&& curve, const geo::Material& material) {
+SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Curve&& curve, const lsw::geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<glrs::Renderable>(e);
-  m_registry.emplace<geo::Curve>(e, std::move(curve));
-  m_registry.emplace<geo::Material>(e, material);
+  m_registry.emplace<lsw::geo::Curve>(e, std::move(curve));
+  m_registry.emplace<lsw::geo::Material>(e, material);
 
   return SceneGraphEntity{m_registry, e};
 }
 
 entt::entity makeTexture();
 
-SceneGraphEntity SceneGraph::makePosteffect(const std::string name, const geo::Material& material) {
+SceneGraphEntity SceneGraph::makePosteffect(const std::string name, const lsw::geo::Material& material) {
   auto e = makeEntity(name);
-  e.add<geo::Material>(material);
+  e.add<lsw::geo::Material>(material);
   e.add<glrs::Posteffect>();
   e.add<glrs::Renderable>();
   return e;
@@ -336,7 +336,7 @@ SceneGraphEntity SceneGraph::makePosteffect(const std::string name, const geo::M
 
 SceneGraphEntity SceneGraph::makeRectangularGrid(float size, float spacing) {
   auto sge = makeCurve("RectangularGrid");
-  auto& curve = sge.get<geo::Curve>();
+  auto& curve = sge.get<lsw::geo::Curve>();
 
   float z = 0.0F;
 

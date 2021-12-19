@@ -3,25 +3,23 @@
 //
 #pragma once
 
+#include <izz_resourcemanager.h>
 #include <entt/entt.hpp>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include "ecsg_scenegraphentity.h"
 #include "geo_material.h"
 #include "glrs_rendersystem.h"
-#include <izz_resourcemanager.h>
+#include "izz_scenegraphentity.h"
 #include "uniform_uniformblockmanager.h"
 
 namespace lsw {
 
 class ResourceManager;
 
-namespace ecsg {
-class SceneGraph;
-}  // namespace ecsg
 }  // namespace lsw
 
 namespace izz {
+class SceneGraph;
 namespace gl {
 
 /**
@@ -34,7 +32,7 @@ namespace gl {
  */
 class MaterialSystem : public lsw::glrs::IMaterialSystem {
  public:
-  MaterialSystem(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager);
+  MaterialSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
 
@@ -84,7 +82,7 @@ class MaterialSystem : public lsw::glrs::IMaterialSystem {
   std::shared_ptr<lsw::geo::Material> makeDefaultMaterial();
 
  private:
-  std::shared_ptr<lsw::ecsg::SceneGraph> m_sceneGraph;
+  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager;
   std::unordered_map<std::string, std::unique_ptr<lsw::ufm::UniformBlockManager>> m_uniformBlockManagers;
   std::unordered_map<std::string, lsw::geo::Material> m_materials;

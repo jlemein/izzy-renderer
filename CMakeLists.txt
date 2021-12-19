@@ -20,7 +20,7 @@ list(APPEND CMAKE_MODULE_PATH
         ${CMAKE_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake
         )
-list (APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -38,6 +38,10 @@ add_library(izzy STATIC
         src/izz_fontsystem.cpp
         include/izz_texturesystem.h src/izz_texturesystem.cpp
         src/izz_exrloader.cpp
+        include/izz_scenegraph.h
+        include/izz_scenegraphentity.h
+        src/izz_scenegraph.cpp
+        src/izz_scenegraphentity.cpp
         include/izz_sceneloader.h src/izz_sceneloader.cpp
         include/izz_stbtextureloader.h src/izz_stbtextureloader.cpp
         include/izz_scenecompositionsystem.h lib/lsw-gl/include/izzgl_effectsystem.h)
@@ -56,7 +60,7 @@ find_package(OpenEXR REQUIRED)
 
 target_link_libraries(izzy
         PRIVATE
-        geo ecsg
+        geo ecs lsw-gl
         workspace
         spdlog::spdlog
         nlohmann_json::nlohmann_json

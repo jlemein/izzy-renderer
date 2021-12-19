@@ -9,7 +9,7 @@
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
-#include <ecsg_scenegraph.h>
+#include "izz_scenegraph.h"
 #include <geo_primitivefactory.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
@@ -29,7 +29,7 @@ int main(int argc, char **argv) {
 
   try {
     auto resourceManager = make_shared<ResourceManager>();
-    auto sceneGraph = make_shared<ecsg::SceneGraph>();
+    auto sceneGraph = make_shared<izz::SceneGraph>();
     auto materialSystem =
         make_shared<MaterialSystem>(sceneGraph, resourceManager);
     materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");

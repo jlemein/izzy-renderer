@@ -5,11 +5,11 @@
 #include <fmt/format.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include <ecsg_scenegraph.h>
+#include "izz_scenegraph.h"
 #include "geo_material.h"
 using namespace izz::gui;
 
-ShaderEditor::ShaderEditor(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph)
+ShaderEditor::ShaderEditor(std::shared_ptr<izz::SceneGraph> sceneGraph)
   : m_sceneGraph{sceneGraph} {}
 
 void izz::gui::ShaderEditor::init() {}

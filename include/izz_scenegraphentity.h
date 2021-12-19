@@ -1,16 +1,13 @@
 //
 // Created by jlemein on 13-01-21.
 //
-
-#ifndef GLVIEWER_ECS_SCENEGRAPHENTITY_H
-#define GLVIEWER_ECS_SCENEGRAPHENTITY_H
+#pragma once
 
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <memory>
 
-namespace lsw {
-namespace ecsg {
+namespace izz {
 
 class SceneGraph;
 
@@ -29,7 +26,9 @@ class SceneGraphEntity {
   uint64_t id() const;
   entt::entity handle();
 
-  operator entt::entity() const { return m_handle; }
+  operator entt::entity() const {
+    return m_handle;
+  }
 
   /**!
    * @returns the name of the scene graph entity, which is a readable name and
@@ -133,6 +132,4 @@ decltype(auto) SceneGraphEntity::add(const Component& comp) {
   return m_registry.emplace_or_replace<Component>(handle(), comp);
 }
 
-}  // namespace ecsg
-}  // namespace lsw
-#endif  // GLVIEWER_ECS_SCENEGRAPHENTITY_H
+}  // namespace izz

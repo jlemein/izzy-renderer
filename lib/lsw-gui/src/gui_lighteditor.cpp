@@ -1,7 +1,7 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>
-#include <ecsg_scenegraph.h>
+#include "izz_scenegraph.h"
 #include <geo_material.h>
 #include <gui_lighteditor.h>
 #include <izz_resourcemanager.h>
@@ -15,7 +15,7 @@ using namespace izz::gui;
 using namespace lsw;
 using namespace std;
 
-LightEditor::LightEditor(shared_ptr<ecsg::SceneGraph> sceneGraph, shared_ptr<lsw::FontSystem> fontSystem)
+LightEditor::LightEditor(shared_ptr<izz::SceneGraph> sceneGraph, shared_ptr<lsw::FontSystem> fontSystem)
   : m_sceneGraph{sceneGraph}
   , m_fontSystem(fontSystem)
   , m_registry(sceneGraph->getRegistry()) {}

@@ -3,24 +3,21 @@
 //
 #pragma once
 #include <gui_iguiwindow.h>
-#include <ecsg_scenegraphentity.h>
+#include "izz_scenegraphentity.h"
 
 #include <memory>
-#include <vector>
 #include <unordered_map>
-
-namespace lsw {
-namespace ecsg {
-class SceneGraph;
-}
-}
+#include <vector>
 
 namespace izz {
+
+class SceneGraph;
+
 namespace gui {
 
 class ShaderEditor : public IGuiWindow {
  public:
-  ShaderEditor(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph);
+  ShaderEditor(std::shared_ptr<izz::SceneGraph> sceneGraph);
 
   void init() override;
   void render(float time, float dt) override;
@@ -28,7 +25,7 @@ class ShaderEditor : public IGuiWindow {
   void openDialog(entt::entity entity);
 
  private:
-  std::shared_ptr<lsw::ecsg::SceneGraph> m_sceneGraph;
+  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
   std::unordered_map<entt::entity, bool> m_openDialogs;
 };
 

@@ -1,17 +1,17 @@
 //
 // Created by jlemein on 01-02-21.
 //
-#include <ecsg_scenegraphentity.h>
-#include <ecs_name.h>
-#include <ecs_relationshiputil.h>
-#include <ecs_transform.h>
-#include <ecs_transformutil.h>
-using namespace lsw::ecsg;
+#include "izz_scenegraphentity.h"
+#include "ecs_name.h"
+#include "ecs_relationshiputil.h"
+#include "ecs_transform.h"
+#include "ecs_transformutil.h"
+using namespace izz;
 using namespace lsw::ecs;
 
 SceneGraphEntity::SceneGraphEntity(entt::registry& registry, entt::entity handle)
   : m_registry{registry}
-  , m_handle {handle} {}
+  , m_handle{handle} {}
 
 uint64_t SceneGraphEntity::id() const {
   return static_cast<uint64_t>(m_handle);

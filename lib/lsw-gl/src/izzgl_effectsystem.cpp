@@ -2,6 +2,7 @@
 // Created by jeffrey on 17-12-21.
 //
 #include <geo_material.h>
+#include <izz_scenegraph.h>
 #include <izzgl_effectsystem.h>
 #include <izzgl_materialsystem.h>
 #include <fstream>
@@ -11,8 +12,9 @@
 using namespace izz;
 using namespace izz::gl;
 
-EffectSystem::EffectSystem(MaterialSystem& materialSystem)
-  : m_materialSystem{materialSystem} {}
+EffectSystem::EffectSystem(izz::SceneGraph& sceneGraph, MaterialSystem& materialSystem)
+  : m_sceneGraph{sceneGraph}
+  , m_materialSystem{materialSystem} {}
 
 void EffectSystem::readEffectsFromFile(const std::filesystem::path& path) {
   std::ifstream input(path);
@@ -92,8 +94,6 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
       geo::Effect effect;
       effect.name = e.contains("name") ? e["name"].get<std::string>() : "''";
 
-      spdlog::error("pass count: {}", e["passes"].size());
-
       const auto passCount = e["passes"].size();
       for (int i = 0; i < passCount; ++i) {
         const auto& pass = e["passes"][i];
@@ -159,4 +159,18 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
       }
     }
   }
+}
+
+void EffectSystem::initialize() {
+  spdlog::error("WOW INITIALIZING");
+
+  auto view = m_sceneGraph.getRegistry().view<geo::Effect>();
+  for (auto e : view) {
+    auto& effect = m_sceneGraph.getRegistry().get<geo::Effect>(e);
+
+    GLuint fbo[2];
+    glGenFramebuffers(2, fbo);
+    
+  }
+
 }

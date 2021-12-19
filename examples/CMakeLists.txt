@@ -16,7 +16,7 @@ target_link_libraries(common INTERFACE
 target_include_directories(common INTERFACE .)
 
 add_executable(izzyrender m_izzyrender.cpp)
-target_link_libraries(izzyrender PRIVATE izzy lsw-gui common cxxopts::cxxopts)
+target_link_libraries(izzyrender PRIVATE izzy lsw-gl lsw-gui common cxxopts::cxxopts)
 target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
 
 add_executable(bloom m_bloom.cpp)

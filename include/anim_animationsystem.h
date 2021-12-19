@@ -6,25 +6,25 @@
 
 #include <memory>
 
-namespace lsw {
-namespace ecsg {
+namespace izz {
 class SceneGraph;
-}
+}  // namespace izz
 
+namespace lsw {
 namespace anim {
 
-class AnimationSystem { //: public ecs::IViewerExtension {
-public:
-  AnimationSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph);
+class AnimationSystem {  //: public ecs::IViewerExtension {
+ public:
+  AnimationSystem(std::shared_ptr<izz::SceneGraph> sceneGraph);
 
   void init();
   void update(float time, float dt);
 
-private:
-  std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
+ private:
+  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
 };
 
-} // namespace anim
-} // namespace lsw
+}  // namespace anim
+}  // namespace lsw
 
-#endif // RENDERER_ANIM_ANIMATIONSYSTEM_H
+#endif  // RENDERER_ANIM_ANIMATIONSYSTEM_H

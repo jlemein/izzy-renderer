@@ -7,9 +7,9 @@
 #include <memory>
 #include <string>
 
-#include <ecsg_scenegraphentity.h>
 #include <gui_guisystem.h>
 #include <entt/entt.hpp>
+#include "izz_scenegraphentity.h"
 
 #include <GLFW/glfw3.h>
 
@@ -32,16 +32,14 @@ class DebugSystem;
 class IViewerExtension;
 }  // namespace ecs
 
-namespace ecsg {
-class SceneGraph;
-}  // namespace ecsg
-
 namespace io {
 class InputSystem;
 }  // namespace io
 }  // namespace lsw
 
 namespace izz {
+class SceneGraph;
+
 namespace gui {
 class WindowInputListener;
 
@@ -65,12 +63,12 @@ class Window {
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Window(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph, std::shared_ptr<lsw::glrs::RenderSystem> renderSystem,
+  Window(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<lsw::glrs::RenderSystem> renderSystem,
          std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
 
   ~Window();
 
-  lsw::ecsg::SceneGraph& getSceneGraph();
+  izz::SceneGraph& getSceneGraph();
 
   DisplayDetails getDisplayDetails();
 
@@ -80,13 +78,13 @@ class Window {
   void setWindowSize(unsigned int width, unsigned int height);
   void setTitle(const std::string& title);
 
-  void setActiveCamera(lsw::ecsg::SceneGraphEntity cameraEntity);
+  void setActiveCamera(izz::SceneGraphEntity cameraEntity);
 
   // callbacks
   void onWindowResize(int width, int height);
 
  private:
-  std::shared_ptr<lsw::ecsg::SceneGraph> m_sceneGraph;
+  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager;
   std::shared_ptr<gui::GuiSystem> m_guiSystem{nullptr};
   std::shared_ptr<lsw::anim::AnimationSystem> m_animationSystem;

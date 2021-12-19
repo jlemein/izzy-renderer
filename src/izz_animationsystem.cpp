@@ -3,12 +3,12 @@
 //
 #include "anim_animationsystem.h"
 #include "anim_localrotation.h"
-#include "ecs_transform.h"
-#include "ecsg_scenegraph.h"
+#include <ecs_transform.h>
+#include "izz_scenegraph.h"
 using namespace lsw::anim;
 using namespace lsw::ecs;
 
-AnimationSystem::AnimationSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph)
+AnimationSystem::AnimationSystem(std::shared_ptr<izz::SceneGraph> sceneGraph)
 : m_sceneGraph{sceneGraph}
 {}
 

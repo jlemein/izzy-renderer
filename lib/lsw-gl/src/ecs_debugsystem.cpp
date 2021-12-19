@@ -1,22 +1,22 @@
 //
 // Created by jlemein on 01-12-20.
 //
-#include <ecs_debug.h>
-#include <ecs_debugsystem.h>
-#include <ecs_relationship.h>
-#include <glrs_renderable.h>
-#include <ecs_transform.h>
-#include <geo_curve.h>
-#include <geo_mesh.h>
-#include <geo_primitivefactory.h>
-#include <geo_shapeutil.h>
+#include "ecs_debug.h"
+#include "ecs_debugsystem.h"
+#include "ecs_relationship.h"
+#include "../include/glrs_renderable.h"
+#include "ecs_transform.h"
+#include "geo_curve.h"
+#include "geo_mesh.h"
+#include "geo_primitivefactory.h"
+#include "geo_shapeutil.h"
 
 // TODO: does not belong in this package
-#include <ecs_debugshapefactory.h>
+#include "ecs_debugshapefactory.h"
 
-#include <ecs_name.h>
-#include <ecs_relationshiputil.h>
-#include <ecs_transformutil.h>
+#include "ecs_name.h"
+#include "ecs_relationshiputil.h"
+#include "ecs_transformutil.h"
 #include <entt/entt.hpp>
 
 using namespace lsw;

@@ -93,6 +93,7 @@ struct Posteffect {
   GLuint vertex_buffer_object;
   GLuint vertex_array_object;
 };
+
 struct Renderable {
   // storage of user defined shader properties
   //  unsigned int materialId;

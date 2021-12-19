@@ -1,5 +1,7 @@
 
 add_library(lsw-gl STATIC
+        include/ecs_debugmodel.h
+        include/ecs_debugshapefactory.h
         include/glrs_lightsystem.h
         include/glrs_renderable.h
         include/glrs_rendersystem.h
@@ -8,6 +10,8 @@ add_library(lsw-gl STATIC
         include/izzgl_effectsystem.h
         include/izzgl_materialsystem.h
         include/glrs_iframebuffer.h
+        src/ecs_debugsystem.cpp
+        src/ecs_debugshapefactory.cpp
         src/glrs_rendersystem.cpp
         src/glrs_shadersystem.cpp
         src/glrs_shadersystem.h
@@ -16,9 +20,10 @@ add_library(lsw-gl STATIC
         src/glrs_hdrframebuffer.cpp
         src/izzgl_effectsystem.cpp
         src/izzgl_materialsystem.cpp
-        test/node.t.cpp )
+        )
+#test/node.t.cpp
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(lsw-gl PUBLIC include PRIVATE src)
-target_link_libraries(lsw-gl PUBLIC izzy workspace PRIVATE ecs geo EnTT::EnTT spdlog::spdlog ecsg)
+target_link_libraries(lsw-gl PUBLIC izzy workspace PRIVATE ecs geo EnTT::EnTT spdlog::spdlog)

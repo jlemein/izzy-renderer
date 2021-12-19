@@ -6,7 +6,7 @@
 #include <anim_animationsystem.h>
 #include <ecs_camerasystem.h>
 #include <ecs_transformsystem.h>
-#include <ecsg_scenegraph.h>
+#include "izz_scenegraph.h"
 #include <izz_resourcemanager.h>
 #include <glrs_rendersystem.h>
 #include <io_inputsystem.h>
@@ -29,7 +29,7 @@ static void error_callback(int error, const char* description) {
 }
 }  // namespace
 
-Window::Window(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
+Window::Window(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
                std::shared_ptr<gui::GuiSystem> guiSystem)
   : m_sceneGraph{sceneGraph}
   , m_guiSystem(guiSystem)
@@ -157,7 +157,7 @@ int Window::run() {
   return 0;
 }
 
-ecsg::SceneGraph& Window::getSceneGraph() {
+izz::SceneGraph& Window::getSceneGraph() {
   return *m_sceneGraph;
 }
 
@@ -165,7 +165,7 @@ DisplayDetails Window::getDisplayDetails() {
   return m_displayDetails;
 }
 
-void Window::setActiveCamera(ecsg::SceneGraphEntity cameraEntity) {
+void Window::setActiveCamera(izz::SceneGraphEntity cameraEntity) {
   m_renderSystem->setActiveCamera(cameraEntity.handle());
 }
 

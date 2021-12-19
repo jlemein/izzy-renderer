@@ -6,18 +6,14 @@
 #include <memory>
 #include "gui_shadereditor.h"
 
-namespace lsw {
-namespace ecsg {
-class SceneGraph;
-}  // namespace ecsg
-}  // namespace lsw
-
 namespace izz {
+class SceneGraph;
+
 namespace gui {
 
 class MaterialEditor : public gui::IGuiWindow {
  public:
-  MaterialEditor(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph);
+  MaterialEditor(std::shared_ptr<izz::SceneGraph> sceneGraph);
 
   void init() override;
   void render(float time, float dt) override;
@@ -25,7 +21,7 @@ class MaterialEditor : public gui::IGuiWindow {
 
  private:
   ShaderEditor m_shaderEditor;
-  std::shared_ptr<lsw::ecsg::SceneGraph> m_sceneGraph;
+  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
   bool m_show{false};
 };
 

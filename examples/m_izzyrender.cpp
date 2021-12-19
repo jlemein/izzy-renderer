@@ -7,7 +7,7 @@
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
 #include "ecs_transformutil.h"
-#include "ecsg_scenegraph.h"
+#include "izz_scenegraph.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
 #include "gui_iguiwindow.h"
@@ -46,7 +46,7 @@ std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<gl::MaterialSystem> materialSystem{nullptr};
 std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
-std::shared_ptr<ecsg::SceneGraph> sceneGraph{nullptr};
+std::shared_ptr<izz::SceneGraph> sceneGraph{nullptr};
 std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
@@ -55,7 +55,7 @@ std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
 
 void setupSystems() {
   resourceManager = make_shared<ResourceManager>();
-  sceneGraph = make_shared<ecsg::SceneGraph>();
+  sceneGraph = make_shared<izz::SceneGraph>();
 
   auto textureSystem = make_shared<TextureSystem>();
   textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
@@ -63,13 +63,13 @@ void setupSystems() {
   resourceManager->setTextureSystem(textureSystem);
 
   materialSystem = make_shared<gl::MaterialSystem>(sceneGraph, resourceManager);
-  effectSystem = make_shared<gl::EffectSystem>(*materialSystem);
+  effectSystem = make_shared<gl::EffectSystem>(*sceneGraph, *materialSystem);
   resourceManager->setMaterialSystem(materialSystem);
 
   sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
 
-  renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
+  renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem, effectSystem);
   fontSystem = make_shared<FontSystem>();
   fontSystem->addFont("fonts/SegoeUi.ttf", 20);
 //  fontSystem->addFont("fonts/DroidSans.ttf", 20);
@@ -103,7 +103,7 @@ void setupScene() {
   }
 
   // add to scene graph
-  sceneGraph->makeScene(*scene, ecsg::SceneLoaderFlags::All());
+  sceneGraph->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   // adding a custom primitive to the scene
   //    auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
@@ -156,7 +156,7 @@ int main(int argc, char* argv[]) {
     // setup window
     auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
     window->setActiveCamera(camera);
-    window->setWindowSize(1024, 768);
+    window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initialize();
     window->run();
