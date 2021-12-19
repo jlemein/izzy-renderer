@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include <izz_materialsystem.h>
+#include "izzgl_materialsystem.h"
 #include <spdlog/spdlog.h>
 #include <gui_window.h>
 #include <cxxopts.hpp>
@@ -12,7 +12,7 @@
 #include <ecs_transformutil.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
-#include <izz_materialsystem.h>
+#include "izzgl_materialsystem.h"
 #include <izz_resourcemanager.h>
 #include <wsp_workspace.h>
 

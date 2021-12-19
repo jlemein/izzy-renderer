@@ -3,22 +3,26 @@
 //
 #pragma once
 
-#include "ecsg_scenegraphentity.h"
-#include "geo_material.h"
-#include "glrs_rendersystem.h"
-#include "uniform_uniformblockmanager.h"
 #include <entt/entt.hpp>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include "izz_resourcemanager.h"
+#include "ecsg_scenegraphentity.h"
+#include "geo_material.h"
+#include "glrs_rendersystem.h"
+#include <izz_resourcemanager.h>
+#include "uniform_uniformblockmanager.h"
 
 namespace lsw {
+
+class ResourceManager;
 
 namespace ecsg {
 class SceneGraph;
 }  // namespace ecsg
+}  // namespace lsw
 
-class ResourceManager;
+namespace izz {
+namespace gl {
 
 /**
  * The material system manages the material components in the scene.
@@ -28,9 +32,9 @@ class ResourceManager;
  * Every material described in the materials file should be mapped to a data
  * structure.
  */
-class MaterialSystem : public glrs::IMaterialSystem {
+class MaterialSystem : public lsw::glrs::IMaterialSystem {
  public:
-  MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<ResourceManager> resourceManager);
+  MaterialSystem(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
 
@@ -51,7 +55,7 @@ class MaterialSystem : public glrs::IMaterialSystem {
    *  4. If there is no default material, an exception is thrown.
    * @returns a unique ptr
    */
-  std::shared_ptr<geo::Material> createMaterial(const std::string& name);
+  std::shared_ptr<lsw::geo::Material> createMaterial(const std::string& name);
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
@@ -70,20 +74,20 @@ class MaterialSystem : public glrs::IMaterialSystem {
    * it makes sure the rendersystem is updated with new texture data, or to
    * remove
    */
-  void synchronizeTextures(glrs::RenderSystem& renderSystem) override;
+  void synchronizeTextures(lsw::glrs::RenderSystem& renderSystem) override;
 
   bool isMaterialDefined(const std::string& materialName);
 
   // void setDefaultMaterial(std::shared_ptr<Material> material);
   void setDefaultMaterial(const std::string& name);
 
-  std::shared_ptr<geo::Material> makeDefaultMaterial();
+  std::shared_ptr<lsw::geo::Material> makeDefaultMaterial();
 
  private:
-  std::shared_ptr<ecsg::SceneGraph> m_sceneGraph;
-  std::shared_ptr<ResourceManager> m_resourceManager;
-  std::unordered_map<std::string, std::unique_ptr<ufm::UniformBlockManager>> m_uniformBlockManagers;
-  std::unordered_map<std::string, geo::Material> m_materials;
+  std::shared_ptr<lsw::ecsg::SceneGraph> m_sceneGraph;
+  std::shared_ptr<lsw::ResourceManager> m_resourceManager;
+  std::unordered_map<std::string, std::unique_ptr<lsw::ufm::UniformBlockManager>> m_uniformBlockManagers;
+  std::unordered_map<std::string, lsw::geo::Material> m_materials;
 
   /// @brief Fbx specific material names are mapped to canonical material names
   /// that are defined in a material definition.
@@ -91,7 +95,7 @@ class MaterialSystem : public glrs::IMaterialSystem {
 
   /// materials instances are instanced from an existing material definition.
   /// similar to how classes and objects work.
-  std::unordered_map<std::string, geo::Material> m_materialInstances;
+  std::unordered_map<std::string, lsw::geo::Material> m_materialInstances;
 
   std::string m_defaultMaterial{""};
 
@@ -102,4 +106,5 @@ class MaterialSystem : public glrs::IMaterialSystem {
   void onRender(entt::entity entity);
 };
 
-}  // namespace lsw
+}  // namespace gl
+}  // namespace izz

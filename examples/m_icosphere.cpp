@@ -4,7 +4,7 @@
 #include <ecs_wireframe.h>
 #include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
-#include <izz_materialsystem.h>
+#include "izzgl_materialsystem.h"
 #include <izz_resourcemanager.h>
 #include <gui_window.h>
 #include <wsp_workspace.h>

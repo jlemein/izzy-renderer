@@ -9,7 +9,7 @@
 #include <geo_meshinstance.h>
 #include <geo_scene.h>
 #include <geo_transform.h>
-#include <izz_materialsystem.h>
+#include "izzgl_materialsystem.h"
 #include <izz_resourcemanager.h>
 #include <izz_texturesystem.h>
 
@@ -22,7 +22,7 @@
 
 using namespace lsw;
 
-SceneLoader::SceneLoader(std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<MaterialSystem> materialSystem)
+SceneLoader::SceneLoader(std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem)
   : m_textureSystem{textureSystem}
   , m_materialSystem{materialSystem} {}
 

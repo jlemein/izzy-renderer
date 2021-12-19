@@ -26,13 +26,13 @@ set(CMAKE_CXX_STANDARD 20)
 
 add_library(izzy STATIC
         include/izz_resourcemanager.h
-        include/izz_materialsystem.h
+        lib/lsw-gl/include/izzgl_materialsystem.h
         include/anim_animationsystem.h
         include/anim_localrotation.h
         include/izz_fontsystem.h
         include/izz_exrloader.h
         src/izz_resourcemanager.cpp
-        src/izz_materialsystem.cpp
+        lib/lsw-gl/src/izzgl_materialsystem.cpp
         src/izz_resourcemanager.t.cpp
         src/izz_animationsystem.cpp
         src/izz_fontsystem.cpp
@@ -40,7 +40,7 @@ add_library(izzy STATIC
         src/izz_exrloader.cpp
         include/izz_sceneloader.h src/izz_sceneloader.cpp
         include/izz_stbtextureloader.h src/izz_stbtextureloader.cpp
-        include/izz_scenecompositionsystem.h)
+        include/izz_scenecompositionsystem.h lib/lsw-gl/include/izzgl_effectsystem.h)
 
 target_include_directories(izzy
         PUBLIC include

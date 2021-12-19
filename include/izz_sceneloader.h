@@ -4,12 +4,18 @@
 #pragma once
 
 #include <assimp/scene.h>
-#include "geo_transform.h"
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <list>
 #include <memory>
 #include <vector>
+#include "geo_transform.h"
+
+namespace izz {
+namespace gl {
+class MaterialSystem;
+}  // namespace gl
+}  // namespace izz
 
 namespace lsw {
 namespace res {
@@ -25,11 +31,10 @@ struct Material;
 }  // namespace geo
 
 class TextureSystem;
-class MaterialSystem;
 
 class SceneLoader {
  public:
-  SceneLoader(std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<MaterialSystem> materialSystem);
+  SceneLoader(std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
 
   std::shared_ptr<geo::Scene> loadScene(const std::string& path);
 
@@ -85,7 +90,7 @@ class SceneLoader {
   std::shared_ptr<geo::Texture> readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
 
   std::shared_ptr<TextureSystem> m_textureSystem{nullptr};
-  std::shared_ptr<MaterialSystem> m_materialSystem{nullptr};
+  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
 };
 
 }  // namespace lsw

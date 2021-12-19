@@ -13,6 +13,7 @@
 #include <ecsg_scenegraph.h>
 #include <geo_curve.h>
 #include <geo_material.h>
+#include <geo_effect.h>
 #include <geo_mesh.h>
 #include <glrs_lightsystem.h>
 #include <glrs_shadersystem.h>
@@ -592,15 +593,35 @@ void RenderSystem::renderPosteffects() {
   glBindVertexArray(m_quadVao);
 
   if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
+    int passId = 0;
+
     for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
+      auto& effect = m_registry.get<izz::geo::Effect>(e);
+      for (int i=0; i<effect.graph.nodes.size(); ++i) {
+//        glUseProgram(effect.graph.nodes[i].material.programId);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes[passId-1].material->fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes[passId].material->fbo);
+
+        // setup textures for next call
+        
+      }
+
+
+      auto& renderable = m_registry.get<Renderable>(e);
+
+//      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
+//      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
+
       m_framebuffer->nextPass();
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      auto& renderable = m_registry.get<Renderable>(e);
+
       glUseProgram(renderable.program);
       pushShaderProperties(renderable);
 
       glDrawArrays(GL_TRIANGLES, 0, 6);
+      ++passId;
     }
   }
 

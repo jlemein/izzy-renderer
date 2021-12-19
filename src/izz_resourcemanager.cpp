@@ -7,11 +7,12 @@
 #include <geo_texture.h>
 #include <geo_textureloader.h>
 #include <izz_exrloader.h>
-#include <izz_materialsystem.h>
+#include "izzgl_materialsystem.h"
 #include <izz_sceneloader.h>
 #include <izz_texturesystem.h>
 
 using namespace lsw;
+using namespace izz;
 
 namespace {
 std::once_flag getTexturesCall;
@@ -19,7 +20,7 @@ std::once_flag getTexturesCall;
 
 ResourceManager::ResourceManager() {}
 
-void ResourceManager::setMaterialSystem(std::shared_ptr<MaterialSystem> materialSystem) {
+void ResourceManager::setMaterialSystem(std::shared_ptr<gl::MaterialSystem> materialSystem) {
   m_materialSystem = materialSystem;
 }
 
@@ -31,7 +32,7 @@ void ResourceManager::setSceneLoader(std::shared_ptr<SceneLoader> sceneLoader) {
   m_sceneLoader = sceneLoader;
 }
 
-std::shared_ptr<MaterialSystem> ResourceManager::getMaterialSystem() {
+std::shared_ptr<gl::MaterialSystem> ResourceManager::getMaterialSystem() {
   return m_materialSystem;
 }
 

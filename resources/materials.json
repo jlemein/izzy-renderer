@@ -281,60 +281,73 @@
       "name": "Bloom",
       "passes": [
         {
+          "id": 0,
           "material": "ExtractBrightness",
-          "framebuffer": "Bloom1"
-        },
-        {
-          "material": "GaussianBlur",
-          "framebuffer": "Bloom2"
-        },
-        {
-          "material": "GaussianBlur",
-          "framebuffer": "Bloom2"
-        },
-        {
-          "material": "Combine",
-          "framebuffer": "2Color_1Color"
-        },
-        {
-          "material": {
-            "name": "tea_set_01",
-            "material_definition": "BlinnPhong",
-            "properties": {
-              "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
-              "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr",
-              "shininess": 32.0,
-              "specular_color": [
-                0.5,
-                0.5,
-                0.5,
-                0.0
-              ]
+          "framebuffer": "Bloom1",
+          "binding": {
+            "0": {
+              "target_pass": 0,
+              "target_bind": 0
             }
           }
+        },
+        {
+          "id": 1,
+          "material": "GaussianBlurH",
+          "framebuffer": "Transform"
+        },
+        {
+          "id": 2,
+          "material": "GaussianBlurV",
+          "framebuffer": "Transform"
+        },
+        {
+          "id": 3,
+          "material": "Combine",
+          "framebuffer": "Final2->1"
         }
       ]
     }
   ],
   "framebuffers": [
     {
-      "name": "SimplePostEffect",
+      "name": "StandardHdrWithDepth",
       "input": {
-        "0": "COLOR",
-        "1": "DEPTH"
+        "0": "HDR_COLORBUFFER_RGBA",
+        "DEPTH": "DEPTH"
       },
       "output": {
-        "0": "COLOR"
+        "0": "HDR_COLORBUFFER_RGBA"
       }
     },
     {
       "name": "Bloom1",
       "input": {
-        "0": "COLOR",
+        "0": "HDR_COLORBUFFER_RGBA",
         "1": "DEPTH"
       },
       "output": {
-        "0": "COLOR"
+        "0": "HDR_COLORBUFFER_RGBA",
+        "1": "HDR_COLORBUFFER_RGBA"
+      }
+    },
+    {
+      "name": "Transform",
+      "input": {
+        "0": "HDR_COLORBUFFER_RGBA"
+      },
+      "output": {
+        "0": "HDR_COLORBUFFER_RGBA"
+      }
+    },
+    {
+      "name": "Final2->1",
+      "input": {
+        "0": "HDR_COLORBUFFER_RGBA",
+        "1": "HDR_COLORBUFFER_RGBA"
+      },
+      "output": {
+        "0": "COLORBUFFER_RGBA"
       }
     }
   ]

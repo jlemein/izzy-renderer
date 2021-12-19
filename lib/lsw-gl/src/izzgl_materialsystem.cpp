@@ -1,17 +1,17 @@
 //
 // Created by jlemein on 05-08-21.
 //
-#include <izz_materialsystem.h>
+#include "izzgl_materialsystem.h"
 
-#include <ecsg_scenegraph.h>
-#include <geo_textureloader.h>
-#include <glrs_rendersystem.h>
-#include <izz_resourcemanager.h>
-#include <izz_texturesystem.h>
-#include <uniform_constant.h>
-#include <uniform_lambert.h>
-#include <uniform_parallax.h>
-#include <uniform_ubermaterial.h>
+#include "ecsg_scenegraph.h"
+#include "geo_textureloader.h"
+#include "glrs_rendersystem.h"
+#include "izz_resourcemanager.h"
+#include "izz_texturesystem.h"
+#include "uniform_constant.h"
+#include "uniform_lambert.h"
+#include "uniform_parallax.h"
+#include "uniform_ubermaterial.h"
 #include <wsp_workspace.h>
 
 #include <spdlog/fmt/ostr.h>
@@ -25,8 +25,8 @@
 
 using json = nlohmann::json;
 
-using namespace lsw;
-using namespace lsw::geo;
+using namespace izz;
+using namespace izz::gl;
 
 namespace {
 /// @brief Reserved material names in material definition file.
@@ -44,17 +44,17 @@ bool isFloatArray(const T& array) {
 
 }  // namespace
 
-MaterialSystem::MaterialSystem(std::shared_ptr<ecsg::SceneGraph> sceneGraph, std::shared_ptr<ResourceManager> resourceManager)
+MaterialSystem::MaterialSystem(std::shared_ptr<lsw::ecsg::SceneGraph> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager)
   : m_sceneGraph{sceneGraph}
   , m_resourceManager{resourceManager} {
   // for now register the uniform blocks
   // these are the registered uniform blocks that the shaders can make use of.
-  m_uniformBlockManagers[ufm::Lambert::PARAM_NAME] = std::make_unique<ufm::LambertUniformManager>();
-  m_uniformBlockManagers[ufm::Parallax::PARAM_NAME] = std::make_unique<ufm::ParallaxManager>();
-  m_uniformBlockManagers[ufm::Uber::PARAM_NAME] = std::make_unique<ufm::UberUniformManager>();
-  m_uniformBlockManagers[ufm::ConstantLight::PARAM_NAME] = std::make_unique<ufm::ConstantManager>();
-  m_uniformBlockManagers[ufm::BlinnPhong::PARAM_NAME] = std::make_unique<ufm::BlinnPhongManager>();
-  m_uniformBlockManagers[ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<ufm::BlinnPhongSimpleManager>();
+  m_uniformBlockManagers[lsw::ufm::Lambert::PARAM_NAME] = std::make_unique<lsw::ufm::LambertUniformManager>();
+  m_uniformBlockManagers[lsw::ufm::Parallax::PARAM_NAME] = std::make_unique<lsw::ufm::ParallaxManager>();
+  m_uniformBlockManagers[lsw::ufm::Uber::PARAM_NAME] = std::make_unique<lsw::ufm::UberUniformManager>();
+  m_uniformBlockManagers[lsw::ufm::ConstantLight::PARAM_NAME] = std::make_unique<lsw::ufm::ConstantManager>();
+  m_uniformBlockManagers[lsw::ufm::BlinnPhong::PARAM_NAME] = std::make_unique<lsw::ufm::BlinnPhongManager>();
+  m_uniformBlockManagers[lsw::ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<lsw::ufm::BlinnPhongSimpleManager>();
 }
 
 void MaterialSystem::readMaterialInstances(json& j) {
@@ -79,19 +79,19 @@ void MaterialSystem::readMaterialInstances(json& j) {
         try {
           auto type = mat.propertyTypes.at(key);
           switch (type) {
-            case Material::PropertyType::TEXTURE2D:
+            case lsw::geo::Material::PropertyType::TEXTURE2D:
               mat.setTexture(key, value.get<std::string>());
               break;
 
-            case Material::PropertyType::FLOAT4:
+            case lsw::geo::Material::PropertyType::FLOAT4:
               mat.userProperties.setFloatArray(key, value.get<std::vector<float>>());
               break;
 
-            case Material::PropertyType::FLOAT:
+            case lsw::geo::Material::PropertyType::FLOAT:
               mat.userProperties.setFloat(key, value.get<float>());
               break;
 
-            case Material::PropertyType::INT:
+            case lsw::geo::Material::PropertyType::INT:
               mat.userProperties.setInt(key, value.get<int>());
               break;
 
@@ -108,7 +108,7 @@ void MaterialSystem::readMaterialInstances(json& j) {
   }
 }
 
-void addTextureToMaterial(const std::string& textureName, const std::string& path, geo::Material& material) {
+void addTextureToMaterial(const std::string& textureName, const std::string& path, lsw::geo::Material& material) {
   if (textureName == ReservedNames::DIFFUSE_TEXTURE) {
     material.diffuseTexturePath = path;
   } else if (textureName == ReservedNames::SPECULAR_TEXTURE) {
@@ -126,7 +126,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
   spdlog::info("Reading material definitions...");
 
   for (const auto& material : j["materials"]) {
-    Material m;
+    lsw::geo::Material m;
     m.name = material["name"].get<std::string>();
     spdlog::debug("Reading material with id \"{}\"...", m.name);
 
@@ -165,7 +165,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
         std::string type = value["type"];
 
         if (type == "texture") {
-          m.propertyTypes[name] = Material::TEXTURE2D;
+          m.propertyTypes[name] = lsw::geo::Material::TEXTURE2D;
           auto path = value["default_value"].get<std::string>();
           spdlog::debug("\t{} texture: {}", name, path);
           addTextureToMaterial(name, path, m);
@@ -196,7 +196,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
                   "{} with uniform block '{}': material system does not contain an UBO handler for this UBO name. Shader will likely misbehave.", m.name,
                   name));
             } else {
-              m.propertyTypes[name] = Material::PropertyType::UNIFORM_BUFFER_OBJECT;
+              m.propertyTypes[name] = lsw::geo::Material::PropertyType::UNIFORM_BUFFER_OBJECT;
 
               std::size_t sizeOfStruct = 0;
               auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
@@ -205,16 +205,16 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
 
               for (const auto& [key, value] : value.items()) {
                 if (value.is_array() && isFloatArray<>(value)) {
-                  m.propertyTypes[key] = Material::PropertyType::FLOAT4;
+                  m.propertyTypes[key] = lsw::geo::Material::PropertyType::FLOAT4;
                   auto list = value.get<std::vector<float>>();
                   spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
                   m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
                 } else if (value.is_number_float()) {
-                  m.propertyTypes[key] = Material::PropertyType::FLOAT;
+                  m.propertyTypes[key] = lsw::geo::Material::PropertyType::FLOAT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
                   m.userProperties.setFloat(key, value.get<float>());
                 } else if (value.is_number_integer()) {
-                  m.propertyTypes[key] = Material::PropertyType::INT;
+                  m.propertyTypes[key] = lsw::geo::Material::PropertyType::INT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<int>());
                   m.userProperties.setInt(key, value.get<int>());
                 } else {
@@ -248,6 +248,7 @@ void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
   // first material definitions are read.
   readMaterialDefinitions(path.parent_path(), j);
   readMaterialInstances(j);
+//  readEffects(j);
 
   if (j.contains("default_material")) {
     auto defaultMaterial = j["default_material"];
@@ -257,22 +258,24 @@ void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
       spdlog::warn("{} specifies a default material '{}' that is not defined in the list of materials", path, defaultMaterial);
     }
   }
+
+  input.close();
 }
 
 bool MaterialSystem::isMaterialDefined(const std::string& materialName) {
   return m_materialMappings.count(materialName) > 0 || m_materials.count(materialName) > 0;
 }
 
-std::shared_ptr<geo::Material> MaterialSystem::createMaterial(const std::string& name) {
+std::shared_ptr<lsw::geo::Material> MaterialSystem::createMaterial(const std::string& name) {
   if (m_materialInstances.count(name) > 0) {
-    return std::make_shared<geo::Material>(m_materialInstances.at(name));
+    return std::make_shared<lsw::geo::Material>(m_materialInstances.at(name));
   }
 
   // 1. First process material mapping to material name
   auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
 
   // 2. Match the specified name with a known material
-  Material material;
+  lsw::geo::Material material;
   if (m_materials.count(materialName) > 0) {
     material = m_materials.at(materialName);
   } else {
@@ -291,18 +294,18 @@ std::shared_ptr<geo::Material> MaterialSystem::createMaterial(const std::string&
     }
   }
 
-  return std::make_shared<geo::Material>(material);
+  return std::make_shared<lsw::geo::Material>(material);
 }
 
-std::shared_ptr<geo::Material> MaterialSystem::makeDefaultMaterial() {
+std::shared_ptr<lsw::geo::Material> MaterialSystem::makeDefaultMaterial() {
   return createMaterial(m_defaultMaterial);
 }
 
 void MaterialSystem::update(float time, float dt) {
-  auto view = m_sceneGraph->getRegistry().view<geo::Material, glrs::Renderable>();
+  auto view = m_sceneGraph->getRegistry().view<lsw::geo::Material, lsw::glrs::Renderable>();
   for (auto e : view) {
-    const auto& r = view.get<glrs::Renderable>(e);
-    const auto& m = view.get<geo::Material>(e);
+    const auto& r = view.get<lsw::glrs::Renderable>(e);
+    const auto& m = view.get<lsw::geo::Material>(e);
 
     // TODO: probably this for loop is more efficient if it is part of render system
     for (const auto& [name, uniformBlock] : r.userProperties) {
@@ -317,17 +320,17 @@ void MaterialSystem::update(float time, float dt) {
   }
 }
 
-void MaterialSystem::synchronizeTextures(glrs::RenderSystem& renderSystem) {
+void MaterialSystem::synchronizeTextures(lsw::glrs::RenderSystem& renderSystem) {
   auto& registry = m_sceneGraph->getRegistry();
-  auto view = registry.view<geo::Material>();  // why are we not requesting
+  auto view = registry.view<lsw::geo::Material>();  // why are we not requesting
                                                // <Material, Renderable>?
 
   // put the code in bottom part of readMaterialDefinitions here
   // ...
 
   for (auto entity : view) {
-    auto& renderable = registry.get_or_emplace<glrs::Renderable>(entity);
-    auto& geoMaterial = view.get<geo::Material>(entity);
+    auto& renderable = registry.get_or_emplace<lsw::glrs::Renderable>(entity);
+    auto& geoMaterial = view.get<lsw::geo::Material>(entity);
     spdlog::debug("Attach textures for meterial '{}' to render system", geoMaterial.name);
 
     for (auto& [name, path] : geoMaterial.texturePaths) {

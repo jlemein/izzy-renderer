@@ -14,11 +14,14 @@
 #include "gui_lighteditor.h"
 #include "izz_exrloader.h"
 #include "izz_fontsystem.h"
-#include "izz_materialsystem.h"
 #include "izz_resourcemanager.h"
 #include "izz_sceneloader.h"
 #include "izz_stbtextureloader.h"
 #include "izz_texturesystem.h"
+
+#include <izzgl_materialsystem.h>
+#include <izzgl_effectsystem.h>
+
 #include "gui_window.h"
 #include "wsp_workspace.h"
 
@@ -41,7 +44,8 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 namespace {
 std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
-std::shared_ptr<MaterialSystem> materialSystem{nullptr};
+std::shared_ptr<gl::MaterialSystem> materialSystem{nullptr};
+std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
 std::shared_ptr<ecsg::SceneGraph> sceneGraph{nullptr};
 std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
@@ -58,7 +62,8 @@ void setupSystems() {
   textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
   resourceManager->setTextureSystem(textureSystem);
 
-  materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
+  materialSystem = make_shared<gl::MaterialSystem>(sceneGraph, resourceManager);
+  effectSystem = make_shared<gl::EffectSystem>(*materialSystem);
   resourceManager->setMaterialSystem(materialSystem);
 
   sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
@@ -129,6 +134,7 @@ int main(int argc, char* argv[]) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
       materialSystem->loadMaterialsFromFile(programArguments->materialsFile);
+      effectSystem->readEffectsFromFile(programArguments->materialsFile);
     }
 
     // visualize point lights using a custom material.

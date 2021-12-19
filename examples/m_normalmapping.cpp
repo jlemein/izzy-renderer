@@ -10,7 +10,7 @@
 #include <geo_primitivefactory.h>
 #include <anim_localrotation.h>
 #include <izz_fontsystem.h>
-#include <izz_materialsystem.h>
+#include "izzgl_materialsystem.h"
 #include <izz_resourcemanager.h>
 #include <gui_lighteditor.h>
 #include <spdlog/spdlog.h>
