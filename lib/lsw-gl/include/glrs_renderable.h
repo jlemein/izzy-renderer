@@ -100,6 +100,10 @@ struct Renderable {
   std::shared_ptr<geo::Material> material;
   std::shared_ptr<izz::geo::Effect> effect {nullptr};
 
+  // 0 - forward rendered
+  // 1 - deferred rendered
+  int category {0};
+
   //  std::string name{"Unnamed"};
   GLuint program;
   GLuint vertex_buffer{0U}, index_buffer{0U};

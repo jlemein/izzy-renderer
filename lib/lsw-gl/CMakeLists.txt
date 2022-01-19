@@ -20,7 +20,10 @@ add_library(lsw-gl STATIC
         src/glrs_hdrframebuffer.cpp
         src/izzgl_effectsystem.cpp
         src/izzgl_materialsystem.cpp
-        )
+        include/gl_forwardrenderer.h
+        include/gl_deferredrenderer.h
+        src/gl_forwardrenderer.cpp
+        src/gl_deferredrenderer.cpp src/gl_deferredrenderer.cpp)
 #test/node.t.cpp
 
 find_package(EnTT REQUIRED)

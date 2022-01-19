@@ -3,6 +3,7 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <memory>
+#include "geo_effect.h"
 
 namespace lsw {
 namespace geo {
@@ -68,6 +69,7 @@ class SceneGraph {
   //  SceneGraphEntity addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material);
   SceneGraphEntity addGeometry(const lsw::geo::Mesh& mesh);
   SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<lsw::geo::Material> mat);
+  SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect);
 
   void setActiveCamera(const SceneGraphEntity* activeCamera);
 

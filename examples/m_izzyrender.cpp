@@ -106,9 +106,13 @@ void setupScene() {
   sceneGraph->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   // adding a custom primitive to the scene
-  //    auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
-  //    MeshUtil::ScaleUvCoords(plane, 3, 3);
-  //    auto tableCloth = materialSystem->createMaterial("table_cloth");
+  auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
+  MeshUtil::ScaleUvCoords(plane, 3, 3);
+  auto tableCloth = materialSystem->createMaterial("table_cloth");
+  auto effect = effectSystem->createEffect("table_cloth");
+//  auto material = materialSystem->createMaterial("table_cloth");
+  sceneGraph->addGeometry(plane, effect);
+
   //    sceneGraph->addGeometry(plane, tableCloth);
 
 }

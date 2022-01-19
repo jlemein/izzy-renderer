@@ -1,6 +1,7 @@
 
 add_library(geo STATIC src/geo_meshloader.cpp
         include/geo_meshloader.h
+        include/geo_graph.h src/geo_graph.cpp
         include/geo_meshtransform.h
         include/geo_materialutil.h
         src/geo_materialutil.cpp
@@ -9,7 +10,7 @@ add_library(geo STATIC src/geo_meshloader.cpp
         src/geo_primitivefactory.cpp
         include/geo_mesh.h
         include/geo_boundingbox.h include/geo_meshinstance.h include/geo_shapeutil.h src/geo_boundingbox.cpp include/geo_transform.h
-        include/geo_texture.h include/geo_textureloader.h include/geo_material.h include/geo_meshutil.h src/geo_meshutil.cpp include/geo_scenetransform.h include/geo_effect.h)
+        include/geo_texture.h include/geo_textureloader.h include/geo_material.h include/geo_meshutil.h src/geo_meshutil.cpp include/geo_scenetransform.h include/geo_effect.h include/geo_graph.h src/geo_graph.cpp src/geo_graph.t.cpp)
 
 target_include_directories(geo
         PUBLIC include
@@ -36,7 +37,8 @@ target_link_libraries(geo
 #if (BUILD_TESTING)
     add_executable(geo_test
             src/geo_material.t.cpp
-            src/geo_meshutil.t.cpp)
+            src/geo_meshutil.t.cpp
+            src/geo_graph.t.cpp)
     target_link_libraries(geo_test PRIVATE
             glm::glm
             geo GTest::GTest nlohmann_json::nlohmann_json)

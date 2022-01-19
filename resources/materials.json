@@ -278,6 +278,16 @@
   ],
   "effects": [
     {
+      "name": "table_cloth",
+      "passes": [
+        {
+          "id": 0,
+          "material": "table_cloth",
+          "framebuffer": "Default"
+        }
+      ]
+    },
+    {
       "name": "Bloom",
       "passes": [
         {
@@ -336,6 +346,13 @@
       "input": {
         "0": "HDR_COLORBUFFER_RGBA"
       },
+      "output": {
+        "0": "HDR_COLORBUFFER_RGBA"
+      }
+    },
+    {
+      "name": "Default",
+      "input": {},
       "output": {
         "0": "HDR_COLORBUFFER_RGBA"
       }

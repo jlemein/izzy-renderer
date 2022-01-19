@@ -1,6 +1,7 @@
 //
 // Created by jeffrey on 17-12-21.
 //
+#include <geo_effect.h>
 #include <geo_material.h>
 #include <izz_scenegraph.h>
 #include <izzgl_effectsystem.h>
@@ -52,17 +53,80 @@ std::unordered_map<std::string, geo::Buffer> FramebufferPresets{
 
 };
 
+void ResolveChannelAndDataType(geo::FramebufferChannelFormat fbChannel, geo::FramebufferDataType fbDataType,
+                               GLuint& internalFormat, GLuint& format, GLuint& type) {
+  if (fbChannel == geo::FramebufferChannelFormat::RGBA && fbDataType == geo::FramebufferDataType::FLOAT32) {
+    internalFormat = GL_RGBA32F;
+    format = GL_RGBA;
+    type = GL_FLOAT;
+  } else if (fbChannel == geo::FramebufferChannelFormat::RGBA && fbDataType == geo::FramebufferDataType::HALF) {
+    internalFormat = GL_RGBA16F;
+    format = GL_RGBA;
+    type = GL_HALF_FLOAT;
+  } else if (fbChannel == geo::FramebufferChannelFormat::RGBA && fbDataType == geo::FramebufferDataType::UNSIGNED_BYTE) {
+    internalFormat = GL_RGBA;
+    format = GL_RGBA;
+    type = GL_UNSIGNED_BYTE;
+  } else if (fbChannel == geo::FramebufferChannelFormat::RGB && fbDataType == geo::FramebufferDataType::FLOAT32) {
+    internalFormat = GL_RGB;
+    format = GL_RGB;
+    type = GL_FLOAT;
+  } else if (fbChannel == geo::FramebufferChannelFormat::RGB && fbDataType == geo::FramebufferDataType::HALF) {
+    internalFormat = GL_RGB;
+    format = GL_RGB;
+    type = GL_HALF_FLOAT;
+  } else if (fbChannel == geo::FramebufferChannelFormat::RGB && fbDataType == geo::FramebufferDataType::UNSIGNED_BYTE) {
+    internalFormat = GL_RGB;
+    format = GL_RGB;
+    type = GL_UNSIGNED_BYTE;
+  } else {
+    spdlog::warn("Could not resolve framebuffer channel and data type. Using default RGBA (unsigned byte).");
+    internalFormat = GL_RGBA;
+    format = GL_RGBA;
+    type = GL_FLOAT;
+  }
+}
+
 bool is_positive_number(const std::string& s) {
   return !s.empty() && std::find_if(s.begin(), s.end(), [](unsigned char c) { return !std::isdigit(c); }) == s.end();
 }
 }  // namespace
 
+geo::cEffect EffectSystem::createEffect(const std::string& name) {
+  if (m_effects.count(name) <= 0) {
+    throw std::runtime_error(fmt::format("Cannot find effect with name '{}'", name));
+  }
+
+  return geo::cEffect{name};
+}
+
 void EffectSystem::readFramebuffers(const nlohmann::json& json) {
+  spdlog::info("--- READING FRAMEBUFFERS ---");
   for (const auto& framebuffer : json["framebuffers"]) {
     auto name = framebuffer["name"].get<std::string>();
     izz::geo::FramebufferConfiguration config;
 
-    for (const auto& [attachment, value] : framebuffer["input"].items()) {
+//    for (const auto& [attachment, value] : framebuffer["input"].items()) {
+//      auto bufferName = value.get<std::string>();
+//      if (!FramebufferPresets.contains(bufferName)) {
+//        throw std::runtime_error(fmt::format("Frambuffer '{}: attachment {}': specified buffer preset '{}' is unknown.", name, attachment, bufferName));
+//      }
+//
+//      if (is_positive_number(attachment)) {
+//        int attachmentId = std::atoi(attachment.c_str());
+//        config.colorAttachments[attachmentId] = FramebufferPresets.at(bufferName);
+//      } else if (attachment == "DEPTH") {
+//        config.depthAttachment = FramebufferPresets.at(bufferName);
+//      } else if (attachment == "STENCIL") {
+//        spdlog::warn("Attachment \"STENCIL\" is unsupported for the moment");
+//      } else if (attachment == "DEPTH_STENCIL") {
+//        spdlog::warn("Attachment \"DEPTH_STENCIL\" is unsupported for the moment");
+//      } else {
+//        spdlog::warn("Unrecognized input attachment specified: '{}'. This will be ignored.", attachment);
+//      }
+//    }
+
+    for (const auto& [attachment, value] : framebuffer["output"].items()) {
       auto bufferName = value.get<std::string>();
       if (!FramebufferPresets.contains(bufferName)) {
         throw std::runtime_error(fmt::format("Frambuffer '{}: attachment {}': specified buffer preset '{}' is unknown.", name, attachment, bufferName));
@@ -70,9 +134,9 @@ void EffectSystem::readFramebuffers(const nlohmann::json& json) {
 
       if (is_positive_number(attachment)) {
         int attachmentId = std::atoi(attachment.c_str());
-        config.in_colorAttachments[attachmentId] = FramebufferPresets.at(bufferName);
+        config.colorAttachments[attachmentId] = FramebufferPresets.at(bufferName);
       } else if (attachment == "DEPTH") {
-        config.in_depthAttachment = FramebufferPresets.at(bufferName);
+        config.depthAttachment = FramebufferPresets.at(bufferName);
       } else if (attachment == "STENCIL") {
         spdlog::warn("Attachment \"STENCIL\" is unsupported for the moment");
       } else if (attachment == "DEPTH_STENCIL") {
@@ -92,7 +156,7 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
   if (hasEffects) {
     for (const auto& e : json["effects"]) {
       geo::Effect effect;
-      effect.name = e.contains("name") ? e["name"].get<std::string>() : "''";
+      effect.name = (e.contains("name") ? e["name"].get<std::string>() : "''");
 
       const auto passCount = e["passes"].size();
       for (int i = 0; i < passCount; ++i) {
@@ -106,7 +170,7 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
           auto materialName = pass["material"];
           auto framebufferName = pass["framebuffer"];
 
-          auto node = geo::Node<std::shared_ptr<lsw::geo::Material>>();
+          geo::EffectNode node;
           node.material = m_materialSystem.createMaterial(materialName);
 
           if (m_framebuffers.count(framebufferName) <= 0) {
@@ -128,16 +192,14 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
                               effect.name, i, passId));
             }
 
-            geo::Edge edge;
-            edge.from = effect.graph.nodeIds[passId];
             auto targetPassId = bindInfo["target_pass"].is_number_integer() ? std::to_string(bindInfo["target_pass"].get<int>())
                                                                             : bindInfo["target_pass"].get<std::string>();
-            edge.to = effect.graph.nodeIds[targetPassId];
-
             auto fromAttachment = std::atoi(fromAttachmentStr.c_str());
             auto dstAttachment = bindInfo["target_bind"].get<int>();
-            edge.binding[fromAttachment] = dstAttachment;
-            effect.graph.addEdge(edge);
+
+            geo::BufferMapping mapping;
+            mapping.buffers[fromAttachment] = dstAttachment;
+            effect.graph.connect(passId, targetPassId, mapping);
           }
         } else {
           // default binding
@@ -148,29 +210,96 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
               nextPassId = nextPass["id"].is_number_integer() ? std::to_string(nextPass["id"].get<int>()) : nextPass["id"].get<std::string>();
             }
 
-            effect.graph.addNode(nextPassId);
+            auto materialName = nextPass["material"];
+            auto framebufferName = nextPass["framebuffer"];
+            geo::EffectNode node;
+            node.material = m_materialSystem.createMaterial(materialName);
+            node.framebuffer = m_framebuffers.at(framebufferName);
 
-            geo::Edge edge;
-            edge.from = effect.graph.nodeIds.at(passId);
-            edge.to = effect.graph.nodeIds.at(nextPassId);
-            effect.graph.addEdge(edge);
+            effect.graph[nextPassId] = node;
+            effect.graph.connect(passId, nextPassId);
           }
         }
       }
+
+      m_effects[effect.name] = std::move(effect);
     }
   }
 }
 
-void EffectSystem::initialize() {
-  spdlog::error("WOW INITIALIZING");
-
-  auto view = m_sceneGraph.getRegistry().view<geo::Effect>();
-  for (auto e : view) {
-    auto& effect = m_sceneGraph.getRegistry().get<geo::Effect>(e);
-
-    GLuint fbo[2];
-    glGenFramebuffers(2, fbo);
-    
+void createBuffer(GLuint attachment, int width, int height, const geo::Buffer& buffer) {
+  if (buffer.bufferType == geo::FramebufferBufferType::RENDERBUFFER) {
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, attachment, GL_RENDERBUFFER, rbo);
   }
+  if (buffer.bufferType == geo::FramebufferBufferType::TEXTURE) {
+    GLuint internalFormat, format, type;
+    ResolveChannelAndDataType(buffer.channelFormat, buffer.dataType,
+                              internalFormat, format, type);
 
+    GLuint tbo;
+    glGenTextures(1, &tbo);
+    glBindTexture(GL_TEXTURE_2D, tbo);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, tbo, 0);
+  }
+}
+
+void EffectSystem::initialize() {
+  // A framebu
+  // Flow of framebuffer operations.
+  // First pass:
+  // * Setup texture units based on in_fb configuration.
+  spdlog::info("Nothing to initialize");
+  int width = 1024, height = 1024;
+
+  for (const auto& [e, cfx] : m_sceneGraph.getRegistry().view<geo::cEffect>().each()) {
+    auto& fx = m_effects.at(cfx.name);
+    spdlog::warn("Effect {} has node size: {}", fx.name, fx.graph.nodeSize());
+
+    for (int i = 0; i < fx.graph.nodeSize(); ++i) {
+      const auto& fb = fx.graph.nodes()[i].framebuffer;
+      const auto& node = fx.graph.nodes()[i];
+
+      GLuint fbo;
+      glGenFramebuffers(1, &fbo);
+      glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+
+      if (fb.depthAttachment.bufferType != geo::FramebufferBufferType::UNUSED) {
+        createBuffer(GL_DEPTH_ATTACHMENT, width, height, fb.depthAttachment);
+      }
+      if (fb.depthStencilAttachment.bufferType != geo::FramebufferBufferType::UNUSED) {
+        createBuffer(GL_DEPTH_STENCIL_ATTACHMENT, width, height, fb.depthStencilAttachment);
+      }
+      if (fb.stencilAttachment.bufferType != geo::FramebufferBufferType::UNUSED) {
+        createBuffer(GL_STENCIL_ATTACHMENT, width, height, fb.stencilAttachment);
+      }
+      for (int i = 0; i < 4; ++i) {
+        if (fb.colorAttachments[i].bufferType != geo::FramebufferBufferType::UNUSED) {
+          createBuffer(GL_COLOR_ATTACHMENT0 + i, width, height, fb.colorAttachments[i]);
+        }
+      }
+
+      if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
+        throw std::runtime_error("Framebuffer invalid");
+      } else {
+        node.material->fbo = fbo;
+      }
+    }
+
+    //
+    //    for (auto materialId : effect) {
+    //      int numIncomingConnections = effect.getIncomingConnections(materialId).size();
+    //      int numOutgoingConnections = effect.getIncomingConnections(materialId).size();
+    //      glGenFramebuffers()
+    //    }
+    //
+    //    effect.graph.
+    //    glGenFramebuffers();
+  }
 }

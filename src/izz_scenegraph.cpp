@@ -51,6 +51,17 @@ SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<ls
   return e;
 }
 
+SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect) {
+  auto e = makeMoveableEntity(mesh.name);
+  e.add<glrs::Renderable>();
+  e.add<lsw::geo::Mesh>(mesh);
+  // TODO: make sure we store a shared ptr instead of a copy.
+  //  shared materials offer option to share materials.
+  e.add<geo::cEffect>(effect);
+
+  return e;
+}
+
 // SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material) {
 //   auto e = makeEntity(mesh.name);
 //   e.add<glrs::Renderable>();

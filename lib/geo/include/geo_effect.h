@@ -4,7 +4,9 @@
 #pragma once
 
 #include <geo_material.h>
+#include <geo_graph.h>
 #include <memory>
+
 
 namespace izz {
 namespace geo {
@@ -38,17 +40,16 @@ struct Buffer {
 
 class FramebufferConfiguration {
  public:
-  Buffer in_colorAttachments[4];
-  Buffer in_depthAttachment;
-  Buffer in_depthStencilAttachment;
-  Buffer in_stencilAttachment;
+  Buffer colorAttachments[4];
+  Buffer depthAttachment;
+  Buffer depthStencilAttachment;
+  Buffer stencilAttachment;
 
-  Buffer out_colorAttachments[4];
+//  Buffer out_colorAttachments[4];
 };
 
-template <typename T>
-struct Node {
-  T material;
+struct EffectNode {
+  std::shared_ptr<lsw::geo::Material> material;
 
   FramebufferConfiguration framebuffer;
 };
@@ -58,43 +59,20 @@ struct Edge {
   short from, to;
 };
 
-template <typename T, int n=128, int e=128>
-class Graph {
- public:
-
-  Graph() {
-    nodes.reserve(1024);
-    edges.reserve(1024);
-  }
-
-  Node<T>& operator[](std::string key) {
-    if (nodeIds.contains(key)) {
-      return nodes[nodeIds.at(key)];
-    } else {
-      auto id = addNode(key);
-      return nodes[id];
-    }
-  }
-
-  short addNode(const std::string& key, Node<T> node = Node<T>()) {
-    nodes.push_back(node);
-    nodeIds[key] = nodes.size()-1;
-    return nodes.size()-1;
-  }
-
-  short addEdge(Edge edge) {
-    edges.push_back(edge);
-    return edges.size()-1;
-  }
-
-  std::unordered_map<std::string, int> nodeIds;
-  std::vector<Node<T>> nodes;
-  std::vector<Edge> edges;
+struct BufferMapping {
+  // buffer mappings. buffer[0] = 1 means output buffer 0, maps to input buffer 1 in connected node.
+  int buffers[4] = {0, 1, 2, 3};
 };
 
-struct Effect {
+class Effect {
+ public:
   std::string name;
-  Graph<std::shared_ptr<lsw::geo::Material>> graph;
+  Graph<16, EffectNode, std::string, BufferMapping> graph;
+};
+
+struct cEffect {
+  std::string name;
+//  Graph<std::shared_ptr<lsw::geo::Material>> graph;
 };
 
 }  // namespace gl

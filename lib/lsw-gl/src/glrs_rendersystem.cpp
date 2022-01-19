@@ -395,7 +395,7 @@ void RenderSystem::init() {
   // convert material descriptions to openGL specific material data.
   m_materialSystem->synchronizeTextures(*this);
 
-  m_effectSystem->initialize();
+//  m_effectSystem->initialize();
 
   // setup postprocessing screen quad
   initPostprocessBuffers();
@@ -528,19 +528,37 @@ void RenderSystem::updateCamera(Renderable& renderable) {
   renderable.uniformBlock.viewPos = glm::vec3(transform.worldTransform[3]);
 }
 
+void RenderSystem::activateEffect(entt::entity e) {
+
+  if (m_registry.all_of<geo::cEffect>(e)) {
+    const auto& cfx = m_registry.get<izz::geo::cEffect>(e);
+    const izz::geo::Effect& fx = m_effectSystem.getById(cfx.name);
+
+    fx.graph.
+
+  }
+  activateTextures(e);
+}
+
 void RenderSystem::render() {
   //  // 1. Select buffer to render into
   m_framebuffer->bind();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+  m_forwardRenderer.render(m_registry);
+
   // render 3D scene
-  for (const auto& [entity, renderable, transform] : m_registry.view<const Renderable, const ecs::Transform>().each()) {
+  for (const auto& [entity, fwd, transform] : m_registry.view<const ForwardRenderable, const ecs::Transform>().each()) {
+    glBindFramebuffer(GL_FRAMEBUFFER, m_forwardFbo);
+
+    const auto& renderable = m_registry.get<const Renderable>(entity);
     const auto& name = m_registry.get<ecs::Name>(entity);
 
     // activate shader program
     glUseProgram(renderable.program);
 
-    // prepare the materials
+    // prepare the materials (input to node).
+//    activateEffect(entity);
     activateTextures(entity);
 
     // TODO: disable in release
@@ -603,11 +621,11 @@ void RenderSystem::renderPosteffects() {
 
     for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
       auto& effect = m_registry.get<izz::geo::Effect>(e);
-      for (int i = 0; i < effect.graph.nodes.size(); ++i) {
+      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
         //        glUseProgram(effect.graph.nodes[i].material.programId);
 
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes[passId - 1].material->fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes[passId].material->fbo);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes()[passId].material->fbo);
 
         // setup textures for next call
       }

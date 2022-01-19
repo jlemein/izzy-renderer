@@ -163,6 +163,34 @@ If you want to use
 a custom shader for the light source, make sure to assign a material before the light system is initialized or overwrite
 the material later on in the simulation.
 
+# Material and effect system
+
+The izzy renderer has materials and effects.
+* **Material**: single pass rendering technique. It describes surface properties and is corresponding to a compiled shader program, consisting of vertex and fragment shader.
+* **Effect**: multi pass rendering technique. An effect is composed of multiple materials. The connection between materials is described using a node graph.
+
+Both materials and effects are uniquely described by a name in the `materials.json`.
+The material name inside a 3d model file will correspond to either an effect or a material.
+
+The following order is used to resolve the material or effect.
+
+1. First, the effect system is queried. If the name matches an effect, the effect is returned.
+2. If no effect is found, the material instance mapping is searched. If there is a material instance with the same name, the name gets mapped to the "concrete" material name. If not found, the "concrete" material name is set to the same name.
+3. Given a (mapped) material name, the material system is queried. If found, a single pass effect is returned, with the single pass being the material searched for.
+
+## Render order
+
+The scene is rendered using a specific rendering strategy. Example rendering strategies are forward-rendering, or deferred
+rendering. The rendering strategy is in control on what and how to render. Note that it is not exclusively forward or
+deferred rendering, but it can also be a hybrid strategy. The strategy is free to implement.
+
+The rendering strategy imposes rules and restrictions on the renderable objects in the scene.
+Usually the following order is used:
+
+1. The rendering strategy decides upon a rendering effect to use.
+2. Loop over all renderable objects
+
+
 #### Adding post processing effects
 
 Post-processing is supported via camera entities. A camera entity can have zero, one or multiple post-processing

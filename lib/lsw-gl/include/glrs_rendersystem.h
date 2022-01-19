@@ -10,6 +10,8 @@
 #include <glrs_lightsystem.h>
 #include <glrs_multipassframebuffer.h>
 #include "glrs_hdrframebuffer.h"
+#include <gl_forwardrenderer.h>
+#include <gl_deferredrenderer.h>
 
 namespace izz {
 class SceneGraph;
@@ -62,10 +64,16 @@ class RenderSystem {
    */
   void attachTexture(glrs::Renderable& renderable, const geo::Texture& geoTexture, const std::string& paramName);
 
+  /// @brief Activates the effect. Sets up framebuffer.
+  void activateEffect(entt::entity e);
+
   void activateTextures(entt::entity e);
 
  private:
   std::unique_ptr<IFramebuffer> m_framebuffer;
+
+  izz::gl::ForwardRenderer m_forwardRenderer;
+  izz::gl::DeferredRenderer m_deferredRenderer;
 
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;

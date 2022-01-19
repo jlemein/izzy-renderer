@@ -23,6 +23,9 @@ class EffectSystem {
   void readEffectsFromJson(const nlohmann::json& json);
   void readFramebuffers(const nlohmann::json& json);
 
+
+  geo::cEffect createEffect(const std::string& name);
+
   /// @brief Initializes the effects and framebuffer configurations.
   void initialize();
 
