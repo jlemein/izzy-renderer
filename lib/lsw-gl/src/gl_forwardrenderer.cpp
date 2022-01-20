@@ -8,6 +8,7 @@
 #include <ecs_transform.h>
 #include <ecs_wireframe.h>
 #include <glrs_rendersystem.h>
+#include <glrs_common.h>
 using namespace izz::gl;
 using namespace lsw::glrs;
 
@@ -16,16 +17,20 @@ ForwardRenderer::ForwardRenderer(lsw::glrs::RenderSystem& renderSystem)
 
 void ForwardRenderer::render(const entt::registry& registry) {
   // perform deferred rendering first
-  for (const auto& [e, transform] : registry.view<ForwardRenderable, lsw::ecs::Transform>().each()) {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
+  const auto view = registry.view</*const ForwardRenderable,*/const Renderable, const lsw::ecs::Transform>();
+  for (const auto& [e, renderable, transform] : view.each()) {
+//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    const auto& renderable = registry.get<const Renderable>(e);
+//    const auto& renderable = registry.get<const Renderable>(e);
 
     // for now assume a renderable has one material
     //    auto effect = m_registry.get<izz::geo::Effect>();
 
     glUseProgram(renderable.program);
-    const auto& r = registry.get<const Renderable>(e);
+
+    m_renderSystem.activateTextures(e);
+
+//    const auto& r = registry.get<const Renderable>(e);
 
     // TODO: disable in release
     if (renderable.isWireframe || registry.any_of<lsw::ecs::Wireframe>(e)) {
@@ -58,7 +63,7 @@ void ForwardRenderer::render(const entt::registry& registry) {
     //  now. In future we might optimize changing of glUseProgram in that
     //  case, this function should be called once per set of glUseProgram.
     if (renderable.isLightingSupported) {
-      pushLightingData(renderable);
+      m_renderSystem.pushLightingData(renderable);
     }
 
     if (renderable.primitiveType == GL_TRIANGLES) {
@@ -67,8 +72,8 @@ void ForwardRenderer::render(const entt::registry& registry) {
       glDrawArrays(renderable.primitiveType, 0, renderable.drawElementCount);
     }
 
-    // handle debug
-    checkError(entity);
+//    // handle debug
+//    checkError(e);
 
   }
 }

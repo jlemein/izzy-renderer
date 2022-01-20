@@ -23,7 +23,7 @@ add_library(lsw-gl STATIC
         include/gl_forwardrenderer.h
         include/gl_deferredrenderer.h
         src/gl_forwardrenderer.cpp
-        src/gl_deferredrenderer.cpp src/gl_deferredrenderer.cpp)
+        src/gl_deferredrenderer.cpp src/gl_deferredrenderer.cpp include/glrs_common.h src/glrs_common.cpp)
 #test/node.t.cpp
 
 find_package(EnTT REQUIRED)

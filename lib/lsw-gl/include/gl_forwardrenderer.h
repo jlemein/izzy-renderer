@@ -23,7 +23,7 @@ class ForwardRenderer {
   lsw::glrs::RenderSystem& m_renderSystem;
 
  public:
-  ForwardRenderer(glrs::RenderSystem& renderSystem);
+  ForwardRenderer(lsw::glrs::RenderSystem& renderSystem);
   void render(const entt::registry& registry);
 };
 

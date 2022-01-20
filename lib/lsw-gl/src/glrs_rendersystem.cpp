@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 07-11-20.
 //
-#include <glrs_common.h>
+#include "glrs_common.cpp"
 #include <glrs_rendersystem.h>
 
 #include <ecs_camera.h>
@@ -10,7 +10,6 @@
 #include <ecs_relationship.h>
 #include <ecs_transform.h>
 #include <ecs_wireframe.h>
-#include "izz_scenegraph.h"
 #include <geo_curve.h>
 #include <geo_effect.h>
 #include <geo_material.h>
@@ -23,6 +22,7 @@
 #include <cstring>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
+#include "izz_scenegraph.h"
 
 using namespace lsw;
 using namespace lsw::glrs;
@@ -43,22 +43,6 @@ void pushUnscopedUniforms(const Renderable&);
 constexpr void* BUFFER_OFFSET(unsigned int offset) {
   uint8_t* pAddress = 0;
   return pAddress + offset;
-}
-
-void pushShaderProperties(const Renderable& r) {
-  for (const auto& [name, uniformBlock] : r.userProperties) {
-    glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
-    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding, uniformBlock.bufferId);
-
-    // is this needed?
-    glUniformBlockBinding(r.program, uniformBlock.blockIndex, uniformBlock.blockBinding);
-
-    void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
-  }
-
-  pushUnscopedUniforms(r);
 }
 
 void pushUnscopedUniforms(const Renderable& r) {
@@ -88,31 +72,6 @@ void pushUnscopedUniforms(const Renderable& r) {
   }
 }
 
-void pushModelViewProjection(const Renderable& renderable) {
-  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockBinding, renderable.uboId);
-
-  // is this needed?
-  glUniformBlockBinding(renderable.program, renderable.uboBlockIndex, renderable.uboBlockBinding);
-
-  void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-  UniformBlock b = renderable.uniformBlock;
-  std::memcpy(buff_ptr, &b, sizeof(UniformBlock));
-  glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
-void pushLightingData(const Renderable& renderable) {
-  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
-
-  // is this needed?
-  glUniformBlockBinding(renderable.program, renderable.uboLightingIndex, renderable.uboLightingBinding);
-
-  void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-  std::memcpy(buff_ptr, renderable.pUboLightStruct, renderable.pUboLightStructSize);
-  glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
 void initMVPUniformBlock(Renderable& renderable) {
   glUseProgram(renderable.program);  // TODO: remove line
   renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
@@ -139,6 +98,47 @@ void initMVPUniformBlock(Renderable& renderable) {
   glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), nullptr, GL_DYNAMIC_DRAW);
 }
 }  // namespace
+
+void RenderSystem::pushShaderProperties(const Renderable& r) {
+  for (const auto& [name, uniformBlock] : r.userProperties) {
+    glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
+    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding, uniformBlock.bufferId);
+
+    // is this needed?
+    glUniformBlockBinding(r.program, uniformBlock.blockIndex, uniformBlock.blockBinding);
+
+    void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
+  }
+
+  pushUnscopedUniforms(r);
+}
+
+void RenderSystem::pushLightingData(const Renderable& renderable) {
+  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
+  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
+
+  // is this needed?
+  glUniformBlockBinding(renderable.program, renderable.uboLightingIndex, renderable.uboLightingBinding);
+
+  void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+  std::memcpy(buff_ptr, renderable.pUboLightStruct, renderable.pUboLightStructSize);
+  glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
+
+void RenderSystem::pushModelViewProjection(const Renderable& renderable) {
+  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
+  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockBinding, renderable.uboId);
+
+  // is this needed?
+  glUniformBlockBinding(renderable.program, renderable.uboBlockIndex, renderable.uboBlockBinding);
+
+  void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+  UniformBlock b = renderable.uniformBlock;
+  std::memcpy(buff_ptr, &b, sizeof(UniformBlock));
+  glUnmapBuffer(GL_UNIFORM_BUFFER);
+}
 
 glrs::LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
@@ -269,7 +269,9 @@ RenderSystem::RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::sha
   , m_effectSystem{effectSystem}
   , m_shaderSystem(std::make_shared<ShaderSystem>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry)}
-  , m_framebuffer{std::make_unique<HdrFramebuffer>()} {}
+  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
+  , m_forwardRenderer(*this)
+  , m_deferredRenderer(*this) {}
 
 void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
   glGenBuffers(1, &renderable.vertex_buffer);
@@ -395,7 +397,7 @@ void RenderSystem::init() {
   // convert material descriptions to openGL specific material data.
   m_materialSystem->synchronizeTextures(*this);
 
-//  m_effectSystem->initialize();
+  //  m_effectSystem->initialize();
 
   // setup postprocessing screen quad
   initPostprocessBuffers();
@@ -529,15 +531,13 @@ void RenderSystem::updateCamera(Renderable& renderable) {
 }
 
 void RenderSystem::activateEffect(entt::entity e) {
-
-  if (m_registry.all_of<geo::cEffect>(e)) {
-    const auto& cfx = m_registry.get<izz::geo::cEffect>(e);
-    const izz::geo::Effect& fx = m_effectSystem.getById(cfx.name);
-
-    fx.graph.
-
-  }
-  activateTextures(e);
+//  if (m_registry.all_of<geo::cEffect>(e)) {
+//    const auto& cfx = m_registry.get<izz::geo::cEffect>(e);
+//    const izz::geo::Effect& fx = m_effectSystem.getById(cfx.name);
+//
+//    fx.graph.
+//  }
+//  activateTextures(e);
 }
 
 void RenderSystem::render() {
@@ -547,67 +547,56 @@ void RenderSystem::render() {
 
   m_forwardRenderer.render(m_registry);
 
-  // render 3D scene
-  for (const auto& [entity, fwd, transform] : m_registry.view<const ForwardRenderable, const ecs::Transform>().each()) {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_forwardFbo);
-
-    const auto& renderable = m_registry.get<const Renderable>(entity);
-    const auto& name = m_registry.get<ecs::Name>(entity);
-
-    // activate shader program
-    glUseProgram(renderable.program);
-
-    // prepare the materials (input to node).
-//    activateEffect(entity);
-    activateTextures(entity);
-
-    // TODO: disable in release
-    if (renderable.isWireframe || m_registry.any_of<ecs::Wireframe>(entity)) {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    } else {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    // bind the vertex buffers
-    glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
-    //    glBindVertexArray(renderable.vertex_array_object);
-
-    for (unsigned int i = 0U; i < renderable.vertexAttribCount; ++i) {
-      const VertexAttribArray& attrib = renderable.vertexAttribArray[i];
-      // todo: use VAOs
-      glEnableVertexAttribArray(i);
-      glVertexAttribPointer(i, attrib.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrib.buffer_offset));
-    }
-
-    // TODO: check if shader is dirty
-    //  reason: if we push properties every frame (Except for MVP), we might
-    //  unnecessary spend time doing that while we can immediately just render.
-    pushShaderProperties(renderable);
-    if (renderable.isMvpSupported) {
-      pushModelViewProjection(renderable);
-    }
-
-    // TODO this one needs to change per glUseProgram, which is the case right
-    //  now. In future we might optimize changing of glUseProgram in that
-    //  case, this function should be called once per set of glUseProgram.
-    if (renderable.isLightingSupported) {
-      pushLightingData(renderable);
-    }
-
-    if (renderable.primitiveType == GL_TRIANGLES) {
-      glDrawElements(renderable.primitiveType, renderable.drawElementCount, GL_UNSIGNED_INT, 0);
-    } else {
-      glDrawArrays(renderable.primitiveType, 0, renderable.drawElementCount);
-    }
-
-    // handle debug
-    checkError(entity);
-  }
-
   renderPosteffects();
 
   m_framebuffer->apply();
+}
+
+
+void RenderSystem::renderPosteffects() {
+  // activate screen quad
+  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  glBindVertexArray(m_quadVao);
+
+  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
+    int passId = 0;
+
+    for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
+      const auto& name = m_registry.get<izz::geo::cEffect>(e);
+      izz::geo::Effect& effect = m_effectSystem.getByName(name);
+
+//      for (auto n : effect.graph.nodes()) {
+//        n
+//      }
+
+
+      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
+        //        glUseProgram(effect.graph.nodes[i].material.programId);
+
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes()[passId].material->fbo);
+
+        // setup textures for next call
+      }
+
+      auto& renderable = m_registry.get<Renderable>(e);
+
+      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
+      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
+
+      m_framebuffer->nextPass();
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      glUseProgram(renderable.program);
+      pushShaderProperties(renderable);
+
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      ++passId;
+    }
+  }
+
+  glBindVertexArray(0);
 }
 
 void RenderSystem::renderPosteffects() {

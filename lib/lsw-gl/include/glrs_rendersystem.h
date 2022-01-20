@@ -69,6 +69,10 @@ class RenderSystem {
 
   void activateTextures(entt::entity e);
 
+  void pushShaderProperties(const Renderable& renderable);
+  void pushLightingData(const Renderable& renderable);
+  void pushModelViewProjection(const Renderable& renderable);
+
  private:
   std::unique_ptr<IFramebuffer> m_framebuffer;
 
