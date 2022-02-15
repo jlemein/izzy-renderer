@@ -3,27 +3,28 @@ add_library(lsw-gl STATIC
         include/ecs_debugmodel.h
         include/ecs_debugshapefactory.h
         include/glrs_lightsystem.h
-        include/glrs_renderable.h
-        include/glrs_rendersystem.h
-        include/glrs_multipassframebuffer.h
-        include/glrs_hdrframebuffer.h
+        include/gl_renderable.h
+        include/gl_rendersystem.h
+        include/gl_multipassframebuffer.h
+        include/gl_hdrframebuffer.h
         include/izzgl_effectsystem.h
         include/izzgl_materialsystem.h
-        include/glrs_iframebuffer.h
+        include/gl_iframebuffer.h
         src/ecs_debugsystem.cpp
         src/ecs_debugshapefactory.cpp
-        src/glrs_rendersystem.cpp
+        src/gl_rendersystem.cpp
         src/glrs_shadersystem.cpp
         src/glrs_shadersystem.h
         src/glrs_lightsystem.cpp
-        src/glrs_multipassframebuffer.cpp
-        src/glrs_hdrframebuffer.cpp
+        src/gl_multipassframebuffer.cpp
+        src/gl_hdrframebuffer.cpp
         src/izzgl_effectsystem.cpp
         src/izzgl_materialsystem.cpp
         include/gl_forwardrenderer.h
         include/gl_deferredrenderer.h
         src/gl_forwardrenderer.cpp
-        src/gl_deferredrenderer.cpp src/gl_deferredrenderer.cpp include/glrs_common.h src/glrs_common.cpp)
+        src/gl_deferredrenderer.cpp include/gl_common.h src/gl_common.cpp
+        include/gl_renderutils.h src/gl_renderutils.cpp)
 #test/node.t.cpp
 
 find_package(EnTT REQUIRED)

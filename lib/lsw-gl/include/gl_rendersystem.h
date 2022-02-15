@@ -4,12 +4,12 @@
 #pragma once
 
 #include <ecs_debugsystem.h>
-#include <glrs_renderable.h>
+#include <gl_renderable.h>
 #include <memory>
 
 #include <glrs_lightsystem.h>
-#include <glrs_multipassframebuffer.h>
-#include "glrs_hdrframebuffer.h"
+#include <gl_multipassframebuffer.h>
+#include "gl_hdrframebuffer.h"
 #include <gl_forwardrenderer.h>
 #include <gl_deferredrenderer.h>
 
@@ -18,11 +18,6 @@ class SceneGraph;
 namespace gl {
 class EffectSystem;
 class MaterialSystem;
-}
-}
-namespace lsw {
-
-namespace glrs {
 class IMaterialSystem;
 class LightSystem;
 class ShaderSystem;
@@ -37,8 +32,8 @@ class RenderSystem {
    * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
    */
-  RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<glrs::IMaterialSystem> materialSystem,
-               std::shared_ptr<izz::gl::EffectSystem> effectSystem);
+  RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<IMaterialSystem> materialSystem,
+               std::shared_ptr<EffectSystem> effectSystem);
 
   /**
    * Traverses the scene graph and creates corresponding objects in the render system so that the entities can be rendered.
@@ -49,10 +44,12 @@ class RenderSystem {
 
   IFramebuffer& getFramebuffer();
 
+  const RenderState& getRenderState(unsigned int id) const;
+
   /**
    * @returns the light system.
    */
-  glrs::LightSystem& getLightSystem();
+  LightSystem& getLightSystem();
 
   void setActiveCamera(entt::entity cameraEntity);
 
@@ -62,28 +59,29 @@ class RenderSystem {
    * @param paramName
    * @return
    */
-  void attachTexture(glrs::Renderable& renderable, const geo::Texture& geoTexture, const std::string& paramName);
+  void attachTexture(Renderable& renderable, const lsw::geo::Texture& geoTexture, const std::string& paramName);
 
   /// @brief Activates the effect. Sets up framebuffer.
   void activateEffect(entt::entity e);
 
-  void activateTextures(entt::entity e);
-
-  void pushShaderProperties(const Renderable& renderable);
-  void pushLightingData(const Renderable& renderable);
-  void pushModelViewProjection(const Renderable& renderable);
+  void pushShaderProperties(const RenderState& renderable);
+  void pushLightingData(const RenderState& renderable);
+  void pushModelViewProjection(const RenderState& renderable);
 
  private:
   std::unique_ptr<IFramebuffer> m_framebuffer;
 
-  izz::gl::ForwardRenderer m_forwardRenderer;
-  izz::gl::DeferredRenderer m_deferredRenderer;
+  ForwardRenderer m_forwardRenderer;
+  DeferredRenderer m_deferredRenderer;
+
+  /// Contains render state attributes (such as program id, vertex attrib counts, etc).
+  std::vector<izz::gl::RenderState> m_renderStates;
 
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
   std::shared_ptr<IMaterialSystem> m_materialSystem;
   std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
-  ecs::DebugSystem m_debugSystem;
+  lsw::ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;
 
   entt::entity m_activeCamera{entt::null};
@@ -115,7 +113,7 @@ class RenderSystem {
    * @param renderable The render component
    * @param properties The material properties.
    */
-  void initShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material);
+  void initShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material);
 
   /**
    * Unscoped shader properties are global uniform variables in the material. They are not placed in an
@@ -124,7 +122,7 @@ class RenderSystem {
    * @param renderable  Renderable component
    * @param material    Material containing the unscoped shader properties.
    */
-  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material);
+  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material);
 
   void checkError(entt::entity e);
 

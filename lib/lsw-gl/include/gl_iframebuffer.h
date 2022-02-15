@@ -3,8 +3,8 @@
 //
 #pragma once
 
-namespace lsw {
-namespace glrs {
+namespace izz {
+namespace gl {
 
 class IFramebuffer {
  public:

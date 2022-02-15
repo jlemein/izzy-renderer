@@ -8,7 +8,7 @@
 #include "ecs_texture.h"
 #include "ecs_transform.h"
 
-#include "glrs_renderable.h"
+#include "gl_renderable.h"
 
 #include "geo_camera.h"
 #include "geo_curve.h"
@@ -33,7 +33,7 @@ void SceneGraph::setDefaultMaterial(std::shared_ptr<lsw::geo::Material> material
 
 SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, lsw::geo::Material mat) {
   auto e = makeMoveableEntity(mesh.name);
-  e.add<glrs::Renderable>();
+  e.add<gl::Renderable>();
   e.add<lsw::geo::Mesh>(mesh);
   e.add<lsw::geo::Material>(mat);
 
@@ -42,7 +42,7 @@ SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, lsw::geo::Material
 
 SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<lsw::geo::Material> mat) {
   auto e = makeMoveableEntity(mesh.name);
-  e.add<glrs::Renderable>();
+  e.add<gl::Renderable>();
   e.add<lsw::geo::Mesh>(mesh);
   // TODO: make sure we store a shared ptr instead of a copy.
   //  shared materials offer option to share materials.
@@ -53,7 +53,7 @@ SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<ls
 
 SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect) {
   auto e = makeMoveableEntity(mesh.name);
-  e.add<glrs::Renderable>();
+  e.add<gl::Renderable>();
   e.add<lsw::geo::Mesh>(mesh);
   // TODO: make sure we store a shared ptr instead of a copy.
   //  shared materials offer option to share materials.
@@ -165,7 +165,7 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 di
 SceneGraphEntity SceneGraph::makeMesh(const lsw::geo::Mesh& mesh) {
   auto meshEntity = makeMoveableEntity(mesh.name);
 
-  meshEntity.add<glrs::Renderable>();
+  meshEntity.add<gl::Renderable>();
   meshEntity.add<lsw::geo::Mesh>(mesh);
 
   // Watch out here, lsw::geo::Material is a value type so we can do this.
@@ -190,7 +190,7 @@ SceneGraphEntity SceneGraph::makeEmptyMesh(const lsw::geo::Mesh& mesh) {
   auto sge = makeMoveableEntity(mesh.name);
   auto e = sge.handle();
 
-  auto& renderable = m_registry.emplace<glrs::Renderable>(e);
+  auto& renderable = m_registry.emplace<gl::Renderable>(e);
 
   m_registry.emplace<lsw::geo::Mesh>(e, mesh);
   return sge;
@@ -219,12 +219,12 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
   auto curve = makeMoveableEntity(std::move(name));
 
   curve.add<lsw::geo::Curve>();
-  curve.add<glrs::Renderable>();
+  curve.add<gl::Renderable>();
   auto& s = curve.add<lsw::geo::Material>({.name = "default curve material",
                                       .vertexShader = "assets/shaders/default_curve.vert.spv",
                                       .fragmentShader = "assets/shaders/default_curve.frag.spv"});
 
-  auto block = new glrs::ColorBlock;
+  auto block = new gl::ColorBlock;
   block->color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
   s.setProperty("ColorBlock", block);
   // TODO: Add color block manager to material system,

@@ -5,24 +5,40 @@
 #pragma once
 
 #include <entt/fwd.hpp>
-
-namespace lsw {
-namespace glrs {
-class RenderSystem;
-}  // namespace glrs
-}  // namespace lsw
+#include <memory>
+#include <gl_renderable.h>
 
 namespace izz {
+
+class SceneGraph;
+
 namespace gl {
+
+class RenderSystem;
+
+struct DeferredRenderable {
+  BufferedMeshData meshData;
+  int materialId; /// references material in material system.
+  int renderStateId;
+};
 
 class DeferredRenderer {
  public:
-  DeferredRenderer(const lsw::glrs::RenderSystem& renderSystem);
+  DeferredRenderer(RenderSystem& renderSystem,
+                   std::shared_ptr<izz::SceneGraph> sceneGraph);
+
+  void init();
+
   void render(const entt::registry& registry);
+
 
  private:
   int m_fbo{0};
-  const lsw::glrs::RenderSystem& m_renderSystem;
+  RenderSystem& m_renderSystem;
+  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
+
+  GLuint m_gBufferFbo, m_lightingPassFbo;
+  GLuint m_gPosition, m_gNormal, m_gAlbedoSpec;
 };
 
 }  // namespace gl

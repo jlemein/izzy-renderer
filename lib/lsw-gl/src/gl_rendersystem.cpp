@@ -1,8 +1,8 @@
 //
 // Created by jlemein on 07-11-20.
 //
-#include "glrs_common.cpp"
-#include <glrs_rendersystem.h>
+#include "gl_common.cpp"
+#include <gl_rendersystem.h>
 
 #include <ecs_camera.h>
 #include <ecs_light.h>
@@ -23,9 +23,9 @@
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include "izz_scenegraph.h"
-
-using namespace lsw;
-using namespace lsw::glrs;
+#include <gl_renderutils.h>
+using namespace izz;
+using namespace izz::gl;
 
 namespace {
 
@@ -45,40 +45,41 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
   return pAddress + offset;
 }
 
-void pushUnscopedUniforms(const Renderable& r) {
+void pushUnscopedUniforms(const RenderState& r) {
   for (unsigned int i = 0; i < r.unscopedUniforms.numProperties; ++i) {
     const auto& uniform = r.unscopedUniforms.pProperties[i];
 
     switch (uniform.type) {
-      case lsw::glrs::UType::BOOL:
-      case lsw::glrs::UType::INT:
+      case UType::BOOL:
+      case UType::INT:
         glUniform1i(uniform.location, *reinterpret_cast<int*>(r.unscopedUniforms.pData + uniform.offset));
         break;
 
-      case lsw::glrs::UType::FLOAT_ARRAY:
-      case lsw::glrs::UType::FLOAT2:
-      case lsw::glrs::UType::FLOAT3:
-      case lsw::glrs::UType::FLOAT4:
+      case UType::FLOAT_ARRAY:
+      case UType::FLOAT2:
+      case UType::FLOAT3:
+      case UType::FLOAT4:
         glUniform1fv(uniform.location, uniform.length, reinterpret_cast<float*>(r.unscopedUniforms.pData + uniform.offset));
         break;
 
-      case lsw::glrs::UType::INT_ARRAY:
-      case lsw::glrs::UType::INT2:
-      case lsw::glrs::UType::INT3:
-      case lsw::glrs::UType::INT4:
+      case UType::INT_ARRAY:
+      case UType::INT2:
+      case UType::INT3:
+      case UType::INT4:
         glUniform1iv(uniform.location, uniform.length, reinterpret_cast<GLint*>(r.unscopedUniforms.pData + uniform.offset));
         break;
     }
   }
 }
 
-void initMVPUniformBlock(Renderable& renderable) {
+void initMVPUniformBlock(RenderState& renderable) {
   glUseProgram(renderable.program);  // TODO: remove line
   renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
 
   if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
-    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
-                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
+//    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
+//                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
+    throw std::runtime_error("Could not find UniformBufferBlock");
   }
 
   renderable.isMvpSupported = true;
@@ -99,7 +100,7 @@ void initMVPUniformBlock(Renderable& renderable) {
 }
 }  // namespace
 
-void RenderSystem::pushShaderProperties(const Renderable& r) {
+void RenderSystem::pushShaderProperties(const RenderState& r) {
   for (const auto& [name, uniformBlock] : r.userProperties) {
     glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
     glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding, uniformBlock.bufferId);
@@ -115,7 +116,7 @@ void RenderSystem::pushShaderProperties(const Renderable& r) {
   pushUnscopedUniforms(r);
 }
 
-void RenderSystem::pushLightingData(const Renderable& renderable) {
+void RenderSystem::pushLightingData(const RenderState& renderable) {
   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
 
@@ -127,7 +128,7 @@ void RenderSystem::pushLightingData(const Renderable& renderable) {
   glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
 
-void RenderSystem::pushModelViewProjection(const Renderable& renderable) {
+void RenderSystem::pushModelViewProjection(const RenderState& renderable) {
   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockBinding, renderable.uboId);
 
@@ -140,7 +141,7 @@ void RenderSystem::pushModelViewProjection(const Renderable& renderable) {
   glUnmapBuffer(GL_UNIFORM_BUFFER);
 }
 
-glrs::LightSystem& RenderSystem::getLightSystem() {
+LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
@@ -180,6 +181,14 @@ void RenderSystem::initShaderProperties(entt::entity entity, Renderable& rendera
   }
 
   initUnscopedShaderProperties(entity, renderable, material);
+}
+
+const RenderState& RenderSystem::getRenderState(unsigned int id) const {
+  try {
+    return m_renderStates.at(id);
+  } catch (std::invalid_argument e) {
+    throw std::runtime_error(fmt::format("Could not obtain render state with id {}", id));
+  }
 }
 
 void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material) {
@@ -271,94 +280,8 @@ RenderSystem::RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::sha
   , m_lightSystem{std::make_shared<LightSystem>(m_registry)}
   , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(*this)
-  , m_deferredRenderer(*this) {}
+  , m_deferredRenderer(*this, sceneGraph) {}
 
-void initCurveBuffers(Renderable& renderable, const geo::Curve& curve) {
-  glGenBuffers(1, &renderable.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, curve.vertices.size() * sizeof(float), curve.vertices.data(), GL_STATIC_DRAW);
-
-  renderable.index_buffer = 0U;
-  //  renderable.vertexAttribCount = 1;
-  //  renderable.vertexAttribArray[0].size = 3U;
-  //  renderable.vertexAttribArray[0].buffer_offset = 0U;
-  renderable.drawElementCount = curve.vertices.size() / 3;
-  renderable.primitiveType = GL_LINES;
-
-  glGenVertexArrays(1, &renderable.vertex_array_object);
-  glBindVertexArray(renderable.vertex_array_object);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-
-  // disable the buffers to prevent accidental manipulation
-  glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-void initMeshBuffers(Renderable& renderable, const geo::Mesh& mesh) {
-  GLuint vertexSize = mesh.vertices.size() * sizeof(float);
-  GLuint normalSize = mesh.normals.size() * sizeof(float);
-  GLuint uvSize = mesh.uvs.size() * sizeof(float);
-  GLuint tangentSize = mesh.tangents.size() * sizeof(float);
-  GLuint bitangentSize = mesh.bitangents.size() * sizeof(float);
-  GLuint bufferSize = vertexSize + normalSize + uvSize + tangentSize + bitangentSize;
-
-  glGenBuffers(1, &renderable.vertex_buffer);
-  glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr,
-               GL_STATIC_DRAW);  // allocate buffer data only
-  glBufferSubData(GL_ARRAY_BUFFER, 0, vertexSize,
-                  mesh.vertices.data());  // fill partial data - vertices
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize, normalSize,
-                  mesh.normals.data());  // fill partial data - normals
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize, uvSize,
-                  mesh.uvs.data());  // fill partial data - normals
-
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize, tangentSize,
-                  mesh.tangents.data());  // fill partial data - normals
-
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize + tangentSize, bitangentSize,
-                  mesh.bitangents.data());  // fill partial data - normals
-
-  glGenBuffers(1, &renderable.index_buffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(uint32_t), mesh.indices.data(), GL_STATIC_DRAW);
-
-  renderable.vertexAttribCount = 5;
-  // position data
-  renderable.vertexAttribArray[0].size = 3U;
-  renderable.vertexAttribArray[0].buffer_offset = 0U;
-  // normal data
-  renderable.vertexAttribArray[1].size = 3U;
-  renderable.vertexAttribArray[1].buffer_offset = vertexSize;
-  // uv data
-  renderable.vertexAttribArray[2].size = 2U;
-  renderable.vertexAttribArray[2].buffer_offset = vertexSize + normalSize;
-  // tangent data
-  renderable.vertexAttribArray[3].size = 3U;
-  renderable.vertexAttribArray[3].buffer_offset = vertexSize + normalSize + uvSize;
-  // bitangent data
-  renderable.vertexAttribArray[4].size = 3U;
-  renderable.vertexAttribArray[4].buffer_offset = vertexSize + normalSize + uvSize + tangentSize;
-
-  renderable.drawElementCount = mesh.indices.size();
-  renderable.primitiveType = GL_TRIANGLES;
-
-  glGenVertexArrays(1, &renderable.vertex_array_object);
-  glBindVertexArray(renderable.vertex_array_object);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(0));
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize));
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize));
-  glEnableVertexAttribArray(3);
-  glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize));
-  glEnableVertexAttribArray(4);
-  glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize + tangentSize));
-  glBindVertexArray(0);
-}
 
 void RenderSystem::initPostprocessBuffers() {
   // prepare quad for collecting
@@ -427,11 +350,11 @@ void RenderSystem::init() {
   // * Push the remaining uniform parameter values to the shader.
 
   // handling curves
-  for (auto [entity, curve, renderable] : m_registry.view<geo::Curve, Renderable>().each()) {
+  for (auto [entity, curve, renderable] : m_registry.view<lsw::geo::Curve, Renderable>().each()) {
     try {
-      initCurveBuffers(renderable, curve);
+      RenderUtils::FillBufferedMeshData(curve, renderable.renderState.meshData);
     } catch (std::exception& e) {
-      auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
+      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
 
       std::cerr << "Failed initializing curve '" << name << "': " << e.what();
       exit(1);
@@ -439,16 +362,14 @@ void RenderSystem::init() {
   }
 
   // handling meshes
-  for (auto [entity, mesh, renderable] : m_registry.view<geo::Mesh, Renderable>().each()) {
-    auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
+  for (auto [entity, mesh, renderable] : m_registry.view<lsw::geo::Mesh, Renderable>().each()) {
+    auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
 
     try {
-      auto& renderable = m_registry.get<Renderable>(entity);
-      auto& mesh = m_registry.get<geo::Mesh>(entity);
-      initMeshBuffers(renderable, mesh);
+      RenderUtils::FillBufferedMeshData(mesh, renderable.renderState.meshData);
 
     } catch (std::exception& e) {
-      auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
+      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
       throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
     }
   }
@@ -546,6 +467,7 @@ void RenderSystem::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   m_forwardRenderer.render(m_registry);
+//  m_deferredRenderer.render(m_registry);
 
   renderPosteffects();
 
@@ -561,82 +483,102 @@ void RenderSystem::renderPosteffects() {
 
   if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
     int passId = 0;
+    const auto& collection = m_registry.get<ecs::PosteffectCollection>(m_activeCamera);
 
-    for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
-      const auto& name = m_registry.get<izz::geo::cEffect>(e);
-      izz::geo::Effect& effect = m_effectSystem.getByName(name);
+    for (auto e : collection.posteffects) {
+      const auto& refEffect = m_registry.get<izz::geo::cEffect>(e);
+      izz::geo::Effect& effect = m_effectSystem->getEffect(refEffect);
 
-//      for (auto n : effect.graph.nodes()) {
-//        n
+      for (int i=0; i<effect.graph.nodeSize(); ++i) {
+//      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
+        //        glUseProgram(effect.graph.nodes[i].material.programId);
+
+        // Fetch each node ordered by depth. So when looping through the nodes from 0 to number of nodes.
+        // Fetch the node with depth 0 first. These are the first passes, with no previous passes.
+        // Their incoming connections are always empty.
+        const auto& node = effect.graph.sortedByDepth(i);
+
+        // Loop through the incoming edges/connections.
+        // The incoming connections indicate that there is output from a previous pass that we need in the current pass.
+        for (int j=0; j<node.connectionsIn.size(); ++j) {
+
+          auto incomingEdge = effect.graph.edges()[node.connectionsIn[j]];
+
+          // one previous pass might have multiple output buffers that need to be mapped to multiple texture units.
+          for (const auto& mapping : incomingEdge.from->data.bufferMappings) {
+            glActiveTexture(GL_TEXTURE0 + mapping.inTextureUnit);
+            glBindTexture(GL_TEXTURE_2D, mapping.textureBuffer);
+          }
+        }
+
+        // now the outputs of previous pass are mapped.
+        // map the dynamic textures (obtained via the material properties)
+        // TODO: make sure a renderable is found on this entity.
+        //activateTextures(node.data.textures);
+
+//        glBindFramebuffer(GL_READ_FRAMEBUFFER, node.depth == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, node.data.material->fbo);
+
+        // setup textures for next call
+      }
+
+      auto& renderable = m_registry.get<Renderable>(e);
+
+      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
+      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
+
+      m_framebuffer->nextPass();
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+      glUseProgram(renderable.program);
+      pushShaderProperties(renderable);
+
+      glDrawArrays(GL_TRIANGLES, 0, 6);
+      ++passId;
+    }
+  }
+
+  glBindVertexArray(0);
+}
+
+//void RenderSystem::renderPosteffects() {
+//  // activate screen quad
+//  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
+//  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//  glBindVertexArray(m_quadVao);
+//
+//  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
+//    int passId = 0;
+//
+//    for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
+//      auto& effect = m_registry.get<izz::geo::Effect>(e);
+//      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
+//        //        glUseProgram(effect.graph.nodes[i].material.programId);
+//
+//        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
+//        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes()[passId].material->fbo);
+//
+//        // setup textures for next call
 //      }
-
-
-      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
-        //        glUseProgram(effect.graph.nodes[i].material.programId);
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes()[passId].material->fbo);
-
-        // setup textures for next call
-      }
-
-      auto& renderable = m_registry.get<Renderable>(e);
-
-      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
-      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
-
-      m_framebuffer->nextPass();
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      glUseProgram(renderable.program);
-      pushShaderProperties(renderable);
-
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      ++passId;
-    }
-  }
-
-  glBindVertexArray(0);
-}
-
-void RenderSystem::renderPosteffects() {
-  // activate screen quad
-  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glBindVertexArray(m_quadVao);
-
-  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
-    int passId = 0;
-
-    for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
-      auto& effect = m_registry.get<izz::geo::Effect>(e);
-      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
-        //        glUseProgram(effect.graph.nodes[i].material.programId);
-
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes()[passId].material->fbo);
-
-        // setup textures for next call
-      }
-
-      auto& renderable = m_registry.get<Renderable>(e);
-
-      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
-      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
-
-      m_framebuffer->nextPass();
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      glUseProgram(renderable.program);
-      pushShaderProperties(renderable);
-
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      ++passId;
-    }
-  }
-
-  glBindVertexArray(0);
-}
+//
+//      auto& renderable = m_registry.get<Renderable>(e);
+//
+//      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
+//      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
+//
+//      m_framebuffer->nextPass();
+//      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//      glUseProgram(renderable.program);
+//      pushShaderProperties(renderable);
+//
+//      glDrawArrays(GL_TRIANGLES, 0, 6);
+//      ++passId;
+//    }
+//  }
+//
+//  glBindVertexArray(0);
+//}
 
 IFramebuffer& RenderSystem::getFramebuffer() {
   return *m_framebuffer;
@@ -685,31 +627,3 @@ void RenderSystem::attachTexture(Renderable& renderable, const geo::Texture& geo
   spdlog::log(spdlog::level::debug, "Loaded GL texture for texture '{}'", name);
 }
 
-void RenderSystem::activateTextures(entt::entity e) {
-  //  for (auto entity : view) {
-  //  auto& registry = m_sceneGraph->getRegistry();
-
-  if (!m_registry.all_of<Renderable, geo::Material>(e)) {
-    return;
-  }
-
-  const auto& renderable = m_registry.get<Renderable>(e);
-  //  const auto& shader = m_registry.get<Shader>(e);
-
-  for (int t = 0; t < renderable.textures.size(); ++t) {
-    auto& texture = renderable.textures[t];
-
-    glActiveTexture(GL_TEXTURE0 + t);
-    glBindTexture(GL_TEXTURE_2D, texture.glTextureId);
-
-    GLint s_diffuseMap = glGetUniformLocation(renderable.program, texture.name.c_str());
-    //    if (s_diffuseMap == -1) {
-    //        //std::cout << "Cannot find diffuse texture" << std::endl;
-    //        //exit(1);
-    //    } else {
-    glUniform1i(s_diffuseMap, t);
-  }
-
-  //    }
-  //    glBindSampler(0, 0);
-}

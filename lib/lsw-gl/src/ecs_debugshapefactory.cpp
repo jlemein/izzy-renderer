@@ -3,7 +3,7 @@
 //
 #include "../include/ecs_debugmodel.h"
 #include "../include/ecs_debugshapefactory.h"
-#include <glrs_renderable.h>
+#include <gl_renderable.h>
 #include "ecs_transformutil.h"
 
 #include <entt/entt.hpp>
@@ -26,7 +26,7 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry &registry,
       geo::Material{.vertexShader = "assets/shaders/debug.vert.spv",
                     .fragmentShader = "assets/shaders/debug.frag.spv"});
 
-  box.renderable.push_back(glrs::Renderable{.isWireframe = true});
+  box.renderable.push_back(izz::gl::Renderable{.isWireframe = true});
   box.transformations.push_back(Transform{});
 
   // by default use the
@@ -67,9 +67,9 @@ DebugModel DebugShapeFactory::MakeEulerArrow(entt::registry &registry,
   eulerArrow.mesh.push_back(yAxis);
   eulerArrow.mesh.push_back(zAxis);
 
-  eulerArrow.renderable.push_back(glrs::Renderable{});
-  eulerArrow.renderable.push_back(glrs::Renderable{});
-  eulerArrow.renderable.push_back(glrs::Renderable{});
+  eulerArrow.renderable.push_back(izz::gl::Renderable{});
+  eulerArrow.renderable.push_back(izz::gl::Renderable{});
+  eulerArrow.renderable.push_back(izz::gl::Renderable{});
 
   eulerArrow.names.push_back({"EulerX"});
   eulerArrow.names.push_back({"EulerY"});
@@ -131,7 +131,7 @@ DebugModel DebugShapeFactory::MakeCameraBox(entt::registry &registry,
       geo::Material{.isBinaryShader = true,
                     .vertexShader = "assets/shaders/debug.vert.spv",
                     .fragmentShader = "assets/shaders/debug.frag.spv"});
-  cameraBox.renderable.push_back(glrs::Renderable{.isWireframe = false});
+  cameraBox.renderable.push_back(izz::gl::Renderable{.isWireframe = false});
   cameraBox.transformations.push_back(Transform{});
 
   auto cameraFront = geo::PrimitiveFactory::MakePyramid("Debug_Pyramid", cameraBoxWidth * 0.8F,
@@ -145,11 +145,11 @@ DebugModel DebugShapeFactory::MakeCameraBox(entt::registry &registry,
   auto shader =
       geo::Material{.vertexShader = "assets/shaders/debug.vert.spv",
                     .fragmentShader = "assets/shaders/debug.frag.spv"};
-  shader.setProperty<glrs::ColorBlock>(glrs::ColorBlock{
+  shader.setProperty<izz::gl::ColorBlock>(izz::gl::ColorBlock{
       .color = glm::vec4(1.0F, 0.5F, 0.0F, 1.0F), .diffuseShading = true});
   cameraBox.material.push_back(std::move(shader));
 
-  cameraBox.renderable.push_back(glrs::Renderable{.isWireframe = false});
+  cameraBox.renderable.push_back(izz::gl::Renderable{.isWireframe = false});
   cameraBox.transformations.push_back(Transform{});
 
   return cameraBox;

@@ -8,7 +8,7 @@
 #include <spdlog/spdlog.h>
 #include <entt/entt.hpp>
 #include "ecs_name.h"
-#include "glrs_renderable.h"
+#include "gl_renderable.h"
 using namespace izz::gui;
 
 static bool p_open{false};

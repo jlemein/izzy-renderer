@@ -2,12 +2,12 @@
 // Created by jlemein on 02-12-21.
 //
 //#include <glrs_common.h>
-#include <glrs_multipassframebuffer.h>
+#include <gl_multipassframebuffer.h>
 #include <glrs_shadersystem.h>
 #include <iostream>
 #include <vector>
-using namespace lsw;
-using namespace lsw::glrs;
+using namespace izz;
+using namespace izz::gl;
 
 namespace {
 void checkError(const char* name) {

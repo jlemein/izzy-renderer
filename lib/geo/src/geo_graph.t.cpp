@@ -3,6 +3,7 @@
 //
 #include <geo_graph.h>
 #include <gtest/gtest.h>
+#include <gmock/gmock-matchers.h>
 using namespace izz::geo;
 
 class GraphTest : public testing::Test {};
@@ -38,4 +39,44 @@ TEST_F(GraphTest, Iterators) {
 //  ++it;
 
 //  std::cout << (it == g.connectionsTo(10).end() ? "true" : "false") << std::endl;
+}
+
+/**
+ * Creates a sample graph for multi pass render effect. This simulates complex order of operations.
+ * P0 -------> P2 -> P5
+ * P0 -> P1 -> P2
+ * P4 -------------> P5
+ */
+TEST_F(GraphTest, SortByDepth) {
+  Graph<> g;
+  g["pass1"] = 1;
+  g["pass2"] = 2;
+  g["pass3"] = 3;
+  g["pass4"] = 4;
+  g["pass5"] = 5;
+
+  g.sortByDepth();
+
+  EXPECT_EQ(g["pass1"].depth, 0);
+  EXPECT_EQ(g["pass2"].depth, 0);
+  EXPECT_EQ(g["pass3"].depth, 0);
+
+  // let's shuffle things up a bit
+  g.connect("pass1", "pass2");
+  g.connect("pass2", "pass3");
+  g.connect("pass3", "pass5");
+  g.connect("pass4", "pass5");
+
+  g.sortByDepth();
+
+  EXPECT_EQ(g["pass1"].depth, 0);
+  EXPECT_EQ(g["pass2"].depth, 1);
+  EXPECT_EQ(g["pass3"].depth, 2);
+  EXPECT_EQ(g["pass4"].depth, 0);
+  EXPECT_EQ(g["pass5"].depth, 3);
+
+  // print out sorted by depth
+  for (int i=0; i<g.nodeSize(); ++i) {
+    std::cout << "Pass " << g.sortedByDepth(i).data << " = " <<  g.sortedByDepth(i).depth << std::endl;
+  }
 }

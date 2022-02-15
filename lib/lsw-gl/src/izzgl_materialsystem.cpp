@@ -5,7 +5,7 @@
 
 #include "izz_scenegraph.h"
 #include "geo_textureloader.h"
-#include "glrs_rendersystem.h"
+#include "gl_rendersystem.h"
 #include "izz_resourcemanager.h"
 #include "izz_texturesystem.h"
 #include "uniform_constant.h"

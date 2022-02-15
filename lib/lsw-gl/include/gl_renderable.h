@@ -15,8 +15,9 @@
 #include <unordered_map>
 #include "ecs_texture.h"
 
-namespace lsw {
-namespace glrs {
+namespace izz {
+namespace gl {
+
 struct UniformBlock {
   glm::mat4 model;
   glm::mat4 view;
@@ -54,7 +55,7 @@ struct Renderable_UniformBlockInfo {
   GLuint bufferId;
   GLint blockIndex;
   GLint blockBinding;
-  const geo::UniformBlockInfo* pData{nullptr};
+  const lsw::geo::UniformBlockInfo* pData{nullptr};
 };
 
 enum class UType : uint32_t { FLOAT, FLOAT2, FLOAT3, FLOAT4, FLOAT_ARRAY, BOOL, INT, INT2, INT3, INT4, INT_ARRAY, MAT2, MAT3, MAT4 };
@@ -94,18 +95,8 @@ struct Posteffect {
   GLuint vertex_array_object;
 };
 
-struct Renderable {
-  // storage of user defined shader properties
-  //  unsigned int materialId;
-  std::shared_ptr<geo::Material> material;
-  std::shared_ptr<izz::geo::Effect> effect {nullptr};
-
-  // 0 - forward rendered
-  // 1 - deferred rendered
-  int category {0};
-
-  //  std::string name{"Unnamed"};
-  GLuint program;
+/// @brief Represents the buffered mesh data, stored on the GPU
+struct BufferedMeshData {
   GLuint vertex_buffer{0U}, index_buffer{0U};
   GLuint vertex_array_object;
 
@@ -113,6 +104,24 @@ struct Renderable {
   VertexAttribArray vertexAttribArray[8];
   GLenum primitiveType;
   GLuint drawElementCount;
+};
+
+struct TextureBuffer {
+  GLuint textureId;  // as obtained via glGenTextures(, &id)
+  GLint uniformLocation; // as obtained via glGetUniformLocation
+};
+
+struct RenderState {
+  GLuint program;
+
+  BufferedMeshData meshData;
+  std::vector<TextureBuffer> textureBuffers;
+
+  // TODO: make one attribute
+  std::vector<Renderable_UniformBlockInfo> uniformBlocks;
+//  std::unordered_map<std::string, Renderable_UniformBlockInfo> userProperties;
+  UnscopedUniforms unscopedUniforms;
+//  UniformBlock uniformBlock{glm::mat4(1.0F), glm::mat4(1.0F), glm::mat4(1.0F)};
 
   /* shader specific details */
   bool isMvpSupported{false};
@@ -126,6 +135,23 @@ struct Renderable {
   GLint uboLightingIndex{-1};    // index as determined by GLSL compiler
   GLint uboLightingBinding{-1};  // binding as specified in shader (binding = x)
 
+  const void* pUboLightStruct{nullptr};  // address of light struct - maintained by light system
+  unsigned int pUboLightStructSize{0U};  // size of the struct
+};
+
+struct Renderable {
+  // storage of user defined shader properties
+  //  unsigned int materialId;
+  std::shared_ptr<lsw::geo::Material> material;
+//  std::shared_ptr<izz::geo::Effect> effect {nullptr};
+
+  // 0 - forward rendered
+  // 1 - deferred rendered
+  int category {0};
+
+  //  std::string name{"Unnamed"};
+  RenderState renderState;
+
   // unscoped uniforms
 
   // this is done to make sure different light structs are supported.
@@ -136,7 +162,7 @@ struct Renderable {
   // TODO merge with Wireframe component, and/or use wireframe shader.
   bool isWireframe{false};
 
-  std::vector<ecs::Texture> textures;
+  std::vector<lsw::ecs::Texture> textures;
 
   std::unordered_map<std::string, Renderable_UniformBlockInfo> userProperties;
   UnscopedUniforms unscopedUniforms;

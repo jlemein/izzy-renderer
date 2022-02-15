@@ -1,16 +1,18 @@
 #pragma once
 
 #include <geo_material.h>
-#include <glrs_renderable.h>
+#include <gl_renderable.h>
 #include <entt/entity/registry.hpp>
 #include <glm/glm.hpp>
 
 namespace lsw {
 namespace geo {
 struct Material;
-}
+}  // namespace geo
+}  // namespace lsw
 
-namespace glrs {
+namespace izz {
+namespace gl {
 
 struct UPointLight {
   glm::vec4 position;
@@ -64,7 +66,7 @@ class LightSystem {
    */
   void initialize();
 
-  void initLightingUbo(Renderable& r, const geo::Material& material);
+  void initLightingUbo(RenderState& r, const lsw::geo::Material& material);
   void updateLightProperties();
 
   /**
@@ -75,7 +77,7 @@ class LightSystem {
    * not be customized as of yet.
    * @param material The default material to assign to point light sources if the user does not specify one.
    */
-  void setDefaultPointLightMaterial(std::shared_ptr<geo::Material> material);
+  void setDefaultPointLightMaterial(std::shared_ptr<lsw::geo::Material> material);
 
   /**
    * @returns the number of lights active lights in the scene.
@@ -87,8 +89,8 @@ class LightSystem {
   ForwardLighting m_forwardLighting;
 
   /// default material that is assigned for entities with Mesh and PointLight.
-  std::shared_ptr<geo::Material> m_lightMaterial{nullptr};
+  std::shared_ptr<lsw::geo::Material> m_lightMaterial{nullptr};
 };
 
-}  // namespace glrs
-}  // namespace lsw
+}  // namespace gl
+}  // namespace izz

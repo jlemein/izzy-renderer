@@ -16,6 +16,27 @@ namespace geo {
 template <int N, typename T, bool From>
 class Connections;
 
+template <typename T>
+struct Edge;
+
+template <typename T>
+struct Node {
+  T& data;
+  const int depth;
+
+  std::vector<int> connectionsIn, connectionsOut;
+
+  T& operator=(T value) {
+    this->data = value;
+    return this->data;
+  }
+};
+
+template <typename T>
+struct Edge {
+  Node<T>* from, to;
+};
+
 /**
  * @brief A graph that is written for the material system specifically.
  * @tparam T
@@ -33,11 +54,14 @@ class Graph {
   M m_edges[N][N];
   bool m_isConnected[N][N];  /// m_isConnected[i][j] indicates if node[i] is connected to node[j].
   std::array<T, N> m_nodes;
+  int m_depth[N];
+  std::array<int, N> m_nodeIndicesOrderedByDepth;
 
   std::unordered_map<K, int> m_keys;
   int m_nodeCount{0U};
 
  public:
+
   /**
    * Retrieves the maximum depth of the graph. That means: the longest chain of nodes connected.
    **/
@@ -51,8 +75,26 @@ class Graph {
     return m_nodes;
   }
 
+  std::vector<Edge<M>>& edges() const noexcept {
+    return m_edges[0];
+  }
+
+  auto depths() const noexcept {
+    return m_depth;
+  }
+
   auto nodeSize() const noexcept {
     return m_nodeCount;
+  }
+
+  void sortByDepth() {
+    std::sort(m_nodeIndicesOrderedByDepth.begin(), m_nodeIndicesOrderedByDepth.end(),
+              [this](int idx1, int idx2) { return (m_depth[idx1] < m_depth[idx2] && idx1 < this->m_nodeCount && idx2 < this->m_nodeCount) || idx1 < idx2; });
+  }
+
+  Node<T> sortedByDepth(int i)  {
+    int lookup = m_nodeIndicesOrderedByDepth[i];
+    return Node<T> { m_nodes[lookup], m_depth[lookup] };
   }
 
   bool isConnected(T from, T to) {
@@ -108,9 +150,9 @@ class Graph {
     return m_nodeCount;
   }
 
-  T& operator[](K key) {
+  Node<T> operator[](K key) {
     if (m_keys.contains(key)) {
-      return m_nodes[m_keys.at(key)];
+      return Node<T>{m_nodes[m_keys.at(key)], m_depth[m_keys.at(key)]};
     } else {
       if (m_nodeCount + 1 > N) {
         throw std::runtime_error("Graph has no space left to store more nodes.");
@@ -118,7 +160,8 @@ class Graph {
 
       auto index = m_nodeCount++;
       m_keys[key] = index;
-      return m_nodes[index];
+
+      return Node<T> { m_nodes[index], m_depth[index]};
     }
   }
 
@@ -134,17 +177,11 @@ class Graph {
     auto index = m_nodeCount++;
     m_keys[key] = index;
     m_nodes[index] = value;
+    m_depth[index] = 0;
   }
 
   void add(std::pair<K, T> keyValue) {
     add(keyValue.first, keyValue.second);
-  }
-
-  void add_connect(std::pair<K, T> from, std::pair<K, T> to) {
-    add(from.first, from.second);
-    add(to.first, to.second);
-
-    m_isConnected[m_keys[from.first]][m_keys[to.first]] = true;
   }
 
   void connect(K keyFrom, std::pair<K, T> to, M metadata = M()) {
@@ -154,6 +191,10 @@ class Graph {
     auto index_to = m_keys[to.first];
     m_isConnected[index_from][index_to] = true;
     m_edges[index_from][index_to] = metadata;
+
+    auto depth = m_depth[index_from];
+    m_depth[index_to] = std::max(depth+1, m_depth[index_to]);
+    std::cout << "Depth from: " << depth << ", depth of new node is: " << m_depth[index_to] << std::endl;
   }
 
   void connect(K from, K to, M metadata = M()) {
@@ -166,6 +207,10 @@ class Graph {
 
     m_isConnected[m_keys[from]][m_keys[to]] = true;
     m_edges[m_keys[from]][m_keys[to]] = metadata;
+
+    auto depth = m_depth[m_keys[from]];
+    m_depth[m_keys[to]] = std::max(depth+1, m_depth[m_keys[to]]);
+    std::cout << from << " -> " << to << ": Depth from: " << depth << ", depth of new node is: " << m_depth[m_keys[to]] << std::endl;
   }
 
   void add(T from, T to) {
@@ -197,6 +242,10 @@ class Graph {
 
   Graph() {
     memset(m_isConnected, 0, sizeof(m_isConnected));
+    for (int i=0; i<N; ++i) {
+      m_depth[i] = 0;
+      m_nodeIndicesOrderedByDepth[i] = i;
+    }
 //    memset(m_nodes, nullptr, sizeof(m_nodes));
   }
 };

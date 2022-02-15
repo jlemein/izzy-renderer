@@ -4,7 +4,7 @@
 #include "ecs_debug.h"
 #include "ecs_debugsystem.h"
 #include "ecs_relationship.h"
-#include "../include/glrs_renderable.h"
+#include "../include/gl_renderable.h"
 #include "ecs_transform.h"
 #include "geo_curve.h"
 #include "geo_mesh.h"
@@ -29,7 +29,7 @@ void DebugSystem::init() {
   for (auto e : view) {
     Debug debug = view.get<Debug>(e);
 
-    glrs::Renderable *renderable_p = m_registry.try_get<glrs::Renderable>(e);
+    izz::gl::Renderable *renderable_p = m_registry.try_get<izz::gl::Renderable>(e);
     std::string name = "Unnamed";
 
     if(m_registry.all_of<Name>(e)) {
@@ -45,7 +45,7 @@ void DebugSystem::init() {
       auto debugEntity = m_registry.create();
       std::string debugName = std::string{"Debug#"} + std::to_string(i) + " " + name;
       m_registry.emplace<Name>(debugEntity, debugName);
-      m_registry.emplace<glrs::Renderable>(debugEntity, model.renderable[i]);
+      m_registry.emplace<izz::gl::Renderable>(debugEntity, model.renderable[i]);
       m_registry.emplace<geo::Mesh>(debugEntity, model.mesh[i]);
       m_registry.emplace<geo::Material>(debugEntity, model.material[i]);
       m_registry.emplace<Transform>(debugEntity, model.transformations[i]);

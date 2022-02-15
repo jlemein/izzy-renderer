@@ -6,7 +6,7 @@
 #include <geo_material.h>
 #include <geo_graph.h>
 #include <memory>
-
+#include <gl_renderable.h>
 
 namespace izz {
 namespace geo {
@@ -52,16 +52,36 @@ struct EffectNode {
   std::shared_ptr<lsw::geo::Material> material;
 
   FramebufferConfiguration framebuffer;
+
+//  lsw::glrs::Renderable renderPass;
 };
 
-struct Edge {
-  std::array<short, 4> binding = {0, 1, 2, 3};
-  short from, to;
-};
+//struct Edge {
+//  std::array<short, 4> binding = {0, 1, 2, 3};
+//  short from, to;
+//};
 
+/**
+ * Represents the mapping between the output of a pass, to the input of the next pass.
+ */
+struct BufferMap {
+  /// The output location of the framebuffer, i.e. in shaders this is the ?? in "layout(location=???) out_color;"
+  int outLocation;
+
+  /// The texture buffer id (generated from glGenTextures) to which the texture is rendered.
+  int textureBuffer;
+
+  /// The texture unit (corresponding to the texture unit in the shader) to map to.
+  int inTextureUnit;
+};
+/**
+ * A BufferMapping is used to map output of a single render pass (or shader/program run)
+ * to a subsequent render pass texture unit.
+ * For example: the output of a noise pass, might result in layout(0) to produce output needed
+ * in texture unit 4 in the following render pass.
+ */
 struct BufferMapping {
-  // buffer mappings. buffer[0] = 1 means output buffer 0, maps to input buffer 1 in connected node.
-  int buffers[4] = {0, 1, 2, 3};
+  std::vector<BufferMap> bufferMappings;
 };
 
 class Effect {

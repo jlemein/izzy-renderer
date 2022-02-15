@@ -8,7 +8,7 @@
 #include <ecs_transformsystem.h>
 #include "izz_scenegraph.h"
 #include <izz_resourcemanager.h>
-#include <glrs_rendersystem.h>
+#include <gl_rendersystem.h>
 #include <io_inputsystem.h>
 #include <gui_window.h>
 #include <gui_iwindowextension.h>

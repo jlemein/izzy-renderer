@@ -8,7 +8,7 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include "geo_material.h"
-#include "glrs_rendersystem.h"
+#include "gl_rendersystem.h"
 #include "izz_scenegraphentity.h"
 #include "uniform_uniformblockmanager.h"
 
@@ -30,7 +30,7 @@ namespace gl {
  * Every material described in the materials file should be mapped to a data
  * structure.
  */
-class MaterialSystem : public lsw::glrs::IMaterialSystem {
+class MaterialSystem : public IMaterialSystem {
  public:
   MaterialSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager);
 

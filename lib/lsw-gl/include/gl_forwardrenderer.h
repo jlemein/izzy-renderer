@@ -6,24 +6,19 @@
 
 #include <entt/fwd.hpp>
 
-namespace lsw {
-namespace glrs {
-class RenderSystem;
-}
-}  // namespace lsw
-
 namespace izz {
 namespace gl {
 
+class RenderSystem;
 struct ForwardRenderable {};
 
 class ForwardRenderer {
  private:
   int m_fbo{0};
-  lsw::glrs::RenderSystem& m_renderSystem;
+  RenderSystem& m_renderSystem;
 
  public:
-  ForwardRenderer(lsw::glrs::RenderSystem& renderSystem);
+  ForwardRenderer(RenderSystem& renderSystem);
   void render(const entt::registry& registry);
 };
 

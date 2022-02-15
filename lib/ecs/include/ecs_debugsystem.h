@@ -4,7 +4,7 @@
 #pragma once
 
 #include <ecs_debug.h>
-#include <glrs_renderable.h>
+#include <gl_renderable.h>
 #include <entt/entity/registry.hpp>
 #include <geo_curve.h>
 #include <geo_mesh.h>

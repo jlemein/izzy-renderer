@@ -17,6 +17,8 @@ EffectSystem::EffectSystem(izz::SceneGraph& sceneGraph, MaterialSystem& material
   : m_sceneGraph{sceneGraph}
   , m_materialSystem{materialSystem} {}
 
+void EffectSystem::initialize() {}
+
 void EffectSystem::readEffectsFromFile(const std::filesystem::path& path) {
   std::ifstream input(path);
   if (input.fail()) {
@@ -290,6 +292,11 @@ void EffectSystem::initialize() {
       } else {
         node.material->fbo = fbo;
       }
+
+
+      node.renderPass = m_sceneGraph.makeRenderable()
+      // add a renderable (or rename to renderpass)
+//      node.renderpass =
     }
 
     //
@@ -302,4 +309,12 @@ void EffectSystem::initialize() {
     //    effect.graph.
     //    glGenFramebuffers();
   }
+}
+
+geo::Effect& gl::EffectSystem::getEffect(geo::cEffect cEffect) {
+  return m_effects.at(cEffect.name);
+}
+
+const geo::Effect& gl::EffectSystem::getEffect(geo::cEffect cEffect) const {
+  return m_effects.at(cEffect.name);
 }

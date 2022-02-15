@@ -5,13 +5,13 @@
 #include <geo_materialutil.h>
 #include <geo_mesh.h>
 #include <glrs_lightsystem.h>
-#include <glrs_renderable.h>
+#include <gl_renderable.h>
 #include <spdlog/spdlog.h>
-using namespace lsw;
-using namespace lsw::glrs;
+using namespace izz;
+using namespace izz::gl;
 
 namespace {
-void updatePointLightVisualization(geo::Material& material, ecs::PointLight light) {
+void updatePointLightVisualization(lsw::geo::Material& material, lsw::ecs::PointLight light) {
   material.userProperties.setValue("color", glm::vec4(light.color, 0.0));
   material.userProperties.setFloat("radius", light.radius);
   material.userProperties.setFloat("intensity", light.intensity);
@@ -22,28 +22,28 @@ LightSystem::LightSystem(entt::registry& registry)
   : m_registry{registry} {}
 
 int LightSystem::getActiveLightCount() const {
-  auto pointLights = m_registry.view<ecs::Transform, ecs::PointLight>();
-  auto dirLights = m_registry.view<ecs::Transform, ecs::DirectionalLight>();
-  auto ambientLights = m_registry.view<ecs::AmbientLight>();
+  auto pointLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::PointLight>();
+  auto dirLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::DirectionalLight>();
+  auto ambientLights = m_registry.view<lsw::ecs::AmbientLight>();
 
   return pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 }
 
-void LightSystem::setDefaultPointLightMaterial(std::shared_ptr<geo::Material> material) {
+void LightSystem::setDefaultPointLightMaterial(std::shared_ptr<lsw::geo::Material> material) {
   m_lightMaterial = material;
 }
 
 void LightSystem::initialize() {
-  for (auto&& [e, light, mesh] : m_registry.view<ecs::PointLight, geo::Mesh>().each()) {
+  for (auto&& [e, light, mesh] : m_registry.view<lsw::ecs::PointLight, lsw::geo::Mesh>().each()) {
     spdlog::debug("Initializing light system");
-    if (!m_registry.all_of<geo::Material>(e)) {
+    if (!m_registry.all_of<lsw::geo::Material>(e)) {
       if (m_lightMaterial == nullptr) {
-        auto name = m_registry.get<ecs::Name>(e).name;
+        auto name = m_registry.get<lsw::ecs::Name>(e).name;
         spdlog::error("Cannot add a material for point light '{}'. No light material set", name);
       } else {
-        m_registry.emplace<glrs::Renderable>(e);
+        m_registry.emplace<Renderable>(e);
 
-        auto& material = m_registry.emplace<geo::Material>(e, geo::MaterialUtil::CloneMaterial(*m_lightMaterial));
+        auto& material = m_registry.emplace<lsw::geo::Material>(e, lsw::geo::MaterialUtil::CloneMaterial(*m_lightMaterial));
 
         updatePointLightVisualization(material, light);
       }
@@ -51,7 +51,7 @@ void LightSystem::initialize() {
   }
 }
 
-void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& material) {
+void LightSystem::initLightingUbo(RenderState& renderable, const lsw::geo::Material& material) {
   auto uboStructName = material.lighting.ubo_struct_name;
 
   // check if a light ubo struct name is defined.
@@ -88,9 +88,9 @@ void LightSystem::initLightingUbo(Renderable& renderable, const geo::Material& m
 
 void LightSystem::updateLightProperties() {
   //
-  auto pointLights = m_registry.view<ecs::Transform, ecs::PointLight>();
-  auto dirLights = m_registry.view<ecs::Transform, ecs::DirectionalLight>();
-  auto ambientLights = m_registry.view<ecs::AmbientLight>();
+  auto pointLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::PointLight>();
+  auto dirLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::DirectionalLight>();
+  auto ambientLights = m_registry.view<lsw::ecs::AmbientLight>();
   auto numLights = pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 
   int numberOfPointLights = std::clamp(static_cast<unsigned int>(pointLights.size_hint()), 0U, 4U);
@@ -106,8 +106,8 @@ void LightSystem::updateLightProperties() {
     if (i++ > numberOfDirectionalLights) {
       break;
     }
-    const auto& light = dirLights.get<ecs::DirectionalLight>(e);
-    const auto& transform = dirLights.get<ecs::Transform>(e);
+    const auto& light = dirLights.get<lsw::ecs::DirectionalLight>(e);
+    const auto& transform = dirLights.get<lsw::ecs::Transform>(e);
 
     m_forwardLighting.directionalLight.direction = transform.worldTransform[3];
     m_forwardLighting.directionalLight.color = glm::vec4(light.color, 0.0F);
@@ -120,7 +120,7 @@ void LightSystem::updateLightProperties() {
     if (i++ > numberOfAmbientLights) {
       break;
     }
-    auto& light = ambientLights.get<ecs::AmbientLight>(e);
+    auto& light = ambientLights.get<lsw::ecs::AmbientLight>(e);
     m_forwardLighting.ambientLight.color = glm::vec4(light.color, 0.0F);
     m_forwardLighting.ambientLight.intensity = light.intensity;
   }
@@ -131,8 +131,8 @@ void LightSystem::updateLightProperties() {
     if (i > numberOfPointLights) {
       break;
     }
-    const auto& light = pointLights.get<ecs::PointLight>(e);
-    const auto& transform = pointLights.get<ecs::Transform>(e);
+    const auto& light = pointLights.get<lsw::ecs::PointLight>(e);
+    const auto& transform = pointLights.get<lsw::ecs::Transform>(e);
 
     auto& ubo = m_forwardLighting.pointLights[i++];
     ubo.linearAttenuation = light.linearAttenuation;
@@ -142,8 +142,8 @@ void LightSystem::updateLightProperties() {
     ubo.position = transform.worldTransform[3];
 
     // if the point light has a point light visualization
-    if (m_registry.all_of<geo::Material>(e)) {
-      auto& material = m_registry.get<geo::Material>(e);
+    if (m_registry.all_of<lsw::geo::Material>(e)) {
+      auto& material = m_registry.get<lsw::geo::Material>(e);
       updatePointLightVisualization(material, light);
     }
   }

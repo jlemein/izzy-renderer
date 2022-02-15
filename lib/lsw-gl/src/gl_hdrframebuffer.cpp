@@ -2,11 +2,11 @@
 // Created by jlemein on 02-12-21.
 //
 //#include <glrs_common.h>
-#include <glrs_hdrframebuffer.h>
+#include <gl_hdrframebuffer.h>
 #include <iostream>
 #include <spdlog/spdlog.h>
-using namespace lsw;
-using namespace lsw::glrs;
+using namespace izz;
+using namespace izz::gl;
 
 HdrFramebuffer::HdrFramebuffer(int width, int height, int numSamplesMSAA)
   : m_width(width)
