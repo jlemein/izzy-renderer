@@ -302,9 +302,9 @@ std::shared_ptr<lsw::geo::Material> MaterialSystem::makeDefaultMaterial() {
 }
 
 void MaterialSystem::update(float time, float dt) {
-  auto view = m_sceneGraph->getRegistry().view<lsw::geo::Material, lsw::glrs::Renderable>();
+  auto view = m_sceneGraph->getRegistry().view<lsw::geo::Material, Renderable>();
   for (auto e : view) {
-    const auto& r = view.get<lsw::glrs::Renderable>(e);
+    const auto& r = view.get<Renderable>(e);
     const auto& m = view.get<lsw::geo::Material>(e);
 
     // TODO: probably this for loop is more efficient if it is part of render system
@@ -320,7 +320,7 @@ void MaterialSystem::update(float time, float dt) {
   }
 }
 
-void MaterialSystem::synchronizeTextures(lsw::glrs::RenderSystem& renderSystem) {
+void MaterialSystem::synchronizeTextures(RenderSystem& renderSystem) {
   auto& registry = m_sceneGraph->getRegistry();
   auto view = registry.view<lsw::geo::Material>();  // why are we not requesting
                                                // <Material, Renderable>?
@@ -329,7 +329,7 @@ void MaterialSystem::synchronizeTextures(lsw::glrs::RenderSystem& renderSystem) 
   // ...
 
   for (auto entity : view) {
-    auto& renderable = registry.get_or_emplace<lsw::glrs::Renderable>(entity);
+    auto& renderable = registry.get_or_emplace<Renderable>(entity);
     auto& geoMaterial = view.get<lsw::geo::Material>(entity);
     spdlog::debug("Attach textures for meterial '{}' to render system", geoMaterial.name);
 

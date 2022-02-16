@@ -1,9 +1,9 @@
 //
 // Created by jeffrey on 14-02-22.
 //
-#include <gl_renderutils.h>
 #include <geo_curve.h>
 #include <geo_mesh.h>
+#include <gl_renderutils.h>
 using namespace izz;
 using namespace izz::gl;
 
@@ -34,7 +34,6 @@ void RenderUtils::FillBufferedMeshData(const lsw::geo::Curve& curve, BufferedMes
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
-
 
 void RenderUtils::FillBufferedMeshData(const lsw::geo::Mesh& mesh, BufferedMeshData& md) {
   GLuint vertexSize = mesh.vertices.size() * sizeof(float);
@@ -121,5 +120,48 @@ void RenderUtils::UseBufferedMeshData(const BufferedMeshData& md) {
     // todo: use VAOs
     glEnableVertexAttribArray(i);
     glVertexAttribPointer(i, attrib.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrib.buffer_offset));
+  }
+}
+
+void RenderUtils::ActivateUniformProperties(const RenderState& rs) {
+  for (const auto& uniform : rs.uniformBlocks) {
+    glBindBuffer(GL_UNIFORM_BUFFER, uniform.bufferId);
+    glBindBufferBase(GL_UNIFORM_BUFFER, uniform.blockBinding, uniform.bufferId);
+
+    // is this needed?
+    glUniformBlockBinding(rs.program, uniform.blockIndex, uniform.blockBinding);
+
+    void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+    std::memcpy(buff_ptr, uniform.pData->data, uniform.pData->size);
+    glUnmapBuffer(GL_UNIFORM_BUFFER);
+  }
+
+  ActivateUnscopedUniforms(rs);
+}
+
+void RenderUtils::ActivateUnscopedUniforms(const RenderState& rs) {
+  for (unsigned int i = 0; i < rs.unscopedUniforms.numProperties; ++i) {
+    const auto& uniform = rs.unscopedUniforms.pProperties[i];
+
+    switch (uniform.type) {
+      case UType::BOOL:
+      case UType::INT:
+        glUniform1i(uniform.location, *reinterpret_cast<int*>(rs.unscopedUniforms.pData + uniform.offset));
+        break;
+
+      case UType::FLOAT_ARRAY:
+      case UType::FLOAT2:
+      case UType::FLOAT3:
+      case UType::FLOAT4:
+        glUniform1fv(uniform.location, uniform.length, reinterpret_cast<float*>(rs.unscopedUniforms.pData + uniform.offset));
+        break;
+
+      case UType::INT_ARRAY:
+      case UType::INT2:
+      case UType::INT3:
+      case UType::INT4:
+        glUniform1iv(uniform.location, uniform.length, reinterpret_cast<GLint*>(rs.unscopedUniforms.pData + uniform.offset));
+        break;
+    }
   }
 }

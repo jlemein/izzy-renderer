@@ -47,7 +47,7 @@ std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<gl::MaterialSystem> materialSystem{nullptr};
 std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
 std::shared_ptr<izz::SceneGraph> sceneGraph{nullptr};
-std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
+std::shared_ptr<gl::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
 std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
@@ -69,7 +69,7 @@ void setupSystems() {
   sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
 
-  renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem, effectSystem);
+  renderSystem = make_shared<gl::RenderSystem>(sceneGraph, materialSystem, effectSystem);
   fontSystem = make_shared<FontSystem>();
   fontSystem->addFont("fonts/SegoeUi.ttf", 20);
 //  fontSystem->addFont("fonts/DroidSans.ttf", 20);

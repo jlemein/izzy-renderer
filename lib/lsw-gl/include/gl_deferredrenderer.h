@@ -20,6 +20,9 @@ struct DeferredRenderable {
   BufferedMeshData meshData;
   int materialId; /// references material in material system.
   int renderStateId;
+
+  int mvpUboIndex;      /// Index in the renderState uniforms corresponding to MVP uniform buffer object.
+  int lightingUboIndex; /// Index in the renderState uniforms corresponding to light uniform buffer object.
 };
 
 class DeferredRenderer {
@@ -28,6 +31,8 @@ class DeferredRenderer {
                    std::shared_ptr<izz::SceneGraph> sceneGraph);
 
   void init();
+
+  void update();
 
   void render(const entt::registry& registry);
 

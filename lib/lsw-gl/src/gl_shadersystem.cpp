@@ -1,8 +1,8 @@
 #include <GL/glew.h>
-#include <glrs_shadersystem.h>
+#include <gl_shadersystem.h>
 #include <geo_material.h>
 #include <fstream>
-using namespace lsw::glrs;
+using namespace izz::gl;
 
 namespace {
     std::vector<std::string> readFile(const std::filesystem::path &filename) {

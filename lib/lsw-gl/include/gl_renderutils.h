@@ -50,6 +50,21 @@ struct RenderUtils {
    */
   static void UseBufferedMeshData(const BufferedMeshData& md);
 
+  /**
+   * Activates all uniform properties for the specified render state.
+   * This includes the uniform buffer blocks, the named uniform properties
+   * and eventual shader binding blocks.
+   * @param [in] rs
+   */
+  static void ActivateUniformProperties(const RenderState& rs);
+
+  /***
+   * Activates all unscoped uniforms. Unscoped uniforms are not part of any
+   * buffer block (such as uniform buffer block).
+   * @param [in] rs Render state
+   */
+  static void ActivateUnscopedUniforms(const RenderState& rs);
+
 };
 
 }  // namespace gl

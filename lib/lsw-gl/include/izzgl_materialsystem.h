@@ -72,7 +72,7 @@ class MaterialSystem : public IMaterialSystem {
    * it makes sure the rendersystem is updated with new texture data, or to
    * remove
    */
-  void synchronizeTextures(lsw::glrs::RenderSystem& renderSystem) override;
+  void synchronizeTextures(RenderSystem& renderSystem) override;
 
   bool isMaterialDefined(const std::string& materialName);
 

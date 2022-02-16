@@ -13,8 +13,8 @@ add_library(lsw-gl STATIC
         src/ecs_debugsystem.cpp
         src/ecs_debugshapefactory.cpp
         src/gl_rendersystem.cpp
-        src/glrs_shadersystem.cpp
-        src/glrs_shadersystem.h
+        src/gl_shadersystem.cpp
+        src/gl_shadersystem.h
         src/glrs_lightsystem.cpp
         src/gl_multipassframebuffer.cpp
         src/gl_hdrframebuffer.cpp

@@ -1,8 +1,8 @@
 //
 // Created by jlemein on 07-11-20.
 //
-#include "gl_common.cpp"
 #include <gl_rendersystem.h>
+#include "gl_common.cpp"
 
 #include <ecs_camera.h>
 #include <ecs_light.h>
@@ -14,8 +14,9 @@
 #include <geo_effect.h>
 #include <geo_material.h>
 #include <geo_mesh.h>
+#include <gl_renderutils.h>
+#include <gl_shadersystem.h>
 #include <glrs_lightsystem.h>
-#include <glrs_shadersystem.h>
 #include <izzgl_effectsystem.h>
 #include <spdlog/spdlog.h>
 #include <uniform_ubermaterial.h>
@@ -23,7 +24,6 @@
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include "izz_scenegraph.h"
-#include <gl_renderutils.h>
 using namespace izz;
 using namespace izz::gl;
 
@@ -37,48 +37,48 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
   return location;
 }
 
-void pushShaderProperties(const Renderable&);
-void pushUnscopedUniforms(const Renderable&);
+//void pushShaderProperties(const Renderable&);
+// void pushUnscopedUniforms(const Renderable&);
 
 constexpr void* BUFFER_OFFSET(unsigned int offset) {
   uint8_t* pAddress = 0;
   return pAddress + offset;
 }
 
-void pushUnscopedUniforms(const RenderState& r) {
-  for (unsigned int i = 0; i < r.unscopedUniforms.numProperties; ++i) {
-    const auto& uniform = r.unscopedUniforms.pProperties[i];
-
-    switch (uniform.type) {
-      case UType::BOOL:
-      case UType::INT:
-        glUniform1i(uniform.location, *reinterpret_cast<int*>(r.unscopedUniforms.pData + uniform.offset));
-        break;
-
-      case UType::FLOAT_ARRAY:
-      case UType::FLOAT2:
-      case UType::FLOAT3:
-      case UType::FLOAT4:
-        glUniform1fv(uniform.location, uniform.length, reinterpret_cast<float*>(r.unscopedUniforms.pData + uniform.offset));
-        break;
-
-      case UType::INT_ARRAY:
-      case UType::INT2:
-      case UType::INT3:
-      case UType::INT4:
-        glUniform1iv(uniform.location, uniform.length, reinterpret_cast<GLint*>(r.unscopedUniforms.pData + uniform.offset));
-        break;
-    }
-  }
-}
+// void pushUnscopedUniforms(const RenderState& r) {
+//   for (unsigned int i = 0; i < r.unscopedUniforms.numProperties; ++i) {
+//     const auto& uniform = r.unscopedUniforms.pProperties[i];
+//
+//     switch (uniform.type) {
+//       case UType::BOOL:
+//       case UType::INT:
+//         glUniform1i(uniform.location, *reinterpret_cast<int*>(r.unscopedUniforms.pData + uniform.offset));
+//         break;
+//
+//       case UType::FLOAT_ARRAY:
+//       case UType::FLOAT2:
+//       case UType::FLOAT3:
+//       case UType::FLOAT4:
+//         glUniform1fv(uniform.location, uniform.length, reinterpret_cast<float*>(r.unscopedUniforms.pData + uniform.offset));
+//         break;
+//
+//       case UType::INT_ARRAY:
+//       case UType::INT2:
+//       case UType::INT3:
+//       case UType::INT4:
+//         glUniform1iv(uniform.location, uniform.length, reinterpret_cast<GLint*>(r.unscopedUniforms.pData + uniform.offset));
+//         break;
+//     }
+//   }
+// }
 
 void initMVPUniformBlock(RenderState& renderable) {
   glUseProgram(renderable.program);  // TODO: remove line
   renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
 
   if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
-//    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
-//                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
+    //    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
+    //                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
     throw std::runtime_error("Could not find UniformBufferBlock");
   }
 
@@ -100,59 +100,59 @@ void initMVPUniformBlock(RenderState& renderable) {
 }
 }  // namespace
 
-void RenderSystem::pushShaderProperties(const RenderState& r) {
-  for (const auto& [name, uniformBlock] : r.userProperties) {
-    glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
-    glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding, uniformBlock.bufferId);
+// void RenderSystem::pushShaderProperties(const RenderState& r) {
+//   for (const auto& [name, uniformBlock] : r.userProperties) {
+//     glBindBuffer(GL_UNIFORM_BUFFER, uniformBlock.bufferId);
+//     glBindBufferBase(GL_UNIFORM_BUFFER, uniformBlock.blockBinding, uniformBlock.bufferId);
+//
+//     // is this needed?
+//     glUniformBlockBinding(r.program, uniformBlock.blockIndex, uniformBlock.blockBinding);
+//
+//     void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+//     std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
+//     glUnmapBuffer(GL_UNIFORM_BUFFER);
+//   }
+//
+//   pushUnscopedUniforms(r);
+// }
 
-    // is this needed?
-    glUniformBlockBinding(r.program, uniformBlock.blockIndex, uniformBlock.blockBinding);
+// void RenderSystem::pushLightingData(const RenderState& renderable) {
+//   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
+//   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
+//
+//   // is this needed?
+//   glUniformBlockBinding(renderable.program, renderable.uboLightingIndex, renderable.uboLightingBinding);
+//
+//   void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+//   std::memcpy(buff_ptr, renderable.pUboLightStruct, renderable.pUboLightStructSize);
+//   glUnmapBuffer(GL_UNIFORM_BUFFER);
+// }
 
-    void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-    std::memcpy(buff_ptr, uniformBlock.pData->data, uniformBlock.pData->size);
-    glUnmapBuffer(GL_UNIFORM_BUFFER);
-  }
-
-  pushUnscopedUniforms(r);
-}
-
-void RenderSystem::pushLightingData(const RenderState& renderable) {
-  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
-
-  // is this needed?
-  glUniformBlockBinding(renderable.program, renderable.uboLightingIndex, renderable.uboLightingBinding);
-
-  void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-  std::memcpy(buff_ptr, renderable.pUboLightStruct, renderable.pUboLightStructSize);
-  glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
-
-void RenderSystem::pushModelViewProjection(const RenderState& renderable) {
-  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockBinding, renderable.uboId);
-
-  // is this needed?
-  glUniformBlockBinding(renderable.program, renderable.uboBlockIndex, renderable.uboBlockBinding);
-
-  void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-  UniformBlock b = renderable.uniformBlock;
-  std::memcpy(buff_ptr, &b, sizeof(UniformBlock));
-  glUnmapBuffer(GL_UNIFORM_BUFFER);
-}
+// void RenderSystem::pushModelViewProjection(const RenderState& renderable) {
+//   glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
+//   glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockBinding, renderable.uboId);
+//
+//   // is this needed?
+//   glUniformBlockBinding(renderable.program, renderable.uboBlockIndex, renderable.uboBlockBinding);
+//
+//   void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+//   UniformBlock b = renderable.uniformBlock;
+//   std::memcpy(buff_ptr, &b, sizeof(UniformBlock));
+//   glUnmapBuffer(GL_UNIFORM_BUFFER);
+// }
 
 LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
-void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material) {
-  glUseProgram(renderable.program);
+void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material) {
+  glUseProgram(renderable.renderState.program);
 
-  if (!m_registry.all_of<glrs::Posteffect>(entity)) {
-    initMVPUniformBlock(renderable);
+  if (!m_registry.all_of<Posteffect>(entity)) {
+    initMVPUniformBlock(renderable.renderState);
   }
 
-  m_lightSystem->initLightingUbo(renderable, material);
+  m_lightSystem->initLightingUbo(renderable.renderState, material);
 
   // every shader usually has custom attributes
   // they are processed here
@@ -161,9 +161,9 @@ void RenderSystem::initShaderProperties(entt::entity entity, Renderable& rendera
     glGenBuffers(1, &uboHandle);
     glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
 
-    GLint blockIndex = glGetUniformBlockIndex(renderable.program, name.c_str());
+    GLint blockIndex = glGetUniformBlockIndex(renderable.renderState.program, name.c_str());
     GLint blockBinding;
-    glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &blockBinding);
+    glGetActiveUniformBlockiv(renderable.renderState.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &blockBinding);
 
     // is this needed?
     //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
@@ -171,7 +171,7 @@ void RenderSystem::initShaderProperties(entt::entity entity, Renderable& rendera
     glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
 
     if (blockIndex == GL_INVALID_INDEX) {
-      auto a = glGetUniformLocation(renderable.program, name.c_str());
+      auto a = glGetUniformLocation(renderable.renderState.program, name.c_str());
       throw std::runtime_error(fmt::format("Cannot find ubo block with name '{}' in shader {}", name, material.name));
     }
     glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
@@ -191,7 +191,15 @@ const RenderState& RenderSystem::getRenderState(unsigned int id) const {
   }
 }
 
-void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const geo::Material& material) {
+RenderState& RenderSystem::getRenderState(unsigned int id) {
+  try {
+    return m_renderStates.at(id);
+  } catch (std::invalid_argument e) {
+    throw std::runtime_error(fmt::format("Could not obtain render state with id {}", id));
+  }
+}
+
+void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material) {
   // first memory allocation. For this we need to know the number of properties and length of data properties.
   int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
                       material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
@@ -211,7 +219,7 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
 
   for (auto [name, value] : material.unscopedUniforms.booleanValues) {
     *reinterpret_cast<int*>(pData) = value;
-    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
     pUniform->type = UType::BOOL;
     pUniform->offset = offset;
     pUniform->length = 1;
@@ -226,7 +234,7 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
 
   for (auto [name, value] : material.unscopedUniforms.intValues) {
     *reinterpret_cast<int*>(pData) = value;
-    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
     pUniform->type = UType::INT;
     pUniform->offset = offset;
     pUniform->length = 1;
@@ -241,7 +249,7 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
 
   for (auto [name, value] : material.unscopedUniforms.floatValues) {
     *reinterpret_cast<float*>(pData) = value;
-    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
     pUniform->type = UType::FLOAT;
     pUniform->offset = offset;
     pUniform->length = 1;
@@ -256,7 +264,7 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
 
   for (auto [name, value] : material.unscopedUniforms.floatArrayValues) {
     memcpy(reinterpret_cast<float*>(pData), value.data(), sizeof(float) * value.size());
-    pUniform->location = getUniformLocation(renderable.program, name.c_str(), material.name);
+    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
     pUniform->type = UType::FLOAT_ARRAY;
     pUniform->offset = offset;
     pUniform->length = value.size();
@@ -281,7 +289,6 @@ RenderSystem::RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::sha
   , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(*this)
   , m_deferredRenderer(*this, sceneGraph) {}
-
 
 void RenderSystem::initPostprocessBuffers() {
   // prepare quad for collecting
@@ -325,7 +332,7 @@ void RenderSystem::init() {
   // setup postprocessing screen quad
   initPostprocessBuffers();
 
-  auto numMaterials = m_registry.view<geo::Material>().size();
+  auto numMaterials = m_registry.view<lsw::geo::Material>().size();
   auto numLights = m_lightSystem->getActiveLightCount();
 
   // small summary
@@ -334,6 +341,9 @@ void RenderSystem::init() {
       "Number of material in use: {} | "
       "Number of active lights: {}",
       numMaterials, numLights);
+
+  m_deferredRenderer.init();
+  return;
 
   // Initialization of the rendersystem encompasses the following steps.
   // Take into account the vocabulary.
@@ -375,20 +385,21 @@ void RenderSystem::init() {
   }
 
   // handling materials
-  for (auto [entity, material, renderable] : m_registry.view<geo::Material, Renderable>().each()) {
+  for (auto [entity, material, renderable] : m_registry.view<lsw::geo::Material, Renderable>().each()) {
     try {
       if (material.isBinaryShader) {
-        renderable.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
+        renderable.renderState.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
       } else {
-        renderable.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
+        renderable.renderState.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
       }
 
-      spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", renderable.program, material.vertexShader, material.fragmentShader);
+      spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", renderable.renderState.program, material.vertexShader,
+                    material.fragmentShader);
 
       initShaderProperties(entity, renderable, material);
 
     } catch (std::exception& e) {
-      auto name = m_registry.all_of<ecs::Name>(entity) ? m_registry.get<ecs::Name>(entity).name : "Unnamed";
+      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
       throw std::runtime_error(fmt::format("Entity {}: {}", name, e.what()));
     }
   }
@@ -398,41 +409,43 @@ void RenderSystem::init() {
 void RenderSystem::update(float time, float dt) {
   // synchronizes the transformation for the entity into the renderable
   // component.
-  synchMvpMatrices();
+//  synchMvpMatrices();
+  m_deferredRenderer.update();
   m_lightSystem->updateLightProperties();
   m_materialSystem->update(time, dt);
+
 
   //  m_materialSystem->update(time, dt); --> not needed I think
 }
 
-void RenderSystem::synchMvpMatrices() {
-  // Updates the
-  // Render system updates the model view projection matrix for each of the
-  // The camera
-  auto view = m_registry.view<Renderable>();
-  for (auto entity : view) {
-    auto& renderable = m_registry.get<Renderable>(entity);
+//void RenderSystem::synchMvpMatrices() {
+//  // Updates the
+//  // Render system updates the model view projection matrix for each of the
+//  // The camera
+//  auto view = m_registry.view<Renderable>();
+//  for (auto entity : view) {
+//    auto& renderable = m_registry.get<Renderable>(entity);
+//
+//    if (renderable.isMvpSupported) {
+//      updateModelMatrix(entity);
+//      updateCamera(renderable);
+//    }
+//  }
+//}
 
-    if (renderable.isMvpSupported) {
-      updateModelMatrix(entity);
-      updateCamera(renderable);
-    }
-  }
-}
-
-void RenderSystem::updateModelMatrix(entt::entity e) {
-  auto& renderable = m_registry.get<Renderable>(e);
-
-  // if the transformation matrix exists, apply it, otherwise take identity
-  // matrix.
-  // TODO: enforce that all entities do have a transform.
-  auto transform = m_registry.try_get<ecs::Transform>(e);
-
-  renderable.uniformBlock.model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
-}
+//void RenderSystem::updateModelMatrix(entt::entity e) {
+//  auto& renderable = m_registry.get<Renderable>(e);
+//
+//  // if the transformation matrix exists, apply it, otherwise take identity
+//  // matrix.
+//  // TODO: enforce that all entities do have a transform.
+//  auto transform = m_registry.try_get<ecs::Transform>(e);
+//
+//  renderable.uniformBlock.model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
+//}
 
 void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
-  if (!m_registry.all_of<ecs::Camera>(cameraEntity)) {
+  if (!m_registry.all_of<lsw::ecs::Camera>(cameraEntity)) {
     throw std::runtime_error("Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
@@ -443,8 +456,8 @@ void RenderSystem::updateCamera(Renderable& renderable) {
     throw std::runtime_error("No active camera in scene");
   }
 
-  auto& transform = m_registry.get<ecs::Transform>(m_activeCamera);
-  auto& activeCamera = m_registry.get<ecs::Camera>(m_activeCamera);
+  auto& transform = m_registry.get<lsw::ecs::Transform>(m_activeCamera);
+  auto& activeCamera = m_registry.get<lsw::ecs::Camera>(m_activeCamera);
 
   renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
   renderable.uniformBlock.proj = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);
@@ -452,13 +465,13 @@ void RenderSystem::updateCamera(Renderable& renderable) {
 }
 
 void RenderSystem::activateEffect(entt::entity e) {
-//  if (m_registry.all_of<geo::cEffect>(e)) {
-//    const auto& cfx = m_registry.get<izz::geo::cEffect>(e);
-//    const izz::geo::Effect& fx = m_effectSystem.getById(cfx.name);
-//
-//    fx.graph.
-//  }
-//  activateTextures(e);
+  //  if (m_registry.all_of<geo::cEffect>(e)) {
+  //    const auto& cfx = m_registry.get<izz::geo::cEffect>(e);
+  //    const izz::geo::Effect& fx = m_effectSystem.getById(cfx.name);
+  //
+  //    fx.graph.
+  //  }
+  //  activateTextures(e);
 }
 
 void RenderSystem::render() {
@@ -467,13 +480,12 @@ void RenderSystem::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   m_forwardRenderer.render(m_registry);
-//  m_deferredRenderer.render(m_registry);
+  //  m_deferredRenderer.render(m_registry);
 
   renderPosteffects();
 
   m_framebuffer->apply();
 }
-
 
 void RenderSystem::renderPosteffects() {
   // activate screen quad
@@ -481,16 +493,16 @@ void RenderSystem::renderPosteffects() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
   glBindVertexArray(m_quadVao);
 
-  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
+  if (m_registry.all_of<lsw::ecs::PosteffectCollection>(m_activeCamera)) {
     int passId = 0;
-    const auto& collection = m_registry.get<ecs::PosteffectCollection>(m_activeCamera);
+    const auto& collection = m_registry.get<lsw::ecs::PosteffectCollection>(m_activeCamera);
 
     for (auto e : collection.posteffects) {
       const auto& refEffect = m_registry.get<izz::geo::cEffect>(e);
       izz::geo::Effect& effect = m_effectSystem->getEffect(refEffect);
 
-      for (int i=0; i<effect.graph.nodeSize(); ++i) {
-//      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
+      for (int i = 0; i < effect.graph.nodeSize(); ++i) {
+        //      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
         //        glUseProgram(effect.graph.nodes[i].material.programId);
 
         // Fetch each node ordered by depth. So when looping through the nodes from 0 to number of nodes.
@@ -500,12 +512,11 @@ void RenderSystem::renderPosteffects() {
 
         // Loop through the incoming edges/connections.
         // The incoming connections indicate that there is output from a previous pass that we need in the current pass.
-        for (int j=0; j<node.connectionsIn.size(); ++j) {
-
+        for (int j = 0; j < node.connectionsIn.size(); ++j) {
           auto incomingEdge = effect.graph.edges()[node.connectionsIn[j]];
 
           // one previous pass might have multiple output buffers that need to be mapped to multiple texture units.
-          for (const auto& mapping : incomingEdge.from->data.bufferMappings) {
+          for (const auto& mapping : incomingEdge.metadata.bufferMappings) {
             glActiveTexture(GL_TEXTURE0 + mapping.inTextureUnit);
             glBindTexture(GL_TEXTURE_2D, mapping.textureBuffer);
           }
@@ -514,9 +525,9 @@ void RenderSystem::renderPosteffects() {
         // now the outputs of previous pass are mapped.
         // map the dynamic textures (obtained via the material properties)
         // TODO: make sure a renderable is found on this entity.
-        //activateTextures(node.data.textures);
+        // activateTextures(node.data.textures);
 
-//        glBindFramebuffer(GL_READ_FRAMEBUFFER, node.depth == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
+        //        glBindFramebuffer(GL_READ_FRAMEBUFFER, node.depth == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, node.data.material->fbo);
 
         // setup textures for next call
@@ -530,8 +541,9 @@ void RenderSystem::renderPosteffects() {
       m_framebuffer->nextPass();
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      glUseProgram(renderable.program);
-      pushShaderProperties(renderable);
+      glUseProgram(renderable.renderState.program);
+
+      RenderUtils::ActivateUniformProperties(renderable.renderState);
 
       glDrawArrays(GL_TRIANGLES, 0, 6);
       ++passId;
@@ -541,44 +553,44 @@ void RenderSystem::renderPosteffects() {
   glBindVertexArray(0);
 }
 
-//void RenderSystem::renderPosteffects() {
-//  // activate screen quad
-//  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
-//  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-//  glBindVertexArray(m_quadVao);
+// void RenderSystem::renderPosteffects() {
+//   // activate screen quad
+//   glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
+//   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//   glBindVertexArray(m_quadVao);
 //
-//  if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
-//    int passId = 0;
+//   if (m_registry.all_of<ecs::PosteffectCollection>(m_activeCamera)) {
+//     int passId = 0;
 //
-//    for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
-//      auto& effect = m_registry.get<izz::geo::Effect>(e);
-//      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
-//        //        glUseProgram(effect.graph.nodes[i].material.programId);
+//     for (auto e : m_registry.get<ecs::PosteffectCollection>(m_activeCamera).posteffects) {
+//       auto& effect = m_registry.get<izz::geo::Effect>(e);
+//       for (int i = 0; i < effect.graph.nodes().size(); ++i) {
+//         //        glUseProgram(effect.graph.nodes[i].material.programId);
 //
-//        glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
-//        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes()[passId].material->fbo);
+//         glBindFramebuffer(GL_READ_FRAMEBUFFER, passId == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
+//         glBindFramebuffer(GL_DRAW_FRAMEBUFFER, effect.graph.nodes()[passId].material->fbo);
 //
-//        // setup textures for next call
-//      }
+//         // setup textures for next call
+//       }
 //
-//      auto& renderable = m_registry.get<Renderable>(e);
+//       auto& renderable = m_registry.get<Renderable>(e);
 //
-//      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
-//      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
+//       //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
+//       //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
 //
-//      m_framebuffer->nextPass();
-//      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//       m_framebuffer->nextPass();
+//       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 //
-//      glUseProgram(renderable.program);
-//      pushShaderProperties(renderable);
+//       glUseProgram(renderable.program);
+//       pushShaderProperties(renderable);
 //
-//      glDrawArrays(GL_TRIANGLES, 0, 6);
-//      ++passId;
-//    }
-//  }
+//       glDrawArrays(GL_TRIANGLES, 0, 6);
+//       ++passId;
+//     }
+//   }
 //
-//  glBindVertexArray(0);
-//}
+//   glBindVertexArray(0);
+// }
 
 IFramebuffer& RenderSystem::getFramebuffer() {
   return *m_framebuffer;
@@ -588,7 +600,7 @@ void RenderSystem::checkError(entt::entity e) {
   // get error message
   GLenum err;
   if ((err = glGetError()) != GL_NO_ERROR) {
-    auto name = m_registry.all_of<ecs::Name>(e) ? m_registry.get<ecs::Name>(e).name : std::string{"Unnamed"};
+    auto name = m_registry.all_of<lsw::ecs::Name>(e) ? m_registry.get<lsw::ecs::Name>(e).name : std::string{"Unnamed"};
     std::cerr << " Render error occurred for " << name << ": " << err << std::endl;
   }
 }
@@ -603,8 +615,8 @@ void RenderSystem::checkError(entt::entity e) {
  * TODO: think about passing a scene graph entity instead
  * @return
  */
-void RenderSystem::attachTexture(Renderable& renderable, const geo::Texture& geoTexture, const std::string& name) {
-  ecs::Texture texture{.name = name};
+void RenderSystem::attachTexture(Renderable& renderable, const lsw::geo::Texture& geoTexture, const std::string& name) {
+  lsw::ecs::Texture texture{.name = name};
   glGenTextures(1, &texture.glTextureId);
   glBindTexture(GL_TEXTURE_2D, texture.glTextureId);
 
@@ -626,4 +638,3 @@ void RenderSystem::attachTexture(Renderable& renderable, const geo::Texture& geo
   renderable.textures.emplace_back(texture);
   spdlog::log(spdlog::level::debug, "Loaded GL texture for texture '{}'", name);
 }
-

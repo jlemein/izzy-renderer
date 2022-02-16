@@ -16,7 +16,7 @@ namespace geo {
 template <int N, typename T, bool From>
 class Connections;
 
-template <typename T>
+template <typename T, typename M>
 struct Edge;
 
 template <typename T>
@@ -32,9 +32,11 @@ struct Node {
   }
 };
 
-template <typename T>
+template <typename T, typename M>
 struct Edge {
-  Node<T>* from, to;
+  Node<T> from;
+  Node<T> to;
+  M metadata;
 };
 
 /**
@@ -43,7 +45,7 @@ struct Edge {
  * @tparam n
  * @tparam M edge metadata. If you want to store weights (float) or metadata in other data types.
  */
-template <int N=16, typename T = int, typename K = const char*, typename M=int>
+template <int N = 16, typename T = int, typename K = const char*, typename M = int>
 class Graph {
   template <int, typename, bool>
   friend class node_iterator;
@@ -51,7 +53,8 @@ class Graph {
   friend class Connections;
 
  private:
-  M m_edges[N][N];
+  std::vector<Edge<T, M>> m_edges;
+  //  M m_edges[N][N];
   bool m_isConnected[N][N];  /// m_isConnected[i][j] indicates if node[i] is connected to node[j].
   std::array<T, N> m_nodes;
   int m_depth[N];
@@ -61,7 +64,6 @@ class Graph {
   int m_nodeCount{0U};
 
  public:
-
   /**
    * Retrieves the maximum depth of the graph. That means: the longest chain of nodes connected.
    **/
@@ -75,8 +77,8 @@ class Graph {
     return m_nodes;
   }
 
-  std::vector<Edge<M>>& edges() const noexcept {
-    return m_edges[0];
+  const std::vector<Edge<T, M>>& edges() const noexcept {
+    return m_edges;
   }
 
   auto depths() const noexcept {
@@ -88,13 +90,14 @@ class Graph {
   }
 
   void sortByDepth() {
-    std::sort(m_nodeIndicesOrderedByDepth.begin(), m_nodeIndicesOrderedByDepth.end(),
-              [this](int idx1, int idx2) { return (m_depth[idx1] < m_depth[idx2] && idx1 < this->m_nodeCount && idx2 < this->m_nodeCount) || idx1 < idx2; });
+    std::sort(m_nodeIndicesOrderedByDepth.begin(), m_nodeIndicesOrderedByDepth.end(), [this](int idx1, int idx2) {
+      return (m_depth[idx1] < m_depth[idx2] && idx1 < this->m_nodeCount && idx2 < this->m_nodeCount) || idx1 < idx2;
+    });
   }
 
-  Node<T> sortedByDepth(int i)  {
+  Node<T> sortedByDepth(int i) {
     int lookup = m_nodeIndicesOrderedByDepth[i];
-    return Node<T> { m_nodes[lookup], m_depth[lookup] };
+    return Node<T>{m_nodes[lookup], m_depth[lookup]};
   }
 
   bool isConnected(T from, T to) {
@@ -112,8 +115,7 @@ class Graph {
   }
 
   K name(int node_index) {
-    auto it = std::find_if(std::begin(m_keys), std::end(m_keys),
-                           [node_index](auto&& p) { return p.second == node_index; });
+    auto it = std::find_if(std::begin(m_keys), std::end(m_keys), [node_index](auto&& p) { return p.second == node_index; });
 
     if (it == std::end(m_keys)) {
       throw std::runtime_error(fmt::format("Cannot retrieve name for node index {}.", node_index));
@@ -161,7 +163,7 @@ class Graph {
       auto index = m_nodeCount++;
       m_keys[key] = index;
 
-      return Node<T> { m_nodes[index], m_depth[index]};
+      return Node<T>{m_nodes[index], m_depth[index]};
     }
   }
 
@@ -190,10 +192,15 @@ class Graph {
     auto index_from = m_keys[keyFrom];
     auto index_to = m_keys[to.first];
     m_isConnected[index_from][index_to] = true;
-    m_edges[index_from][index_to] = metadata;
+
+    Edge<T, M> edge{.from = Node<T>{m_nodes[index_from], m_depth[index_from]},
+                    .to = Node<T>{m_nodes[index_to], m_depth[index_to]},
+                    .metadata = metadata};
+    m_edges.push_back(edge);
+    //    m_edges[index_from][index_to] = metadata;
 
     auto depth = m_depth[index_from];
-    m_depth[index_to] = std::max(depth+1, m_depth[index_to]);
+    m_depth[index_to] = std::max(depth + 1, m_depth[index_to]);
     std::cout << "Depth from: " << depth << ", depth of new node is: " << m_depth[index_to] << std::endl;
   }
 
@@ -206,10 +213,10 @@ class Graph {
     }
 
     m_isConnected[m_keys[from]][m_keys[to]] = true;
-    m_edges[m_keys[from]][m_keys[to]] = metadata;
+//    m_edges[m_keys[from]][m_keys[to]] = metadata;
 
     auto depth = m_depth[m_keys[from]];
-    m_depth[m_keys[to]] = std::max(depth+1, m_depth[m_keys[to]]);
+    m_depth[m_keys[to]] = std::max(depth + 1, m_depth[m_keys[to]]);
     std::cout << from << " -> " << to << ": Depth from: " << depth << ", depth of new node is: " << m_depth[m_keys[to]] << std::endl;
   }
 
@@ -242,11 +249,11 @@ class Graph {
 
   Graph() {
     memset(m_isConnected, 0, sizeof(m_isConnected));
-    for (int i=0; i<N; ++i) {
+    for (int i = 0; i < N; ++i) {
       m_depth[i] = 0;
       m_nodeIndicesOrderedByDepth[i] = i;
     }
-//    memset(m_nodes, nullptr, sizeof(m_nodes));
+    //    memset(m_nodes, nullptr, sizeof(m_nodes));
   }
 };
 

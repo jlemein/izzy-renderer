@@ -17,8 +17,6 @@ EffectSystem::EffectSystem(izz::SceneGraph& sceneGraph, MaterialSystem& material
   : m_sceneGraph{sceneGraph}
   , m_materialSystem{materialSystem} {}
 
-void EffectSystem::initialize() {}
-
 void EffectSystem::readEffectsFromFile(const std::filesystem::path& path) {
   std::ifstream input(path);
   if (input.fail()) {
@@ -200,7 +198,12 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
             auto dstAttachment = bindInfo["target_bind"].get<int>();
 
             geo::BufferMapping mapping;
-            mapping.buffers[fromAttachment] = dstAttachment;
+//            mapping.buffers[fromAttachment] = dstAttachment;
+            geo::BufferMap bmap;
+            bmap.outLocation = dstAttachment;
+            bmap.inTextureUnit = 0;
+            bmap.textureBuffer = 0;
+            mapping.bufferMappings.push_back(bmap);
             effect.graph.connect(passId, targetPassId, mapping);
           }
         } else {
@@ -294,7 +297,7 @@ void EffectSystem::initialize() {
       }
 
 
-      node.renderPass = m_sceneGraph.makeRenderable()
+//      node.renderPass = m_sceneGraph.makeRenderable()
       // add a renderable (or rename to renderpass)
 //      node.renderpass =
     }

@@ -3,7 +3,7 @@
 //
 //#include <glrs_common.h>
 #include <gl_multipassframebuffer.h>
-#include <glrs_shadersystem.h>
+#include <gl_shadersystem.h>
 #include <iostream>
 #include <vector>
 using namespace izz;

@@ -43,10 +43,10 @@ void MaterialEditor::render(float time, float dt) {
 
         for (const auto& [e, material] : m_sceneGraph->getRegistry().view<lsw::geo::Material>().each()) {
           auto name = m_sceneGraph->getRegistry().get<lsw::ecs::Name>(e).name;
-          auto r = m_sceneGraph->getRegistry().try_get<lsw::glrs::Renderable>(e);
+          auto r = m_sceneGraph->getRegistry().try_get<gl::Renderable>(e);
 
           ImGui::TableNextColumn();
-          ImGui::Text(r != nullptr ? std::to_string(static_cast<int>(r->program)).c_str() : "N.A.");
+          ImGui::Text(r != nullptr ? std::to_string(static_cast<int>(r->renderState.program)).c_str() : "N.A.");
           ImGui::TableNextColumn();
 
           ImGui::PushID(static_cast<int>(e));
@@ -54,7 +54,7 @@ void MaterialEditor::render(float time, float dt) {
           ImGui::SameLine();
           if (ImGui::Button("Edit")) {
             m_shaderEditor.openDialog(e);
-            spdlog::info("Open material editor for program id: {}", r->program);
+            spdlog::info("Open material editor for program id: {}", r->renderState.program);
           }
           ImGui::PopID();
         }

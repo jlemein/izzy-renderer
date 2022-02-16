@@ -55,17 +55,18 @@ void ForwardRenderer::render(const entt::registry& registry) {
     // TODO: check if shader is dirty
     //  reason: if we push properties every frame (Except for MVP), we might
     //  unnecessary spend time doing that while we can immediately just render.
-    m_renderSystem.pushShaderProperties(renderable.renderState);
-    if (renderable.renderState.isMvpSupported) {
-      m_renderSystem.pushModelViewProjection(renderable.renderState);
-    }
+//    m_renderSystem.pushShaderProperties(renderable.renderState);
+//    if (renderable.renderState.isMvpSupported) {
+//      m_renderSystem.pushModelViewProjection(renderable.renderState);
+//    }
 
     // TODO this one needs to change per glUseProgram, which is the case right
     //  now. In future we might optimize changing of glUseProgram in that
     //  case, this function should be called once per set of glUseProgram.
-    if (renderable.renderState.isLightingSupported) {
-      m_renderSystem.pushLightingData(renderable.renderState);
-    }
+//    if (renderable.renderState.isLightingSupported) {
+//      m_renderSystem.pushLightingData(renderable.renderState);
+//    }
+    RenderUtils::ActivateUniformProperties(renderable.renderState);
 
     if (renderable.renderState.meshData.primitiveType == GL_TRIANGLES) {
       glDrawElements(renderable.renderState.meshData.primitiveType, renderable.renderState.meshData.drawElementCount, GL_UNSIGNED_INT, 0);

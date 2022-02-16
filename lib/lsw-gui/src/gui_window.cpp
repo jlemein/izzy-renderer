@@ -29,7 +29,7 @@ static void error_callback(int error, const char* description) {
 }
 }  // namespace
 
-Window::Window(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<glrs::RenderSystem> renderSystem,
+Window::Window(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<gl::RenderSystem> renderSystem,
                std::shared_ptr<gui::GuiSystem> guiSystem)
   : m_sceneGraph{sceneGraph}
   , m_guiSystem(guiSystem)

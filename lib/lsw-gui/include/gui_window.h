@@ -19,9 +19,7 @@ namespace anim {
 class AnimationSystem;
 }
 
-namespace glrs {
-class RenderSystem;
-}
+
 
 class ResourceManager;
 
@@ -38,6 +36,9 @@ class InputSystem;
 }  // namespace lsw
 
 namespace izz {
+namespace gl {
+class RenderSystem;
+}
 class SceneGraph;
 
 namespace gui {
@@ -63,7 +64,7 @@ class Window {
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Window(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<lsw::glrs::RenderSystem> renderSystem,
+  Window(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<gl::RenderSystem> renderSystem,
          std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
 
   ~Window();
@@ -90,7 +91,7 @@ class Window {
   std::shared_ptr<lsw::anim::AnimationSystem> m_animationSystem;
   entt::registry& m_registry;
 
-  std::shared_ptr<lsw::glrs::RenderSystem> m_renderSystem;
+  std::shared_ptr<gl::RenderSystem> m_renderSystem;
   std::shared_ptr<lsw::ecs::TransformSystem> m_transformSystem;
   std::shared_ptr<lsw::ecs::CameraSystem> m_cameraSystem;
   std::shared_ptr<lsw::ecs::DebugSystem> m_debugSystem;

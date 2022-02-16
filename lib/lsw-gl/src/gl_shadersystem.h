@@ -6,8 +6,8 @@
 #include <GL/glew.h>
 #include <geo_material.h>
 
-namespace lsw {
-namespace glrs {
+namespace izz {
+namespace gl {
 
 class ShaderSystem {
 public:

@@ -45,6 +45,8 @@ class RenderSystem {
   IFramebuffer& getFramebuffer();
 
   const RenderState& getRenderState(unsigned int id) const;
+  RenderState& getRenderState(unsigned int id);
+
 
   /**
    * @returns the light system.
@@ -64,9 +66,9 @@ class RenderSystem {
   /// @brief Activates the effect. Sets up framebuffer.
   void activateEffect(entt::entity e);
 
-  void pushShaderProperties(const RenderState& renderable);
-  void pushLightingData(const RenderState& renderable);
-  void pushModelViewProjection(const RenderState& renderable);
+//  void pushShaderProperties(const RenderState& renderable);
+//  void pushLightingData(const RenderState& renderable);
+//  void pushModelViewProjection(const RenderState& renderable);
 
  private:
   std::unique_ptr<IFramebuffer> m_framebuffer;

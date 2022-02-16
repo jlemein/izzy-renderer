@@ -64,7 +64,7 @@ SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, geo::cEffect effec
 
 // SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material) {
 //   auto e = makeEntity(mesh.name);
-//   e.add<glrs::Renderable>();
+//   e.add<gl::Renderable>();
 //   e.add<lsw::geo::Mesh>(std::forward<lsw::geo::Mesh>(mesh));
 //   e.add<lsw::geo::Material>(std::forward<lsw::geo::Material>(material));
 //
@@ -308,7 +308,7 @@ SceneGraphEntity SceneGraph::makeRenderable(const lsw::geo::Mesh& mesh, glm::mat
 
   //  auto materialId =
   //  m_resourceManager->getResource<lsw::geo::Material>(materialName)->id();
-  e.add<glrs::Renderable>();
+  e.add<gl::Renderable>();
   e.add<lsw::geo::Mesh>(mesh);
   e.add<lsw::geo::Material>(material);
 
@@ -318,7 +318,7 @@ SceneGraphEntity SceneGraph::makeRenderable(const lsw::geo::Mesh& mesh, glm::mat
 SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Mesh&& mesh, const lsw::geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<glrs::Renderable>(e);
+  m_registry.emplace<gl::Renderable>(e);
   m_registry.emplace<lsw::geo::Mesh>(e, std::move(mesh));
   m_registry.emplace<lsw::geo::Material>(e, material);
 
@@ -328,7 +328,7 @@ SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Mesh&& mesh, const lsw::ge
 SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Curve&& curve, const lsw::geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<glrs::Renderable>(e);
+  m_registry.emplace<gl::Renderable>(e);
   m_registry.emplace<lsw::geo::Curve>(e, std::move(curve));
   m_registry.emplace<lsw::geo::Material>(e, material);
 
@@ -340,8 +340,8 @@ entt::entity makeTexture();
 SceneGraphEntity SceneGraph::makePosteffect(const std::string name, const lsw::geo::Material& material) {
   auto e = makeEntity(name);
   e.add<lsw::geo::Material>(material);
-  e.add<glrs::Posteffect>();
-  e.add<glrs::Renderable>();
+  e.add<gl::Posteffect>();
+  e.add<gl::Renderable>();
   return e;
 }
 
