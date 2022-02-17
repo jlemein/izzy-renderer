@@ -51,6 +51,9 @@ void DeferredRenderer::init() {
   //=======================================
   for (auto e : m_sceneGraph->getRegistry().view<DeferredRenderable>()) {
     auto& r = m_sceneGraph->getRegistry().get<DeferredRenderable>(e);
+    if (r.renderStateId == -1) {
+      r.renderStateId = m_renderSystem.createRenderState();
+    }
     auto& rs = m_renderSystem.getRenderState(r.renderStateId);
     r.mvpUboIndex = glGetUniformBlockIndex(rs.program, "UniformBufferBlock");
     if (r.mvpUboIndex == GL_INVALID_INDEX) {
@@ -116,12 +119,16 @@ void DeferredRenderer::render(const entt::registry& registry) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
   glDrawBuffers(3, colorAttachments);
 
+  // clear gbuffer
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
   auto view = registry.view<const DeferredRenderable, const lsw::ecs::Transform>();
   for (entt::entity e : view) {
     const auto& r = registry.get<const DeferredRenderable>(e);
     const RenderState& rs = m_renderSystem.getRenderState(r.renderStateId);
 
     //    RenderUtils::ActivateProgram();
+    spdlog::info("Program used: {}", rs.program);
     glUseProgram(rs.program);
     RenderUtils::ActivateTextures(rs);
     RenderUtils::UseBufferedMeshData(rs.meshData);

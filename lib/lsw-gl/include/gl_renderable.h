@@ -112,7 +112,8 @@ struct TextureBuffer {
 };
 
 struct RenderState {
-  GLuint program;
+  int id;
+  GLuint program {0};
 
   BufferedMeshData meshData;
   std::vector<TextureBuffer> textureBuffers;
@@ -124,10 +125,10 @@ struct RenderState {
 //  UniformBlock uniformBlock{glm::mat4(1.0F), glm::mat4(1.0F), glm::mat4(1.0F)};
 
   /* shader specific details */
-  bool isMvpSupported{false};
-  GLuint uboId{0};            // id of the buffer object
-  GLint uboBlockIndex{-1};    // arbitrary location in the shader (decided upon by GLSL compiler)
-  GLint uboBlockBinding{-1};  //
+//  bool isMvpSupported{false};
+//  GLuint uboId{0};            // id of the buffer object
+//  GLint uboBlockIndex{-1};    // arbitrary location in the shader (decided upon by GLSL compiler)
+//  GLint uboBlockBinding{-1};  //
 
   // stores simple lighting properties
   bool isLightingSupported{false};

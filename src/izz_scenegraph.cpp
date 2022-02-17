@@ -18,12 +18,18 @@
 #include "geo_meshinstance.h"
 #include "geo_meshtransform.h"
 #include "geo_scene.h"
-
+#include "gl_deferredrenderer.h"
 #include <spdlog/spdlog.h>
 
 using namespace izz;
 using namespace lsw;
 using namespace lsw::ecs;
+
+#ifdef USE_DEFERRED_RENDERING
+using RENDERABLE_COMPONENT = gl::DeferredRenderable;
+#else
+using RENDERABLE_COMPONENT = gl::Renderable;
+#endif
 
 SceneGraph::SceneGraph() {}
 
@@ -33,7 +39,7 @@ void SceneGraph::setDefaultMaterial(std::shared_ptr<lsw::geo::Material> material
 
 SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, lsw::geo::Material mat) {
   auto e = makeMoveableEntity(mesh.name);
-  e.add<gl::Renderable>();
+  e.add<RENDERABLE_COMPONENT>();
   e.add<lsw::geo::Mesh>(mesh);
   e.add<lsw::geo::Material>(mat);
 
@@ -42,7 +48,7 @@ SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, lsw::geo::Material
 
 SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<lsw::geo::Material> mat) {
   auto e = makeMoveableEntity(mesh.name);
-  e.add<gl::Renderable>();
+  e.add<RENDERABLE_COMPONENT>();
   e.add<lsw::geo::Mesh>(mesh);
   // TODO: make sure we store a shared ptr instead of a copy.
   //  shared materials offer option to share materials.
@@ -53,7 +59,7 @@ SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<ls
 
 SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect) {
   auto e = makeMoveableEntity(mesh.name);
-  e.add<gl::Renderable>();
+  e.add<RENDERABLE_COMPONENT>();
   e.add<lsw::geo::Mesh>(mesh);
   // TODO: make sure we store a shared ptr instead of a copy.
   //  shared materials offer option to share materials.
@@ -64,7 +70,7 @@ SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh mesh, geo::cEffect effec
 
 // SceneGraphEntity SceneGraph::addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material) {
 //   auto e = makeEntity(mesh.name);
-//   e.add<gl::Renderable>();
+//   e.add<RENDERABLE_COMPONENT>();
 //   e.add<lsw::geo::Mesh>(std::forward<lsw::geo::Mesh>(mesh));
 //   e.add<lsw::geo::Material>(std::forward<lsw::geo::Material>(material));
 //
@@ -165,7 +171,7 @@ SceneGraphEntity SceneGraph::makeDirectionalLight(std::string name, glm::vec3 di
 SceneGraphEntity SceneGraph::makeMesh(const lsw::geo::Mesh& mesh) {
   auto meshEntity = makeMoveableEntity(mesh.name);
 
-  meshEntity.add<gl::Renderable>();
+  meshEntity.add<RENDERABLE_COMPONENT>();
   meshEntity.add<lsw::geo::Mesh>(mesh);
 
   // Watch out here, lsw::geo::Material is a value type so we can do this.
@@ -190,7 +196,7 @@ SceneGraphEntity SceneGraph::makeEmptyMesh(const lsw::geo::Mesh& mesh) {
   auto sge = makeMoveableEntity(mesh.name);
   auto e = sge.handle();
 
-  auto& renderable = m_registry.emplace<gl::Renderable>(e);
+  auto& renderable = m_registry.emplace<RENDERABLE_COMPONENT>(e);
 
   m_registry.emplace<lsw::geo::Mesh>(e, mesh);
   return sge;
@@ -219,7 +225,7 @@ SceneGraphEntity SceneGraph::makeCurve(std::string name) {
   auto curve = makeMoveableEntity(std::move(name));
 
   curve.add<lsw::geo::Curve>();
-  curve.add<gl::Renderable>();
+  curve.add<RENDERABLE_COMPONENT>();
   auto& s = curve.add<lsw::geo::Material>({.name = "default curve material",
                                       .vertexShader = "assets/shaders/default_curve.vert.spv",
                                       .fragmentShader = "assets/shaders/default_curve.frag.spv"});
@@ -308,7 +314,7 @@ SceneGraphEntity SceneGraph::makeRenderable(const lsw::geo::Mesh& mesh, glm::mat
 
   //  auto materialId =
   //  m_resourceManager->getResource<lsw::geo::Material>(materialName)->id();
-  e.add<gl::Renderable>();
+  e.add<RENDERABLE_COMPONENT>();
   e.add<lsw::geo::Mesh>(mesh);
   e.add<lsw::geo::Material>(material);
 
@@ -318,7 +324,7 @@ SceneGraphEntity SceneGraph::makeRenderable(const lsw::geo::Mesh& mesh, glm::mat
 SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Mesh&& mesh, const lsw::geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<gl::Renderable>(e);
+  m_registry.emplace<RENDERABLE_COMPONENT>(e);
   m_registry.emplace<lsw::geo::Mesh>(e, std::move(mesh));
   m_registry.emplace<lsw::geo::Material>(e, material);
 
@@ -328,7 +334,7 @@ SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Mesh&& mesh, const lsw::ge
 SceneGraphEntity SceneGraph::makeRenderable(lsw::geo::Curve&& curve, const lsw::geo::Material& material) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<gl::Renderable>(e);
+  m_registry.emplace<RENDERABLE_COMPONENT>(e);
   m_registry.emplace<lsw::geo::Curve>(e, std::move(curve));
   m_registry.emplace<lsw::geo::Material>(e, material);
 
@@ -341,7 +347,7 @@ SceneGraphEntity SceneGraph::makePosteffect(const std::string name, const lsw::g
   auto e = makeEntity(name);
   e.add<lsw::geo::Material>(material);
   e.add<gl::Posteffect>();
-  e.add<gl::Renderable>();
+  e.add<RENDERABLE_COMPONENT>();
   return e;
 }
 

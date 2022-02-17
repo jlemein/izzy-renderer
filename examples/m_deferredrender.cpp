@@ -1,5 +1,5 @@
 //
-// Created by jlemein on 11-03-21.
+// Created by jlemein on 17-02-22.
 //
 
 #include "anim_localrotation.h"
@@ -21,6 +21,7 @@
 
 #include <izzgl_materialsystem.h>
 #include <izzgl_effectsystem.h>
+#include <gl_renderutils.h>
 
 #include "gui_window.h"
 #include "wsp_workspace.h"
@@ -72,7 +73,7 @@ void setupSystems() {
   renderSystem = make_shared<gl::RenderSystem>(sceneGraph, materialSystem, effectSystem);
   fontSystem = make_shared<FontSystem>();
   fontSystem->addFont("fonts/SegoeUi.ttf", 20);
-//  fontSystem->addFont("fonts/DroidSans.ttf", 20);
+  //  fontSystem->addFont("fonts/DroidSans.ttf", 20);
   guiSystem = make_shared<gui::GuiSystem>(fontSystem);
 }
 
@@ -94,26 +95,40 @@ void setupLights() {
 }
 
 void setupScene() {
-  auto scene = sceneLoader->loadScene(programArguments->sceneFile);
-
-  // post process meshes in scene file
-  for (auto& mesh : scene->m_meshes) {
-    MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
-    MeshUtil::GenerateSmoothNormals(*mesh);
-  }
-
-  // add to scene graph
-  sceneGraph->makeScene(*scene, izz::SceneLoaderFlags::All());
+//  auto scene = sceneLoader->loadScene(programArguments->sceneFile);
+//
+//  // post process meshes in scene file
+//  for (auto& mesh : scene->m_meshes) {
+//    MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+//    MeshUtil::GenerateSmoothNormals(*mesh);
+//  }
+//
+//  // add to scene graph
+//  sceneGraph->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   // adding a custom primitive to the scene
   auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
   MeshUtil::ScaleUvCoords(plane, 3, 3);
-  auto tableCloth = materialSystem->createMaterial("table_cloth");
-  auto effect = effectSystem->createEffect("table_cloth");
-//  auto material = materialSystem->createMaterial("table_cloth");
 
-  sceneGraph->addGeometry(plane, effect);
-//  e.add<gl::DeferredRenderable>();
+  auto tableCloth = materialSystem->createMaterial("table_cloth");
+
+  auto effect = effectSystem->createEffect("table_cloth");
+  //  auto material = materialSystem->createMaterial("table_cloth");
+
+  gl::DeferredRenderable r;
+  auto& rs = renderSystem->createRenderState();
+  r.renderStateId = rs.id;
+  auto material = materialSystem->createMaterial("table_cloth");
+  izz::gl::RenderUtils::LoadMaterial(material, rs);
+  r.mvpUboIndex = izz::gl::RenderUtils::GetUniformBufferLocation(rs, "MVP");
+
+
+  r.materialId = tableCloth.id;
+
+  r.mvpUboIndex = RenderUtils::GetUniformBlockIndex(r.renderStateId);
+  auto e = sceneGraph->addGeometry(plane, effect);
+  e.add<gl::DeferredRenderable>(deferred);
+  //  e.add<gl::DeferredRenderable>();
 
   //    sceneGraph->addGeometry(plane, tableCloth);
 
@@ -153,11 +168,11 @@ int main(int argc, char* argv[]) {
     // setup camera
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-//    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
-//    auto vignette = materialSystem->createMaterial("VignettePostEffect");
-//    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
-//    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
-//    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
+    //    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
+    //    auto vignette = materialSystem->createMaterial("VignettePostEffect");
+    //    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
+    //    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
+    //    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
 
     // setup window
     auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);

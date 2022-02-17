@@ -44,6 +44,8 @@ class RenderSystem {
 
   IFramebuffer& getFramebuffer();
 
+  RenderState& createRenderState();
+
   const RenderState& getRenderState(unsigned int id) const;
   RenderState& getRenderState(unsigned int id);
 

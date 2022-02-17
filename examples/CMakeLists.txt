@@ -19,7 +19,11 @@ add_executable(izzyrender m_izzyrender.cpp)
 target_link_libraries(izzyrender PRIVATE izzy lsw-gl lsw-gui common cxxopts::cxxopts)
 target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
 
-add_executable(bloom m_bloom.cpp)
+add_executable(deferredrender m_deferredrender.cpp)
+target_link_libraries(deferredrender PRIVATE izzy lsw-gl lsw-gui common cxxopts::cxxopts)
+target_compile_definitions(deferredrender PRIVATE -DVERSION_STR="1.0.0")
+
+add_executable(bloom m_bloom.cpp m_deferredrender.cpp)
 target_link_libraries(bloom PRIVATE izzy lsw-gui common cxxopts::cxxopts)
 target_compile_definitions(bloom PRIVATE -DVERSION_STR="1.0.0")
 

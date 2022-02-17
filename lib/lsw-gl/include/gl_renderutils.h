@@ -65,6 +65,17 @@ struct RenderUtils {
    */
   static void ActivateUnscopedUniforms(const RenderState& rs);
 
+  /**
+   * Loads the shaders from the material, and stores the id's of the GPU buffers in render state.
+   * This function does not synchronize the data from material in the shader (uniform) buffers.
+   * @param [in] m      Material
+   * @param [out] rs    Render state to update.
+   */
+  static void LoadMaterial(const std::shared_ptr<lsw::geo::Material>& m, RenderState& rs);
+
+  static int GetUniformBufferLocation(const RenderState& rs, std::string& uboName);
+
+
 };
 
 }  // namespace gl

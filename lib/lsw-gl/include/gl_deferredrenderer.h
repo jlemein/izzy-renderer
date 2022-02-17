@@ -19,7 +19,7 @@ class RenderSystem;
 struct DeferredRenderable {
   BufferedMeshData meshData;
   int materialId; /// references material in material system.
-  int renderStateId;
+  int renderStateId {-1};
 
   int mvpUboIndex;      /// Index in the renderState uniforms corresponding to MVP uniform buffer object.
   int lightingUboIndex; /// Index in the renderState uniforms corresponding to light uniform buffer object.

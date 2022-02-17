@@ -183,6 +183,13 @@ void RenderSystem::initShaderProperties(entt::entity entity, Renderable& rendera
   initUnscopedShaderProperties(entity, renderable, material);
 }
 
+RenderState& RenderSystem::createRenderState() {
+  RenderState rs;
+  rs.id = m_renderStates.size();
+  m_renderStates.push_back(rs);
+  return m_renderStates[rs.id];
+}
+
 const RenderState& RenderSystem::getRenderState(unsigned int id) const {
   try {
     return m_renderStates.at(id);
@@ -479,12 +486,12 @@ void RenderSystem::render() {
   m_framebuffer->bind();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  m_forwardRenderer.render(m_registry);
-  //  m_deferredRenderer.render(m_registry);
+//  m_forwardRenderer.render(m_registry);
+    m_deferredRenderer.render(m_registry);
 
-  renderPosteffects();
+//  renderPosteffects();
 
-  m_framebuffer->apply();
+//  m_framebuffer->apply();
 }
 
 void RenderSystem::renderPosteffects() {

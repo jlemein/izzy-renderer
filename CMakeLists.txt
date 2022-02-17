@@ -24,6 +24,7 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD 20)
 
+add_definitions(-DUSE_DEFERRED_RENDERING)
 add_library(izzy STATIC
         include/izz_resourcemanager.h
         lib/lsw-gl/include/izzgl_materialsystem.h
