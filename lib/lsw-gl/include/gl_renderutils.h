@@ -71,7 +71,7 @@ struct RenderUtils {
    * @param [in] m      Material
    * @param [out] rs    Render state to update.
    */
-  static void LoadMaterial(const std::shared_ptr<lsw::geo::Material>& m, RenderState& rs);
+  static void LoadMaterial(const lsw::geo::Material& m, RenderState& rs);
 
   static int GetUniformBufferLocation(const RenderState& rs, std::string& uboName);
 

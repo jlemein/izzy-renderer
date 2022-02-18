@@ -24,6 +24,8 @@ add_library(lsw-gl STATIC
         include/gl_deferredrenderer.h
         src/gl_forwardrenderer.cpp
         src/gl_deferredrenderer.cpp include/gl_common.h src/gl_common.cpp
+        src/gl_deferredrenderablefactory.cpp
+        include/gl_deferredrenderablefactory.h
         include/gl_renderutils.h src/gl_renderutils.cpp)
 #test/node.t.cpp
 

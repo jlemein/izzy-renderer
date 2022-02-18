@@ -293,7 +293,7 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
 }
 }
 
-void RenderUtils::LoadMaterial(const std::shared_ptr<lsw::geo::Material>& material, RenderState& rs) {
+void RenderUtils::LoadMaterial(const lsw::geo::Material& material, RenderState& rs) {
   ShaderSystem shaderCompiler;
   try {
     if (material.isBinaryShader) {
