@@ -19,6 +19,12 @@ class RenderSystem;
  */
 class DeferredRenderableFactory {
  public:
+  /**
+   * Creates a deferred renderable entity filled with
+   * @param material
+   * @param renderSystem
+   * @return
+   */
   static DeferredRenderable CreateRenderable(const lsw::geo::Material& material, RenderSystem& renderSystem);
 };
 }

@@ -13,11 +13,11 @@ DeferredRenderable DeferredRenderableFactory::CreateRenderable(const lsw::geo::M
   renderable.renderStateId = rs.id;
 //  auto material = materialSystem->createMaterial("table_cloth");
   RenderUtils::LoadMaterial(material, rs);
-  renderable.mvpUboIndex = RenderUtils::GetUniformBufferLocation(rs, "MVP");
 
-  renderable.materialId = tableCloth.id;
+  // MVP
+  renderable.mvp = RenderUtils::GetUniformBufferLocation(rs, "UniformBufferBlock");
+  renderable.lights = RenderUtils::GetUniformBufferLocation(rs, "ForwardLighting");
 
-  renderable.mvpUboIndex = RenderUtils::GetUniformBlockIndex(renderable.renderStateId);
-
+//  renderable.materialId = tableCloth.id;
   return renderable;
 }

@@ -51,40 +51,40 @@ void LightSystem::initialize() {
   }
 }
 
-void LightSystem::initLightingUbo(RenderState& renderable, const lsw::geo::Material& material) {
-  auto uboStructName = material.lighting.ubo_struct_name;
-
-  // check if a light ubo struct name is defined.
-  if (uboStructName.empty()) {
-    return;
-  }
-
-  renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
-  if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-    // we don't expect this. The material has defined a light struct name, but not found. Error.
-    spdlog::error("Material {}: Lighting disabled, cannot find ubo block index with name '{}'", material.name, uboStructName);
-    return;
-  }
-
-  renderable.isLightingSupported = true;
-
-  // now of all the supported light systems, find the one the shader needs and store the size and address of it.
-  if (uboStructName == ForwardLighting::PARAM_NAME) {
-    renderable.pUboLightStruct = &m_forwardLighting;
-    renderable.pUboLightStructSize = sizeof(ForwardLighting);
-  } else {
-    throw std::runtime_error(fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, uboStructName));
-  }
-
-  glGenBuffers(1, &renderable.uboLightingId);
-  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
-  GLint blockIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
-
-  glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboLightingBinding);
-
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
-  glBufferData(GL_UNIFORM_BUFFER, renderable.pUboLightStructSize, nullptr, GL_DYNAMIC_DRAW);
-}
+//void LightSystem::initLightingUbo(RenderState& renderable, const lsw::geo::Material& material) {
+//  auto uboStructName = material.lighting.ubo_struct_name;
+//
+//  // check if a light ubo struct name is defined.
+//  if (uboStructName.empty()) {
+//    return;
+//  }
+//
+//  renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
+//  if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
+//    // we don't expect this. The material has defined a light struct name, but not found. Error.
+//    spdlog::error("Material {}: Lighting disabled, cannot find ubo block index with name '{}'", material.name, uboStructName);
+//    return;
+//  }
+//
+//  renderable.isLightingSupported = true;
+//
+//  // now of all the supported light systems, find the one the shader needs and store the size and address of it.
+//  if (uboStructName == ForwardLighting::PARAM_NAME) {
+//    renderable.pUboLightStruct = &m_forwardLighting;
+//    renderable.pUboLightStructSize = sizeof(ForwardLighting);
+//  } else {
+//    throw std::runtime_error(fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, uboStructName));
+//  }
+//
+//  glGenBuffers(1, &renderable.uboLightingId);
+//  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
+//  GLint blockIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
+//
+//  glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboLightingBinding);
+//
+//  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
+//  glBufferData(GL_UNIFORM_BUFFER, renderable.pUboLightStructSize, nullptr, GL_DYNAMIC_DRAW);
+//}
 
 void LightSystem::updateLightProperties() {
   //

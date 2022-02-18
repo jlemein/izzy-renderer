@@ -31,6 +31,7 @@ namespace geo {
  * A mapping of data location and size to keep the uniform blocks registered.
  */
 struct UniformBlockInfo {
+  std::string name;
   void* data;
   std::size_t size;
 };
@@ -233,7 +234,7 @@ struct Material {
 
   using UniformBlockRegistry = std::unordered_map<std::string, UniformBlockInfo>;
 
-  UniformBlockRegistry properties;
+  UniformBlockRegistry uniformBlocks;
 
   template <typename T>
   void setProperty(const T& data) {
@@ -243,33 +244,33 @@ struct Material {
   // TODO: deprecated, remove it in favor of the register call below.
   template <typename T>
   void setProperty(const char* name, const T& data) {
-    if (properties.count(name) > 0) {
-      memcpy(properties.at(name).data, &data, sizeof(T));
+    if (uniformBlocks.count(name) > 0) {
+      memcpy(uniformBlocks.at(name).data, &data, sizeof(T));
 
     } else {
       //      properties[name].data = std::unique_ptr<T>{new T,
       //      std::default_delete<T>()};
-      properties[name].data = new T();
-      memcpy(properties[name].data, &data, sizeof(T));
+      uniformBlocks[name].data = new T();
+      memcpy(uniformBlocks[name].data, &data, sizeof(T));
     }
-    properties.at(name).size = sizeof(T);
+    uniformBlocks.at(name).size = sizeof(T);
   }
 
   void registerUniformBlock(const char* name, void* pData, std::size_t size) {
-    if (properties.count(name) > 0) {
+    if (uniformBlocks.count(name) > 0) {
       throw std::runtime_error("Cannot add a uniform block {} to material {} that already exists.");
       //      memcpy(properties.at(name).data, pData, size);
     } else {
-      properties[name].data = pData;
-      properties[name].size = size;
+      uniformBlocks[name].data = pData;
+      uniformBlocks[name].size = size;
       //      memcpy(properties[name].data, pData, size);
     }
-    properties.at(name).size = size;
+    uniformBlocks.at(name).size = size;
   }
 
   void* getProperty(const char* name) {
     try {
-      return properties.at(name).data;
+      return uniformBlocks.at(name).data;
     } catch (std::out_of_range&) {
       throw std::runtime_error(fmt::format("Cannot find shader property {} in shader.", name));
     }

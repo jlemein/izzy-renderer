@@ -15,6 +15,12 @@ struct Mesh;
 namespace izz {
 namespace gl {
 
+struct BufferedMeshData;
+struct RenderState;
+struct UniformBufferMapping;
+
+
+
 struct RenderUtils {
  public:
   /**
@@ -73,7 +79,8 @@ struct RenderUtils {
    */
   static void LoadMaterial(const lsw::geo::Material& m, RenderState& rs);
 
-  static int GetUniformBufferLocation(const RenderState& rs, std::string& uboName);
+//  static int GetUniformBufferLocation(const RenderState& rs, std::string uboName);
+  static UniformBufferMapping GetUniformBufferLocation(const RenderState& rs, std::string uboName);
 
 
 };

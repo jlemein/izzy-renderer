@@ -49,28 +49,7 @@ void DeferredRenderer::init() {
   //=======================================
   //  PARSE THE SCENE
   //=======================================
-  for (auto e : m_sceneGraph->getRegistry().view<DeferredRenderable>()) {
-    auto& r = m_sceneGraph->getRegistry().get<DeferredRenderable>(e);
-    if (r.renderStateId == -1) {
-      r.renderStateId = m_renderSystem.createRenderState();
-    }
-    auto& rs = m_renderSystem.getRenderState(r.renderStateId);
-    r.mvpUboIndex = glGetUniformBlockIndex(rs.program, "UniformBufferBlock");
-    if (r.mvpUboIndex == GL_INVALID_INDEX) {
-      throw std::runtime_error(
-          fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock'"));
-//                      " in {}",
-//                      renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
-    } else {
-      spdlog::info("PERFECT");
-    }
-    //
-    //    if (m_sceneGraph->getRegistry().all_of<lsw::geo::Curve>(e)) {
-    //      const auto& curve = m_sceneGraph->getRegistry().get<lsw::geo::Curve>(e);
-    //      RenderUtils::FillBufferedMeshData(curve, r.meshData);
-    //    }
-    //
-  }
+
   // handling curves
   for (const auto& [entity, curve, r] : m_sceneGraph->getRegistry().view<lsw::geo::Curve, DeferredRenderable>().each()) {
     RenderUtils::FillBufferedMeshData(curve, r.meshData);
@@ -90,13 +69,13 @@ void DeferredRenderer::update() {
   for (auto [e, r] : m_sceneGraph->getRegistry().view<DeferredRenderable>().each()) {
     auto& rs = m_renderSystem.getRenderState(r.renderStateId);
 
-    if (r.mvpUboIndex == -1) {
+    if (r.mvp.blockIndex == -1) {
       throw std::runtime_error("Deferred Renderable has no MVP uniform buffer block (index -1)");
     }
 
     // update model matrix
     auto transform = m_sceneGraph->getRegistry().try_get<lsw::ecs::Transform>(e);
-    UniformBlock& mvp = reinterpret_cast<UniformBlock&>(rs.uniformBlocks[r.mvpUboIndex]);
+    UniformBlock& mvp = reinterpret_cast<UniformBlock&>(r.mvp.pData);
     mvp.model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
 
     // update camera

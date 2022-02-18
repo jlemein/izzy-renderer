@@ -71,33 +71,32 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
 //     }
 //   }
 // }
-
-void initMVPUniformBlock(RenderState& renderable) {
-  glUseProgram(renderable.program);  // TODO: remove line
-  renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
-
-  if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
-    //    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
-    //                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
-    throw std::runtime_error("Could not find UniformBufferBlock");
-  }
-
-  renderable.isMvpSupported = true;
-
-  glGenBuffers(1, &renderable.uboId);
-
-  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
-  GLint blockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
-  if (blockIndex == GL_INVALID_INDEX) {
-    std::cerr << "Cannot find ubo block with name 'UniformBufferBlock' in shader";
-    exit(1);
-  }
-
-  glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboBlockBinding);
-
-  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex, renderable.uboId);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), nullptr, GL_DYNAMIC_DRAW);
-}
+//
+//void initMVPUniformBlock(RenderState& renderable) {
+//  glUseProgram(renderable.program);  // TODO: remove line
+//  renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
+//
+//  if (renderable.uboBlockIndex == GL_INVALID_INDEX) {
+//    //    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
+//    //                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
+//    throw std::runtime_error("Could not find UniformBufferBlock");
+//  }
+//
+//  renderable.isMvpSupported = true;
+//
+//  glGenBuffers(1, &renderable.uboId);
+//  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboId);
+////  GLint blockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
+////  if (blockIndex == GL_INVALID_INDEX) {
+////    std::cerr << "Cannot find ubo block with name 'UniformBufferBlock' in shader";
+////    exit(1);
+////  }
+//
+//  glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboBlockBinding);
+//
+//  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboBlockIndex, renderable.uboId);
+//  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), nullptr, GL_DYNAMIC_DRAW);
+//}
 }  // namespace
 
 // void RenderSystem::pushShaderProperties(const RenderState& r) {
@@ -144,44 +143,44 @@ void initMVPUniformBlock(RenderState& renderable) {
 LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
-
-void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material) {
-  glUseProgram(renderable.renderState.program);
-
-  if (!m_registry.all_of<Posteffect>(entity)) {
-    initMVPUniformBlock(renderable.renderState);
-  }
-
-  m_lightSystem->initLightingUbo(renderable.renderState, material);
-
-  // every shader usually has custom attributes
-  // they are processed here
-  for (const auto& [name, blockData] : material.properties) {
-    GLuint uboHandle;
-    glGenBuffers(1, &uboHandle);
-    glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
-
-    GLint blockIndex = glGetUniformBlockIndex(renderable.renderState.program, name.c_str());
-    GLint blockBinding;
-    glGetActiveUniformBlockiv(renderable.renderState.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &blockBinding);
-
-    // is this needed?
-    //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
-
-    glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
-
-    if (blockIndex == GL_INVALID_INDEX) {
-      auto a = glGetUniformLocation(renderable.renderState.program, name.c_str());
-      throw std::runtime_error(fmt::format("Cannot find ubo block with name '{}' in shader {}", name, material.name));
-    }
-    glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
-
-    // store block handle in renderable
-    renderable.userProperties[name] = Renderable_UniformBlockInfo{uboHandle, blockIndex, blockBinding, &blockData};
-  }
-
-  initUnscopedShaderProperties(entity, renderable, material);
-}
+//
+//void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material) {
+//  glUseProgram(renderable.renderState.program);
+//
+//  if (!m_registry.all_of<Posteffect>(entity)) {
+//    initMVPUniformBlock(renderable.renderState);
+//  }
+//
+//  m_lightSystem->initLightingUbo(renderable.renderState, material);
+//
+//  // every shader usually has custom attributes
+//  // they are processed here
+//  for (const auto& [name, blockData] : material.properties) {
+//    GLuint uboHandle;
+//    glGenBuffers(1, &uboHandle);
+//    glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
+//
+//    GLint blockIndex = glGetUniformBlockIndex(renderable.renderState.program, name.c_str());
+//    GLint blockBinding;
+//    glGetActiveUniformBlockiv(renderable.renderState.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &blockBinding);
+//
+//    // is this needed?
+//    //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
+//
+//    glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
+//
+//    if (blockIndex == GL_INVALID_INDEX) {
+//      auto a = glGetUniformLocation(renderable.renderState.program, name.c_str());
+//      throw std::runtime_error(fmt::format("Cannot find ubo block with name '{}' in shader {}", name, material.name));
+//    }
+//    glBufferData(GL_UNIFORM_BUFFER, blockData.size, NULL, GL_DYNAMIC_DRAW);
+//
+//    // store block handle in renderable
+//    renderable.userProperties[name] = Renderable_UniformBlockInfo{uboHandle, blockIndex, blockBinding, &blockData};
+//  }
+//
+//  initUnscopedShaderProperties(entity, renderable, material);
+//}
 
 RenderState& RenderSystem::createRenderState() {
   RenderState rs;

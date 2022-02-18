@@ -18,7 +18,7 @@
 #include "izz_sceneloader.h"
 #include "izz_stbtextureloader.h"
 #include "izz_texturesystem.h"
-
+#include <gl_deferredrenderablefactory.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_effectsystem.h>
 #include <gl_renderutils.h>
@@ -115,19 +115,10 @@ void setupScene() {
   auto effect = effectSystem->createEffect("table_cloth");
   //  auto material = materialSystem->createMaterial("table_cloth");
 
-  gl::DeferredRenderable r;
-  auto& rs = renderSystem->createRenderState();
-  r.renderStateId = rs.id;
   auto material = materialSystem->createMaterial("table_cloth");
-  izz::gl::RenderUtils::LoadMaterial(material, rs);
-  r.mvpUboIndex = izz::gl::RenderUtils::GetUniformBufferLocation(rs, "MVP");
-
-
-  r.materialId = tableCloth.id;
-
-  r.mvpUboIndex = RenderUtils::GetUniformBlockIndex(r.renderStateId);
+  gl::DeferredRenderable r = gl::DeferredRenderableFactory::CreateRenderable(*material, *renderSystem);
   auto e = sceneGraph->addGeometry(plane, effect);
-  e.add<gl::DeferredRenderable>(deferred);
+  e.add<gl::DeferredRenderable>(r);
   //  e.add<gl::DeferredRenderable>();
 
   //    sceneGraph->addGeometry(plane, tableCloth);
@@ -151,6 +142,18 @@ int main(int argc, char* argv[]) {
 
     setupSystems();
 
+    // setup camera
+    auto camera = sceneGraph->makeCamera("DummyCamera", 4);
+    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
+
+    auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
+    window->setActiveCamera(camera);
+    window->setWindowSize(1920, 1080);
+    window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
+    window->initialize();
+
+
+
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
@@ -165,9 +168,7 @@ int main(int argc, char* argv[]) {
     setupLights();
     setupUserInterface();
 
-    // setup camera
-    auto camera = sceneGraph->makeCamera("DummyCamera", 4);
-    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
+
     //    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
     //    auto vignette = materialSystem->createMaterial("VignettePostEffect");
     //    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
@@ -175,11 +176,7 @@ int main(int argc, char* argv[]) {
     //    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
 
     // setup window
-    auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
-    window->setActiveCamera(camera);
-    window->setWindowSize(1920, 1080);
-    window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
-    window->initialize();
+
     window->run();
 
   } catch (runtime_error& e) {
