@@ -8,18 +8,18 @@
 #include "gui_materialeditor.h"
 
 namespace izz {
-class SceneGraph;
+class SceneGraphHelper;
 namespace gui {
 
 class MainMenu : public IGuiWindow {
  public:
-  MainMenu(std::shared_ptr<izz::SceneGraph> sceneGraph);
+  MainMenu(std::shared_ptr<izz::SceneGraphHelper> sceneGraph);
 
   void init() override;
   void render(float time, float dt) override;
 
  private:
-  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
+  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
 
   gui::MaterialEditor m_materialEditor;
 };

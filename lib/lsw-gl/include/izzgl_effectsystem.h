@@ -9,7 +9,7 @@
 
 namespace izz {
 
-class SceneGraph;
+class SceneGraphHelper;
 
 namespace gl {
 
@@ -17,7 +17,7 @@ class MaterialSystem;
 
 class EffectSystem {
  public:
-  EffectSystem(izz::SceneGraph& sceneGraph, MaterialSystem& materialSystem);
+  EffectSystem(izz::SceneGraphHelper& sceneGraph, MaterialSystem& materialSystem);
 
   void readEffectsFromFile(const std::filesystem::path& path);
   void readEffectsFromJson(const nlohmann::json& json);
@@ -46,7 +46,7 @@ class EffectSystem {
   void initialize();
 
  private:
-  SceneGraph& m_sceneGraph;
+  SceneGraphHelper& m_sceneGraph;
   MaterialSystem& m_materialSystem;
 
   std::unordered_map<std::string, geo::Effect> m_effects;

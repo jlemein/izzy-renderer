@@ -3,7 +3,7 @@
 //
 #include <izzgl_materialsystem.h>
 
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 #include "geo_textureloader.h"
 #include "gl_rendersystem.h"
 #include "izz_resourcemanager.h"
@@ -44,7 +44,7 @@ bool isFloatArray(const T& array) {
 
 }  // namespace
 
-MaterialSystem::MaterialSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager)
+MaterialSystem::MaterialSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager)
   : m_sceneGraph{sceneGraph}
   , m_resourceManager{resourceManager} {
   // for now register the uniform blocks

@@ -12,9 +12,9 @@
 #include "gl_hdrframebuffer.h"
 #include <gl_forwardrenderer.h>
 #include <gl_deferredrenderer.h>
+#include <entt/fwd.hpp>
 
 namespace izz {
-class SceneGraph;
 namespace gl {
 class EffectSystem;
 class MaterialSystem;
@@ -32,7 +32,7 @@ class RenderSystem {
    * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
    */
-  RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<IMaterialSystem> materialSystem,
+  RenderSystem(entt::registry& registry, std::shared_ptr<IMaterialSystem> materialSystem,
                std::shared_ptr<EffectSystem> effectSystem);
 
   /**

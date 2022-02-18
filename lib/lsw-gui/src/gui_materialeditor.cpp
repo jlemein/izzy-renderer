@@ -1,7 +1,7 @@
 //
 // Created by jeffrey on 12-12-21.
 //
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 #include <geo_material.h>
 #include <gui_materialeditor.h>
 #include <imgui.h>
@@ -13,7 +13,7 @@ using namespace izz::gui;
 
 static bool p_open{false};
 
-MaterialEditor::MaterialEditor(std::shared_ptr<izz::SceneGraph> sceneGraph)
+MaterialEditor::MaterialEditor(std::shared_ptr<izz::SceneGraphHelper> sceneGraph)
   : m_sceneGraph{sceneGraph}
   , m_shaderEditor{sceneGraph} {}
 

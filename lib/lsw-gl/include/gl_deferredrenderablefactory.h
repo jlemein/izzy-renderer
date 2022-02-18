@@ -3,6 +3,8 @@
 //
 #pragma once
 
+#include <izz_renderablecomponentfactory.h>
+
 namespace lsw {
 namespace geo {
 struct Material;
@@ -17,15 +19,20 @@ class RenderSystem;
 /**
  * Factory creation methods
  */
-class DeferredRenderableFactory {
+class DeferredRenderableFactory : public RenderableComponentFactory {
  public:
+  DeferredRenderableFactory(RenderSystem& renderSystem);
+
   /**
    * Creates a deferred renderable entity filled with
    * @param material
    * @param renderSystem
    * @return
    */
-  static DeferredRenderable CreateRenderable(const lsw::geo::Material& material, RenderSystem& renderSystem);
+  void addRenderableComponent(entt::registry& registry, entt::entity e) override;
+
+ private:
+  RenderSystem& m_renderSystem;
 };
 }
 }

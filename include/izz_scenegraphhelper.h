@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include "geo_effect.h"
+#include "izz_renderablecomponentfactory.h"
 
 namespace lsw {
 namespace geo {
@@ -41,21 +42,22 @@ struct SceneLoaderFlags {
   }
 };
 
+
 /**!
  * SceneGraph is the central authority to deal with the scene hierarchy.
  * The scene grap deals with storing entities and their relationship.
  *
  */
-class SceneGraph {
+class SceneGraphHelper {
  public:
-  SceneGraph();
+  SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory);
 
   void setDefaultMaterial(std::shared_ptr<lsw::geo::Material> material);
 
   // TODO: represent the active camera in the scene graph,
   //  probably by flagging the entity with ActiveCamera component.
   //  or maybe a centralized registry.
-  void setActiveCamera(SceneGraph camera);
+  void setActiveCamera(SceneGraphHelper camera);
 
   entt::registry& getRegistry();
 
@@ -126,7 +128,8 @@ class SceneGraph {
 
  private:
   /// Uses EnTT in the background for scene management
-  entt::registry m_registry;
+  entt::registry& m_registry;
+  std::unique_ptr<RenderableComponentFactory> m_renderableComponentFactory;
 
   std::shared_ptr<lsw::geo::Material> m_defaultMaterial{nullptr};
   const SceneGraphEntity* m_activeCamera{nullptr};
@@ -138,7 +141,7 @@ class SceneGraph {
 // INLINE DEFINITIONS
 //====================================
 
-inline entt::registry& SceneGraph::getRegistry() {
+inline entt::registry& SceneGraphHelper::getRegistry() {
   return m_registry;
 }
 

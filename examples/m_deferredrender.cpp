@@ -7,7 +7,7 @@
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
 #include "ecs_transformutil.h"
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
 #include "gui_iguiwindow.h"
@@ -47,30 +47,31 @@ std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<gl::MaterialSystem> materialSystem{nullptr};
 std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
-std::shared_ptr<izz::SceneGraph> sceneGraph{nullptr};
+std::shared_ptr<izz::SceneGraphHelper> sceneGraphHelper{nullptr};
 std::shared_ptr<gl::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
 std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
+entt::registry registry;
 }  // namespace
 
 void setupSystems() {
   resourceManager = make_shared<ResourceManager>();
-  sceneGraph = make_shared<izz::SceneGraph>();
 
   auto textureSystem = make_shared<TextureSystem>();
   textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
   textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
   resourceManager->setTextureSystem(textureSystem);
 
-  materialSystem = make_shared<gl::MaterialSystem>(sceneGraph, resourceManager);
-  effectSystem = make_shared<gl::EffectSystem>(*sceneGraph, *materialSystem);
+  materialSystem = make_shared<gl::MaterialSystem>(sceneGraphHelper, resourceManager);
+  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
   resourceManager->setMaterialSystem(materialSystem);
 
   sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
 
-  renderSystem = make_shared<gl::RenderSystem>(sceneGraph, materialSystem, effectSystem);
+  sceneGraphHelper = std::make_shared<izz::SceneGraphHelper>(registry, std::make_unique<gl::DeferredRenderableFactory>(*renderSystem));
+  renderSystem = make_shared<gl::RenderSystem>(registry, materialSystem, effectSystem);
   fontSystem = make_shared<FontSystem>();
   fontSystem->addFont("fonts/SegoeUi.ttf", 20);
   //  fontSystem->addFont("fonts/DroidSans.ttf", 20);
@@ -79,17 +80,17 @@ void setupSystems() {
 
 void setupLights() {
   // Sun
-  sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+  sceneGraphHelper->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
 
   // Point light 1
-  auto ptLight1 = sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
+  auto ptLight1 = sceneGraphHelper->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
   auto& lightComp = ptLight1.get<ecs::PointLight>();
   lightComp.intensity = 1.0;
   lightComp.color = glm::vec3(1.0, 1.0, 1.0);
   ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
   // Point light 2
-  auto ptLight2 = sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
+  auto ptLight2 = sceneGraphHelper->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
   ptLight2.get<ecs::PointLight>().intensity = 1.4;
   ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 }
@@ -111,23 +112,14 @@ void setupScene() {
   MeshUtil::ScaleUvCoords(plane, 3, 3);
 
   auto tableCloth = materialSystem->createMaterial("table_cloth");
-
   auto effect = effectSystem->createEffect("table_cloth");
-  //  auto material = materialSystem->createMaterial("table_cloth");
-
-  auto material = materialSystem->createMaterial("table_cloth");
-  gl::DeferredRenderable r = gl::DeferredRenderableFactory::CreateRenderable(*material, *renderSystem);
-  auto e = sceneGraph->addGeometry(plane, effect);
-  e.add<gl::DeferredRenderable>(r);
-  //  e.add<gl::DeferredRenderable>();
-
-  //    sceneGraph->addGeometry(plane, tableCloth);
+  sceneGraphHelper->addGeometry(plane, tableCloth);
 
 }
 
 void setupUserInterface() {
-  guiSystem->addDialog(make_shared<gui::LightEditor>(sceneGraph, fontSystem));
-  guiSystem->addDialog(make_shared<gui::MainMenu>(sceneGraph));
+  guiSystem->addDialog(make_shared<gui::LightEditor>(sceneGraphHelper, fontSystem));
+  guiSystem->addDialog(make_shared<gui::MainMenu>(sceneGraphHelper));
 }
 
 int main(int argc, char* argv[]) {
@@ -143,10 +135,10 @@ int main(int argc, char* argv[]) {
     setupSystems();
 
     // setup camera
-    auto camera = sceneGraph->makeCamera("DummyCamera", 4);
+    auto camera = sceneGraphHelper->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 
-    auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
+    auto window = make_shared<gui::Window>(sceneGraphHelper, renderSystem, guiSystem);  // guiSystem);
     window->setActiveCamera(camera);
     window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));

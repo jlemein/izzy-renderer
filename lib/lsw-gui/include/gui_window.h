@@ -39,7 +39,7 @@ namespace izz {
 namespace gl {
 class RenderSystem;
 }
-class SceneGraph;
+class SceneGraphHelper;
 
 namespace gui {
 class WindowInputListener;
@@ -64,12 +64,12 @@ class Window {
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Window(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<gl::RenderSystem> renderSystem,
+  Window(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<gl::RenderSystem> renderSystem,
          std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
 
   ~Window();
 
-  izz::SceneGraph& getSceneGraph();
+  izz::SceneGraphHelper& getSceneGraph();
 
   DisplayDetails getDisplayDetails();
 
@@ -85,7 +85,7 @@ class Window {
   void onWindowResize(int width, int height);
 
  private:
-  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
+  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager;
   std::shared_ptr<gui::GuiSystem> m_guiSystem{nullptr};
   std::shared_ptr<lsw::anim::AnimationSystem> m_animationSystem;

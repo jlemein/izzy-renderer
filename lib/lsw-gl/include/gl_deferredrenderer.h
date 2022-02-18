@@ -10,9 +10,6 @@
 #include "gl_renderutils.h"
 
 namespace izz {
-
-class SceneGraph;
-
 namespace gl {
 
 class RenderSystem;
@@ -29,7 +26,7 @@ struct DeferredRenderable {
 class DeferredRenderer {
  public:
   DeferredRenderer(RenderSystem& renderSystem,
-                   std::shared_ptr<izz::SceneGraph> sceneGraph);
+                   entt::registry& registry);
 
   void init();
 
@@ -41,7 +38,7 @@ class DeferredRenderer {
  private:
   int m_fbo{0};
   RenderSystem& m_renderSystem;
-  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
+  entt::registry& m_registry;
 
   GLuint m_gBufferFbo, m_lightingPassFbo;
   GLuint m_gPosition, m_gNormal, m_gAlbedoSpec;

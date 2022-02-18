@@ -4,11 +4,11 @@
 #include "anim_animationsystem.h"
 #include "anim_localrotation.h"
 #include <ecs_transform.h>
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 using namespace lsw::anim;
 using namespace lsw::ecs;
 
-AnimationSystem::AnimationSystem(std::shared_ptr<izz::SceneGraph> sceneGraph)
+AnimationSystem::AnimationSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph)
 : m_sceneGraph{sceneGraph}
 {}
 

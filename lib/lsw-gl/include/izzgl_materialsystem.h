@@ -19,7 +19,7 @@ class ResourceManager;
 }  // namespace lsw
 
 namespace izz {
-class SceneGraph;
+class SceneGraphHelper;
 namespace gl {
 
 /**
@@ -32,7 +32,7 @@ namespace gl {
  */
 class MaterialSystem : public IMaterialSystem {
  public:
-  MaterialSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager);
+  MaterialSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
 
@@ -82,7 +82,7 @@ class MaterialSystem : public IMaterialSystem {
   std::shared_ptr<lsw::geo::Material> makeDefaultMaterial();
 
  private:
-  std::shared_ptr<izz::SceneGraph> m_sceneGraph;
+  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager;
   std::unordered_map<std::string, std::unique_ptr<lsw::ufm::UniformBlockManager>> m_uniformBlockManagers;
   std::unordered_map<std::string, lsw::geo::Material> m_materials;

@@ -6,13 +6,13 @@
 #include <gl_deferredrenderer.h>
 #include <gl_rendersystem.h>
 #include <gl_renderutils.h>
-#include <izz_scenegraph.h>
+#include <izz_scenegraphhelper.h>
 #include <entt/entt.hpp>
 using namespace izz::gl;
 
-DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, std::shared_ptr<izz::SceneGraph> sceneGraph)
+DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, entt::registry& registry)
   : m_renderSystem{renderSystem}
-  , m_sceneGraph{sceneGraph} {}
+  , m_registry{registry} {}
 
 void DeferredRenderer::init() {
   const int SCREEN_WIDTH = 600;
@@ -51,12 +51,12 @@ void DeferredRenderer::init() {
   //=======================================
 
   // handling curves
-  for (const auto& [entity, curve, r] : m_sceneGraph->getRegistry().view<lsw::geo::Curve, DeferredRenderable>().each()) {
+  for (const auto& [entity, curve, r] : m_registry.view<lsw::geo::Curve, DeferredRenderable>().each()) {
     RenderUtils::FillBufferedMeshData(curve, r.meshData);
   }
 
   // handling meshes
-  for (const auto& [entity, mesh, r] : m_sceneGraph->getRegistry().view<lsw::geo::Mesh, DeferredRenderable>().each()) {
+  for (const auto& [entity, mesh, r] : m_registry.view<lsw::geo::Mesh, DeferredRenderable>().each()) {
     RenderUtils::FillBufferedMeshData(mesh, r.meshData);
   }
 
@@ -66,7 +66,7 @@ void DeferredRenderer::init() {
 void DeferredRenderer::update() {
   // Updates the Render system updates the model view projection matrix for each of the
   // The camera
-  for (auto [e, r] : m_sceneGraph->getRegistry().view<DeferredRenderable>().each()) {
+  for (auto [e, r] : m_registry.view<DeferredRenderable>().each()) {
     auto& rs = m_renderSystem.getRenderState(r.renderStateId);
 
     if (r.mvp.blockIndex == -1) {
@@ -74,7 +74,7 @@ void DeferredRenderer::update() {
     }
 
     // update model matrix
-    auto transform = m_sceneGraph->getRegistry().try_get<lsw::ecs::Transform>(e);
+    auto transform = m_registry.try_get<lsw::ecs::Transform>(e);
     UniformBlock& mvp = reinterpret_cast<UniformBlock&>(r.mvp.pData);
     mvp.model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
 
@@ -84,8 +84,8 @@ void DeferredRenderer::update() {
       throw std::runtime_error("No active camera in scene");
     }
 
-    auto& cameraTransform = m_sceneGraph->getRegistry().get<lsw::ecs::Transform>(m_activeCamera);
-    auto& activeCamera = m_sceneGraph->getRegistry().get<lsw::ecs::Camera>(m_activeCamera);
+    auto& cameraTransform = m_registry.get<lsw::ecs::Transform>(m_activeCamera);
+    auto& activeCamera = m_registry.get<lsw::ecs::Camera>(m_activeCamera);
 
     mvp.view = glm::inverse(cameraTransform.worldTransform);
     mvp.proj = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);

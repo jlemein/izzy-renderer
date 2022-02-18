@@ -3,7 +3,7 @@
 //
 #include <geo_effect.h>
 #include <geo_material.h>
-#include <izz_scenegraph.h>
+#include <izz_scenegraphhelper.h>
 #include <izzgl_effectsystem.h>
 #include <izzgl_materialsystem.h>
 #include <fstream>
@@ -13,7 +13,7 @@
 using namespace izz;
 using namespace izz::gl;
 
-EffectSystem::EffectSystem(izz::SceneGraph& sceneGraph, MaterialSystem& materialSystem)
+EffectSystem::EffectSystem(izz::SceneGraphHelper& sceneGraph, MaterialSystem& materialSystem)
   : m_sceneGraph{sceneGraph}
   , m_materialSystem{materialSystem} {}
 

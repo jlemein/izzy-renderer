@@ -9,7 +9,7 @@
 
 namespace izz {
 
-class SceneGraph;
+class SceneGraphHelper;
 
 /**!
  * @brief A scene graph entity by definition has a transform, relationship and

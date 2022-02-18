@@ -7,7 +7,7 @@
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 #include <geo_meshutil.h>
 #include <geo_scene.h>
 #include <izz_exrloader.h>
@@ -46,7 +46,7 @@ int main(int argc, char* argv[]) {
     auto resourceManager = make_shared<ResourceManager>();
 
     auto fontSystem = make_shared<FontSystem>();
-    auto sceneGraph = make_shared<izz::SceneGraph>();
+    auto sceneGraph = make_shared<izz::SceneGraphHelper>();
 
     auto textureSystem = make_shared<TextureSystem>();
     textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));

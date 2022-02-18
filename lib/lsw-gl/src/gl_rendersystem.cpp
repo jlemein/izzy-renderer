@@ -23,7 +23,7 @@
 #include <cstring>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 using namespace izz;
 using namespace izz::gl;
 
@@ -284,17 +284,17 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
   }
 }
 
-RenderSystem::RenderSystem(std::shared_ptr<izz::SceneGraph> sceneGraph, std::shared_ptr<IMaterialSystem> materialSystem,
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<IMaterialSystem> materialSystem,
                            std::shared_ptr<izz::gl::EffectSystem> effectSystem)
-  : m_registry{sceneGraph->getRegistry()}
-  , m_debugSystem(sceneGraph->getRegistry())
+  : m_registry{registry}
+  , m_debugSystem(registry)
   , m_materialSystem(materialSystem)
   , m_effectSystem{effectSystem}
   , m_shaderSystem(std::make_shared<ShaderSystem>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry)}
   , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(*this)
-  , m_deferredRenderer(*this, sceneGraph) {}
+  , m_deferredRenderer(*this, registry) {}
 
 void RenderSystem::initPostprocessBuffers() {
   // prepare quad for collecting

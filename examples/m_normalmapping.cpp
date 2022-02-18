@@ -6,7 +6,7 @@
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 #include <geo_primitivefactory.h>
 #include <anim_localrotation.h>
 #include <izz_fontsystem.h>
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
   try {
     auto resourceManager = make_shared<ResourceManager>();
     auto fontSystem = make_shared<FontSystem>();
-    auto sceneGraph = make_shared<izz::SceneGraph>();
+    auto sceneGraph = make_shared<izz::SceneGraphHelper>();
     auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
 
 //    materialSystem->loadMaterialsFromFile(wsp::R("materials.json"));

@@ -7,7 +7,7 @@
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
 #include "ecs_transformutil.h"
-#include "izz_scenegraph.h"
+#include "izz_scenegraphhelper.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
 #include "gui_iguiwindow.h"
@@ -46,7 +46,7 @@ std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<gl::MaterialSystem> materialSystem{nullptr};
 std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
-std::shared_ptr<izz::SceneGraph> sceneGraph{nullptr};
+std::shared_ptr<izz::SceneGraphHelper> sceneGraph{nullptr};
 std::shared_ptr<gl::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
@@ -55,7 +55,7 @@ std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
 
 void setupSystems() {
   resourceManager = make_shared<ResourceManager>();
-  sceneGraph = make_shared<izz::SceneGraph>();
+  sceneGraph = make_shared<izz::SceneGraphHelper>();
 
   auto textureSystem = make_shared<TextureSystem>();
   textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));

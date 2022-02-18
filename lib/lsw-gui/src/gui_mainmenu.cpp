@@ -7,7 +7,7 @@
 #include <spdlog/spdlog.h>
 using namespace izz::gui;
 
-MainMenu::MainMenu(std::shared_ptr<izz::SceneGraph> sceneGraph)
+MainMenu::MainMenu(std::shared_ptr<izz::SceneGraphHelper> sceneGraph)
   : m_sceneGraph{sceneGraph}
   , m_materialEditor(sceneGraph) {}
 
