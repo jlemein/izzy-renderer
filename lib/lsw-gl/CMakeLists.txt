@@ -32,4 +32,11 @@ add_library(lsw-gl STATIC
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(lsw-gl PUBLIC include PRIVATE src)
-target_link_libraries(lsw-gl PUBLIC izzy workspace PRIVATE ecs geo EnTT::EnTT spdlog::spdlog)
+target_link_libraries(lsw-gl PUBLIC izzy workspace ecs geo EnTT::EnTT spdlog::spdlog)
+
+
+find_package(gtest REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+add_executable(lsw-gl-test test/deferredrendersystem.t.cpp)
+target_link_libraries(lsw-gl-test PUBLIC gtest::gtest lsw-gl geo OpenGL::GL GLEW::GLEW)

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include <entt/fwd.hpp>
+#include <entt/entt.hpp>
 #include <memory>
 #include <gl_renderable.h>
 #include "gl_renderutils.h"
@@ -21,12 +21,18 @@ struct DeferredRenderable {
 
   UniformBufferMapping mvp;
   UniformBufferMapping lights;
+
+  entt::entity meshEntity {entt::null};
 };
 
 class DeferredRenderer {
  public:
   DeferredRenderer(RenderSystem& renderSystem,
                    entt::registry& registry);
+
+  /// @brief Called when an gl::DeferredRenderable component is added to an entity.
+  /// Used to initialize the underlying data structures.
+  void onConstruct(entt::registry& r, entt::entity e);
 
   void init();
 

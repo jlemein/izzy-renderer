@@ -12,7 +12,32 @@ using namespace izz::gl;
 
 DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, entt::registry& registry)
   : m_renderSystem{renderSystem}
-  , m_registry{registry} {}
+  , m_registry{registry} {
+
+  m_registry.on_construct<gl::DeferredRenderable>().connect<&DeferredRenderer::onConstruct>(this);
+
+}
+
+void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
+  std::cout << "Hello On construct" << std::endl;
+  DeferredRenderable& r = registry.get<DeferredRenderable>(e);
+
+  // if render state exists
+  RenderState& rs = r.renderStateId == -1 ? m_renderSystem.createRenderState() : m_renderSystem.getRenderState(r.renderStateId);
+  r.renderStateId = rs.id;
+
+  if (r.meshEntity != entt::null) {
+    auto pCurve = m_registry.try_get<lsw::geo::Curve>(r.meshEntity);
+    if (pCurve != nullptr) {
+      RenderUtils::FillBufferedMeshData(*pCurve, rs.meshData);
+    }
+
+    auto pMesh = m_registry.try_get<lsw::geo::Curve>(r.meshEntity);
+    if (pMesh != nullptr) {
+      RenderUtils::FillBufferedMeshData(*pMesh, rs.meshData);
+    }
+  }
+}
 
 void DeferredRenderer::init() {
   const int SCREEN_WIDTH = 600;
