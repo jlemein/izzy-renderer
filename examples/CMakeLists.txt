@@ -12,7 +12,7 @@ target_link_libraries(common INTERFACE
         fractalgenerator
         EnTT::EnTT geo
         glm::glm
-        glfw::glfw)
+        glfw)
 target_include_directories(common INTERFACE .)
 
 add_executable(izzyrender m_izzyrender.cpp)

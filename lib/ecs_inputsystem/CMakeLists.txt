@@ -8,4 +8,4 @@ find_package(EnTT REQUIRED)
 find_package(glfw3 REQUIRED)
 
 target_link_libraries(inputsystem
-PUBLIC EnTT::EnTT glfw::glfw)
+PUBLIC EnTT::EnTT glfw)
