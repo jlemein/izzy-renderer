@@ -7,6 +7,7 @@
 #include <glrs_lightsystem.h>
 #include <gl_renderable.h>
 #include <spdlog/spdlog.h>
+#include "izzgl_materialsystem.h"
 using namespace izz;
 using namespace izz::gl;
 
@@ -18,8 +19,8 @@ void updatePointLightVisualization(lsw::geo::Material& material, lsw::ecs::Point
 }
 }
 
-LightSystem::LightSystem(entt::registry& registry)
-  : m_registry{registry} {}
+LightSystem::LightSystem(entt::registry& registry, std::shared_ptr<MaterialSystem> materialSystem)
+  : m_registry{registry}, m_materialSystem{materialSystem} {}
 
 int LightSystem::getActiveLightCount() const {
   auto pointLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::PointLight>();
@@ -29,23 +30,22 @@ int LightSystem::getActiveLightCount() const {
   return pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 }
 
-void LightSystem::setDefaultPointLightMaterial(std::shared_ptr<lsw::geo::Material> material) {
-  m_lightMaterial = material;
+void LightSystem::setDefaultPointLightMaterial(int materialId) {
+  m_lightMaterial = materialId;
 }
 
 void LightSystem::initialize() {
   for (auto&& [e, light, mesh] : m_registry.view<lsw::ecs::PointLight, lsw::geo::Mesh>().each()) {
     spdlog::debug("Initializing light system");
     if (!m_registry.all_of<lsw::geo::Material>(e)) {
-      if (m_lightMaterial == nullptr) {
+      if (m_lightMaterial == -1) {
         auto name = m_registry.get<lsw::ecs::Name>(e).name;
         spdlog::error("Cannot add a material for point light '{}'. No light material set", name);
       } else {
-        m_registry.emplace<Renderable>(e);
+//        m_registry.emplace<Renderable>(e);
 
-        auto& material = m_registry.emplace<lsw::geo::Material>(e, lsw::geo::MaterialUtil::CloneMaterial(*m_lightMaterial));
-
-        updatePointLightVisualization(material, light);
+//        auto& material = m_registry.emplace<lsw::geo::Material>(e, lsw::geo::MaterialUtil::CloneMaterial(*m_lightMaterial));
+        updatePointLightVisualization(m_materialSystem->getMaterialById(m_lightMaterial), light);
       }
     }
   }

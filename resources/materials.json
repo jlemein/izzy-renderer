@@ -1,5 +1,5 @@
 {
-  "default_material": "BlinnPhong",
+  "default_material": "DeferredStandard",
   "material_instances": [
     {
       "name": "tea_set_01",
@@ -76,6 +76,15 @@
       "vertex_shader": "shaders/postprocess/grayscale.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/postprocess/grayscale.frag"
+    },
+    {
+      "name": "DeferredStandard",
+      "vertex_shader": "shaders/experimental/deferred.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/experimental/deferred.frag",
+      "properties":{
+        "ModelViewProjection": {}
+      }
     },
     {
       "name": "FilterBrightPostEffect",

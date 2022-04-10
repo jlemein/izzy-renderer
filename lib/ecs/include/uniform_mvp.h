@@ -1,0 +1,42 @@
+#pragma once
+
+#include <geo_material.h>
+#include <uniform_uniformblockmanager.h>
+namespace lsw {
+namespace ufm {
+
+struct ModelViewProjection {
+  glm::mat4 model;
+  glm::mat4 view;
+  glm::mat4 projection;
+  glm::vec3 viewPos;
+
+  static inline const char* PARAM_NAME = "ModelViewProjection";
+};
+
+class MvpManager : public UniformBlockManager {
+ public:
+  void* CreateUniformBlock(size_t& t) override {
+    t = sizeof(ModelViewProjection);
+    return new ModelViewProjection;
+  }
+
+  void DestroyUniformBlock(void* data) override {
+    auto mvp = reinterpret_cast<ModelViewProjection*>(data);
+    delete mvp;
+  }
+  void UpdateUniform(void* data, const geo::Material& m) override {
+    // do nothing
+    auto p = reinterpret_cast<ModelViewProjection*>(data);
+//    spdlog::info("view: \n[{} {} {} {}\n{} {} {} {}\n{} {} {} {}\n{} {} {} {}]", p->model[0][0], p->model[0][1], p->model[0][2], p->model[0][3],
+//                 p->view[1][0], p->view[1][1], p->view[1][2], p->view[1][3],
+//                 p->view[2][0], p->view[2][1], p->view[2][2], p->view[2][3],
+//                 p->view[3][0], p->view[3][1], p->view[3][2], p->view[3][3]);
+    spdlog::info("Camera position: {} {} {}", p->viewPos[0], p->viewPos[1], p->viewPos[2]);
+;  }
+};
+
+
+
+}
+}  // namespace lsw

@@ -6,24 +6,33 @@
 #include <gl_renderutils.h>
 #include <gl_rendersystem.h>
 #include <entt/entt.hpp>
+#include <izzgl_materialsystem.h>
 using namespace izz::gl;
 
-DeferredRenderableFactory::DeferredRenderableFactory(RenderSystem& renderSystem)
-: m_renderSystem{renderSystem}
+DeferredRenderableFactory::DeferredRenderableFactory(RenderSystem& renderSystem, MaterialSystem& materialSystem)
+: m_renderSystem{renderSystem}, m_materialSystem{materialSystem}
 {}
 
-void DeferredRenderableFactory::addRenderableComponent(entt::registry& registry, entt::entity e) {
-  const auto& material = registry.get<lsw::geo::Material>(e);
-  gl::DeferredRenderable renderable;
+void DeferredRenderableFactory::addRenderableComponent(entt::registry& registry, entt::entity e, int materialId) {
+
+//  const auto& material = registry.get<lsw::geo::Material>(e);
+//  gl::DeferredRenderable renderable;
   auto& rs = m_renderSystem.createRenderState();
-  renderable.renderStateId = rs.id;
-//  auto material = materialSystem->createMaterial("table_cloth");
+  spdlog::debug("(e: {}) ADD DeferredRenderable; renderState id: {}, material id: {}", static_cast<int>(e), rs.id, materialId);
+  auto& renderable = registry.emplace<gl::DeferredRenderable>(e, gl::DeferredRenderable{rs.id, materialId});
+
+//  renderable.renderStateId = rs.id;
+//  renderable.materialId = materialId;
+
+  auto& material = m_materialSystem.getMaterialById(materialId);
   RenderUtils::LoadMaterial(material, rs);
 
   // MVP
-  renderable.mvp = RenderUtils::GetUniformBufferLocation(rs, "UniformBufferBlock");
-  renderable.lights = RenderUtils::GetUniformBufferLocation(rs, "ForwardLighting");
+//  renderable.mvp = RenderUtils::GetUniformBufferLocation(rs, "UniformBufferBlock");
+//  renderable.lights = RenderUtils::GetUniformBufferLocation(rs, "ForwardLighting");
+//  registry.emplace<gl::DeferredRenderable>(e, renderable);
+//
 
-//  renderable.materialId = tableCloth.id;
-  registry.emplace<gl::DeferredRenderable>(e, renderable);
+
+//  registry.emplace_or_replace<PP>(e);
 }

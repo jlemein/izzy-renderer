@@ -62,7 +62,7 @@ struct RenderUtils {
    * and eventual shader binding blocks.
    * @param [in] rs
    */
-  static void ActivateUniformProperties(const RenderState& rs);
+  static void PushUniformProperties(const RenderState& rs);
 
   /***
    * Activates all unscoped uniforms. Unscoped uniforms are not part of any

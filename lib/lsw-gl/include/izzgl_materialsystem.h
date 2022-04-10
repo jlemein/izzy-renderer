@@ -19,8 +19,9 @@ class ResourceManager;
 }  // namespace lsw
 
 namespace izz {
-class SceneGraphHelper;
 namespace gl {
+
+class RenderSystem;
 
 /**
  * The material system manages the material components in the scene.
@@ -30,9 +31,9 @@ namespace gl {
  * Every material described in the materials file should be mapped to a data
  * structure.
  */
-class MaterialSystem : public IMaterialSystem {
+class MaterialSystem {
  public:
-  MaterialSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager);
+  MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
 
@@ -53,14 +54,15 @@ class MaterialSystem : public IMaterialSystem {
    *  4. If there is no default material, an exception is thrown.
    * @returns a unique ptr
    */
-  std::shared_ptr<lsw::geo::Material> createMaterial(const std::string& name);
+  lsw::geo::Material& createMaterial(const std::string& name);
+  lsw::geo::Material& getMaterialById(int id);
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
    * @param time Global simulation time.
    * @param dt Delta time passed since previous frame.
    */
-  void update(float time, float dt) override;
+  void update(float time, float dt);
 
   /**
    * Loops over all materials in the scene graph and makes sure the textures are loaded (if not loaded already).
@@ -72,19 +74,21 @@ class MaterialSystem : public IMaterialSystem {
    * it makes sure the rendersystem is updated with new texture data, or to
    * remove
    */
-  void synchronizeTextures(RenderSystem& renderSystem) override;
+  void synchronizeTextures(RenderSystem& renderSystem);
 
   bool isMaterialDefined(const std::string& materialName);
 
   // void setDefaultMaterial(std::shared_ptr<Material> material);
   void setDefaultMaterial(const std::string& name);
 
-  std::shared_ptr<lsw::geo::Material> makeDefaultMaterial();
+  lsw::geo::Material& makeDefaultMaterial();
 
  private:
-  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
+  entt::registry& m_registry;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager;
   std::unordered_map<std::string, std::unique_ptr<lsw::ufm::UniformBlockManager>> m_uniformBlockManagers;
+
+  /// @brief Contains the material definitions that are loaded from file.
   std::unordered_map<std::string, lsw::geo::Material> m_materials;
 
   /// @brief Fbx specific material names are mapped to canonical material names
@@ -94,6 +98,9 @@ class MaterialSystem : public IMaterialSystem {
   /// materials instances are instanced from an existing material definition.
   /// similar to how classes and objects work.
   std::unordered_map<std::string, lsw::geo::Material> m_materialInstances;
+
+  /// @brief The materials that are created. Maps material id to material.
+  std::unordered_map<int, lsw::geo::Material> m_createdMaterials;
 
   std::string m_defaultMaterial{""};
 

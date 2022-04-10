@@ -127,38 +127,39 @@ void SceneLoader::readMaterials(const aiScene* scene_p, geo::Scene& scene) {
     aiMaterial* aiMaterial = scene_p->mMaterials[i];
 
     std::string name = aiMaterial->GetName().C_Str();
-    auto material = m_materialSystem->createMaterial(name);
+    auto& material = m_materialSystem->createMaterial(name);
+    auto materialId = material.id;
     //    auto material = m_resourceManager->getRawResourceManager()->createResource<geo::Material>(name);
     //    (*material)->name = mat_p->GetName().C_Str();
 
-    spdlog::debug("Read material {} -- mapped to {} (vertex shader: {})", name, material->name, material->vertexShader);
+    spdlog::debug("Read material {} -- mapped to {} (vertex shader: {})", name, material.name, material.vertexShader);
 
-    readTextures(scene, aiMaterial, *material);
+    readTextures(scene, aiMaterial, material);
 
     // overwrite settings with scene file properties
     aiColor3D color(0.f, 0.f, 0.f);
 
-    if (!material->hasDiffuse) {
+    if (!material.hasDiffuse) {
       aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-      material->diffuse.r = color.r;
-      material->diffuse.g = color.g;
-      material->diffuse.b = color.b;
+      material.diffuse.r = color.r;
+      material.diffuse.g = color.g;
+      material.diffuse.b = color.b;
     }
 
-    if (!material->hasSpecular) {
+    if (!material.hasSpecular) {
       aiMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
-      material->specular.r = color.r;
-      material->specular.g = color.g;
-      material->specular.b = color.b;
+      material.specular.r = color.r;
+      material.specular.g = color.g;
+      material.specular.b = color.b;
     }
 
-    if (!material->hasAmbient) {
+    if (!material.hasAmbient) {
       aiMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color);
-      material->ambient.r = color.r;
-      material->ambient.g = color.g;
-      material->ambient.b = color.b;
+      material.ambient.r = color.r;
+      material.ambient.g = color.g;
+      material.ambient.b = color.b;
     }
-    scene.m_materials.push_back(std::move(material));
+    scene.m_materials.push_back(materialId);
   }
 }
 
@@ -172,8 +173,9 @@ void SceneLoader::readMeshes(const aiScene* scene_p, geo::Scene& scene) {
     mesh->name = mesh_p->mName.C_Str();
     mesh->polygonMode = geo::PolygonMode::kTriangles;
 
-    mesh->material = scene.m_materials[mesh_p->mMaterialIndex];
-    spdlog::debug("Reading mesh {}: {} has material {} - {}", n, mesh_p->mName.C_Str(), mesh->material->name, mesh->material->vertexShader);
+    mesh->materialId = scene.m_materials[mesh_p->mMaterialIndex];
+    auto& material = m_materialSystem->getMaterialById(mesh->materialId);
+    spdlog::debug("Reading mesh {}: {} has material {} - {}", n, mesh_p->mName.C_Str(), material.name, material.vertexShader);
 
     for (int i = 0; i < mesh_p->mNumVertices; ++i) {
       auto pVertex = mesh_p->mVertices[i];
@@ -243,7 +245,7 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, geo::Scene& scene) {
 //      }
       meshInstance->mesh = mesh;
       meshInstance->name = std::string{node_p->mName.C_Str()};
-      meshInstance->material = mesh->material;
+      meshInstance->materialId = mesh->materialId;
       meshInstance->transform = glm::mat4(1.0F);
 
       node->meshInstances.push_back(meshInstance);

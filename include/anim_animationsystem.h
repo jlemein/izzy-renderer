@@ -4,6 +4,7 @@
 #pragma once
 
 #include <memory>
+#include <entt/entity/registry.hpp>
 
 namespace izz {
 class SceneGraphHelper;
@@ -14,13 +15,13 @@ namespace anim {
 
 class AnimationSystem {  //: public ecs::IViewerExtension {
  public:
-  AnimationSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph);
+  AnimationSystem(entt::registry& registry);
 
   void init();
   void update(float time, float dt);
 
  private:
-  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
+  entt::registry& m_registry;
 };
 
 }  // namespace anim

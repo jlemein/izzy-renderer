@@ -171,7 +171,7 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
           auto framebufferName = pass["framebuffer"];
 
           geo::EffectNode node;
-          node.material = m_materialSystem.createMaterial(materialName);
+          node.materialId = m_materialSystem.createMaterial(materialName).id;
 
           if (m_framebuffers.count(framebufferName) <= 0) {
             throw std::runtime_error(fmt::format("Framebuffer with name '{}' is unknown.", framebufferName));
@@ -218,7 +218,7 @@ void EffectSystem::readEffectsFromJson(const nlohmann::json& json) {
             auto materialName = nextPass["material"];
             auto framebufferName = nextPass["framebuffer"];
             geo::EffectNode node;
-            node.material = m_materialSystem.createMaterial(materialName);
+            node.materialId = m_materialSystem.createMaterial(materialName).id;
             node.framebuffer = m_framebuffers.at(framebufferName);
 
             effect.graph[nextPassId] = node;
@@ -293,7 +293,7 @@ void EffectSystem::initialize() {
       if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
         throw std::runtime_error("Framebuffer invalid");
       } else {
-        node.material->fbo = fbo;
+        m_materialSystem.getMaterialById(node.materialId).fbo = fbo;
       }
 
 

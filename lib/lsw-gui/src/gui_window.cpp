@@ -29,12 +29,11 @@ static void error_callback(int error, const char* description) {
 }
 }  // namespace
 
-Window::Window(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<gl::RenderSystem> renderSystem,
+Window::Window(entt::registry& registry, std::shared_ptr<gl::RenderSystem> renderSystem,
                std::shared_ptr<gui::GuiSystem> guiSystem)
-  : m_sceneGraph{sceneGraph}
-  , m_guiSystem(guiSystem)
-  , m_registry(sceneGraph->getRegistry())
-  , m_animationSystem{make_shared<anim::AnimationSystem>(sceneGraph)}
+  : m_guiSystem(guiSystem)
+  , m_registry(registry)
+  , m_animationSystem{make_shared<anim::AnimationSystem>(registry)}
   , m_renderSystem{renderSystem}
   , m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)}
   , m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)}
@@ -46,7 +45,7 @@ void Window::setWindowSize(unsigned int width, unsigned int height) {
   m_displayDetails.windowWidth = static_cast<int>(width);
   m_displayDetails.windowHeight = static_cast<int>(height);
   m_cameraSystem->setFramebufferSize(width, height);
-  m_renderSystem->getFramebuffer().setSize(width, height);
+  m_renderSystem->resize(width, height);
 }
 
 void Window::setTitle(const std::string& title) {
@@ -96,8 +95,7 @@ void Window::initialize() {
   m_animationSystem->init();  // possible bone initialization
 
   // should be called before render system.
-
-  m_renderSystem->init();
+//  m_renderSystem->init(m_displayDetails.windowWidth, m_displayDetails.windowHeight);
   m_inputSystem->init();
   m_firstPersonSystem->init();
   m_transformSystem->init();
@@ -140,7 +138,6 @@ int Window::run() {
     m_cameraSystem->update(dt);
     m_guiSystem->update(time, dt);
     m_renderSystem->update(time, dt);
-
     m_guiSystem->beforeRender();
 
     m_renderSystem->render();
@@ -171,7 +168,7 @@ void Window::setActiveCamera(izz::SceneGraphEntity cameraEntity) {
 
 void Window::onWindowResize(int width, int height) {
   spdlog::info("Window is resized to: {} x {}", width, height);
-  m_renderSystem->getFramebuffer().resize(width, height);
+  m_renderSystem->resize(width, height);
   glViewport(0, 0, width, height);
 
   // indicate to input system

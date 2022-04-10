@@ -18,7 +18,6 @@ namespace izz {
 namespace gl {
 class EffectSystem;
 class MaterialSystem;
-class IMaterialSystem;
 class LightSystem;
 class ShaderSystem;
 
@@ -32,13 +31,13 @@ class RenderSystem {
    * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
    */
-  RenderSystem(entt::registry& registry, std::shared_ptr<IMaterialSystem> materialSystem,
-               std::shared_ptr<EffectSystem> effectSystem);
+  RenderSystem(entt::registry& registry,
+               std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
 
   /**
    * Traverses the scene graph and creates corresponding objects in the render system so that the entities can be rendered.
    */
-  void init();
+  void init(int width, int height);
   void update(float time, float dt);
   void render();
 
@@ -49,6 +48,9 @@ class RenderSystem {
   const RenderState& getRenderState(unsigned int id) const;
   RenderState& getRenderState(unsigned int id);
 
+  MaterialSystem& getMaterialSystem();
+
+  void resize(int width, int height);
 
   /**
    * @returns the light system.
@@ -73,7 +75,7 @@ class RenderSystem {
 //  void pushModelViewProjection(const RenderState& renderable);
 
  private:
-  std::unique_ptr<IFramebuffer> m_framebuffer;
+//  std::unique_ptr<IFramebuffer> m_framebuffer;
 
   ForwardRenderer m_forwardRenderer;
   DeferredRenderer m_deferredRenderer;
@@ -83,8 +85,8 @@ class RenderSystem {
 
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
-  std::shared_ptr<IMaterialSystem> m_materialSystem;
-  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
+  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem;
+//  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
   lsw::ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;
 
@@ -131,16 +133,16 @@ class RenderSystem {
   void checkError(entt::entity e);
 
   void initPostprocessBuffers();
-  void renderPosteffects();
+//  void renderPosteffects();
 };
 
-class IMaterialSystem {
- public:
-  virtual ~IMaterialSystem() = default;
-  virtual void synchronizeTextures(RenderSystem& renderSystem) = 0;
-
-  virtual void update(float time, float dt) = 0;
-};
+//class IMaterialSystem {
+// public:
+//  virtual ~IMaterialSystem() = default;
+//  virtual void synchronizeTextures(RenderSystem& renderSystem) = 0;
+//
+//  virtual void update(float time, float dt) = 0;
+//};
 
 }  // namespace glrs
 }  // namespace lsw

@@ -3,16 +3,16 @@
 //
 #include <izzgl_materialsystem.h>
 
-#include "izz_scenegraphhelper.h"
+#include <wsp_workspace.h>
 #include "geo_textureloader.h"
 #include "gl_rendersystem.h"
 #include "izz_resourcemanager.h"
+#include "izz_scenegraphhelper.h"
 #include "izz_texturesystem.h"
 #include "uniform_constant.h"
 #include "uniform_lambert.h"
 #include "uniform_parallax.h"
 #include "uniform_ubermaterial.h"
-#include <wsp_workspace.h>
 
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
@@ -22,6 +22,7 @@
 #include <memory>
 #include "uniform_blinnphong.h"
 #include "uniform_blinnphongsimple.h"
+#include "uniform_mvp.h"
 
 using json = nlohmann::json;
 
@@ -44,8 +45,8 @@ bool isFloatArray(const T& array) {
 
 }  // namespace
 
-MaterialSystem::MaterialSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<lsw::ResourceManager> resourceManager)
-  : m_sceneGraph{sceneGraph}
+MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager)
+  : m_registry{registry}
   , m_resourceManager{resourceManager} {
   // for now register the uniform blocks
   // these are the registered uniform blocks that the shaders can make use of.
@@ -55,6 +56,7 @@ MaterialSystem::MaterialSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph
   m_uniformBlockManagers[lsw::ufm::ConstantLight::PARAM_NAME] = std::make_unique<lsw::ufm::ConstantManager>();
   m_uniformBlockManagers[lsw::ufm::BlinnPhong::PARAM_NAME] = std::make_unique<lsw::ufm::BlinnPhongManager>();
   m_uniformBlockManagers[lsw::ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<lsw::ufm::BlinnPhongSimpleManager>();
+  m_uniformBlockManagers[lsw::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<lsw::ufm::MvpManager>();
 }
 
 void MaterialSystem::readMaterialInstances(json& j) {
@@ -233,6 +235,8 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
 
     m_materials[m.name] = m;  // std::move(m);
   }
+
+  spdlog::debug("READING MATERIALS [DONE]");
 }
 
 void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
@@ -248,7 +252,7 @@ void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
   // first material definitions are read.
   readMaterialDefinitions(path.parent_path(), j);
   readMaterialInstances(j);
-//  readEffects(j);
+  //  readEffects(j);
 
   if (j.contains("default_material")) {
     auto defaultMaterial = j["default_material"];
@@ -266,9 +270,12 @@ bool MaterialSystem::isMaterialDefined(const std::string& materialName) {
   return m_materialMappings.count(materialName) > 0 || m_materials.count(materialName) > 0;
 }
 
-std::shared_ptr<lsw::geo::Material> MaterialSystem::createMaterial(const std::string& name) {
+lsw::geo::Material& MaterialSystem::createMaterial(const std::string& name) {
   if (m_materialInstances.count(name) > 0) {
-    return std::make_shared<lsw::geo::Material>(m_materialInstances.at(name));
+    lsw::geo::Material& material = m_materialInstances.at(name);
+    material.id = m_createdMaterials.size() + 1;
+    m_createdMaterials[material.id] = material;
+    return m_createdMaterials.at(material.id);
   }
 
   // 1. First process material mapping to material name
@@ -294,42 +301,48 @@ std::shared_ptr<lsw::geo::Material> MaterialSystem::createMaterial(const std::st
     }
   }
 
-  return std::make_shared<lsw::geo::Material>(material);
+  material.id = m_createdMaterials.size() + 1;
+  m_createdMaterials[material.id] = material;
+  return m_createdMaterials.at(material.id);
 }
 
-std::shared_ptr<lsw::geo::Material> MaterialSystem::makeDefaultMaterial() {
+lsw::geo::Material& MaterialSystem::makeDefaultMaterial() {
   return createMaterial(m_defaultMaterial);
 }
 
-void MaterialSystem::update(float time, float dt) {
-  auto view = m_sceneGraph->getRegistry().view<lsw::geo::Material, Renderable>();
-  for (auto e : view) {
-    const auto& r = view.get<Renderable>(e);
-    const auto& m = view.get<lsw::geo::Material>(e);
+lsw::geo::Material& MaterialSystem::getMaterialById(int id) {
+  try {
+    return m_createdMaterials.at(id);
+  } catch (std::out_of_range&) {
+    throw std::runtime_error(fmt::format("Could not find material with id {}", id));
+  }
+}
 
-    // TODO: probably this for loop is more efficient if it is part of render system
-    for (const auto& [name, uniformBlock] : r.userProperties) {
+void MaterialSystem::update(float time, float dt) {
+//  auto view = m_registry.view<lsw::geo::Material, Renderable>();
+
+  for (auto& m : m_createdMaterials) {
+    for (const auto& [name, uniformBlock] : m.second.uniformBlocks) {
 #ifndef NDEBUG
       if (m_uniformBlockManagers.count(name) <= 0) {
         throw std::runtime_error(fmt::format("Material system cannot find manager for ubo block '{}'", name));
       }
 #endif  // NDEBUG
 
-      m_uniformBlockManagers.at(name)->UpdateUniform(uniformBlock.pData->data, m);
+      m_uniformBlockManagers.at(name)->UpdateUniform(uniformBlock.data, m.second);
     }
   }
 }
 
 void MaterialSystem::synchronizeTextures(RenderSystem& renderSystem) {
-  auto& registry = m_sceneGraph->getRegistry();
-  auto view = registry.view<lsw::geo::Material>();  // why are we not requesting
-                                               // <Material, Renderable>?
+  auto view = m_registry.view<lsw::geo::Material>();  // why are we not requesting
+                                                      // <Material, Renderable>?
 
   // put the code in bottom part of readMaterialDefinitions here
   // ...
 
   for (auto entity : view) {
-    auto& renderable = registry.get_or_emplace<Renderable>(entity);
+    auto& renderable = m_registry.get_or_emplace<Renderable>(entity);
     auto& geoMaterial = view.get<lsw::geo::Material>(entity);
     spdlog::debug("Attach textures for meterial '{}' to render system", geoMaterial.name);
 

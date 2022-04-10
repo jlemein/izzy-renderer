@@ -67,10 +67,9 @@ class SceneGraphHelper {
    */
   // TODO: currently assigning a material to a geometry disconnects the relationship with the creator.
   //  this does not make it possible to share materials
-  SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, lsw::geo::Material material);
+  SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, int materialId);
   //  SceneGraphEntity addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material);
   SceneGraphEntity addGeometry(const lsw::geo::Mesh& mesh);
-  SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, std::shared_ptr<lsw::geo::Material> mat);
   SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect);
 
   void setActiveCamera(const SceneGraphEntity* activeCamera);
@@ -106,9 +105,9 @@ class SceneGraphHelper {
   SceneGraphEntity makeEmptyMesh(const lsw::geo::Mesh& mesh);
   SceneGraphEntity makeCurve(std::string name);
 
-  SceneGraphEntity makeRenderable(lsw::geo::Mesh&& mesh, const lsw::geo::Material& material);
-  SceneGraphEntity makeRenderable(const lsw::geo::Mesh& mesh, glm::mat4 transform, lsw::geo::Material& material);
-  SceneGraphEntity makeRenderable(lsw::geo::Curve&& curve, const lsw::geo::Material& shader);
+  SceneGraphEntity makeRenderable(lsw::geo::Mesh&& mesh, int materialId);
+  SceneGraphEntity makeRenderable(const lsw::geo::Mesh& mesh, glm::mat4 transform, int materialId);
+  SceneGraphEntity makeRenderable(lsw::geo::Curve&& curve, int materialId);
 
   /**!
    * Loads a complete scene and adds it to the scene graph.
@@ -124,7 +123,7 @@ class SceneGraphHelper {
   SceneGraphEntity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);
   SceneGraphEntity makeDebugVisualization(entt::entity target);
 
-  SceneGraphEntity makePosteffect(const std::string name, const lsw::geo::Material& material);
+  SceneGraphEntity makePosteffect(const std::string name, int materialId);
 
  private:
   /// Uses EnTT in the background for scene management

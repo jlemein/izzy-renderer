@@ -8,18 +8,17 @@
 using namespace lsw::anim;
 using namespace lsw::ecs;
 
-AnimationSystem::AnimationSystem(std::shared_ptr<izz::SceneGraphHelper> sceneGraph)
-: m_sceneGraph{sceneGraph}
+AnimationSystem::AnimationSystem(entt::registry& registry)
+: m_registry{registry}
 {}
 
 void AnimationSystem::init() {}
 
 void AnimationSystem::update(float time, float dt) {
-  auto& registry = m_sceneGraph->getRegistry();
-  auto view = registry.view<anim::LocalRotation, Transform>();
+  auto view = m_registry.view<anim::LocalRotation, Transform>();
 
   for (auto e : view) {
-    auto &t = registry.get<Transform>(e);
+    auto &t = m_registry.get<Transform>(e);
     auto &rot = view.get<LocalRotation>(e);
 
     // TODO: make quaternion operation

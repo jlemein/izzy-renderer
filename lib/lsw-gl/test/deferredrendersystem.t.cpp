@@ -6,6 +6,7 @@
 #include <memory>
 #include <entt/entt.hpp>
 #include <gl_rendersystem.h>
+#include "gl_deferredrenderablefactory.h"
 using namespace izz::gl;
 
 class DeferredRendererTest : public ::testing::Test {
@@ -14,7 +15,7 @@ class DeferredRendererTest : public ::testing::Test {
 
 TEST_F(DeferredRendererTest, TestDeferredInitialization) {
   entt::registry registry;
-  RenderSystem renderSystem(registry, nullptr, nullptr);
+  RenderSystem renderSystem(registry, nullptr);
 
   entt::entity e = registry.create();
   DeferredRenderable r1;
@@ -24,4 +25,38 @@ TEST_F(DeferredRendererTest, TestDeferredInitialization) {
   auto& r = registry.get<DeferredRenderable>(e);
   std::cout << "Render state id: " << r.renderStateId << std::endl;
   EXPECT_GE(r.renderStateId, 0);
+}
+
+struct MyComponent {
+  int value;
+};
+
+void onConstruct(entt::registry& registry, entt::entity e) {
+  MyComponent& r = registry.get<MyComponent>(e);
+
+  // if render state exists
+  std::cout << "Hello On construct - renderstateid = " << r.value << std::endl;
+  r.value = 100;
+}
+
+TEST_F(DeferredRendererTest, ReproduceBug) {
+  spdlog::info("TEST2");
+  entt::registry registry;
+  registry.on_construct<MyComponent>().connect<onConstruct>();
+
+  int rsid = 12;
+//  int materialId = 10;
+  registry.emplace<MyComponent>(registry.create(), MyComponent{rsid});//, materialId});
+  registry.emplace<MyComponent>(registry.create(), MyComponent{rsid});//, materialId});
+  registry.emplace<MyComponent>(registry.create(), MyComponent{rsid});//, materialId});
+  registry.emplace<MyComponent>(registry.create(), MyComponent{rsid});//, materialId});
+  registry.emplace<MyComponent>(registry.create(), MyComponent{rsid});//, materialId});
+  registry.emplace<MyComponent>(registry.create(), MyComponent{rsid});//, materialId});
+  auto view = registry.view<const MyComponent>();
+  spdlog::info("=== DEFERRED RENDER ===");
+  for (entt::entity e : view) {
+      //      auto r = view.get<const DeferredRenderable>(e);
+      auto rid = view.get<const MyComponent>(e).value;
+      spdlog::info("value for for (e: {}) = {}", static_cast<int>(e), rid);
+  }
 }

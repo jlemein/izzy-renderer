@@ -15,13 +15,13 @@ namespace gl {
 
 struct DeferredRenderable;
 class RenderSystem;
-
+class MaterialSystem;
 /**
  * Factory creation methods
  */
 class DeferredRenderableFactory : public RenderableComponentFactory {
  public:
-  DeferredRenderableFactory(RenderSystem& renderSystem);
+  DeferredRenderableFactory(RenderSystem& renderSystem, MaterialSystem& materialSystem);
 
   /**
    * Creates a deferred renderable entity filled with
@@ -29,10 +29,11 @@ class DeferredRenderableFactory : public RenderableComponentFactory {
    * @param renderSystem
    * @return
    */
-  void addRenderableComponent(entt::registry& registry, entt::entity e) override;
+  void addRenderableComponent(entt::registry& registry, entt::entity e, int materialId) override;
 
  private:
   RenderSystem& m_renderSystem;
+  MaterialSystem& m_materialSystem;
 };
 }
 }

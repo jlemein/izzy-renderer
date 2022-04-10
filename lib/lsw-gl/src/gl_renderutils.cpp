@@ -129,7 +129,7 @@ void RenderUtils::UseBufferedMeshData(const BufferedMeshData& md) {
   }
 }
 
-void RenderUtils::ActivateUniformProperties(const RenderState& rs) {
+void RenderUtils::PushUniformProperties(const RenderState& rs) {
   for (const auto& uniform : rs.uniformBlocks) {
     glBindBuffer(GL_UNIFORM_BUFFER, uniform.bufferId);
     glBindBufferBase(GL_UNIFORM_BUFFER, uniform.blockBind, uniform.bufferId);
@@ -299,20 +299,27 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
 void RenderUtils::LoadMaterial(const lsw::geo::Material& material, RenderState& rs) {
   ShaderSystem shaderCompiler;
   try {
+    spdlog::debug("Loading material with name: {}", material.name);
+
     if (material.isBinaryShader) {
       rs.program = shaderCompiler.compileSpirvShader(material.vertexShader, material.fragmentShader);
     } else {
       rs.program = shaderCompiler.compileShader(material.vertexShader, material.fragmentShader);
     }
-
-    spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", rs.program, material.vertexShader, material.fragmentShader);
+    spdlog::debug("\tProgram id: {}\n\tShader program compiled successfully (vs: {} fs: {})", rs.program, material.vertexShader, material.fragmentShader);
 
     for (const auto& [name, uniform] : material.uniformBlocks) {
+      spdlog::debug("\tUBO with name: {}", name);
       GLuint uboHandle;
       glGenBuffers(1, &uboHandle);
       glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
 
       GLint blockIndex = glGetUniformBlockIndex(rs.program, name.c_str());
+      if (blockIndex == GL_INVALID_INDEX) {
+        auto a = glGetUniformLocation(rs.program, name.c_str());
+        throw std::runtime_error(fmt::format("Cannot find ubo block with name '{}' in shader {}", name, material.name));
+      }
+
       GLint blockBinding;
       glGetActiveUniformBlockiv(rs.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &blockBinding);
 
@@ -321,10 +328,7 @@ void RenderUtils::LoadMaterial(const lsw::geo::Material& material, RenderState& 
 
       glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
 
-      if (blockIndex == GL_INVALID_INDEX) {
-        auto a = glGetUniformLocation(rs.program, name.c_str());
-        throw std::runtime_error(fmt::format("Cannot find ubo block with name '{}' in shader {}", name, material.name));
-      }
+
       glBufferData(GL_UNIFORM_BUFFER, uniform.size, NULL, GL_DYNAMIC_DRAW);
 
       // store block handle in renderable
@@ -417,7 +421,7 @@ void RenderUtils::LoadMaterial(const lsw::geo::Material& material, RenderState& 
     }
   } catch (std::exception& e) {
     //    auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-    throw std::runtime_error(fmt::format("Failed loading material ", e.what()));
+    throw std::runtime_error(fmt::format("Failed loading material: {}", e.what()));
   }
 }
 
@@ -440,11 +444,11 @@ UniformBufferMapping RenderUtils::GetUniformBufferLocation(const RenderState& rs
   glGetActiveUniformBlockiv(rs.program, uboBlockIndex, GL_UNIFORM_BLOCK_BINDING, &uboBlockBinding);
 
   glBindBufferBase(GL_UNIFORM_BUFFER, uboBlockIndex, bufferId);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(UniformBlock), nullptr, GL_DYNAMIC_DRAW);
+  glBufferData(GL_UNIFORM_BUFFER, sizeof(ModelViewProjection), nullptr, GL_DYNAMIC_DRAW);
 
   UniformBufferMapping mapping;
   mapping.blockIndex = uboBlockIndex;
   mapping.blockBind = uboBlockBinding;
-  mapping.size = sizeof(UniformBlock);
+  mapping.size = sizeof(ModelViewProjection);
   return mapping;
 }

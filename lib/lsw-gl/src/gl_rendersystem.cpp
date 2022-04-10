@@ -18,6 +18,7 @@
 #include <gl_shadersystem.h>
 #include <glrs_lightsystem.h>
 #include <izzgl_effectsystem.h>
+#include <izzgl_materialsystem.h>
 #include <spdlog/spdlog.h>
 #include <uniform_ubermaterial.h>
 #include <cstring>
@@ -192,7 +193,7 @@ RenderState& RenderSystem::createRenderState() {
 const RenderState& RenderSystem::getRenderState(unsigned int id) const {
   try {
     return m_renderStates.at(id);
-  } catch (std::invalid_argument e) {
+  } catch (std::out_of_range e) {
     throw std::runtime_error(fmt::format("Could not obtain render state with id {}", id));
   }
 }
@@ -200,7 +201,7 @@ const RenderState& RenderSystem::getRenderState(unsigned int id) const {
 RenderState& RenderSystem::getRenderState(unsigned int id) {
   try {
     return m_renderStates.at(id);
-  } catch (std::invalid_argument e) {
+  } catch (std::out_of_range e) {
     throw std::runtime_error(fmt::format("Could not obtain render state with id {}", id));
   }
 }
@@ -284,15 +285,14 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
   }
 }
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<IMaterialSystem> materialSystem,
-                           std::shared_ptr<izz::gl::EffectSystem> effectSystem)
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<MaterialSystem> materialSystem)
   : m_registry{registry}
   , m_debugSystem(registry)
   , m_materialSystem(materialSystem)
-  , m_effectSystem{effectSystem}
+//  , m_effectSystem{effectSystem}
   , m_shaderSystem(std::make_shared<ShaderSystem>())
-  , m_lightSystem{std::make_shared<LightSystem>(m_registry)}
-  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
+  , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}
+//  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(*this)
   , m_deferredRenderer(*this, registry) {}
 
@@ -317,7 +317,7 @@ void RenderSystem::initPostprocessBuffers() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
-void RenderSystem::init() {
+void RenderSystem::init(int width, int height) {
   glShadeModel(GL_SMOOTH);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH_TEST);
@@ -326,9 +326,9 @@ void RenderSystem::init() {
   glFrontFace(GL_CCW);
   glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
 
-  m_framebuffer->initialize();
+//  m_framebuffer->initialize();
   m_lightSystem->initialize();
-  m_effectSystem->initialize();
+//  m_effectSystem->initialize();
 
   // convert material descriptions to openGL specific material data.
   m_materialSystem->synchronizeTextures(*this);
@@ -348,7 +348,7 @@ void RenderSystem::init() {
       "Number of active lights: {}",
       numMaterials, numLights);
 
-  m_deferredRenderer.init();
+  m_deferredRenderer.init(width, height);
   return;
 
   // Initialization of the rendersystem encompasses the following steps.
@@ -416,6 +416,7 @@ void RenderSystem::update(float time, float dt) {
   // synchronizes the transformation for the entity into the renderable
   // component.
 //  synchMvpMatrices();
+
   m_deferredRenderer.update();
   m_lightSystem->updateLightProperties();
   m_materialSystem->update(time, dt);
@@ -455,6 +456,9 @@ void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
     throw std::runtime_error("Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
+
+  m_forwardRenderer.setActiveCamera(cameraEntity);
+  m_deferredRenderer.setActiveCamera(cameraEntity);
 }
 
 void RenderSystem::updateCamera(Renderable& renderable) {
@@ -482,82 +486,84 @@ void RenderSystem::activateEffect(entt::entity e) {
 
 void RenderSystem::render() {
   //  // 1. Select buffer to render into
-  m_framebuffer->bind();
+//  m_framebuffer->bind();
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 //  m_forwardRenderer.render(m_registry);
-    m_deferredRenderer.render(m_registry);
+  m_deferredRenderer.render(m_registry);
 
 //  renderPosteffects();
 
 //  m_framebuffer->apply();
 }
-
-void RenderSystem::renderPosteffects() {
-  // activate screen quad
-  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-  glBindVertexArray(m_quadVao);
-
-  if (m_registry.all_of<lsw::ecs::PosteffectCollection>(m_activeCamera)) {
-    int passId = 0;
-    const auto& collection = m_registry.get<lsw::ecs::PosteffectCollection>(m_activeCamera);
-
-    for (auto e : collection.posteffects) {
-      const auto& refEffect = m_registry.get<izz::geo::cEffect>(e);
-      izz::geo::Effect& effect = m_effectSystem->getEffect(refEffect);
-
-      for (int i = 0; i < effect.graph.nodeSize(); ++i) {
-        //      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
-        //        glUseProgram(effect.graph.nodes[i].material.programId);
-
-        // Fetch each node ordered by depth. So when looping through the nodes from 0 to number of nodes.
-        // Fetch the node with depth 0 first. These are the first passes, with no previous passes.
-        // Their incoming connections are always empty.
-        const auto& node = effect.graph.sortedByDepth(i);
-
-        // Loop through the incoming edges/connections.
-        // The incoming connections indicate that there is output from a previous pass that we need in the current pass.
-        for (int j = 0; j < node.connectionsIn.size(); ++j) {
-          auto incomingEdge = effect.graph.edges()[node.connectionsIn[j]];
-
-          // one previous pass might have multiple output buffers that need to be mapped to multiple texture units.
-          for (const auto& mapping : incomingEdge.metadata.bufferMappings) {
-            glActiveTexture(GL_TEXTURE0 + mapping.inTextureUnit);
-            glBindTexture(GL_TEXTURE_2D, mapping.textureBuffer);
-          }
-        }
-
-        // now the outputs of previous pass are mapped.
-        // map the dynamic textures (obtained via the material properties)
-        // TODO: make sure a renderable is found on this entity.
-        // activateTextures(node.data.textures);
-
-        //        glBindFramebuffer(GL_READ_FRAMEBUFFER, node.depth == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, node.data.material->fbo);
-
-        // setup textures for next call
-      }
-
-      auto& renderable = m_registry.get<Renderable>(e);
-
-      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
-      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
-
-      m_framebuffer->nextPass();
-      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-      glUseProgram(renderable.renderState.program);
-
-      RenderUtils::ActivateUniformProperties(renderable.renderState);
-
-      glDrawArrays(GL_TRIANGLES, 0, 6);
-      ++passId;
-    }
-  }
-
-  glBindVertexArray(0);
-}
+//
+//void RenderSystem::renderPosteffects() {
+//  // activate screen quad
+//  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
+//  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+//  glBindVertexArray(m_quadVao);
+//
+//  if (m_registry.all_of<lsw::ecs::PosteffectCollection>(m_activeCamera)) {
+//    int passId = 0;
+//    const auto& collection = m_registry.get<lsw::ecs::PosteffectCollection>(m_activeCamera);
+//
+//    for (auto e : collection.posteffects) {
+//      const auto& refEffect = m_registry.get<izz::geo::cEffect>(e);
+//      izz::geo::Effect& effect = m_effectSystem->getEffect(refEffect);
+//
+//      for (int i = 0; i < effect.graph.nodeSize(); ++i) {
+//        //      for (int i = 0; i < effect.graph.nodes().size(); ++i) {
+//        //        glUseProgram(effect.graph.nodes[i].material.programId);
+//
+//        // Fetch each node ordered by depth. So when looping through the nodes from 0 to number of nodes.
+//        // Fetch the node with depth 0 first. These are the first passes, with no previous passes.
+//        // Their incoming connections are always empty.
+//        const auto& node = effect.graph.sortedByDepth(i);
+//
+//        // Loop through the incoming edges/connections.
+//        // The incoming connections indicate that there is output from a previous pass that we need in the current pass.
+//        for (int j = 0; j < node.connectionsIn.size(); ++j) {
+//          auto incomingEdge = effect.graph.edges()[node.connectionsIn[j]];
+//
+//          // one previous pass might have multiple output buffers that need to be mapped to multiple texture units.
+//          for (const auto& mapping : incomingEdge.metadata.bufferMappings) {
+//            glActiveTexture(GL_TEXTURE0 + mapping.inTextureUnit);
+//            glBindTexture(GL_TEXTURE_2D, mapping.textureBuffer);
+//          }
+//        }
+//
+//        // now the outputs of previous pass are mapped.
+//        // map the dynamic textures (obtained via the material properties)
+//        // TODO: make sure a renderable is found on this entity.
+//        // activateTextures(node.data.textures);
+//
+//        //        glBindFramebuffer(GL_READ_FRAMEBUFFER, node.depth == 0 ? 0 : effect.graph.nodes()[passId - 1].material->fbo);
+//        auto& material = m_materialSystem->getMaterialById(node.data.materialId);
+//        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, material.fbo);
+//
+//        // setup textures for next call
+//      }
+//
+//      auto& renderable = m_registry.get<Renderable>(e);
+//
+//      //      glBindFramebuffer(GL_FRAMEBUFFER, renderable.fbo);
+//      //      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, renderable.effect->nodes[passId].material->fbo);
+//
+//      m_framebuffer->nextPass();
+//      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//
+//      glUseProgram(renderable.renderState.program);
+//
+//      RenderUtils::ActivateUniformProperties(renderable.renderState);
+//
+//      glDrawArrays(GL_TRIANGLES, 0, 6);
+//      ++passId;
+//    }
+//  }
+//
+//  glBindVertexArray(0);
+//}
 
 // void RenderSystem::renderPosteffects() {
 //   // activate screen quad
@@ -598,8 +604,17 @@ void RenderSystem::renderPosteffects() {
 //   glBindVertexArray(0);
 // }
 
-IFramebuffer& RenderSystem::getFramebuffer() {
-  return *m_framebuffer;
+//IFramebuffer& RenderSystem::getFramebuffer() {
+//  return *m_framebuffer;
+//}
+
+void RenderSystem::resize(int width, int height) {
+//  getFramebuffer().resize(width, height);
+
+}
+
+MaterialSystem& RenderSystem::getMaterialSystem() {
+  return *m_materialSystem;
 }
 
 void RenderSystem::checkError(entt::entity e) {

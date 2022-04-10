@@ -41,7 +41,7 @@ class RendererConan(ConanFile):
     def requirements(self):
         self.requires("assimp/5.0.1")
         self.requires("glm/0.9.9.8")
-        self.requires("entt/3.7.1")
+        self.requires("entt/3.9.0")
         self.requires("glfw/3.3.2")
         self.requires("spdlog/1.8.2")
         self.requires("imgui/1.80")

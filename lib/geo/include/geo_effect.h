@@ -49,7 +49,7 @@ class FramebufferConfiguration {
 };
 
 struct EffectNode {
-  std::shared_ptr<lsw::geo::Material> material;
+  int materialId;
 
   FramebufferConfiguration framebuffer;
 

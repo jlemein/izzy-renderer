@@ -4,6 +4,8 @@
 #include <gl_renderable.h>
 #include <entt/entity/registry.hpp>
 #include <glm/glm.hpp>
+#include <izzgl_materialsystem.h>
+#include <memory>
 
 namespace lsw {
 namespace geo {
@@ -57,7 +59,7 @@ struct ForwardLighting {
 
 class LightSystem {
  public:
-  LightSystem(entt::registry& registry);
+  LightSystem(entt::registry& registry, std::shared_ptr<MaterialSystem> materialSystem);
 
   /**
    * Initialization method called after the scene is defined, but before the simulation loop is started.
@@ -77,7 +79,7 @@ class LightSystem {
    * not be customized as of yet.
    * @param material The default material to assign to point light sources if the user does not specify one.
    */
-  void setDefaultPointLightMaterial(std::shared_ptr<lsw::geo::Material> material);
+  void setDefaultPointLightMaterial(int materialId);
 
   /**
    * @returns the number of lights active lights in the scene.
@@ -88,8 +90,11 @@ class LightSystem {
   entt::registry& m_registry;
   ForwardLighting m_forwardLighting;
 
+  std::shared_ptr<MaterialSystem> m_materialSystem;
+
   /// default material that is assigned for entities with Mesh and PointLight.
-  std::shared_ptr<lsw::geo::Material> m_lightMaterial{nullptr};
+//  std::shared_ptr<lsw::geo::Material> m_lightMaterial{nullptr};
+  int m_lightMaterial {-1};
 };
 
 }  // namespace gl

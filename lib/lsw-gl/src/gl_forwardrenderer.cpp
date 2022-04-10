@@ -66,7 +66,7 @@ void ForwardRenderer::render(const entt::registry& registry) {
 //    if (renderable.renderState.isLightingSupported) {
 //      m_renderSystem.pushLightingData(renderable.renderState);
 //    }
-    RenderUtils::ActivateUniformProperties(renderable.renderState);
+    RenderUtils::PushUniformProperties(renderable.renderState);
 
     if (renderable.renderState.meshData.primitiveType == GL_TRIANGLES) {
       glDrawElements(renderable.renderState.meshData.primitiveType, renderable.renderState.meshData.drawElementCount, GL_UNSIGNED_INT, 0);

@@ -64,7 +64,7 @@ class Window {
    * @param resourceManager Used to deallocate objects. (possible viewer does
    * not need this data).
    */
-  Window(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<gl::RenderSystem> renderSystem,
+  Window(entt::registry& registry, std::shared_ptr<gl::RenderSystem> renderSystem,
          std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
 
   ~Window();

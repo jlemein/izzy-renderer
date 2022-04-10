@@ -16,10 +16,15 @@ class ForwardRenderer {
  private:
   int m_fbo{0};
   RenderSystem& m_renderSystem;
+  entt::entity m_activeCamera;
 
  public:
   ForwardRenderer(RenderSystem& renderSystem);
   void render(const entt::registry& registry);
+
+  inline void setActiveCamera(entt::entity cameraEntity) {
+    m_activeCamera = cameraEntity;
+  }
 };
 
 }  // namespace gl

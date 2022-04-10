@@ -42,6 +42,7 @@ struct LightingInfo {
 };
 
 struct UserProperties {
+  // not sure if this is correct. ubo_name is overwritten for every new UBO
   std::string ubo_name;  // name of the uniform block in the shader, used by render engine to find ID.
 
   std::unordered_map<std::string, float> floatValues;
@@ -92,6 +93,14 @@ struct UserProperties {
     floatArrayValues[name] = floatArray;
   }
 
+//  void setMatrix(const std::string& name, glm::mat4 matrix) {
+//    matrixValues[name] = matrix;
+//  }
+//
+//  const glm::mat4& getMatrix(const std::string& name) {
+//    return matrixValues.at(name);
+//  }
+
   void setValue(const std::string& name, const glm::vec4& value) {
     setFloatArray(name, std::vector<float>{value.r, value.g, value.b, value.a});
   }
@@ -120,6 +129,8 @@ class FramebufferConfiguration {
 };
 
 struct Material {
+  int id {-1};
+
   enum PropertyType {
     TEXTURE2D,
     CUBEMAP,

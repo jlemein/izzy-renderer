@@ -22,6 +22,7 @@
 #include <izzgl_materialsystem.h>
 #include <izzgl_effectsystem.h>
 #include <gl_renderutils.h>
+#include <izzgl_materialsystem.h>
 
 #include "gui_window.h"
 #include "wsp_workspace.h"
@@ -32,6 +33,7 @@
 #include "geo_primitivefactory.h"
 #include "ecs_camera.h"
 #include "gui_mainmenu.h"
+#include <ecs_transformutil.h>
 using namespace std;
 using namespace lsw;
 using namespace izz;
@@ -45,8 +47,8 @@ std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 namespace {
 std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
-std::shared_ptr<gl::MaterialSystem> materialSystem{nullptr};
-std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
+std::shared_ptr<izz::gl::MaterialSystem> materialSystem{nullptr};
+//std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
 std::shared_ptr<izz::SceneGraphHelper> sceneGraphHelper{nullptr};
 std::shared_ptr<gl::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
@@ -63,15 +65,19 @@ void setupSystems() {
   textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
   resourceManager->setTextureSystem(textureSystem);
 
-  materialSystem = make_shared<gl::MaterialSystem>(sceneGraphHelper, resourceManager);
-  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
+  materialSystem = make_shared<gl::MaterialSystem>(registry, resourceManager);
+//  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
   resourceManager->setMaterialSystem(materialSystem);
+  renderSystem = make_shared<gl::RenderSystem>(registry, materialSystem/*, effectSystem*/);
+  sceneGraphHelper = std::make_shared<izz::SceneGraphHelper>(registry,
+                                                             std::make_unique<gl::DeferredRenderableFactory>(*renderSystem, *materialSystem));
 
   sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
 
-  sceneGraphHelper = std::make_shared<izz::SceneGraphHelper>(registry, std::make_unique<gl::DeferredRenderableFactory>(*renderSystem));
-  renderSystem = make_shared<gl::RenderSystem>(registry, materialSystem, effectSystem);
+
+
+
   fontSystem = make_shared<FontSystem>();
   fontSystem->addFont("fonts/SegoeUi.ttf", 20);
   //  fontSystem->addFont("fonts/DroidSans.ttf", 20);
@@ -96,24 +102,26 @@ void setupLights() {
 }
 
 void setupScene() {
-//  auto scene = sceneLoader->loadScene(programArguments->sceneFile);
+  auto scene = sceneLoader->loadScene(programArguments->sceneFile);
 //
 //  // post process meshes in scene file
-//  for (auto& mesh : scene->m_meshes) {
-//    MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
-//    MeshUtil::GenerateSmoothNormals(*mesh);
-//  }
+  for (auto& mesh : scene->m_meshes) {
+    MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
+    MeshUtil::GenerateSmoothNormals(*mesh);
+  }
 //
 //  // add to scene graph
-//  sceneGraph->makeScene(*scene, izz::SceneLoaderFlags::All());
+  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   // adding a custom primitive to the scene
-  auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
-  MeshUtil::ScaleUvCoords(plane, 3, 3);
+//  auto plane = PrimitiveFactory::MakeBox("Box", 0.5, .5);
+//  MeshUtil::ScaleUvCoords(plane, 3, 3);
 
-  auto tableCloth = materialSystem->createMaterial("table_cloth");
-  auto effect = effectSystem->createEffect("table_cloth");
-  sceneGraphHelper->addGeometry(plane, tableCloth);
+//  auto& material = materialSystem->createMaterial("DeferredStandard");
+//  auto effect = effectSystem->createEffect("table_cloth");
+//  auto ee = sceneGraphHelper->addGeometry(plane, material.id);
+//  auto& tf = registry.get<ecs::Transform>(ee);
+//  ecs::TransformUtil::Translate(tf, glm::vec3(0,0,5));
 
 }
 
@@ -127,38 +135,41 @@ int main(int argc, char* argv[]) {
 
   try {
     programArguments = parseProgramArguments(argc, argv);
-
     if (programArguments->debugMode) {
       spdlog::set_level(spdlog::level::debug);
     }
 
     setupSystems();
 
-    // setup camera
-    auto camera = sceneGraphHelper->makeCamera("DummyCamera", 4);
-    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-
-    auto window = make_shared<gui::Window>(sceneGraphHelper, renderSystem, guiSystem);  // guiSystem);
-    window->setActiveCamera(camera);
+    auto window = make_shared<gui::Window>(registry, renderSystem, guiSystem);  // guiSystem);
     window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initialize();
 
-
+    // setup camera
+    auto camera = sceneGraphHelper->makeCamera("DummyCamera", 4);
+    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
+    window->setActiveCamera(camera);
 
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
-    } else {
-      materialSystem->loadMaterialsFromFile(programArguments->materialsFile);
-      effectSystem->readEffectsFromFile(programArguments->materialsFile);
     }
-
-    // visualize point lights using a custom material.
-    renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
+    else {
+      materialSystem->loadMaterialsFromFile(programArguments->materialsFile);
+//      effectSystem->readEffectsFromFile(programArguments->materialsFile);
+    }
 
     setupScene();
     setupLights();
-    setupUserInterface();
+    // visualize point lights using a custom material.
+    renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight").id);
+    renderSystem->init(window->getDisplayDetails().windowWidth,
+                         window->getDisplayDetails().windowHeight);
+//
+
+//
+
+//    setupUserInterface();
 
 
     //    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
