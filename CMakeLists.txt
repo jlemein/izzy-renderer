@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.20.0)
 project(Renderer
         VERSION 0.1.0)
 
@@ -8,9 +8,10 @@ include(GoogleTest)
 
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 include(conan)
-conan_cmake_run(CONANFILE conanfile.py
-        BASIC_SETUP
-        GENERATORS CMakeDeps)
+conan_cmake_run(CONANFILE conanfile.py BASIC_SETUP)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
+conan_basic_setup()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -68,7 +69,7 @@ target_link_libraries(izzy
         assimp::assimp
         stb::stb
         fmt::fmt
-        OpenEXR::OpenEXR
+        openexr::openexr
         )
 
 #if (BUILD_TESTING)

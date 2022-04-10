@@ -15,7 +15,7 @@ class RendererConan(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False]
     }
-    generators = "cmake", "cmake_find_package"
+    generators = "cmake", "CMakeDeps", "cmake_paths"
     default_options = {
         "shared": False,
         "fPIC": True,
