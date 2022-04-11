@@ -21,7 +21,7 @@ find_package(stb REQUIRED)
 find_package(assimp REQUIRED)
 find_package(glm REQUIRED)
 find_package(spdlog REQUIRED)
-find_package(GTest REQUIRED)
+find_package(gtest REQUIRED)
 find_package(Boost REQUIRED)
 
 target_link_libraries(geo
@@ -41,7 +41,7 @@ target_link_libraries(geo
             src/geo_graph.t.cpp)
     target_link_libraries(geo_test PRIVATE
             glm::glm
-            geo GTest::GTest nlohmann_json::nlohmann_json)
+            geo gtest::gtest nlohmann_json::nlohmann_json)
     target_include_directories(geo_test PRIVATE include)
 
 #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)

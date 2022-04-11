@@ -27,7 +27,7 @@ target_include_directories(lsw-gui PRIVATE src PUBLIC include)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 #find_package(EnTT REQUIRED)
-find_package(glfw3 REQUIRED)
+find_package(glfw REQUIRED)
 find_package(glm REQUIRED)
 find_package(imgui REQUIRED)
 target_link_libraries(lsw-gui
@@ -35,7 +35,7 @@ target_link_libraries(lsw-gui
         izzy
         ecs
         lsw-gl
-        glfw
+        glfw::glfw
         OpenGL::GL
         GLEW::GLEW
         glm::glm

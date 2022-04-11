@@ -1,7 +1,7 @@
 
 find_package(EnTT REQUIRED)
 find_package(glm REQUIRED)
-find_package(glfw3 REQUIRED)
+find_package(glfw REQUIRED)
 find_package(cxxopts REQUIRED)
 
 add_library(common INTERFACE)
@@ -12,7 +12,7 @@ target_link_libraries(common INTERFACE
         fractalgenerator
         EnTT::EnTT geo
         glm::glm
-        glfw)
+        glfw::glfw)
 target_include_directories(common INTERFACE .)
 
 add_executable(izzyrender m_izzyrender.cpp)

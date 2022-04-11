@@ -16,7 +16,7 @@ struct MeshInstance {
   std::string name {""};
   std::shared_ptr<Mesh> mesh {nullptr};
 //  std::shared_ptr<Material> material {nullptr};
-  int materialId;
+  int materialId {-1};
   glm::mat4 transform {glm::mat4(1.0F)};
 };
 

@@ -6,8 +6,6 @@
 #include <gl_deferredrenderer.h>
 #include <gl_rendersystem.h>
 #include <gl_renderutils.h>
-#include <izz_scenegraphhelper.h>
-#include <izzgl_materialsystem.h>
 #include <entt/entt.hpp>
 using namespace izz::gl;
 
@@ -18,7 +16,48 @@ DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, entt::re
 }
 
 void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
-//  DeferredRenderable& r = registry.get<DeferredRenderable>(e);
+  DeferredRenderable& r = registry.get<DeferredRenderable>(e);
+  try {
+    auto& rs = r.renderStateId == -1 ? m_renderSystem.createRenderState() : m_renderSystem.getRenderState(r.renderStateId);
+    r.renderStateId = rs.id;
+
+    // initialize mesh / curve data
+    auto pCurve = registry.try_get<lsw::geo::Curve>(e);
+    if (pCurve != nullptr) {
+//      r.materialId = pCurve->materialId;
+      RenderUtils::FillBufferedMeshData(*pCurve, rs.meshData);
+
+      // initialize material
+//      if (pCurve->materialId > -1) {
+//        auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
+//        RenderUtils::LoadMaterial(material, rs);
+//      }
+    }
+    auto pMesh = registry.try_get<lsw::geo::Mesh>(e);
+    if (pMesh != nullptr) {
+      spdlog::info("\tInitializing {}", pMesh->name);
+      r.materialId = pMesh->materialId;
+      RenderUtils::FillBufferedMeshData(*pMesh, rs.meshData);
+
+      // initialize material
+      if (pMesh->materialId > -1) {
+        auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
+        RenderUtils::LoadMaterial(material, rs);
+
+        spdlog::info("\t[e: {}] Mesh {} initialized - material id {} -- {}",
+                     static_cast<int>(e), pMesh->name, pMesh->materialId, material.name);
+      } else {
+        spdlog::warn("No material assigned to mesh {}", pMesh->name);
+      }
+    }
+  } catch (std::exception& e) {
+//    auto name = registry.all_of<lsw::ecs::Name>(e) ? m_registry.get<lsw::ecs::Name>(e).name : "Unnamed";
+    auto name = "BLABLA";
+    throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
+  }
+
+
+
 //
 //  // if render state exists
 //  std::cout << "Hello On construct - renderstateid = " << r.renderStateId << std::endl;
@@ -98,13 +137,9 @@ void DeferredRenderer::init(int width, int height) {
   }
 
   // handling meshes
+  spdlog::info("Deferred Renderer: Mesh Initialization");
   for (auto [entity, mesh, r] : m_registry.view<lsw::geo::Mesh, DeferredRenderable>().each()) {
-    try {
-      RenderUtils::FillBufferedMeshData(mesh, m_renderSystem.getRenderState(r.renderStateId).meshData);
-    } catch (std::exception& e) {
-      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
-    }
+    onConstruct(m_registry, entity);
   }
 
   spdlog::info("=== Deferred Renderer Initialization Complete ===");
@@ -117,10 +152,10 @@ void DeferredRenderer::update() {
   }
 
   auto& cameraTransform = m_registry.get<lsw::ecs::Transform>(m_activeCamera);
-  glm::mat3 view = glm::inverse(cameraTransform.worldTransform);
+  glm::mat4 view = glm::inverse(cameraTransform.worldTransform);
 
   auto& activeCamera = m_registry.get<lsw::ecs::Camera>(m_activeCamera);
-  glm::mat3 proj = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);
+  glm::mat4 proj = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);
 
   for (auto [e, r] : m_registry.view<DeferredRenderable>().each()) {
     auto transform = m_registry.try_get<lsw::ecs::Transform>(e);
@@ -132,7 +167,7 @@ void DeferredRenderer::update() {
       mvp->model = model;
       mvp->view = view;
       mvp->proj = proj;
-      mvp->viewPos = glm::vec3(transform->worldTransform[3]);
+      mvp->viewPos = glm::vec3(model[3]);
     } catch(std::out_of_range&) {
       throw std::runtime_error(fmt::format("(e: {}): cannot access MVP matrix. Does material have 'MVP' ubo?", e));
     }

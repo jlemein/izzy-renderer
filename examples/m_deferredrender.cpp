@@ -111,13 +111,17 @@ void setupScene() {
   }
 //
 //  // add to scene graph
-  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
+//  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   // adding a custom primitive to the scene
-//  auto plane = PrimitiveFactory::MakeBox("Box", 0.5, .5);
-//  MeshUtil::ScaleUvCoords(plane, 3, 3);
+  auto plane = sceneGraphHelper->makeMoveableEntity("Plane");
+  auto& mesh = plane.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
+  lsw::ecs::TransformUtil::Translate(plane.get<lsw::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
+  auto& material = materialSystem->createMaterial("DeferredStandard");
+  mesh.materialId = material.id;
+  auto& dr = plane.add<gl::DeferredRenderable>();
 
-//  auto& material = materialSystem->createMaterial("DeferredStandard");
+//  MeshUtil::ScaleUvCoords(plane, 3, 3);
 //  auto effect = effectSystem->createEffect("table_cloth");
 //  auto ee = sceneGraphHelper->addGeometry(plane, material.id);
 //  auto& tf = registry.get<ecs::Transform>(ee);

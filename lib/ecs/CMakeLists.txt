@@ -44,7 +44,7 @@ target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog)
 find_package(GTest REQUIRED)
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
 
-target_link_libraries(ecsu_test PUBLIC ecs GTest::GTest)
+target_link_libraries(ecsu_test PUBLIC ecs gtest::gtest)
 
 
 add_executable(ecs_test
@@ -52,7 +52,7 @@ add_executable(ecs_test
         src/ecs_firstpersoncontrolsystem.t.cpp
         src/ecs_transformsystem.t.cpp
         )
-target_link_libraries(ecs_test PRIVATE ecs GTest::GTest)
+target_link_libraries(ecs_test PRIVATE ecs gtest::gtest)
 target_include_directories(ecs_test PRIVATE src)
 
 #

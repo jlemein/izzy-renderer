@@ -22,7 +22,7 @@ struct DeferredRenderable {
 
   //  UniformBufferMapping mvp;
   //  UniformBufferMapping lights;
-  entt::entity meshEntity{entt::null};
+//  entt::entity meshEntity{entt::null};
 };
 
 class DeferredRenderer {
