@@ -125,16 +125,9 @@ void DeferredRenderer::createGBuffer(int width, int height) {
 }
 
 void DeferredRenderer::createScreenSpaceRect() {
-  auto rectangle = lsw::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 1.0, 1.0);
+  auto rectangle = lsw::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
   auto& rs = m_renderSystem.createRenderState();
   const auto& material = m_renderSystem.getMaterialSystem().createMaterial("DeferredLightingPass");
-
-//  GLuint vbo;
-//  glGenBuffers(1, &vbo);
-//  glBindBuffer(vbo, GL_ARRAY_BUFFER);
-//  std::vector<float> vertices {-0.5, -0.5, -0.5, 0.5, 0.5, 0.5,
-//                                0.5, 0.5, 0.5, -0.5, -0.5, -0.5};
-//  glBufferData(GL_ARRAY_BUFFER, sizeof(float) * vertices.size(), vertices.data(), GL_STATIC_DRAW);  // allocate buffer data only
 
   RenderUtils::FillBufferedMeshData(rectangle, rs.meshData);
   RenderUtils::LoadMaterial(material, rs);

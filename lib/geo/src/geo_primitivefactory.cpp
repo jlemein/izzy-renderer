@@ -29,19 +29,19 @@ Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float dep
 Mesh PrimitiveFactory::MakePlaneXY(const std::string& name, float width, float height) {
   Mesh mesh{.name = name};
   mesh.vertices = std::vector<float>{
-      -.5F * width, -.5F * height,  .50F,  // v0
-      .5F * width,  .5F * height,  .50F,  // v1
-      .5F * width,  -.5F * height, .50F,  // v2
-      -.5F * width, -.5F * height, .50F   // v3
+      -.5F * width, -.5F * height, .0F,  // v0
+      -.5F * width, .5F * height,  .0F,  // v1
+      .5F * width,  .5F * height,  .0F,  // v2
+      .5F * width,  -.5F * height, .0F   // v3
   };
-  mesh.uvs = std::vector<float>{.0F, .0F, 1.F, .0F, 1.F, 1.F, .0F, 1.F};  // 0 1 2 3
-//    mesh.normals = std::vector<float>{.0F, 1.F, .0F, .0F, 1.F, 0.F,         // v0 v1
-//                                      .0F, 1.F, .0F, .0F, 1.F, 0.F};        // v2 v3
-    mesh.normals = std::vector<float>{.0F, .0F, 1.F, .0F, .0F, 1.F,         // v0 v1
-                                      .0F, .0F, 1.F, .0F, .0F, 1.F};        // v2 v3
-//    mesh.tangents = std::vector<float>{1.F, 0.F, 0.F, 1.F, .0F, .0F, 1.F, .0F, .0F, 1.F, .0F, .0F};
-//    mesh.bitangents = std::vector<float>{0.F, 0.F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F};
-  mesh.indices = std::vector<uint32_t>{0, 1, 3, 1, 2, 3};
+  mesh.uvs = std::vector<float>{.0F, .0F, .0F, 1.F, 1.F, 1.F, 1.F, .0F};  // 0 1 2 3
+  //    mesh.normals = std::vector<float>{.0F, 1.F, .0F, .0F, 1.F, 0.F,         // v0 v1
+  //                                      .0F, 1.F, .0F, .0F, 1.F, 0.F};        // v2 v3
+  mesh.normals = std::vector<float>{.0F, .0F, 1.F, .0F, .0F, 1.F,   // v0 v1
+                                    .0F, .0F, 1.F, .0F, .0F, 1.F};  // v2 v3
+  //    mesh.tangents = std::vector<float>{1.F, 0.F, 0.F, 1.F, .0F, .0F, 1.F, .0F, .0F, 1.F, .0F, .0F};
+  //    mesh.bitangents = std::vector<float>{0.F, 0.F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F};
+  mesh.indices = std::vector<uint32_t>{0, 2, 1, 0, 3, 2};
 
   return mesh;
 }
