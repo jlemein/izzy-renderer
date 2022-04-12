@@ -3,9 +3,9 @@
 //
 #include <geo_curve.h>
 #include <geo_mesh.h>
+#include <gl_renderable.h>
 #include <gl_renderutils.h>
 #include "gl_shadersystem.h"
-#include <gl_renderable.h>
 using namespace izz;
 using namespace izz::gl;
 
@@ -48,29 +48,38 @@ void RenderUtils::FillBufferedMeshData(const lsw::geo::Mesh& mesh, BufferedMeshD
   GLuint tangentSize = mesh.tangents.size() * sizeof(float);
   GLuint bitangentSize = mesh.bitangents.size() * sizeof(float);
   GLuint bufferSize = vertexSize + normalSize + uvSize + tangentSize + bitangentSize;
+  int vertexAttribCount = 0;
 
   glGenBuffers(1, &md.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, md.vertex_buffer);
-  glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr,
-               GL_STATIC_DRAW);  // allocate buffer data only
-  glBufferSubData(GL_ARRAY_BUFFER, 0, vertexSize,
-                  mesh.vertices.data());  // fill partial data - vertices
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize, normalSize,
-                  mesh.normals.data());  // fill partial data - normals
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize, uvSize,
-                  mesh.uvs.data());  // fill partial data - normals
+  glBufferData(GL_ARRAY_BUFFER, bufferSize, nullptr, GL_STATIC_DRAW);  // allocate buffer data only
 
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize, tangentSize,
-                  mesh.tangents.data());  // fill partial data - normals
-
-  glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize + tangentSize, bitangentSize,
-                  mesh.bitangents.data());  // fill partial data - normals
+  if (vertexSize > 0) {
+    glBufferSubData(GL_ARRAY_BUFFER, 0, vertexSize, mesh.vertices.data());  // fill partial data - vertices
+    ++vertexAttribCount;
+  }
+  if (normalSize > 0) {
+    glBufferSubData(GL_ARRAY_BUFFER, vertexSize, normalSize, mesh.normals.data());  // fill partial data - normals
+    ++vertexAttribCount;
+  }
+  if (uvSize > 0) {
+    glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize, uvSize, mesh.uvs.data());  // fill partial data - normals
+    ++vertexAttribCount;
+  }
+  if (tangentSize > 0) {
+    glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize, tangentSize, mesh.tangents.data());  // fill partial data - normals
+    ++vertexAttribCount;
+  }
+  if (bitangentSize > 0) {
+    glBufferSubData(GL_ARRAY_BUFFER, vertexSize + normalSize + uvSize + tangentSize, bitangentSize, mesh.bitangents.data());  // fill partial data - normals
+    ++vertexAttribCount;
+  }
 
   glGenBuffers(1, &md.index_buffer);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, md.index_buffer);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, mesh.indices.size() * sizeof(uint32_t), mesh.indices.data(), GL_STATIC_DRAW);
 
-  md.vertexAttribCount = 5;
+  md.vertexAttribCount = vertexAttribCount;
   // position data
   md.vertexAttribArray[0].size = 3U;
   md.vertexAttribArray[0].buffer_offset = 0U;
@@ -196,7 +205,7 @@ void LoadUniformParameters(const lsw::geo::Material& m, RenderState& rs) {
 
     // store block handle in renderable
     UniformBufferMapping mapping;
-//    Renderable_UniformBlockInfo block{};
+    //    Renderable_UniformBlockInfo block{};
     mapping.bufferId = uboHandle;
     mapping.blockIndex = blockIndex;
     mapping.blockBind = blockBinding;
@@ -327,7 +336,6 @@ void RenderUtils::LoadMaterial(const lsw::geo::Material& material, RenderState& 
       //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
 
       glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
-
 
       glBufferData(GL_UNIFORM_BUFFER, uniform.size, NULL, GL_DYNAMIC_DRAW);
 

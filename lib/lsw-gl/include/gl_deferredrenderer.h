@@ -35,6 +35,21 @@ class DeferredRenderer {
 
   void init(int width, int height);
 
+  /**
+   * Creates a G-Buffer with dimensions width x height. The dimensions imply the texture dimensions
+   * of the individual components of a G-buffer: position, normal, color and specularity.
+   *
+   * @param width The width of the GBuffer.
+   * @param height The height of the GBuffer.
+   */
+  void createGBuffer(int width, int height);
+
+  /**
+   * Creates a screen space rectangle, used to render onto when rendering the lighting pass.
+   * The lighting pass is the second, or last pass of the deferred rendering method.
+   */
+  void createScreenSpaceRect();
+
   void update();
 
   void render(const entt::registry& registry);
@@ -55,6 +70,8 @@ class DeferredRenderer {
   entt::entity m_activeCamera = entt::null;
 
   int m_screenWidth = 10, m_screenHeight = 10;
+
+  int m_screenSpaceRenderStateId = -1;
 };
 
 }  // namespace gl

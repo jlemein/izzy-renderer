@@ -87,6 +87,12 @@
       }
     },
     {
+      "name": "DeferredLightingPass",
+      "vertex_shader": "shaders/experimental/deferred_lighting.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/experimental/deferred_lighting.frag"
+    },
+    {
       "name": "FilterBrightPostEffect",
       "vertex_shader": "shaders/postprocess/filter_bright.vert",
       "geometry_shader": "",
