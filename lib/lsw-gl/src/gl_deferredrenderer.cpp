@@ -132,6 +132,10 @@ void DeferredRenderer::createScreenSpaceRect() {
   RenderUtils::FillBufferedMeshData(rectangle, rs.meshData);
   RenderUtils::LoadMaterial(material, rs);
 
+  m_gPositionLoc = glGetUniformLocation(rs.program, "gbuffer_position");
+  m_gNormalLoc = glGetUniformLocation(rs.program, "gbuffer_normal");
+  m_gAlbedoSpecLoc = glGetUniformLocation(rs.program, "gbuffer_albedospec");
+
   m_screenSpaceRenderStateId = rs.id;
 }
 
@@ -192,59 +196,58 @@ void DeferredRenderer::update() {
 
 void DeferredRenderer::render(const entt::registry& registry) {
 
-//  glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
-//  static unsigned int colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-//  glDrawBuffers(3, colorAttachments);
+  glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
+  static unsigned int colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+  glDrawBuffers(3, colorAttachments);
 
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
+//  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
   // clear gbuffer
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//  auto view = registry.view<const DeferredRenderable, const lsw::ecs::Transform>();
+  auto view = registry.view<const DeferredRenderable, const lsw::ecs::Transform>();
+
+  for (entt::entity e : view) {
+    try {
+      auto rid = view.get<const DeferredRenderable>(e).renderStateId;
+      const RenderState& rs = m_renderSystem.getRenderState(rid);
+
+      //    RenderUtils::ActivateProgram();
+      glUseProgram(rs.program);
+      RenderUtils::ActivateTextures(rs);
+      RenderUtils::UseBufferedMeshData(rs.meshData);
+      // TODO: check if shader is dirty
+      //  reason: if we push properties every frame (Except for MVP), we might
+      //  unnecessary spend time doing that while we can immediately just render.
+      RenderUtils::PushUniformProperties(rs);
+
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+      // 1. Render data to G-buffer
+      if (rs.meshData.primitiveType == GL_TRIANGLES) {
+        glDrawElements(rs.meshData.primitiveType, rs.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
+      } else {
+        glDrawArrays(rs.meshData.primitiveType, 0, rs.meshData.drawElementCount);
+      }
+    } catch (std::exception& exc) {
+      std::string msg = "";
+
+      if (registry.all_of<lsw::ecs::Name>(e)) {
+        auto& name = registry.get<lsw::ecs::Name>(e);
+        msg = fmt::format("(e: {}) Rendering entity: {} - {}", static_cast<int>(e), name.name, exc.what());
+      } else {
+        msg = exc.what();
+      }
+      throw std::runtime_error(msg);
+    }
+  }
 //
-//  for (entt::entity e : view) {
-//    try {
-//      auto rid = view.get<const DeferredRenderable>(e).renderStateId;
-//      const RenderState& rs = m_renderSystem.getRenderState(rid);
-//
-//      //    RenderUtils::ActivateProgram();
-//      glUseProgram(rs.program);
-//      RenderUtils::ActivateTextures(rs);
-//      RenderUtils::UseBufferedMeshData(rs.meshData);
-//      // TODO: check if shader is dirty
-//      //  reason: if we push properties every frame (Except for MVP), we might
-//      //  unnecessary spend time doing that while we can immediately just render.
-//      RenderUtils::PushUniformProperties(rs);
-//
-//      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//
-//      // 1. Render data to G-buffer
-//      if (rs.meshData.primitiveType == GL_TRIANGLES) {
-//        glDrawElements(rs.meshData.primitiveType, rs.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
-//      } else {
-//        glDrawArrays(rs.meshData.primitiveType, 0, rs.meshData.drawElementCount);
-//      }
-//    } catch (std::exception& exc) {
-//      std::string msg = "";
-//
-//      if (registry.all_of<lsw::ecs::Name>(e)) {
-//        auto& name = registry.get<lsw::ecs::Name>(e);
-//        msg = fmt::format("(e: {}) Rendering entity: {} - {}", static_cast<int>(e), name.name, exc.what());
-//      } else {
-//        msg = exc.what();
-//      }
-//      throw std::runtime_error(msg);
-//    }
-//  }
-//
-//  // --- GBUFFER pass is finished. GBuffer is what we have -----
-//  //
-//  /* We are going to blit into the window (default framebuffer)                     */
-//    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-//    glDrawBuffer(GL_BACK); /* Use backbuffer as color dst.         */
-//  //
+  // --- GBUFFER pass is finished. GBuffer is what we have -----
+  //
+  /* We are going to blit into the window (default framebuffer)                     */
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    glDrawBuffer(GL_BACK); /* Use backbuffer as color dst.         */
+
 //  //  /* Read from your FBO */
 //    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_gBufferFbo);
 //    glReadBuffer(GL_COLOR_ATTACHMENT1); /* Use Color Attachment 0 as color src. */
@@ -252,8 +255,30 @@ void DeferredRenderer::render(const entt::registry& registry) {
   //  glClearColor(1.0, 0.0, 0., 0.0);
   //  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   //  glClearColor(0.0,0.0,0.0,0.0);
+
     auto& rs = m_renderSystem.getRenderState(m_screenSpaceRenderStateId);
     glUseProgram(rs.program);
+
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_gPosition);
+    glUniform1i(m_gPositionLoc, 0);
+
+    glActiveTexture(GL_TEXTURE0+1);
+    glBindTexture(GL_TEXTURE_2D, m_gNormal);
+    glUniform1i(m_gNormalLoc, 1);
+
+    glActiveTexture(GL_TEXTURE0+2);
+    glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
+    glUniform1i(m_gAlbedoSpecLoc, 2);
+
+//    lsw::geo::Material m;
+
+    //TODO: assign texture id's to material's textures.
+    // why? The render system shoud map a generic texture id to a rendersystem specific texture id
+    // (obtained via glGenTextures).
+//    m.textures["gbuffer_position"] = m_gPosition;
+//    m.textures["dog_texture"] = m_textureManager.loadTexture("dog.png");
+
     RenderUtils::ActivateTextures(rs);
     RenderUtils::UseBufferedMeshData(rs.meshData);
     RenderUtils::PushUniformProperties(rs);

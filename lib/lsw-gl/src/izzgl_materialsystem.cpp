@@ -168,7 +168,11 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
 
         if (type == "texture") {
           m.propertyTypes[name] = lsw::geo::Material::TEXTURE2D;
-          auto path = value["default_value"].get<std::string>();
+          std::string path = "";
+
+          if (value.contains("default_value")) {
+            path = value["default_value"].get<std::string>();
+          }
           spdlog::debug("\t{} texture: {}", name, path);
           addTextureToMaterial(name, path, m);
         } else {

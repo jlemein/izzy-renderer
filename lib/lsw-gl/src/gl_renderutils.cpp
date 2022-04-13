@@ -317,6 +317,30 @@ void RenderUtils::LoadMaterial(const lsw::geo::Material& material, RenderState& 
     }
     spdlog::debug("\tProgram id: {}\n\tShader program compiled successfully (vs: {} fs: {})", rs.program, material.vertexShader, material.fragmentShader);
 
+    // load textures - this means, create
+    for (const auto& [texname, filepath] : material.texturePaths) {
+      spdlog::debug("Texture {}: {}", texname, filepath);
+
+      if (filepath.empty()) {
+        //
+        TextureBuffer tb;
+        tb.textureId == 0; // not known yet.
+        tb.uniformLocation = glGetUniformLocation(rs.program, texname.c_str());
+
+        if (tb.uniformLocation != GL_INVALID_INDEX) {
+          rs.textureBuffers.emplace_back(tb);
+        } else {
+          spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.name, texname);
+        }
+
+        spdlog::debug("Texture {}: {} -> {}", texname, tb.textureId, tb.uniformLocation);
+      }
+//      TextureBuffer tb;
+//      tb.
+//      rs.textureBuffers
+    }
+
+
     for (const auto& [name, uniform] : material.uniformBlocks) {
       spdlog::debug("\tUBO with name: {}", name);
       GLuint uboHandle;

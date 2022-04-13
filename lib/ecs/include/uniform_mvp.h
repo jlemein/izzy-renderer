@@ -39,9 +39,9 @@ class MvpManager : public UniformBlockManager {
     // do nothing
     auto p = reinterpret_cast<ModelViewProjection*>(data);
 
-    printMatrix("model", p->model);
-    printMatrix("view", p->view);
-    printMatrix("projection", p->projection);
+//    printMatrix("model", p->model);
+//    printMatrix("view", p->view);
+//    printMatrix("projection", p->projection);
 
 
 //    spdlog::info("view: \n[{} {} {} {}\n{} {} {} {}\n{} {} {} {}\n{} {} {} {}]", p->model[0][0], p->model[0][1], p->model[0][2], p->model[0][3],

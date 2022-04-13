@@ -8,11 +8,11 @@ layout(location = 2) in vec2 in_uv;
 
 layout(binding = 0) uniform sampler2D gbuffer_position;
 layout(binding = 1) uniform sampler2D gbuffer_normal;
-layout(binding = 2) uniform sampler2D gbuffer_albedo_spec;
+layout(binding = 2) uniform sampler2D gbuffer_albedospec;
 
 void main()
 {
-    out_color = vec4(1, 0, 0, 0);
+    out_color = texture(gbuffer_position, in_uv); //vec4(1, 0, 0, 0);
 //    // store the fragment position vector in the first gbuffer texture
 //    if (in_uv.x < 0.5 && in_uv.y < 0.5) {
 //        out_color = texture(gbuffer_position, in_uv*2.0);

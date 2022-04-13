@@ -66,7 +66,12 @@ class DeferredRenderer {
   entt::registry& m_registry;
 
   GLuint m_gBufferFbo, m_lightingPassFbo;
+
+  /// Texture id's (obtained via glGenTextures)
   GLuint m_gPosition, m_gNormal, m_gAlbedoSpec;
+
+  /// Uniform locations in shader (obtained via glGetUniformLocation).
+  GLint m_gPositionLoc = -1, m_gNormalLoc = -1, m_gAlbedoSpecLoc = -1;
   entt::entity m_activeCamera = entt::null;
 
   int m_screenWidth = 10, m_screenHeight = 10;
