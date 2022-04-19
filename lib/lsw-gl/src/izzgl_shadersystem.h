@@ -4,7 +4,7 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <geo_material.h>
+#include "izzgl_material.h"
 
 namespace izz {
 namespace gl {

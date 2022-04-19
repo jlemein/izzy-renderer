@@ -1,12 +1,12 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>
-#include <geo_material.h>
 #include <geo_materialutil.h>
 #include <geo_mesh.h>
-#include <glrs_lightsystem.h>
 #include <gl_renderable.h>
+#include <glrs_lightsystem.h>
 #include <spdlog/spdlog.h>
+#include "izzgl_material.h"
 #include "izzgl_materialsystem.h"
 using namespace izz;
 using namespace izz::gl;

@@ -1,11 +1,11 @@
 //
 // Created by jeffrey on 16-12-21.
 //
-#include <gtest/gtest.h>
 #include <gl_deferredrenderer.h>
-#include <memory>
+#include <gtest/gtest.h>
+#include <izzgl_rendersystem.h>
 #include <entt/entt.hpp>
-#include <gl_rendersystem.h>
+#include <memory>
 #include "gl_deferredrenderablefactory.h"
 using namespace izz::gl;
 

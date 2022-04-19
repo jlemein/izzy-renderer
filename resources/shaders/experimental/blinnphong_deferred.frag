@@ -9,9 +9,15 @@ layout(location = 1) in vec4 in_normal;
 layout(location = 2) in vec2 in_uv;
 
 layout(binding = 0) uniform sampler2D texture_diffuse1;
-layout(binding = 1) uniform sampler2D texture_specular1;
-layout(binding = 2) uniform sampler2D normalMap;
-layout(binding = 3) uniform sampler2D albedoMap;
+layout(binding = 2) uniform sampler2D texture_specular1;
+layout(binding = 3) uniform sampler2D normalMap;
+layout(binding = 4) uniform sampler2D albedoMap;
+
+layout(std140, binding = 4)
+uniform BlinnPhong {
+    vec4 specular_color;
+    float shininess;
+};
 
 void main()
 {
@@ -21,7 +27,7 @@ void main()
     // store the fragment position vector in the first gbuffer texture
     gPosition = vec4(in_position, 1);//vec4(1, 0, 0, 1);//in_position;
     gNormal = vec4(surf_normal, 1);
-    gAlbedoSpec = material_color;
+    gAlbedoSpec = vec4(1,1, 0, 0);//material_color;
 
     // also store the per-fragment normals into the gbuffer
 //    gNormal = normalize(in_normal);

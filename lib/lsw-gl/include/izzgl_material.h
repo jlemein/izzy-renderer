@@ -3,29 +3,17 @@
 //
 #pragma once
 
+#include <GL/glew.h>
 #include <fmt/format.h>
-#include <geo_texture.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <memory>
+#include "izz.h"
+#include <izzgl_texture.h>
 
-namespace lsw {
-namespace geo {
-
-// struct RenderPass {
-//   std::string vertexShader {""};
-//   std::string geometryShader {""};
-//   std::string fragmentShader {""};
-//
-//   // TODO copying Shaders should be forbidden or fixed.
-//   using UniformProperties = std::unordered_map<std::string, UniformBlockData>;
-//
-//   UniformProperties properties;
-//
-//   // a shader is possibly dependent on offscreen render buffers (or file textures).
-//   std::vector<ecs::Texture> textures {};
-// };
+namespace izz {
+namespace gl {
 
 /**
  * A mapping of data location and size to keep the uniform blocks registered.
@@ -128,19 +116,65 @@ class FramebufferConfiguration {
   FramebufferFormat outColorBuffers[4] = {FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED};
 };
 
-struct Material {
-  int id {-1};
+enum class PropertyType {
+  TEXTURE2D,
+  CUBEMAP,
+  FLOAT,
+  FLOAT4,
+  FLOAT3,
+  INT,
+  UNIFORM_BUFFER_OBJECT
+};
 
-  enum PropertyType {
-    TEXTURE2D,
-    CUBEMAP,
-    FLOAT,
-    FLOAT4,
-    FLOAT3,
-    INT,
-    UNIFORM_BUFFER_OBJECT
-  };
+class MaterialProperty {
+ public:
+  PropertyType type;
   std::string name;
+  void* data;
+
+  void* operator=(void* data) {
+    return nullptr;
+  }
+};
+
+/// @brief Holds texture property
+struct TextureProperty {
+  /// @brief location as obtained via glGetUniformLocation()
+  GLint location;
+
+  /// @brief location as obtained via glGenTextures()
+  GLint textureBufferId {-1};
+};
+
+struct Material {
+  MaterialId id {-1};
+
+  /// @brief Program id as obtained via glCreateProgram()
+  int programId {0};
+
+  std::string name;
+
+//  MaterialProperty& operator[](const std::string& name) {
+//    return textures[name];
+//  }
+
+  void setTexture(const std::string& name, Texture* pTexture) {
+    if (!textures.contains(name)) {
+      auto location = glGetUniformLocation(programId, name.c_str());
+      textures[name] = TextureProperty{location, pTexture->bufferId};
+    } else {
+      textures.at(name).textureBufferId = pTexture->bufferId;
+    }
+  }
+
+  GLint getTextureBuffer(const std::string& key) const {
+    if (textures.count(key) > 0) {
+      return textures.at(key).textureBufferId;
+    } else {
+      return -1;
+      //      throw std::runtime_error(fmt::format("Property {} (texture) does not exist for material {}", key, name));
+    }
+  }
 
   /// @brief Specifies input and output buffers for the shader.
   /// Materials can be chained to create multi-pass effects.
@@ -174,17 +208,17 @@ struct Material {
   bool hasAmbient{false};
 
   /// @brief predefined textures that gets mapped to from existing scene files.
-  std::shared_ptr<geo::Texture> diffuseTexture{nullptr};
-  std::shared_ptr<geo::Texture> specularTexture{nullptr};
-  std::shared_ptr<geo::Texture> normalTexture{nullptr};
-  std::shared_ptr<geo::Texture> roughnessTexture{nullptr};
-  std::shared_ptr<geo::Texture> opacityTexture{nullptr};
+  izz::TextureId diffuseTexture {-1};
+  izz::TextureId specularTexture {-1};
+  izz::TextureId normalTexture {-1};
+  izz::TextureId roughnessTexture {-1};
+  izz::TextureId opacityTexture {-1};
 
   UserProperties unscopedUniforms;  /// @brief uniforms not in an interface block (less efficient).
   UserProperties userProperties;    /// @brief uniforms as part of a interface block (i.e. named uniform buffer object).
 
   // contains map from name to property type
-  std::unordered_map<std::string, Material::PropertyType> propertyTypes;
+  std::unordered_map<std::string, PropertyType> propertyTypes;
 
   std::filesystem::path diffuseTexturePath{""};
   std::filesystem::path specularTexturePath{""};
@@ -203,7 +237,8 @@ struct Material {
    * This variable is for bookkeeping purposes only. Never set this attribute directly, your texture will not be loaded.
    * Use @see texturePaths instead.
    */
-  std::unordered_map<std::string, std::shared_ptr<geo::Texture>> textures{};
+
+  std::unordered_map<std::string, TextureProperty> textures{};
 
   void setDiffuseMap(const std::string& path) {
     diffuseTexturePath = path;
@@ -221,27 +256,10 @@ struct Material {
     specularTexturePath = path;
   }
 
-  void setTexture(const std::string& textureName, std::string filePath) {
-    if (filePath != texturePaths[textureName]) {
-      texturePaths[textureName] = filePath;
-      textures[textureName] = nullptr;
-    }
-  }
 
-  std::string getTexture(const std::string& key) const {
-    if (texturePaths.count(key) > 0) {
-      return texturePaths.at(key);
-    } else {
-      return "";
-      //      throw std::runtime_error(fmt::format("Property {} (texture) does not exist for material {}", key, name));
-    }
-  }
 
   // geo::ShadingMode shadingMode
 
-  // material
-  float shininess;
-  float opacity;
 
   using UniformBlockRegistry = std::unordered_map<std::string, UniformBlockInfo>;
 

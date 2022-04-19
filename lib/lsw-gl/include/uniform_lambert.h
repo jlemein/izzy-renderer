@@ -3,7 +3,7 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include <uniform_uniformblockmanager.h>
+#include "uniform_uniformblockmanager.h"
 
 namespace lsw {
 namespace ufm {

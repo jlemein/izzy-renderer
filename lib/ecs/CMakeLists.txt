@@ -5,13 +5,10 @@
 #conan_basic_setup(TARGETS)
 
 set (HEADERS
-        include/uniform_parallax.h
-        include/uniform_ubermaterial.h
-        include/uniform_lambert.h
-        src/uniform_ubermaterial.cpp include/uniform_uniformblockmanager.h
         include/ecs_wireframe.h include/ecs_postprocess.h)
 
 add_library(ecs STATIC include/ecs_camera.h
+        include/izz.h
         include/ecs_firstpersoncontrol.h
         include/ecs_moveable.h
         include/ecs_relationship.h

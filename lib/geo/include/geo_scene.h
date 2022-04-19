@@ -7,6 +7,7 @@
 #include <glm/glm.hpp>
 #include <list>
 #include <vector>
+#include <unordered_map>
 
 namespace lsw {
 namespace geo {

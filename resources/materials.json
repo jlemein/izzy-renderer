@@ -3,7 +3,7 @@
   "material_instances": [
     {
       "name": "tea_set_01",
-      "material_definition": "BlinnPhong",
+      "material_definition": "BlinnPhongDeferred",
       "properties": {
         "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
         "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr",
@@ -82,6 +82,43 @@
       "vertex_shader": "shaders/experimental/deferred.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/experimental/deferred.frag",
+      "properties":{
+        "ModelViewProjection": {}
+      }
+    },
+    {
+      "name": "BlinnPhongDeferred",
+      "vertex_shader": "shaders/experimental/blinnphong_deferred.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/experimental/blinnphong_deferred.frag",
+      "properties":{
+        "ModelViewProjection": {},
+        "BlinnPhong": {
+          "shininess": 32.0,
+          "specular_color": [
+            0.3,
+            0.3,
+            0.3,
+            0.0
+          ]
+        }
+      },
+      "textures": {
+        "normalMap": {
+          "type": "texture",
+          "default_value": "models/textures/tea_set_01_nor_gl_4k.exr"
+        },
+        "albedoMap": {
+          "type": "texture",
+          "default_value": "models/textures/tea_set_01_diff_4k.jpg"
+        }
+      }
+    },
+    {
+      "name": "Deferred_VisualizeGBuffer",
+      "vertex_shader": "shaders/experimental/deferred_visualize_gbuffer.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/experimental/deferred_visualize_gbuffer.frag",
       "properties":{
         "ModelViewProjection": {}
       }

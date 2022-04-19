@@ -2,27 +2,25 @@
 // Created by jlemein on 17-02-22.
 //
 
+#include <gl_deferredrenderablefactory.h>
+#include <izzgl_materialsystem.h>
 #include "anim_localrotation.h"
 #include "core_util.h"
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
 #include "ecs_transformutil.h"
-#include "izz_scenegraphhelper.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
 #include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
-#include "izz_exrloader.h"
 #include "izz_fontsystem.h"
 #include "izz_resourcemanager.h"
+#include "izz_scenegraphhelper.h"
 #include "izz_sceneloader.h"
-#include "izz_stbtextureloader.h"
-#include "izz_texturesystem.h"
-#include <gl_deferredrenderablefactory.h>
-#include <izzgl_materialsystem.h>
-#include <izzgl_effectsystem.h>
-#include <gl_renderutils.h>
-#include <izzgl_materialsystem.h>
+#include "izzgl_exrloader.h"
+#include "izzgl_stbtextureloader.h"
+#include "izzgl_texturesystem.h"
+#include <izzgl_rendersystem.h>
 
 #include "gui_window.h"
 #include "wsp_workspace.h"
@@ -50,7 +48,7 @@ std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<izz::gl::MaterialSystem> materialSystem{nullptr};
 //std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
 std::shared_ptr<izz::SceneGraphHelper> sceneGraphHelper{nullptr};
-std::shared_ptr<gl::RenderSystem> renderSystem{nullptr};
+std::shared_ptr<izz::gl::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
 std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
@@ -60,15 +58,15 @@ entt::registry registry;
 void setupSystems() {
   resourceManager = make_shared<ResourceManager>();
 
-  auto textureSystem = make_shared<TextureSystem>();
-  textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
-  textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
+  auto textureSystem = make_shared<izz::gl::TextureSystem>();
+  textureSystem->setTextureLoader(".exr", std::make_unique<izz::gl::ExrLoader>(true));
+  textureSystem->setTextureLoader(izz::gl::ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<izz::gl::StbTextureLoader>(true));
   resourceManager->setTextureSystem(textureSystem);
 
-  materialSystem = make_shared<gl::MaterialSystem>(registry, resourceManager);
+  materialSystem = make_shared<izz::gl::MaterialSystem>(registry, resourceManager);
 //  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
   resourceManager->setMaterialSystem(materialSystem);
-  renderSystem = make_shared<gl::RenderSystem>(registry, materialSystem/*, effectSystem*/);
+  renderSystem = std::make_shared<izz::gl::RenderSystem>(registry, resourceManager, materialSystem/*, effectSystem*/);
   sceneGraphHelper = std::make_shared<izz::SceneGraphHelper>(registry,
                                                              std::make_unique<gl::DeferredRenderableFactory>(*renderSystem, *materialSystem));
 
@@ -103,15 +101,15 @@ void setupLights() {
 
 void setupScene() {
   auto scene = sceneLoader->loadScene(programArguments->sceneFile);
-//
-//  // post process meshes in scene file
+
+  // post process meshes in scene file
   for (auto& mesh : scene->m_meshes) {
     MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
     MeshUtil::GenerateSmoothNormals(*mesh);
   }
-//
-//  // add to scene graph
-//  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
+
+  // add to scene graph
+  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   // adding a custom primitive to the scene
   auto plane = sceneGraphHelper->makeMoveableEntity("Plane");

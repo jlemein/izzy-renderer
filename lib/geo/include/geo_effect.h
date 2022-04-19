@@ -3,10 +3,10 @@
 //
 #pragma once
 
-#include <geo_material.h>
 #include <geo_graph.h>
-#include <memory>
 #include <gl_renderable.h>
+#include <memory>
+#include "izzgl_material.h"
 
 namespace izz {
 namespace geo {

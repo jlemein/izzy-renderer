@@ -9,9 +9,9 @@
 #include <geo_meshinstance.h>
 #include <geo_scene.h>
 #include <geo_transform.h>
-#include "izzgl_materialsystem.h"
 #include <izz_resourcemanager.h>
-#include <izz_texturesystem.h>
+#include "izzgl_materialsystem.h"
+#include "izzgl_texturesystem.h"
 
 #include <assimp/postprocess.h>
 #include <spdlog/spdlog.h>
@@ -22,11 +22,11 @@
 
 using namespace lsw;
 
-SceneLoader::SceneLoader(std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem)
+SceneLoader::SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem)
   : m_textureSystem{textureSystem}
   , m_materialSystem{materialSystem} {}
 
-std::shared_ptr<geo::Texture> SceneLoader::readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
+izz::gl::Texture* SceneLoader::readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
                                                               const geo::Material& material) const {
   std::string diffusePath = material.diffuseTexturePath;
 
@@ -37,7 +37,7 @@ std::shared_ptr<geo::Texture> SceneLoader::readDiffuseTexture(const geo::Scene& 
     diffusePath = aiDiffusePath.C_Str();
   }
 
-  std::shared_ptr<geo::Texture> texture{nullptr};
+  izz::gl::Texture* texture{nullptr};
   if (!diffusePath.empty()) {
     // diffuse path is relative to scene file
     auto resolvedPath = scene.m_dir / diffusePath;
@@ -48,7 +48,7 @@ std::shared_ptr<geo::Texture> SceneLoader::readDiffuseTexture(const geo::Scene& 
   return texture;
 }
 
-std::shared_ptr<geo::Texture> SceneLoader::readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
+izz::gl::Texture* SceneLoader::readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
                                                                const geo::Material& material) const {
   std::string specularPath = material.specularTexturePath;
 
@@ -59,7 +59,7 @@ std::shared_ptr<geo::Texture> SceneLoader::readSpecularTexture(const geo::Scene&
     specularPath = aiSpecularPath.C_Str();
   }
 
-  std::shared_ptr<geo::Texture> texture{nullptr};
+  izz::gl::Texture* texture{nullptr};
   if (!specularPath.empty()) {
     auto resolvedPath = scene.m_dir / specularPath;
     texture = m_textureSystem->loadTexture(resolvedPath);
@@ -69,7 +69,7 @@ std::shared_ptr<geo::Texture> SceneLoader::readSpecularTexture(const geo::Scene&
   return texture;
 }
 
-std::shared_ptr<geo::Texture> SceneLoader::readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p, const geo::Material& material) const {
+izz::gl::Texture* SceneLoader::readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p, const geo::Material& material) const {
   std::string normalPath = material.normalTexturePath;
 
   if (normalPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_NORMALS) > 0) {
@@ -79,7 +79,7 @@ std::shared_ptr<geo::Texture> SceneLoader::readNormalTexture(const geo::Scene& s
     normalPath = aiNormalPath.C_Str();
   }
 
-  std::shared_ptr<geo::Texture> texture{nullptr};
+  izz::gl::Texture* texture{nullptr};
   if (!normalPath.empty()) {
     auto resolvedPath = scene.m_dir / normalPath;
     texture = m_textureSystem->loadTexture(resolvedPath);
@@ -89,7 +89,7 @@ std::shared_ptr<geo::Texture> SceneLoader::readNormalTexture(const geo::Scene& s
   return texture;
 }
 
-std::shared_ptr<geo::Texture> SceneLoader::readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
+izz::gl::Texture* SceneLoader::readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
                                                                 const geo::Material& material) const {
   std::string roughnessPath = material.roughnessTexturePath;
 
@@ -100,7 +100,7 @@ std::shared_ptr<geo::Texture> SceneLoader::readRoughnessTexture(const geo::Scene
     roughnessPath = aiNormalPath.C_Str();
   }
 
-  std::shared_ptr<geo::Texture> texture{nullptr};
+  izz::gl::Texture* texture{nullptr};
   if (!roughnessPath.empty()) {
     auto resolvedPath = scene.m_dir / roughnessPath;
     texture = m_textureSystem->loadTexture(roughnessPath);
@@ -111,14 +111,19 @@ std::shared_ptr<geo::Texture> SceneLoader::readRoughnessTexture(const geo::Scene
 }
 
 void SceneLoader::readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial_p, geo::Material& material) {
-  material.diffuseTexture = readDiffuseTexture(scene, aiMaterial_p, material);
-  material.normalTexture = readNormalTexture(scene, aiMaterial_p, material);
-  material.specularTexture = readSpecularTexture(scene, aiMaterial_p, material);
-  material.roughnessTexture = readRoughnessTexture(scene, aiMaterial_p, material);
+  auto pDiffuse = readDiffuseTexture(scene, aiMaterial_p, material);
+  auto pNormal = readNormalTexture(scene, aiMaterial_p, material);
+  auto pSpecular = readSpecularTexture(scene, aiMaterial_p, material);
+  auto pRoughness = readRoughnessTexture(scene, aiMaterial_p, material);
+
+  material.diffuseTexture = pDiffuse != nullptr ? pDiffuse->id : -1;
+  material.normalTexture = pNormal != nullptr ? pNormal->id : -1;
+  material.specularTexture = pSpecular != nullptr ? pSpecular->id : -1;
+  material.roughnessTexture = pRoughness != nullptr ? pRoughness->id : -1;
 
   // TODO: read remaining generic textures
   for (auto& [name, texturePath] : material.texturePaths) {
-    material.textures[name] = m_textureSystem->loadTexture(texturePath);
+    material.textures[name] = m_textureSystem->loadTexture(texturePath)->id;
   }
 }
 

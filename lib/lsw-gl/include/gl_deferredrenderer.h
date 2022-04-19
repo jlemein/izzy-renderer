@@ -69,6 +69,7 @@ class DeferredRenderer {
 
   /// Texture id's (obtained via glGenTextures)
   GLuint m_gPosition, m_gNormal, m_gAlbedoSpec;
+  GLuint m_depthBuffer;
 
   /// Uniform locations in shader (obtained via glGetUniformLocation).
   GLint m_gPositionLoc = -1, m_gNormalLoc = -1, m_gAlbedoSpecLoc = -1;

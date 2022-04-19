@@ -8,9 +8,9 @@
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include <uniform_uniformblockmanager.h>
+#include "uniform_uniformblockmanager.h"
 
-namespace lsw {
+namespace izz {
 namespace ufm {
 
 // TODO: this is implementation specific for OpenGL, move it to separate namespace
@@ -27,7 +27,7 @@ class UberUniformManager : public UniformBlockManager {
  public:
   void* CreateUniformBlock(size_t& t) override;
   void DestroyUniformBlock(void* block) override;
-  void UpdateUniform(void* data, const geo::Material& material) override;
+  void UpdateUniform(void* data, const izz::gl::Material& material) override;
 };
 
 }  // namespace ufm

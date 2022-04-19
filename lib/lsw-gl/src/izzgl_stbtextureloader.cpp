@@ -1,8 +1,8 @@
 //
 // Created by jlemein on 22-02-21.
 //
-#include "geo_texture.h"
-#include "../include/izz_stbtextureloader.h"
+#include "izzgl_stbtextureloader.h"
+#include "izzgl_texture.h"
 
 #include "wsp_workspace.h"
 
@@ -15,7 +15,7 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
-using namespace lsw;
+using namespace izz::gl;
 
 namespace {
 const std::vector<std::string> SUPPORTED_EXTENSIONS = {".bmp", ".hdr", ".jpg", ".jpeg", ".png", ".exr"};
@@ -25,7 +25,7 @@ StbTextureLoader::StbTextureLoader(bool flipVertical)
   : m_flipVertical{flipVertical}
   {}
 
-geo::Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
+Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
   int desiredChannels = 4;
   int width, height, channels;
 
@@ -44,7 +44,7 @@ geo::Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
     throw std::runtime_error(fmt::format("Cannot load texture from file '{}': width or height is 0", path.c_str()));
   }
 
-  geo::Texture texture{.path = path, .width = width, .height = height, .channels = desiredChannels};
+  Texture texture{.path = path, .width = width, .height = height, .channels = desiredChannels};
 
   // number of pixels * channels * 8 bit
   uint64_t sizeImageData = width * height * desiredChannels;
@@ -54,6 +54,6 @@ geo::Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
   return texture;
 }
 
-geo::ExtensionList StbTextureLoader::getSupportedExtensions() const {
+ExtensionList StbTextureLoader::getSupportedExtensions() const {
   return SUPPORTED_EXTENSIONS;
 }

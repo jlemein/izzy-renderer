@@ -2,13 +2,13 @@
 // Created by jeffrey on 17-12-21.
 //
 #include <geo_effect.h>
-#include <geo_material.h>
 #include <izz_scenegraphhelper.h>
 #include <izzgl_effectsystem.h>
 #include <izzgl_materialsystem.h>
 #include <fstream>
 #include <nlohmann/json.hpp>
 #include <string>
+#include "izzgl_material.h"
 
 using namespace izz;
 using namespace izz::gl;

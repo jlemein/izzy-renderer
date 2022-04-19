@@ -4,9 +4,9 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <glm/glm.hpp>
-#include <geo_material.h>
 #include <geo_effect.h>
+#include <glm/glm.hpp>
+#include "izzgl_material.h"
 
 #include <cstring>
 #include <iostream>
@@ -56,7 +56,7 @@ struct Renderable_UniformBlockInfo {
   GLuint bufferId;
   GLint blockIndex;
   GLint blockBinding;
-  const lsw::geo::UniformBlockInfo* pData{nullptr};
+  const izz::gl::UniformBlockInfo* pData{nullptr};
 };
 
 enum class UType : uint32_t { FLOAT, FLOAT2, FLOAT3, FLOAT4, FLOAT_ARRAY, BOOL, INT, INT2, INT3, INT4, INT_ARRAY, MAT2, MAT3, MAT4 };
@@ -110,8 +110,8 @@ struct BufferedMeshData {
 };
 
 struct TextureBuffer {
-  GLuint textureId;  // as obtained via glGenTextures(, &id)
-  GLint uniformLocation; // as obtained via glGetUniformLocation
+  GLuint textureId {0};  // as obtained via glGenTextures(, &id)
+  GLint uniformLocation {-1}; // as obtained via glGetUniformLocation
 };
 
 struct UniformBufferMapping {
@@ -155,7 +155,7 @@ struct RenderState {
 struct Renderable {
   // storage of user defined shader properties
   //  unsigned int materialId;
-  std::shared_ptr<lsw::geo::Material> material;
+  std::shared_ptr<izz::gl::Material> material;
 //  std::shared_ptr<izz::geo::Effect> effect {nullptr};
 
   // 0 - forward rendered

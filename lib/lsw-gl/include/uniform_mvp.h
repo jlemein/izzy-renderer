@@ -1,7 +1,7 @@
 #pragma once
 
-#include <geo_material.h>
-#include <uniform_uniformblockmanager.h>
+#include "izzgl_material.h"
+#include "uniform_uniformblockmanager.h"
 namespace lsw {
 namespace ufm {
 

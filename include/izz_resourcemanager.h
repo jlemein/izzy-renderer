@@ -11,6 +11,7 @@
 namespace izz {
 namespace gl {
 class MaterialSystem;
+class TextureSystem;
 }  // namespace gl
 }  // namespace izz
 namespace lsw {
@@ -21,7 +22,6 @@ class Scene;
 }  // namespace geo
 
 class SceneLoader;
-class TextureSystem;
 
 /**!
  * @brief Higher level resource manager specifically focused on loading
@@ -37,17 +37,17 @@ class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
    * @param materialSystem
    */
   void setMaterialSystem(std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
-  void setTextureSystem(std::shared_ptr<TextureSystem> textureSystem);
+  void setTextureSystem(std::shared_ptr<izz::gl::TextureSystem> textureSystem);
   void setSceneLoader(std::shared_ptr<SceneLoader> sceneLoader);
 
   std::shared_ptr<izz::gl::MaterialSystem> getMaterialSystem();
-  std::shared_ptr<TextureSystem> getTextureSystem();
+  std::shared_ptr<izz::gl::TextureSystem> getTextureSystem();
   std::shared_ptr<SceneLoader> getSceneLoader();
 
  private:
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
   std::shared_ptr<SceneLoader> m_sceneLoader{nullptr};
-  std::shared_ptr<TextureSystem> m_textureSystem;
+  std::shared_ptr<izz::gl::TextureSystem> m_textureSystem;
 };
 
 }  // namespace lsw

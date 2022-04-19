@@ -7,9 +7,9 @@
 #include <entt/entt.hpp>
 #include <memory>
 #include <nlohmann/json.hpp>
-#include "geo_material.h"
-#include "gl_rendersystem.h"
 #include "izz_scenegraphentity.h"
+#include "izzgl_material.h"
+#include "izzgl_rendersystem.h"
 #include "uniform_uniformblockmanager.h"
 
 namespace lsw {

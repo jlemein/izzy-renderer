@@ -4,12 +4,12 @@
 #include <izz_resourcemanager.h>
 
 #include <geo_scene.h>
-#include <geo_texture.h>
-#include <geo_textureloader.h>
-#include <izz_exrloader.h>
-#include "izzgl_materialsystem.h"
 #include <izz_sceneloader.h>
-#include <izz_texturesystem.h>
+#include "izzgl_exrloader.h"
+#include "izzgl_materialsystem.h"
+#include "izzgl_texture.h"
+#include "izzgl_textureloader.h"
+#include "izzgl_texturesystem.h"
 
 using namespace lsw;
 using namespace izz;
@@ -24,7 +24,7 @@ void ResourceManager::setMaterialSystem(std::shared_ptr<gl::MaterialSystem> mate
   m_materialSystem = materialSystem;
 }
 
-void ResourceManager::setTextureSystem(std::shared_ptr<TextureSystem> textureSystem) {
+void ResourceManager::setTextureSystem(std::shared_ptr<izz::gl::TextureSystem> textureSystem) {
   m_textureSystem = textureSystem;
 }
 
@@ -36,7 +36,7 @@ std::shared_ptr<gl::MaterialSystem> ResourceManager::getMaterialSystem() {
   return m_materialSystem;
 }
 
-std::shared_ptr<TextureSystem> ResourceManager::getTextureSystem() {
+std::shared_ptr<izz::gl::TextureSystem> ResourceManager::getTextureSystem() {
   return m_textureSystem;
 }
 

@@ -14,20 +14,20 @@ void main()
 {
 //    out_color = texture(gbuffer_position, 2*in_uv); //vec4(1, 0, 0, 0);
     // store the fragment position vector in the first gbuffer texture
-    if ((in_uv.x > 0.4995 && in_uv.x < 0.5005) || (in_uv.y >0.4995 && in_uv.y <= 0.5005)) {
-        out_color = vec4(0.125);
+    if ((in_uv.x > 0.499 && in_uv.x < 0.501) || (in_uv.y >0.499 && in_uv.y <= 0.501)) {
+        out_color = vec4(1,1,1,1);
         return;
     }
-    if (in_uv.x < 0.5 && in_uv.y >= 0.5) {
+    if (in_uv.x < 0.5 && in_uv.y < 0.5) {
         out_color = texture(gbuffer_position, in_uv*2.0);
-    } else if (in_uv.x >= 0.5 && in_uv.y >= 0.5) {
+    } else if (in_uv.x >= 0.5 && in_uv.y < 0.5) {
         out_color = texture(gbuffer_normal, (in_uv-0.5)*2.0);
-    } else if (in_uv.x < 0.5 && in_uv.y < 0.5) {
-        vec2 uv = vec2(in_uv.x*2.0, in_uv.y*2.0);
+    } else if (in_uv.x < 0.5 && in_uv.y >= 0.5) {
+        vec2 uv = vec2(in_uv.x*2.0, (in_uv.y-0.5)*2.0);
         out_color = vec4(texture(gbuffer_albedospec, uv).rgb, 1);
     } else {
         // specular color
-        vec2 uv = vec2((in_uv.x-0.5)*2.0, in_uv.y*2.0);
+        vec2 uv = vec2((in_uv.x-0.5)*2.0, (in_uv.y-0.5)*2.0);
         out_color = vec4(texture(gbuffer_albedospec, uv).w);
     }
 }

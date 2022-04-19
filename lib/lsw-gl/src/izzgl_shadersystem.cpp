@@ -1,7 +1,7 @@
 #include <GL/glew.h>
-#include <gl_shadersystem.h>
-#include <geo_material.h>
+#include <izzgl_shadersystem.h>
 #include <fstream>
+#include "izzgl_material.h"
 using namespace izz::gl;
 
 namespace {

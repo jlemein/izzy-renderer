@@ -1,29 +1,28 @@
 //
 // Created by jeffrey on 15-11-21.
 //
-#include <izz_exrloader.h>
-#include <geo_texture.h>
+#include "izzgl_exrloader.h"
 #include <algorithm>
 #include <filesystem>
+#include "izzgl_texture.h"
 
 #include <ImfArray.h>
 #include <ImfRgbaFile.h>
 #include <spdlog/spdlog.h>
 
-using namespace lsw;
-
+using namespace izz::gl;
 using namespace Imf;
 using namespace Imath;
 
 namespace {
-void transformHdrToLdr(const Array2D<Rgba>& src, geo::Texture& dst, bool flipVertical = false) {
+void transformHdrToLdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical = false) {
   dst.data.resize(src.width() * src.height() * 4);
   dst.width = src.width();
   dst.height = src.height();
   dst.channels = 4U;
   dst.depth = 1;
 
-  geo::Rgba8888* pData = reinterpret_cast<geo::Rgba8888*>(dst.data.data());
+  Rgba8888* pData = reinterpret_cast<Rgba8888*>(dst.data.data());
 
   for (int y = 0; y < src.height(); ++y) {
     for (int x = 0; x < src.width(); ++x) {
@@ -44,7 +43,7 @@ void transformHdrToLdr(const Array2D<Rgba>& src, geo::Texture& dst, bool flipVer
 ExrLoader::ExrLoader(bool flipVertical)
   : m_flipVertical{flipVertical} {}
 
-geo::Texture ExrLoader::loadTexture(const std::filesystem::path& path) {
+Texture ExrLoader::loadTexture(const std::filesystem::path& path) {
   // Read data via OpenEXR library into imageData
   RgbaInputFile file(path.c_str());
   Box2i dw = file.dataWindow();
@@ -57,13 +56,13 @@ geo::Texture ExrLoader::loadTexture(const std::filesystem::path& path) {
   file.readPixels(dw.min.y, dw.max.y);
 
   // convert HDR to LDR to use as geo::Texture
-  geo::Texture texture;
+  Texture texture;
   transformHdrToLdr(imageData, texture, m_flipVertical);
   texture.path = path;
 
   return texture;
 }
 
-geo::ExtensionList ExrLoader::getSupportedExtensions() const {
-  return geo::ExtensionList{"exr"};
+ExtensionList ExrLoader::getSupportedExtensions() const {
+  return ExtensionList{"exr"};
 }

@@ -15,12 +15,12 @@
 #include "geo_camera.h"
 #include "geo_curve.h"
 #include "geo_light.h"
-#include "geo_material.h"
 #include "geo_mesh.h"
 #include "geo_meshinstance.h"
 #include "geo_meshtransform.h"
 #include "geo_scene.h"
 #include "gl_deferredrenderer.h"
+#include "izzgl_material.h"
 
 using namespace izz;
 using namespace lsw;

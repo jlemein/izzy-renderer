@@ -1,16 +1,34 @@
 
-add_library(geo STATIC src/geo_meshloader.cpp
-        include/geo_meshloader.h
-        include/geo_graph.h src/geo_graph.cpp
-        include/geo_meshtransform.h
+add_library(geo STATIC
+        include/geo_boundingbox.h
+        include/geo_camera.h
+        include/geo_curve.h
+        include/geo_effect.h
+        include/geo_graph.h
+        include/geo_light.h
         include/geo_materialutil.h
-        src/geo_materialutil.cpp
-        src/geo_meshtransform.cpp
-        include/geo_primitivefactory.h
-        src/geo_primitivefactory.cpp
         include/geo_mesh.h
-        include/geo_boundingbox.h include/geo_meshinstance.h include/geo_shapeutil.h src/geo_boundingbox.cpp include/geo_transform.h
-        include/geo_texture.h include/geo_textureloader.h include/geo_material.h include/geo_meshutil.h src/geo_meshutil.cpp include/geo_scenetransform.h include/geo_effect.h include/geo_graph.h src/geo_graph.cpp src/geo_graph.t.cpp)
+        include/geo_meshinstance.h
+        include/geo_meshloader.h
+        include/geo_meshtransform.h
+        include/geo_meshutil.h
+        include/geo_primitivefactory.h
+        include/geo_scene.h
+        include/geo_scenetransform.h
+        include/geo_shapeutil.h
+        include/geo_transform.h
+        src/geo_boundingbox.cpp
+        src/geo_graph.cpp
+#        src/geo_graph.t.cpp
+#        src/geo_material.t.cpp
+        src/geo_materialutil.cpp
+        src/geo_meshloader.cpp
+        src/geo_meshtransform.cpp
+        src/geo_meshutil.cpp
+#        src/geo_meshutil.t.cpp
+        src/geo_primitivefactory.cpp
+        src/geo_scene.cpp
+       )
 
 target_include_directories(geo
         PUBLIC include
@@ -26,6 +44,7 @@ find_package(Boost REQUIRED)
 
 target_link_libraries(geo
     PRIVATE
+        ecs
         assimp::assimp
         glm::glm
         spdlog::spdlog

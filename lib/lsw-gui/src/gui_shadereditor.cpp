@@ -1,12 +1,12 @@
 //
 // Created by jeffrey on 12-12-21.
 //
-#include <gui_shadereditor.h>
 #include <fmt/format.h>
+#include <gui_shadereditor.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include "izz_scenegraphhelper.h"
-#include "geo_material.h"
+#include "izzgl_material.h"
 using namespace izz::gui;
 
 ShaderEditor::ShaderEditor(std::shared_ptr<izz::SceneGraphHelper> sceneGraph)

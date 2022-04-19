@@ -3,8 +3,8 @@
 //
 #pragma once
 
-#include "geo_texture.h"
-#include "geo_textureloader.h"
+#include "izzgl_texture.h"
+#include "izzgl_textureloader.h"
 
 #include <filesystem>
 #include <memory>
@@ -12,7 +12,10 @@
 #include <unordered_map>
 #include <vector>
 
-namespace lsw {
+namespace izz {
+namespace gl {
+
+struct Texture;
 
 /**
  * The texture system manages the textures in the scene.
@@ -29,7 +32,7 @@ class TextureSystem {
    * @param path Path of the texture file.
    * @return a texture object that is shared with the texture system.
    */
-  std::shared_ptr<geo::Texture> loadTexture(const std::filesystem::path& path);
+  Texture* loadTexture(const std::filesystem::path& path);
 
   /**
    * Sets a texture loader for the specified extension(s).
@@ -38,24 +41,25 @@ class TextureSystem {
    * @param textureLoader The texture loader responsible for loading the specified texture format.
    *                      Setting the extension to a nullptr unsets the texture loader.
    */
-  void setTextureLoader(const std::string& extension, std::shared_ptr<geo::TextureLoader> textureLoader);
+  void setTextureLoader(const std::string& extension, std::shared_ptr<TextureLoader> textureLoader);
 
   /**
    * @overload
    */
-  void setTextureLoader(const geo::ExtensionList& extension, std::shared_ptr<geo::TextureLoader> textureLoader);
+  void setTextureLoader(const ExtensionList& extension, std::shared_ptr<TextureLoader> textureLoader);
 
   /**
    * Removes all added texture loaders.
    */
   void clearTextureLoaders();
 
-  const std::unordered_map<std::string, geo::Texture>& getTextures() const;
+  const std::unordered_map<std::string, Texture>& getTextures() const;
 
  private:
-  std::unordered_map<std::string, std::shared_ptr<geo::TextureLoader>> m_textureLoaders;
-  std::unordered_map<std::string, geo::Texture> m_cachedTextures;
-  std::unordered_map<uint64_t, std::shared_ptr<geo::Texture>> m_textures;
+  std::unordered_map<std::string, std::shared_ptr<TextureLoader>> m_textureLoaders;
+  std::unordered_map<std::string, Texture> m_cachedTextures;
+  std::unordered_map<TextureId, Texture> m_textures;
 };
 
-}  // namespace lsw
+}  // namespace gl
+}  // namespace izz

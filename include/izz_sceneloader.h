@@ -14,6 +14,8 @@
 namespace izz {
 namespace gl {
 class MaterialSystem;
+class TextureSystem;
+struct Texture;
 }  // namespace gl
 }  // namespace izz
 
@@ -26,15 +28,12 @@ class Resource;
 
 namespace geo {
 struct Scene;
-struct Texture;
 struct Material;
 }  // namespace geo
 
-class TextureSystem;
-
 class SceneLoader {
  public:
-  SceneLoader(std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
+  SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
 
   std::shared_ptr<geo::Scene> loadScene(const std::string& path);
 
@@ -84,12 +83,12 @@ class SceneLoader {
    */
   void readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial, geo::Material& material);
 
-  std::shared_ptr<geo::Texture> readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<geo::Texture> readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<geo::Texture> readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  std::shared_ptr<geo::Texture> readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  izz::gl::Texture* readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  izz::gl::Texture* readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  izz::gl::Texture* readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  izz::gl::Texture* readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
 
-  std::shared_ptr<TextureSystem> m_textureSystem{nullptr};
+  std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
 };
 

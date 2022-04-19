@@ -3,14 +3,12 @@
 //
 #pragma once
 
-#include "geo_textureloader.h"
 #include <filesystem>
+#include "izzgl_textureloader.h"
 
-namespace lsw {
-
-namespace geo {
+namespace izz {
+namespace gl {
 struct Texture;
-}
 
 /**
  * @brief Loads textures using the Stb image loader library. This means this texture loader
@@ -18,19 +16,20 @@ struct Texture;
  * as jpg, png, hdr, bmp.
  * @see getSupportedExtensions for a list of supported extensions.
  */
-class StbTextureLoader : public geo::TextureLoader {
+class StbTextureLoader : public TextureLoader {
  public:
   StbTextureLoader(bool flipVertical = false);
   virtual ~StbTextureLoader() = default;
 
   /// @inherit
-  geo::Texture loadTexture(const std::filesystem::path& path) override;
+  Texture loadTexture(const std::filesystem::path& path) override;
 
   /// @inherit
-  geo::ExtensionList getSupportedExtensions() const override;
+  ExtensionList getSupportedExtensions() const override;
 
  private:
-  bool m_flipVertical {false};
+  bool m_flipVertical{false};
 };
 
-}  // namespace lsw
+}  // namespace gl
+}  // namespace izz

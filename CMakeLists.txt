@@ -25,28 +25,23 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_definitions(-DUSE_DEFERRED_RENDERING)
 add_library(izzy STATIC
         include/izz_resourcemanager.h
-        lib/lsw-gl/include/izzgl_materialsystem.h
         include/anim_animationsystem.h
         include/anim_localrotation.h
         include/izz_fontsystem.h
-        include/izz_exrloader.h
         src/izz_resourcemanager.cpp
-        lib/lsw-gl/src/izzgl_materialsystem.cpp
         src/izz_resourcemanager.t.cpp
         src/izz_animationsystem.cpp
         src/izz_fontsystem.cpp
-        include/izz_texturesystem.h src/izz_texturesystem.cpp
-        src/izz_exrloader.cpp
         include/izz_scenegraphhelper.h
         include/izz_scenegraphentity.h
         src/izz_scenegraphhelper.cpp
         src/izz_scenegraphentity.cpp
-        include/izz_sceneloader.h src/izz_sceneloader.cpp
-        include/izz_stbtextureloader.h src/izz_stbtextureloader.cpp
-        include/izz_scenecompositionsystem.h lib/lsw-gl/include/izzgl_effectsystem.h include/izz_renderablecomponentfactory.h)
+        include/izz_sceneloader.h
+        src/izz_sceneloader.cpp
+        include/izz_scenecompositionsystem.h
+        include/izz_renderablecomponentfactory.h)
 
 target_include_directories(izzy
         PUBLIC include

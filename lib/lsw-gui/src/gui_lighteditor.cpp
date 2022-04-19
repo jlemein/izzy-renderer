@@ -1,11 +1,11 @@
 #include <ecs_light.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>
-#include "izz_scenegraphhelper.h"
-#include <geo_material.h>
 #include <gui_lighteditor.h>
 #include <izz_resourcemanager.h>
-#include <izz_texturesystem.h>
+#include "izz_scenegraphhelper.h"
+#include "izzgl_material.h"
+#include "izzgl_texturesystem.h"
 
 #include <imgui.h>
 #include <glm/glm.hpp>

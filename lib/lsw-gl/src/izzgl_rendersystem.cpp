@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 07-11-20.
 //
-#include <gl_rendersystem.h>
+#include <izzgl_rendersystem.h>
 #include "gl_common.cpp"
 
 #include <ecs_camera.h>
@@ -12,18 +12,21 @@
 #include <ecs_wireframe.h>
 #include <geo_curve.h>
 #include <geo_effect.h>
-#include <geo_material.h>
 #include <geo_mesh.h>
 #include <gl_renderutils.h>
-#include <gl_shadersystem.h>
 #include <glrs_lightsystem.h>
+#include <izz_resourcemanager.h>
 #include <izzgl_effectsystem.h>
 #include <izzgl_materialsystem.h>
+#include <izzgl_shadersystem.h>
 #include <spdlog/spdlog.h>
-#include <uniform_ubermaterial.h>
 #include <cstring>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
+#include "izzgl_material.h"
+#include "izzgl_texturesystem.h"
+#include "uniform_ubermaterial.h"
+
 #include "izz_scenegraphhelper.h"
 using namespace izz;
 using namespace izz::gl;
@@ -285,9 +288,10 @@ void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable&
   }
 }
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<MaterialSystem> materialSystem)
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem)
   : m_registry{registry}
   , m_debugSystem(registry)
+  , m_resourceManager{resourceManager}
   , m_materialSystem(materialSystem)
 //  , m_effectSystem{effectSystem}
   , m_shaderSystem(std::make_shared<ShaderSystem>())
@@ -316,6 +320,57 @@ void RenderSystem::initPostprocessBuffers() {
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
+//
+//void RenderSystem::allocateTextureBuffers() {
+//    const auto& textures = m_resourceManager->getTextureSystem()->getTextures();
+//
+//  for(auto& [name, texture] : textures) {
+//    spdlog::debug("Rendersystem: allocating texture buffer for '{}'", name);
+//    m_allocatedTextures[texture.id] = allocateTextureBuffer(texture);
+//  }
+//
+////                                                      // <Material, Renderable>?
+////
+////  // put the code in bottom part of readMaterialDefinitions here
+////  // ...
+////
+////
+////
+////    for (auto& [name, path] : geoMaterial.texturePaths) {
+////      // TODO: check if name is used in shader object
+////      try {
+////        auto t = m_resourceManager->getTextureSystem()->loadTexture(path);
+////        if (t != nullptr) {
+////          geoMaterial.textures[name] = t->id;
+////          attachTexture(renderable, *t, name);
+////        }
+////      } catch (std::out_of_range e) {
+////        throw std::runtime_error(fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
+////      }
+////    }
+////
+////    // A material is parsed in two ways
+////    // - A material has standard textures assigned in the scene file, such as
+////    //   diffuse, normal, transparency maps. They map to predefined variable
+////    //   names.
+////    // - A material requires a specific texture, such as noise, or any other
+////    // texture of specific use for this material only.
+////    //   In that case,
+////    // diffuse texture
+////    if (geoMaterial.diffuseTexture != nullptr) {
+////      attachTexture(renderable, *geoMaterial.diffuseTexture, "diffuseTex");
+////    }
+////    if (geoMaterial.specularTexture != nullptr) {
+////      attachTexture(renderable, *geoMaterial.specularTexture, "specularTex");
+////    }
+////    if (geoMaterial.normalTexture != nullptr) {
+////      attachTexture(renderable, *geoMaterial.normalTexture, "normalTex");
+////    }
+////    if (geoMaterial.roughnessTexture != nullptr) {
+////      attachTexture(renderable, *geoMaterial.roughnessTexture, "normalTex");
+////    }
+////  }
+//}
 
 void RenderSystem::init(int width, int height) {
   glShadeModel(GL_SMOOTH);
@@ -331,15 +386,22 @@ void RenderSystem::init(int width, int height) {
 //  m_effectSystem->initialize();
 
   // convert material descriptions to openGL specific material data.
-  m_materialSystem->synchronizeTextures(*this);
+//  allocateTextureBuffers();
+//  m_materialSystem->synchronizeTextures(*this);
 
   //  m_effectSystem->initialize();
 
   // setup postprocessing screen quad
   initPostprocessBuffers();
 
+  m_deferredRenderer.init(width, height);
+
   auto numMaterials = m_registry.view<lsw::geo::Material>().size();
   auto numLights = m_lightSystem->getActiveLightCount();
+
+  auto numDeferredRenderables = m_registry.view<gl::DeferredRenderable>().size();
+  auto numForwardRenderables = m_registry.view<gl::Renderable>().size();
+  spdlog::info("Forward renderables: {}, Deferred renderables: {}", numForwardRenderables, numDeferredRenderables);
 
   // small summary
   spdlog::info(
@@ -347,8 +409,6 @@ void RenderSystem::init(int width, int height) {
       "Number of material in use: {} | "
       "Number of active lights: {}",
       numMaterials, numLights);
-
-  m_deferredRenderer.init(width, height);
   return;
 
   // Initialization of the rendersystem encompasses the following steps.
@@ -624,38 +684,4 @@ void RenderSystem::checkError(entt::entity e) {
     auto name = m_registry.all_of<lsw::ecs::Name>(e) ? m_registry.get<lsw::ecs::Name>(e).name : std::string{"Unnamed"};
     std::cerr << " Render error occurred for " << name << ": " << err << std::endl;
   }
-}
-
-/**!
- * @brief Creates a texture buffer and sends the data over to the GPU. This
- * method therefore converts a texture resource to GPU ready representation.
- * @param renderable      [in/out] Reference to renderable
- * @param geoTexture
- * @param name
- *
- * TODO: think about passing a scene graph entity instead
- * @return
- */
-void RenderSystem::attachTexture(Renderable& renderable, const lsw::geo::Texture& geoTexture, const std::string& name) {
-  lsw::ecs::Texture texture{.name = name};
-  glGenTextures(1, &texture.glTextureId);
-  glBindTexture(GL_TEXTURE_2D, texture.glTextureId);
-
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-  if (!geoTexture.data.empty()) {
-    GLint texChannel = geoTexture.channels == 3 ? GL_RGB : GL_RGBA;
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, geoTexture.width, geoTexture.height, 0, texChannel, GL_UNSIGNED_BYTE, geoTexture.data.data());
-    glGenerateMipmap(GL_TEXTURE_2D);
-  } else {
-    spdlog::error("Failed to create texture buffer for texture '{}'. Data is empty.", geoTexture.path);
-    exit(1);
-  }
-
-  renderable.textures.emplace_back(texture);
-  spdlog::log(spdlog::level::debug, "Loaded GL texture for texture '{}'", name);
 }

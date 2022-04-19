@@ -1,14 +1,14 @@
 //
 // Created by jeffrey on 12-12-21.
 //
-#include "izz_scenegraphhelper.h"
-#include <geo_material.h>
 #include <gui_materialeditor.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include <entt/entt.hpp>
 #include "ecs_name.h"
 #include "gl_renderable.h"
+#include "izz_scenegraphhelper.h"
+#include "izzgl_material.h"
 using namespace izz::gui;
 
 static bool p_open{false};

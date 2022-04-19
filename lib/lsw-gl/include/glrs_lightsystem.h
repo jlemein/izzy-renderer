@@ -1,11 +1,11 @@
 #pragma once
 
-#include <geo_material.h>
 #include <gl_renderable.h>
+#include <izzgl_materialsystem.h>
 #include <entt/entity/registry.hpp>
 #include <glm/glm.hpp>
-#include <izzgl_materialsystem.h>
 #include <memory>
+#include "izzgl_material.h"
 
 namespace lsw {
 namespace geo {

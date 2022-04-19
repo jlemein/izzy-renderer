@@ -19,8 +19,6 @@ struct BufferedMeshData;
 struct RenderState;
 struct UniformBufferMapping;
 
-
-
 struct RenderUtils {
  public:
   /**
@@ -77,7 +75,7 @@ struct RenderUtils {
    * @param [in] m      Material
    * @param [out] rs    Render state to update.
    */
-  static void LoadMaterial(const lsw::geo::Material& m, RenderState& rs);
+  static void LoadMaterial(const izz::gl::Material& m, RenderState& rs);
 
 //  static int GetUniformBufferLocation(const RenderState& rs, std::string uboName);
   static UniformBufferMapping GetUniformBufferLocation(const RenderState& rs, std::string uboName);

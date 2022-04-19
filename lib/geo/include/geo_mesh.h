@@ -11,7 +11,6 @@
 #include <vector>
 
 #include <geo_boundingbox.h>
-#include <geo_material.h>
 #include <boost/functional/hash.hpp>
 
 namespace lsw {

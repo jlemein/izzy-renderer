@@ -7,12 +7,17 @@
 #include <gl_renderable.h>
 #include <memory>
 
-#include <glrs_lightsystem.h>
-#include <gl_multipassframebuffer.h>
-#include "gl_hdrframebuffer.h"
-#include <gl_forwardrenderer.h>
 #include <gl_deferredrenderer.h>
+#include <gl_forwardrenderer.h>
+#include <gl_multipassframebuffer.h>
+#include <glrs_lightsystem.h>
 #include <entt/fwd.hpp>
+#include "gl_hdrframebuffer.h"
+#include "izzgl_texture.h"
+
+namespace lsw {
+class ResourceManager;
+}
 
 namespace izz {
 namespace gl {
@@ -20,6 +25,7 @@ class EffectSystem;
 class MaterialSystem;
 class LightSystem;
 class ShaderSystem;
+struct Texture;
 
 /**!
  * Render system that interacts with the GPU using OpenGL.
@@ -32,6 +38,7 @@ class RenderSystem {
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
    */
   RenderSystem(entt::registry& registry,
+               std::shared_ptr<lsw::ResourceManager> resourceManager,
                std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
 
   /**
@@ -59,13 +66,7 @@ class RenderSystem {
 
   void setActiveCamera(entt::entity cameraEntity);
 
-  /**
-   * Attaches a texture to the renderable unit
-   * @param geoTexture
-   * @param paramName
-   * @return
-   */
-  void attachTexture(Renderable& renderable, const lsw::geo::Texture& geoTexture, const std::string& paramName);
+//  void allocateTextureBuffers();
 
   /// @brief Activates the effect. Sets up framebuffer.
   void activateEffect(entt::entity e);
@@ -80,12 +81,15 @@ class RenderSystem {
   ForwardRenderer m_forwardRenderer;
   DeferredRenderer m_deferredRenderer;
 
+  std::unordered_map<TextureId, GLuint> m_allocatedTextures;
+
   /// Contains render state attributes (such as program id, vertex attrib counts, etc).
   std::vector<izz::gl::RenderState> m_renderStates;
 
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
-  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem;
+  std::shared_ptr<lsw::ResourceManager> m_resourceManager {nullptr};
+  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem {nullptr};
 //  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
   lsw::ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;

@@ -2,24 +2,24 @@
 // Created by jlemein on 11-03-21.
 //
 
+#include "../lib/lsw-gl/include/izzgl_exrloader.h"
+#include "../lib/lsw-gl/include/izzgl_stbtextureloader.h"
+#include "../lib/lsw-gl/include/izzgl_texturesystem.h"
 #include "anim_localrotation.h"
 #include "core_util.h"
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
 #include "ecs_transformutil.h"
-#include "izz_scenegraphhelper.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
 #include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
-#include "izz_exrloader.h"
-#include "izz_fontsystem.h"
-#include "izzgl_materialsystem.h"
-#include "izz_resourcemanager.h"
-#include "izz_sceneloader.h"
-#include "izz_stbtextureloader.h"
-#include "izz_texturesystem.h"
 #include "gui_window.h"
+#include "izz_fontsystem.h"
+#include "izz_resourcemanager.h"
+#include "izz_scenegraphhelper.h"
+#include "izz_sceneloader.h"
+#include "izzgl_materialsystem.h"
 #include "wsp_workspace.h"
 
 #include <spdlog/spdlog.h>

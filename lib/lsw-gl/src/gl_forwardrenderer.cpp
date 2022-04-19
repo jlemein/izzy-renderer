@@ -1,15 +1,15 @@
 //
 // Created by jeffrey on 19-01-22.
 //
-#include <gl_forwardrenderer.h>
-#include <entt/entt.hpp>
 #include <GL/glew.h>
-#include <gl_renderable.h>
 #include <ecs_transform.h>
 #include <ecs_wireframe.h>
-#include <gl_rendersystem.h>
 #include <gl_common.h>
+#include <gl_forwardrenderer.h>
+#include <gl_renderable.h>
 #include <gl_renderutils.h>
+#include <izzgl_rendersystem.h>
+#include <entt/entt.hpp>
 using namespace izz::gl;
 
 ForwardRenderer::ForwardRenderer(RenderSystem& renderSystem)

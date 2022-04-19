@@ -4,8 +4,8 @@
 #include <GL/glew.h>
 #include <ecs_camera.h>
 #include <gl_deferredrenderer.h>
-#include <gl_rendersystem.h>
 #include <gl_renderutils.h>
+#include <izzgl_rendersystem.h>
 #include <entt/entt.hpp>
 #include "geo_primitivefactory.h"
 using namespace izz::gl;
@@ -113,7 +113,7 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, m_gNormal, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, m_gNormal, 0);
 
   // GBuffer: albedoTexture
   glGenTextures(1, &m_gAlbedoSpec);
@@ -121,13 +121,25 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, m_gAlbedoSpec, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, m_gAlbedoSpec, 0);
+
+  glGenRenderbuffers(1, &m_depthBuffer);
+  glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthBuffer);
+
+  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+    spdlog::info("Deferred renderer: successfully created framebuffer");
+  } else {
+    throw std::runtime_error("Deferred renderer: failed creating a valid frame buffer");
+  }
 }
 
 void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = lsw::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
   auto& rs = m_renderSystem.createRenderState();
   const auto& material = m_renderSystem.getMaterialSystem().createMaterial("DeferredLightingPass");
+//  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("Deferred_VisualizeGBuffer");
 
   RenderUtils::FillBufferedMeshData(rectangle, rs.meshData);
   RenderUtils::LoadMaterial(material, rs);
@@ -158,6 +170,14 @@ void DeferredRenderer::init(int width, int height) {
 
   // handling meshes
   spdlog::info("Deferred Renderer: Mesh Initialization");
+  auto numRenderables = m_registry.view<DeferredRenderable>().size();
+  auto numMeshRenderables = m_registry.view<lsw::geo::Mesh, DeferredRenderable>().size_hint();
+
+  if (numRenderables != numMeshRenderables) {
+    spdlog::warn("It seems some renderable objects are missing a mesh: renderables: {} vs renderables w. mesh: {}",
+                 numRenderables, numMeshRenderables);
+  }
+
   for (auto [entity, mesh, r] : m_registry.view<lsw::geo::Mesh, DeferredRenderable>().each()) {
     onConstruct(m_registry, entity);
   }
@@ -248,13 +268,12 @@ void DeferredRenderer::render(const entt::registry& registry) {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     glDrawBuffer(GL_BACK); /* Use backbuffer as color dst.         */
 
-//  //  /* Read from your FBO */
-//    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_gBufferFbo);
-//    glReadBuffer(GL_COLOR_ATTACHMENT1); /* Use Color Attachment 0 as color src. */
-  //
-  //  glClearColor(1.0, 0.0, 0., 0.0);
-  //  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  //  glClearColor(0.0,0.0,0.0,0.0);
+    /* Read from your FBO */
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_gBufferFbo);
+    glReadBuffer(GL_COLOR_ATTACHMENT1); /* Use Color Attachment 0 as color src. */
+
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClearColor(0.0,0.0,0.0,0.0);
 
     auto& rs = m_renderSystem.getRenderState(m_screenSpaceRenderStateId);
     glUseProgram(rs.program);
@@ -266,20 +285,20 @@ void DeferredRenderer::render(const entt::registry& registry) {
     glActiveTexture(GL_TEXTURE0+1);
     glBindTexture(GL_TEXTURE_2D, m_gNormal);
     glUniform1i(m_gNormalLoc, 1);
-
+//
     glActiveTexture(GL_TEXTURE0+2);
     glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
     glUniform1i(m_gAlbedoSpecLoc, 2);
-
-//    lsw::geo::Material m;
-
-    //TODO: assign texture id's to material's textures.
-    // why? The render system shoud map a generic texture id to a rendersystem specific texture id
-    // (obtained via glGenTextures).
-//    m.textures["gbuffer_position"] = m_gPosition;
-//    m.textures["dog_texture"] = m_textureManager.loadTexture("dog.png");
-
-    RenderUtils::ActivateTextures(rs);
+//
+////    lsw::geo::Material m;
+//
+//    //TODO: assign texture id's to material's textures.
+//    // why? The render system shoud map a generic texture id to a rendersystem specific texture id
+//    // (obtained via glGenTextures).
+////    m.textures["gbuffer_position"] = m_gPosition;
+////    m.textures["dog_texture"] = m_textureManager.loadTexture("dog.png");
+//
+//    RenderUtils::ActivateTextures(rs);
     RenderUtils::UseBufferedMeshData(rs.meshData);
     RenderUtils::PushUniformProperties(rs);
     glDrawElements(rs.meshData.primitiveType, rs.meshData.drawElementCount, GL_UNSIGNED_INT, 0);

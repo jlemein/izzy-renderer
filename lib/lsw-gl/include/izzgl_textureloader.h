@@ -8,8 +8,8 @@
 #include <string>
 #include <vector>
 
-namespace lsw {
-namespace geo {
+namespace izz {
+namespace gl {
 
 struct Texture;
 
@@ -19,10 +19,10 @@ class TextureLoader {
  public:
   virtual ~TextureLoader() = default;
 
-  virtual geo::Texture loadTexture(const std::filesystem::path& path) = 0;
+  virtual Texture loadTexture(const std::filesystem::path& path) = 0;
 
   virtual ExtensionList getSupportedExtensions() const = 0;
 };
 
-}  // namespace geo
-}  // namespace lsw
+}  // namespace gl
+}  // namespace izz

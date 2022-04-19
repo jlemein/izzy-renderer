@@ -5,7 +5,7 @@
 #include <geo_mesh.h>
 #include <gl_renderable.h>
 #include <gl_renderutils.h>
-#include "gl_shadersystem.h"
+#include "izzgl_shadersystem.h"
 using namespace izz;
 using namespace izz::gl;
 
@@ -117,6 +117,8 @@ void RenderUtils::FillBufferedMeshData(const lsw::geo::Mesh& mesh, BufferedMeshD
 void RenderUtils::ActivateTextures(const RenderState& rs) {
   for (int t = 0; t < rs.textureBuffers.size(); ++t) {
     const auto& texture = rs.textureBuffers[t];
+
+    std::cout << "Activating texture " << t << std::endl;
 
     glActiveTexture(GL_TEXTURE0 + t);
     glBindTexture(GL_TEXTURE_2D, texture.textureId);
@@ -318,28 +320,33 @@ void RenderUtils::LoadMaterial(const lsw::geo::Material& material, RenderState& 
     spdlog::debug("\tProgram id: {}\n\tShader program compiled successfully (vs: {} fs: {})", rs.program, material.vertexShader, material.fragmentShader);
 
     // load textures - this means, create
+    for (const auto& [texname, filepath] : material.textures) {
     for (const auto& [texname, filepath] : material.texturePaths) {
       spdlog::debug("Texture {}: {}", texname, filepath);
 
-      if (filepath.empty()) {
-        //
-        TextureBuffer tb;
-        tb.textureId == 0; // not known yet.
-        tb.uniformLocation = glGetUniformLocation(rs.program, texname.c_str());
+      TextureBuffer tb;
 
-        if (tb.uniformLocation != GL_INVALID_INDEX) {
-          rs.textureBuffers.emplace_back(tb);
-        } else {
-          spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.name, texname);
-        }
+      // When filepath is empty then the texture need to be defined by the user in code (i.e. there is no default).
+      // Or it is a texture that is passed in from previous render pass.
+      tb.uniformLocation = glGetUniformLocation(rs.program, texname.c_str());
 
-        spdlog::debug("Texture {}: {} -> {}", texname, tb.textureId, tb.uniformLocation);
+      if (!filepath.empty()) {
+        // TODO: load texture from file.
       }
-//      TextureBuffer tb;
-//      tb.
-//      rs.textureBuffers
-    }
 
+      if (tb.uniformLocation != GL_INVALID_INDEX) {
+        spdlog::debug("Material {}: added texture {}: '{}'", material.name, texname, filepath);
+        rs.textureBuffers.emplace_back(tb);
+      } else {
+        spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.name, texname);
+      }
+
+      spdlog::debug("Texture {}: {} -> {}", texname, tb.textureId, tb.uniformLocation);
+
+      //      TextureBuffer tb;
+      //      tb.
+      //      rs.textureBuffers
+    }
 
     for (const auto& [name, uniform] : material.uniformBlocks) {
       spdlog::debug("\tUBO with name: {}", name);

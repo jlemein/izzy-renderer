@@ -4,11 +4,12 @@
 #include <izzgl_materialsystem.h>
 
 #include <wsp_workspace.h>
-#include "geo_textureloader.h"
-#include "gl_rendersystem.h"
 #include "izz_resourcemanager.h"
 #include "izz_scenegraphhelper.h"
-#include "izz_texturesystem.h"
+#include "izzgl_rendersystem.h"
+#include "izzgl_textureloader.h"
+#include "izzgl_texturesystem.h"
+#include <izzgl_shadersystem.h>
 #include "uniform_constant.h"
 #include "uniform_lambert.h"
 #include "uniform_parallax.h"
@@ -81,19 +82,21 @@ void MaterialSystem::readMaterialInstances(json& j) {
         try {
           auto type = mat.propertyTypes.at(key);
           switch (type) {
-            case lsw::geo::Material::PropertyType::TEXTURE2D:
-              mat.setTexture(key, value.get<std::string>());
+            case lsw::geo::PropertyType::TEXTURE2D: {
+              auto texture = m_resourceManager->getTextureSystem()->loadTexture(value.get<std::string>());
+              mat.setTexture(key, texture->id);
               break;
+            }
 
-            case lsw::geo::Material::PropertyType::FLOAT4:
+            case lsw::geo::PropertyType::FLOAT4:
               mat.userProperties.setFloatArray(key, value.get<std::vector<float>>());
               break;
 
-            case lsw::geo::Material::PropertyType::FLOAT:
+            case lsw::geo::PropertyType::FLOAT:
               mat.userProperties.setFloat(key, value.get<float>());
               break;
 
-            case lsw::geo::Material::PropertyType::INT:
+            case lsw::geo::PropertyType::INT:
               mat.userProperties.setInt(key, value.get<int>());
               break;
 
@@ -103,7 +106,7 @@ void MaterialSystem::readMaterialInstances(json& j) {
           }
         } catch (std::out_of_range&) {
           throw std::runtime_error(
-              fmt::format("Property '{}' of instance '{}' is not part of material definition '{}'.", key, instanceName, materialDefinition));
+              fmt::format("Material instance '{}': property '{}' is not part of material definition '{}'.", instanceName, key, materialDefinition));
         }
       }
     }
@@ -167,14 +170,18 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
         std::string type = value["type"];
 
         if (type == "texture") {
-          m.propertyTypes[name] = lsw::geo::Material::TEXTURE2D;
+          m.propertyTypes[name] = lsw::geo::PropertyType::TEXTURE2D;
           std::string path = "";
 
           if (value.contains("default_value")) {
             path = value["default_value"].get<std::string>();
+            m.setTexture(name, m_resourceManager->getTextureSystem()->loadTexture(path)->id);
+          } else {
+            m.setTexture(name, -1);
           }
           spdlog::debug("\t{} texture: {}", name, path);
-          addTextureToMaterial(name, path, m);
+//          addTextureToMaterial(name, path, m);
+
         } else {
           spdlog::warn("Material '{}' defines property {} of type {} that is not supported. Property will be ignored.", m.name, name, type);
         }
@@ -202,7 +209,7 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
                   "{} with uniform block '{}': material system does not contain an UBO handler for this UBO name. Shader will likely misbehave.", m.name,
                   name));
             } else {
-              m.propertyTypes[name] = lsw::geo::Material::PropertyType::UNIFORM_BUFFER_OBJECT;
+              m.propertyTypes[name] = lsw::geo::PropertyType::UNIFORM_BUFFER_OBJECT;
 
               std::size_t sizeOfStruct = 0;
               auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
@@ -211,16 +218,16 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
 
               for (const auto& [key, value] : value.items()) {
                 if (value.is_array() && isFloatArray<>(value)) {
-                  m.propertyTypes[key] = lsw::geo::Material::PropertyType::FLOAT4;
+                  m.propertyTypes[key] = lsw::geo::PropertyType::FLOAT4;
                   auto list = value.get<std::vector<float>>();
                   spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
                   m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
                 } else if (value.is_number_float()) {
-                  m.propertyTypes[key] = lsw::geo::Material::PropertyType::FLOAT;
+                  m.propertyTypes[key] = lsw::geo::PropertyType::FLOAT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
                   m.userProperties.setFloat(key, value.get<float>());
                 } else if (value.is_number_integer()) {
-                  m.propertyTypes[key] = lsw::geo::Material::PropertyType::INT;
+                  m.propertyTypes[key] = lsw::geo::PropertyType::INT;
                   spdlog::debug("\t{}::{} = {}", name, key, value.get<int>());
                   m.userProperties.setInt(key, value.get<int>());
                 } else {
@@ -305,6 +312,14 @@ lsw::geo::Material& MaterialSystem::createMaterial(const std::string& name) {
     }
   }
 
+  // compile shader
+  ShaderSystem shaderCompiler;
+  if (material.isBinaryShader) {
+    material.programId = shaderCompiler.compileSpirvShader(material.vertexShader, material.fragmentShader);
+  } else {
+    material.programId = shaderCompiler.compileShader(material.vertexShader, material.fragmentShader);
+  }
+
   material.id = m_createdMaterials.size() + 1;
   m_createdMaterials[material.id] = material;
   return m_createdMaterials.at(material.id);
@@ -339,49 +354,49 @@ void MaterialSystem::update(float time, float dt) {
 }
 
 void MaterialSystem::synchronizeTextures(RenderSystem& renderSystem) {
-  auto view = m_registry.view<lsw::geo::Material>();  // why are we not requesting
-                                                      // <Material, Renderable>?
-
-  // put the code in bottom part of readMaterialDefinitions here
-  // ...
-
-  for (auto entity : view) {
-    auto& renderable = m_registry.get_or_emplace<Renderable>(entity);
-    auto& geoMaterial = view.get<lsw::geo::Material>(entity);
-    spdlog::debug("Attach textures for meterial '{}' to render system", geoMaterial.name);
-
-    for (auto& [name, path] : geoMaterial.texturePaths) {
-      // TODO: check if name is used in shader object
-      try {
-        auto t = m_resourceManager->getTextureSystem()->loadTexture(path);
-        if (t != nullptr) {
-          geoMaterial.textures[name] = t;
-          renderSystem.attachTexture(renderable, *t, name);
-        }
-      } catch (std::out_of_range e) {
-        throw std::runtime_error(fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
-      }
-    }
-
-    // A material is parsed in two ways
-    // - A material has standard textures assigned in the scene file, such as
-    //   diffuse, normal, transparency maps. They map to predefined variable
-    //   names.
-    // - A material requires a specific texture, such as noise, or any other
-    // texture of specific use for this material only.
-    //   In that case,
-    // diffuse texture
-    if (geoMaterial.diffuseTexture != nullptr) {
-      renderSystem.attachTexture(renderable, *geoMaterial.diffuseTexture, "diffuseTex");
-    }
-    if (geoMaterial.specularTexture != nullptr) {
-      renderSystem.attachTexture(renderable, *geoMaterial.specularTexture, "specularTex");
-    }
-    if (geoMaterial.normalTexture != nullptr) {
-      renderSystem.attachTexture(renderable, *geoMaterial.normalTexture, "normalTex");
-    }
-    if (geoMaterial.roughnessTexture != nullptr) {
-      renderSystem.attachTexture(renderable, *geoMaterial.roughnessTexture, "normalTex");
-    }
-  }
+//  auto view = m_registry.view<lsw::geo::Material>();  // why are we not requesting
+//                                                      // <Material, Renderable>?
+//
+//  // put the code in bottom part of readMaterialDefinitions here
+//  // ...
+//
+//  for (auto entity : view) {
+//    auto& renderable = m_registry.get_or_emplace<Renderable>(entity);
+//    auto& geoMaterial = view.get<lsw::geo::Material>(entity);
+//    spdlog::debug("Attach textures for material '{}' to render system", geoMaterial.name);
+//
+//    for (auto& [name, path] : geoMaterial.texturePaths) {
+//      // TODO: check if name is used in shader object
+//      try {
+//        auto t = m_resourceManager->getTextureSystem()->loadTexture(path);
+//        if (t != nullptr) {
+//          geoMaterial.textures[name] = t->id;
+//          renderSystem.attachTexture(renderable, *t, name);
+//        }
+//      } catch (std::out_of_range e) {
+//        throw std::runtime_error(fmt::format("Cannot find texture with name \"{}\" in material \"{}\"", name, geoMaterial.name));
+//      }
+//    }
+//
+//    // A material is parsed in two ways
+//    // - A material has standard textures assigned in the scene file, such as
+//    //   diffuse, normal, transparency maps. They map to predefined variable
+//    //   names.
+//    // - A material requires a specific texture, such as noise, or any other
+//    // texture of specific use for this material only.
+//    //   In that case,
+//    // diffuse texture
+//    if (geoMaterial.diffuseTexture != nullptr) {
+//      renderSystem.attachTexture(renderable, *geoMaterial.diffuseTexture, "diffuseTex");
+//    }
+//    if (geoMaterial.specularTexture != nullptr) {
+//      renderSystem.attachTexture(renderable, *geoMaterial.specularTexture, "specularTex");
+//    }
+//    if (geoMaterial.normalTexture != nullptr) {
+//      renderSystem.attachTexture(renderable, *geoMaterial.normalTexture, "normalTex");
+//    }
+//    if (geoMaterial.roughnessTexture != nullptr) {
+//      renderSystem.attachTexture(renderable, *geoMaterial.roughnessTexture, "normalTex");
+//    }
+//  }
 }

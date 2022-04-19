@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <geo_material.h>
+#include "../../lsw-gl/include/izzgl_material.h"
 using namespace lsw;
 
 class MaterialTest : public testing::Test {
