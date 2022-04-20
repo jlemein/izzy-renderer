@@ -54,8 +54,8 @@ class MaterialSystem {
    *  4. If there is no default material, an exception is thrown.
    * @returns a unique ptr
    */
-  lsw::geo::Material& createMaterial(const std::string& name);
-  lsw::geo::Material& getMaterialById(int id);
+  Material& createMaterial(const std::string& name);
+  Material& getMaterialById(int id);
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
@@ -81,15 +81,15 @@ class MaterialSystem {
   // void setDefaultMaterial(std::shared_ptr<Material> material);
   void setDefaultMaterial(const std::string& name);
 
-  lsw::geo::Material& makeDefaultMaterial();
+  izz::gl::Material& makeDefaultMaterial();
 
  private:
   entt::registry& m_registry;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager;
-  std::unordered_map<std::string, std::unique_ptr<lsw::ufm::UniformBlockManager>> m_uniformBlockManagers;
+  std::unordered_map<std::string, std::unique_ptr<izz::ufm::UniformBlockManager>> m_uniformBlockManagers;
 
   /// @brief Contains the material definitions that are loaded from file.
-  std::unordered_map<std::string, lsw::geo::Material> m_materials;
+  std::unordered_map<std::string, Material> m_materials;
 
   /// @brief Fbx specific material names are mapped to canonical material names
   /// that are defined in a material definition.
@@ -97,10 +97,10 @@ class MaterialSystem {
 
   /// materials instances are instanced from an existing material definition.
   /// similar to how classes and objects work.
-  std::unordered_map<std::string, lsw::geo::Material> m_materialInstances;
+  std::unordered_map<std::string, Material> m_materialInstances;
 
   /// @brief The materials that are created. Maps material id to material.
-  std::unordered_map<int, lsw::geo::Material> m_createdMaterials;
+  std::unordered_map<int, Material> m_createdMaterials;
 
   std::string m_defaultMaterial{""};
 

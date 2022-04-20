@@ -2,7 +2,8 @@
 
 #include "izzgl_material.h"
 #include "uniform_uniformblockmanager.h"
-namespace lsw {
+
+namespace izz {
 namespace ufm {
 
 struct BlinnPhong {
@@ -23,7 +24,7 @@ class BlinnPhongManager : public UniformBlockManager {
     auto blinn = reinterpret_cast<BlinnPhong*>(data);
     delete blinn;
   }
-  void UpdateUniform(void* data, const geo::Material& m) override {
+  void UpdateUniform(void* data, const gl::Material& m) override {
     auto blinn = reinterpret_cast<BlinnPhong*>(data);
     blinn->shininess = m.userProperties.getFloat("shininess");
     blinn->specular = m.userProperties.getVec4f("specular_color");

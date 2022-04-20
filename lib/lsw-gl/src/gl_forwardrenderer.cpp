@@ -28,7 +28,8 @@ void ForwardRenderer::render(const entt::registry& registry) {
 
     glUseProgram(renderable.renderState.program);
 
-    RenderUtils::ActivateTextures(renderable.renderState);
+    glUseProgram(renderable.material->programId);
+//    RenderUtils::ActivateTextures(renderable.renderState);
 
 //    const auto& r = registry.get<const Renderable>(e);
 
@@ -66,7 +67,7 @@ void ForwardRenderer::render(const entt::registry& registry) {
 //    if (renderable.renderState.isLightingSupported) {
 //      m_renderSystem.pushLightingData(renderable.renderState);
 //    }
-    RenderUtils::PushUniformProperties(renderable.renderState);
+//    RenderUtils::PushUniformProperties(renderable.renderState);
 
     if (renderable.renderState.meshData.primitiveType == GL_TRIANGLES) {
       glDrawElements(renderable.renderState.meshData.primitiveType, renderable.renderState.meshData.drawElementCount, GL_UNSIGNED_INT, 0);

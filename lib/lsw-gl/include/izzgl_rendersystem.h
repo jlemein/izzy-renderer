@@ -123,7 +123,7 @@ class RenderSystem {
    * @param renderable The render component
    * @param properties The material properties.
    */
-  void initShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material);
+  void initShaderProperties(entt::entity entity, Renderable& renderable, const Material& material);
 
   /**
    * Unscoped shader properties are global uniform variables in the material. They are not placed in an
@@ -132,7 +132,7 @@ class RenderSystem {
    * @param renderable  Renderable component
    * @param material    Material containing the unscoped shader properties.
    */
-  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material);
+//  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const Material& material);
 
   void checkError(entt::entity e);
 

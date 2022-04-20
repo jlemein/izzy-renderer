@@ -2,7 +2,7 @@
 
 #include "izzgl_material.h"
 #include "uniform_uniformblockmanager.h"
-namespace lsw {
+namespace izz {
 namespace ufm {
 
 struct Parallax {
@@ -22,7 +22,7 @@ class ParallaxManager : public UniformBlockManager {
     auto parallax = reinterpret_cast<Parallax*>(data);
     delete parallax;
   }
-  void UpdateUniform(void* data, const geo::Material& m) override {
+  void UpdateUniform(void* data, const gl::Material& m) override {
     auto parallax = reinterpret_cast<Parallax*>(data);
     parallax->height_scale = m.userProperties.getFloat("height_scale");
   }

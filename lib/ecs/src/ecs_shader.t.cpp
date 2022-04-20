@@ -1,16 +1,16 @@
 //
 // Created by jlemein on 10-01-21.
 //
-#include "../../lsw-gl/include/izzgl_material.h"
+//#include <izzgl_material.h>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include "../../lsw-gl/include/uniform_ubermaterial.h"
-using namespace lsw;
-using namespace testing;
-using namespace lsw::geo;
+//using namespace lsw;
+//using namespace testing;
+//using namespace lsw::geo;
 
 class ShaderTest : public ::testing::Test {};
 

@@ -11,7 +11,7 @@ add_library(lsw-gl STATIC
         include/gl_renderable.h
         include/gl_renderutils.h
         include/glrs_lightsystem.h
-        include/izzgl_effectsystem.h
+#        include/izzgl_effectsystem.h
         include/izzgl_exrloader.h
         include/izzgl_material.h
         include/izzgl_materialsystem.h
@@ -44,7 +44,7 @@ add_library(lsw-gl STATIC
         src/izzgl_shadersystem.h
         src/glrs_lightsystem.cpp
         src/glrs_shadersystem.t.cpp
-        src/izzgl_effectsystem.cpp
+#        src/izzgl_effectsystem.cpp
         src/izzgl_exrloader.cpp
         src/izzgl_materialsystem.cpp
         src/izzgl_rendersystem.cpp

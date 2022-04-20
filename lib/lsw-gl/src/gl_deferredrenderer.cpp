@@ -43,7 +43,7 @@ void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
       // initialize material
       if (pMesh->materialId > -1) {
         auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
-        RenderUtils::LoadMaterial(material, rs);
+//        RenderUtils::LoadMaterial(material, rs);
 
         spdlog::info("\t[e: {}] Mesh {} initialized - material id {} -- {}",
                      static_cast<int>(e), pMesh->name, pMesh->materialId, material.name);
@@ -139,14 +139,16 @@ void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = lsw::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
   auto& rs = m_renderSystem.createRenderState();
   const auto& material = m_renderSystem.getMaterialSystem().createMaterial("DeferredLightingPass");
+  m_screenSpaceMaterial = material.id;
+
 //  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("Deferred_VisualizeGBuffer");
 
   RenderUtils::FillBufferedMeshData(rectangle, rs.meshData);
-  RenderUtils::LoadMaterial(material, rs);
+//  RenderUtils::LoadMaterial(material, rs);
 
-  m_gPositionLoc = glGetUniformLocation(rs.program, "gbuffer_position");
-  m_gNormalLoc = glGetUniformLocation(rs.program, "gbuffer_normal");
-  m_gAlbedoSpecLoc = glGetUniformLocation(rs.program, "gbuffer_albedospec");
+  m_gPositionLoc = glGetUniformLocation(material.programId, "gbuffer_position");
+  m_gNormalLoc = glGetUniformLocation(material.programId, "gbuffer_normal");
+  m_gAlbedoSpecLoc = glGetUniformLocation(material.programId, "gbuffer_albedospec");
 
   m_screenSpaceRenderStateId = rs.id;
 }
@@ -230,16 +232,23 @@ void DeferredRenderer::render(const entt::registry& registry) {
   for (entt::entity e : view) {
     try {
       auto rid = view.get<const DeferredRenderable>(e).renderStateId;
+      auto materialId = view.get<const DeferredRenderable>(e).materialId;
+      const auto& mat = m_renderSystem.getMaterialSystem().getMaterialById(materialId);
+
       const RenderState& rs = m_renderSystem.getRenderState(rid);
 
       //    RenderUtils::ActivateProgram();
-      glUseProgram(rs.program);
-      RenderUtils::ActivateTextures(rs);
+      glUseProgram(mat.programId);
+
+      mat.useTextures();
+      spdlog::debug("Push uniforms for: {}: {} - {}", mat.programId, mat.name, mat.vertexShader);
+      mat.pushUniforms();
+//      RenderUtils::ActivateTextures(rs);
       RenderUtils::UseBufferedMeshData(rs.meshData);
       // TODO: check if shader is dirty
       //  reason: if we push properties every frame (Except for MVP), we might
       //  unnecessary spend time doing that while we can immediately just render.
-      RenderUtils::PushUniformProperties(rs);
+//      RenderUtils::PushUniformProperties(rs);
 
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -275,8 +284,9 @@ void DeferredRenderer::render(const entt::registry& registry) {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glClearColor(0.0,0.0,0.0,0.0);
 
+    auto& material = m_renderSystem.getMaterialSystem().getMaterialById(m_screenSpaceMaterial);
     auto& rs = m_renderSystem.getRenderState(m_screenSpaceRenderStateId);
-    glUseProgram(rs.program);
+    glUseProgram(material.programId);
 
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_gPosition);
@@ -290,7 +300,7 @@ void DeferredRenderer::render(const entt::registry& registry) {
     glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
     glUniform1i(m_gAlbedoSpecLoc, 2);
 //
-////    lsw::geo::Material m;
+////    izz::gl::Material m;
 //
 //    //TODO: assign texture id's to material's textures.
 //    // why? The render system shoud map a generic texture id to a rendersystem specific texture id
@@ -300,7 +310,8 @@ void DeferredRenderer::render(const entt::registry& registry) {
 //
 //    RenderUtils::ActivateTextures(rs);
     RenderUtils::UseBufferedMeshData(rs.meshData);
-    RenderUtils::PushUniformProperties(rs);
+    material.pushUniforms();
+//    RenderUtils::PushUniformProperties(rs);
     glDrawElements(rs.meshData.primitiveType, rs.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
 
   //  /* Copy the color and depth buffer from your FBO to the default framebuffer       */

@@ -2,7 +2,7 @@
 
 #include "izzgl_material.h"
 #include "uniform_uniformblockmanager.h"
-namespace lsw {
+namespace izz {
 namespace ufm {
 
 struct ConstantLight {
@@ -24,7 +24,7 @@ class ConstantManager : public UniformBlockManager {
     auto constant = reinterpret_cast<ConstantLight*>(data);
     delete constant;
   }
-  void UpdateUniform(void* data, const geo::Material& m) override {
+  void UpdateUniform(void* data, const izz::gl::Material& m) override {
     auto constant = reinterpret_cast<ConstantLight*>(data);
     constant->radius = m.userProperties.getFloat("radius");
     constant->intensity = m.userProperties.getFloat("intensity");

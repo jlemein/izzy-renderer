@@ -78,6 +78,7 @@ class DeferredRenderer {
   int m_screenWidth = 10, m_screenHeight = 10;
 
   int m_screenSpaceRenderStateId = -1;
+  MaterialId m_screenSpaceMaterial {-1};
 };
 
 }  // namespace gl

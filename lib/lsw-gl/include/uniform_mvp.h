@@ -2,7 +2,7 @@
 
 #include "izzgl_material.h"
 #include "uniform_uniformblockmanager.h"
-namespace lsw {
+namespace izz {
 namespace ufm {
 
 struct ModelViewProjection {
@@ -35,7 +35,7 @@ class MvpManager : public UniformBlockManager {
     auto mvp = reinterpret_cast<ModelViewProjection*>(data);
     delete mvp;
   }
-  void UpdateUniform(void* data, const geo::Material& m) override {
+  void UpdateUniform(void* data, const gl::Material& m) override {
     // do nothing
     auto p = reinterpret_cast<ModelViewProjection*>(data);
 

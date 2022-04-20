@@ -12,7 +12,7 @@ using namespace izz;
 using namespace izz::gl;
 
 namespace {
-void updatePointLightVisualization(lsw::geo::Material& material, lsw::ecs::PointLight light) {
+void updatePointLightVisualization(Material& material, lsw::ecs::PointLight light) {
   material.userProperties.setValue("color", glm::vec4(light.color, 0.0));
   material.userProperties.setFloat("radius", light.radius);
   material.userProperties.setFloat("intensity", light.intensity);
@@ -37,21 +37,21 @@ void LightSystem::setDefaultPointLightMaterial(int materialId) {
 void LightSystem::initialize() {
   for (auto&& [e, light, mesh] : m_registry.view<lsw::ecs::PointLight, lsw::geo::Mesh>().each()) {
     spdlog::debug("Initializing light system");
-    if (!m_registry.all_of<lsw::geo::Material>(e)) {
+    if (!m_registry.all_of<izz::gl::Material>(e)) {
       if (m_lightMaterial == -1) {
         auto name = m_registry.get<lsw::ecs::Name>(e).name;
         spdlog::error("Cannot add a material for point light '{}'. No light material set", name);
       } else {
 //        m_registry.emplace<Renderable>(e);
 
-//        auto& material = m_registry.emplace<lsw::geo::Material>(e, lsw::geo::MaterialUtil::CloneMaterial(*m_lightMaterial));
+//        auto& material = m_registry.emplace<izz::gl::Material>(e, izz::gl::MaterialUtil::CloneMaterial(*m_lightMaterial));
         updatePointLightVisualization(m_materialSystem->getMaterialById(m_lightMaterial), light);
       }
     }
   }
 }
 
-//void LightSystem::initLightingUbo(RenderState& renderable, const lsw::geo::Material& material) {
+//void LightSystem::initLightingUbo(RenderState& renderable, const izz::gl::Material& material) {
 //  auto uboStructName = material.lighting.ubo_struct_name;
 //
 //  // check if a light ubo struct name is defined.
@@ -142,8 +142,8 @@ void LightSystem::updateLightProperties() {
     ubo.position = transform.worldTransform[3];
 
     // if the point light has a point light visualization
-    if (m_registry.all_of<lsw::geo::Material>(e)) {
-      auto& material = m_registry.get<lsw::geo::Material>(e);
+    if (m_registry.all_of<izz::gl::Material>(e)) {
+      auto& material = m_registry.get<izz::gl::Material>(e);
       updatePointLightVisualization(material, light);
     }
   }

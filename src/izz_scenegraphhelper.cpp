@@ -30,7 +30,7 @@ SceneGraphHelper::SceneGraphHelper(entt::registry& registry, std::unique_ptr<Ren
   : m_registry{registry}
   , m_renderableComponentFactory{std::move(renderableComponentFactory)} {}
 
-void SceneGraphHelper::setDefaultMaterial(std::shared_ptr<lsw::geo::Material> material) {
+void SceneGraphHelper::setDefaultMaterial(std::shared_ptr<izz::gl::Material> material) {
   m_defaultMaterial = material;
 }
 
@@ -41,7 +41,7 @@ SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh mesh, int material
 
   // TODO: make sure we store a shared ptr instead of a copy.
   //  shared materials offer option to share materials.
-//  e.add<lsw::geo::Material>(*mat);
+//  e.add<izz::gl::Material>(*mat);
 
   return e;
 }
@@ -57,11 +57,11 @@ SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh mesh, int material
 //  return e;
 //}
 
-// SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material) {
+// SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh&& mesh, izz::gl::Material&& material) {
 //   auto e = makeEntity(mesh.name);
 //   e.add<RENDERABLE_COMPONENT>();
 //   e.add<lsw::geo::Mesh>(std::forward<lsw::geo::Mesh>(mesh));
-//   e.add<lsw::geo::Material>(std::forward<lsw::geo::Material>(material));
+//   e.add<izz::gl::Material>(std::forward<izz::gl::Material>(material));
 //
 //   return e;
 // }
@@ -162,13 +162,13 @@ SceneGraphEntity SceneGraphHelper::makeMesh(const lsw::geo::Mesh& mesh) {
 
   meshEntity.add<lsw::geo::Mesh>(mesh);
 
-  // Watch out here, lsw::geo::Material is a value type so we can do this.
+  // Watch out here, izz::gl::Material is a value type so we can do this.
   // It is very tricky, because we ignore the resource itself here, possibly
   // causing dangling pointers in the end
   if (m_defaultMaterial == nullptr) {
     throw std::runtime_error("No default material set, cannot create mesh");
   }
-//  meshEntity.add<lsw::geo::Material>(*m_defaultMaterial);
+//  meshEntity.add<izz::gl::Material>(*m_defaultMaterial);
 
   m_renderableComponentFactory->addRenderableComponent(m_registry, meshEntity, m_defaultMaterial->id);
 
@@ -214,7 +214,7 @@ SceneGraphEntity SceneGraphHelper::makeCurve(std::string name) {
   auto curve = makeMoveableEntity(std::move(name));
 
   curve.add<lsw::geo::Curve>();
-//  auto& s = curve.add<lsw::geo::Material>({.name = "default curve material",
+//  auto& s = curve.add<izz::gl::Material>({.name = "default curve material",
 //                                           .vertexShader = "assets/shaders/default_curve.vert.spv",
 //                                           .fragmentShader = "assets/shaders/default_curve.frag.spv"});
 
@@ -263,7 +263,7 @@ void SceneGraphHelper::processChildren(std::shared_ptr<const lsw::geo::SceneNode
       // make shader from material
       // TODO: make a material system that loads a default
       //    auto material =
-      //        m_resourceManager->getResource<lsw::geo::Material>("UberMaterial");
+      //        m_resourceManager->getResource<izz::gl::Material>("UberMaterial");
       //
       //    (*material)->diffuseTexture = (*instance->material)->diffuseTexture;
       //
@@ -314,7 +314,7 @@ SceneGraphEntity SceneGraphHelper::makeRenderable(lsw::geo::Mesh&& mesh, int mat
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<lsw::geo::Mesh>(e, std::move(mesh));
-//  m_registry.emplace<lsw::geo::Material>(e, material);
+//  m_registry.emplace<izz::gl::Material>(e, material);
   m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
 
   return SceneGraphEntity{m_registry, e};
@@ -333,7 +333,7 @@ entt::entity makeTexture();
 
 SceneGraphEntity SceneGraphHelper::makePosteffect(const std::string name, int materialId) {
   auto e = makeEntity(name);
-//  e.add<lsw::geo::Material>(material);
+//  e.add<izz::gl::Material>(material);
   e.add<gl::Posteffect>();
   m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
   return e;

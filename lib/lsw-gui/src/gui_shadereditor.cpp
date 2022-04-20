@@ -17,7 +17,7 @@ void izz::gui::ShaderEditor::init() {}
 void izz::gui::ShaderEditor::render(float time, float dt) {
   for (auto& [entity, show] : m_openDialogs) {
     if (show) {
-      auto& material = m_sceneGraph->getRegistry().get<lsw::geo::Material>(entity);
+      auto& material = m_sceneGraph->getRegistry().get<izz::gl::Material>(entity);
 
       auto id = fmt::format("ShaderEditor_{}", static_cast<int>(entity));
       ImGui::PushID(id.c_str());

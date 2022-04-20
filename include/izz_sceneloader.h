@@ -16,6 +16,7 @@ namespace gl {
 class MaterialSystem;
 class TextureSystem;
 struct Texture;
+struct Material;
 }  // namespace gl
 }  // namespace izz
 
@@ -28,7 +29,6 @@ class Resource;
 
 namespace geo {
 struct Scene;
-struct Material;
 }  // namespace geo
 
 class SceneLoader {
@@ -81,12 +81,12 @@ class SceneLoader {
    * @param aiMaterial
    * @param material
    */
-  void readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial, geo::Material& material);
+  void readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial, izz::gl::Material& material);
 
-  izz::gl::Texture* readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  izz::gl::Texture* readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  izz::gl::Texture* readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
-  izz::gl::Texture* readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const geo::Material& material) const;
+  izz::gl::Texture* readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
+  izz::gl::Texture* readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
+  izz::gl::Texture* readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
+  izz::gl::Texture* readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
 
   std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};

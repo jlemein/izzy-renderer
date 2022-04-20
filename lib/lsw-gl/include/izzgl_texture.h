@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include <GL/glew.h>
 #include <izz.h>
 #include <cstdint>
 #include <string>
@@ -21,7 +22,7 @@ struct Texture {
   TextureId id{-1};
 
   /// @brief Texture buffer id, which is retrieved using a call to glGenTextures()
-  int bufferId {-1};
+  GLuint bufferId {0U};
 
   std::string path;
   int width{0};

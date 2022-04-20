@@ -16,7 +16,6 @@ class TextureSystem;
 }  // namespace izz
 namespace lsw {
 namespace geo {
-class Material;
 class Texture;
 class Scene;
 }  // namespace geo

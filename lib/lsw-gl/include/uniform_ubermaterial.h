@@ -27,7 +27,7 @@ class UberUniformManager : public UniformBlockManager {
  public:
   void* CreateUniformBlock(size_t& t) override;
   void DestroyUniformBlock(void* block) override;
-  void UpdateUniform(void* data, const izz::gl::Material& material) override;
+  void UpdateUniform(void* data, const gl::Material& material) override;
 };
 
 }  // namespace ufm

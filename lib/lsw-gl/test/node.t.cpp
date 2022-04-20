@@ -15,7 +15,7 @@
 //  EffectGraph bloomGraph;
 //
 //  Node extractBrightness;
-//  extractBrightness.material = std::make_shared<lsw::geo::Material>();
+//  extractBrightness.material = std::make_shared<izz::gl::Material>();
 //  extractBrightness.inputs.colorBuffers[0] = FramebufferFormat::RGBA_FLOAT32;
 //  extractBrightness.inputs.depthBuffer = FramebufferFormat::UNUSED;
 //  extractBrightness.outputs.colorBuffers[0] = FramebufferFormat::RGBA_FLOAT32;
@@ -23,7 +23,7 @@
 //  auto id0 = bloomGraph.addNode(extractBrightness);
 //
 //  Node gaussianBlur;
-//  gaussianBlur.material = std::make_shared<lsw::geo::Material>();
+//  gaussianBlur.material = std::make_shared<izz::gl::Material>();
 //  gaussianBlur.inputs.colorBuffers[0] = FramebufferFormat::RGBA_FLOAT32;
 //  gaussianBlur.outputs.colorBuffers[0] = FramebufferFormat::RGBA_FLOAT32;
 //
@@ -31,7 +31,7 @@
 //  auto id2 = bloomGraph.addNode(gaussianBlur);
 //
 //  Node combine;
-//  combine.material = std::make_shared<lsw::geo::Material>();
+//  combine.material = std::make_shared<izz::gl::Material>();
 //  combine.inputs.colorBuffers[0] = FramebufferFormat::RGBA_FLOAT32;
 //  combine.inputs.colorBuffers[1] = FramebufferFormat::RGBA_FLOAT32;
 //  combine.outputs.colorBuffers[0] = FramebufferFormat::RGBA_UINT8;

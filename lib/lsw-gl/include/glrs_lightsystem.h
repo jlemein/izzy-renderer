@@ -5,13 +5,7 @@
 #include <entt/entity/registry.hpp>
 #include <glm/glm.hpp>
 #include <memory>
-#include "izzgl_material.h"
-
-namespace lsw {
-namespace geo {
-struct Material;
-}  // namespace geo
-}  // namespace lsw
+#include <izzgl_material.h>
 
 namespace izz {
 namespace gl {
@@ -68,7 +62,7 @@ class LightSystem {
    */
   void initialize();
 
-  void initLightingUbo(RenderState& r, const lsw::geo::Material& material);
+  void initLightingUbo(RenderState& r, const Material& material);
   void updateLightProperties();
 
   /**
@@ -93,7 +87,7 @@ class LightSystem {
   std::shared_ptr<MaterialSystem> m_materialSystem;
 
   /// default material that is assigned for entities with Mesh and PointLight.
-//  std::shared_ptr<lsw::geo::Material> m_lightMaterial{nullptr};
+//  std::shared_ptr<izz::gl::Material> m_lightMaterial{nullptr};
   int m_lightMaterial {-1};
 };
 

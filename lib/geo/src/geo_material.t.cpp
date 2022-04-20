@@ -9,7 +9,7 @@ public:
 TEST_F(MaterialTest, IsMoveConstructible) {
   static_assert(std::is_copy_constructible_v<const geo::Material> && std::is_move_constructible_v<const geo::Material>, "WOOW");
 
-  lsw::geo::Material m;
+  izz::gl::Material m;
   m.ambient = glm::vec3(1.0F, 0.4F, 0.1F);
   m.vertexShader = "vertex-shader";
 

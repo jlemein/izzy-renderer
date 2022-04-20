@@ -5,7 +5,7 @@
 #include <vector>
 #include "uniform_uniformblockmanager.h"
 
-namespace lsw {
+namespace izz {
 namespace ufm {
 
 struct Lambert {
@@ -24,7 +24,7 @@ class LambertUniformManager : public UniformBlockManager {
     delete lambert;
   }
 
-  void UpdateUniform(void* block, const geo::Material& material) override {}
+  void UpdateUniform(void* block, const gl::Material& material) override {}
 
 
 };

@@ -4,7 +4,6 @@
 #include "ecs_debug.h"
 #include "ecs_debugsystem.h"
 #include "ecs_relationship.h"
-#include "../include/gl_renderable.h"
 #include "ecs_transform.h"
 #include "geo_curve.h"
 #include "geo_mesh.h"

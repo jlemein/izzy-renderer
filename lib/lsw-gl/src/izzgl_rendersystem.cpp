@@ -148,7 +148,7 @@ LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 //
-//void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material) {
+//void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const izz::gl::Material& material) {
 //  glUseProgram(renderable.renderState.program);
 //
 //  if (!m_registry.all_of<Posteffect>(entity)) {
@@ -208,85 +208,85 @@ RenderState& RenderSystem::getRenderState(unsigned int id) {
     throw std::runtime_error(fmt::format("Could not obtain render state with id {}", id));
   }
 }
-
-void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const lsw::geo::Material& material) {
-  // first memory allocation. For this we need to know the number of properties and length of data properties.
-  int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
-                      material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
-  uint64_t sizeBytes = 0U;
-  sizeBytes += material.unscopedUniforms.booleanValues.size() * sizeof(GLint);
-  sizeBytes += material.unscopedUniforms.intValues.size() * sizeof(GLint);
-  sizeBytes += material.unscopedUniforms.floatValues.size() * sizeof(GLfloat);
-  for (const auto& array : material.unscopedUniforms.floatArrayValues) {
-    sizeBytes += array.second.size() * sizeof(GLfloat);
-  }
-
-  renderable.unscopedUniforms = UnscopedUniforms::Allocate(numProperties, sizeBytes);
-
-  auto pData = renderable.unscopedUniforms.pData;
-  auto pUniform = renderable.unscopedUniforms.pProperties;
-  unsigned int offset = 0U;
-
-  for (auto [name, value] : material.unscopedUniforms.booleanValues) {
-    *reinterpret_cast<int*>(pData) = value;
-    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
-    pUniform->type = UType::BOOL;
-    pUniform->offset = offset;
-    pUniform->length = 1;
-
-    glUniform1i(pUniform->location, *reinterpret_cast<int*>(renderable.unscopedUniforms.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
-
-    offset += sizeof(GLint);
-    pData += sizeof(GLint);
-    pUniform++;
-  }
-
-  for (auto [name, value] : material.unscopedUniforms.intValues) {
-    *reinterpret_cast<int*>(pData) = value;
-    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
-    pUniform->type = UType::INT;
-    pUniform->offset = offset;
-    pUniform->length = 1;
-
-    glUniform1i(pUniform->location, *reinterpret_cast<int*>(renderable.unscopedUniforms.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
-
-    offset += sizeof(GLint);
-    pData += sizeof(GLint);
-    pUniform++;
-  }
-
-  for (auto [name, value] : material.unscopedUniforms.floatValues) {
-    *reinterpret_cast<float*>(pData) = value;
-    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
-    pUniform->type = UType::FLOAT;
-    pUniform->offset = offset;
-    pUniform->length = 1;
-
-    glUniform1f(pUniform->location, *reinterpret_cast<float*>(renderable.unscopedUniforms.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
-
-    offset += sizeof(float);
-    pData += sizeof(float);
-    pUniform++;
-  }
-
-  for (auto [name, value] : material.unscopedUniforms.floatArrayValues) {
-    memcpy(reinterpret_cast<float*>(pData), value.data(), sizeof(float) * value.size());
-    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
-    pUniform->type = UType::FLOAT_ARRAY;
-    pUniform->offset = offset;
-    pUniform->length = value.size();
-
-    glUniform1fv(pUniform->location, pUniform->length, reinterpret_cast<float*>(renderable.unscopedUniforms.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = [{}]", material.name, name, fmt::join(value, ", "));
-
-    offset += sizeof(float) * value.size();
-    pData += sizeof(float) * value.size();
-    pUniform++;
-  }
-}
+//
+//void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const izz::gl::Material& material) {
+//  // first memory allocation. For this we need to know the number of properties and length of data properties.
+//  int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
+//                      material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
+//  uint64_t sizeBytes = 0U;
+//  sizeBytes += material.unscopedUniforms.booleanValues.size() * sizeof(GLint);
+//  sizeBytes += material.unscopedUniforms.intValues.size() * sizeof(GLint);
+//  sizeBytes += material.unscopedUniforms.floatValues.size() * sizeof(GLfloat);
+//  for (const auto& array : material.unscopedUniforms.floatArrayValues) {
+//    sizeBytes += array.second.size() * sizeof(GLfloat);
+//  }
+//
+//  renderable.unscopedUniforms = UnscopedUniforms::Allocate(numProperties, sizeBytes);
+//
+//  auto pData = renderable.unscopedUniforms.pData;
+//  auto pUniform = renderable.unscopedUniforms.pProperties;
+//  unsigned int offset = 0U;
+//
+//  for (auto [name, value] : material.unscopedUniforms.booleanValues) {
+//    *reinterpret_cast<int*>(pData) = value;
+//    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
+//    pUniform->type = UType::BOOL;
+//    pUniform->offset = offset;
+//    pUniform->length = 1;
+//
+//    glUniform1i(pUniform->location, *reinterpret_cast<int*>(renderable.unscopedUniforms.pData + pUniform->offset));
+//    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+//
+//    offset += sizeof(GLint);
+//    pData += sizeof(GLint);
+//    pUniform++;
+//  }
+//
+//  for (auto [name, value] : material.unscopedUniforms.intValues) {
+//    *reinterpret_cast<int*>(pData) = value;
+//    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
+//    pUniform->type = UType::INT;
+//    pUniform->offset = offset;
+//    pUniform->length = 1;
+//
+//    glUniform1i(pUniform->location, *reinterpret_cast<int*>(renderable.unscopedUniforms.pData + pUniform->offset));
+//    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+//
+//    offset += sizeof(GLint);
+//    pData += sizeof(GLint);
+//    pUniform++;
+//  }
+//
+//  for (auto [name, value] : material.unscopedUniforms.floatValues) {
+//    *reinterpret_cast<float*>(pData) = value;
+//    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
+//    pUniform->type = UType::FLOAT;
+//    pUniform->offset = offset;
+//    pUniform->length = 1;
+//
+//    glUniform1f(pUniform->location, *reinterpret_cast<float*>(renderable.unscopedUniforms.pData + pUniform->offset));
+//    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+//
+//    offset += sizeof(float);
+//    pData += sizeof(float);
+//    pUniform++;
+//  }
+//
+//  for (auto [name, value] : material.unscopedUniforms.floatArrayValues) {
+//    memcpy(reinterpret_cast<float*>(pData), value.data(), sizeof(float) * value.size());
+//    pUniform->location = getUniformLocation(renderable.renderState.program, name.c_str(), material.name);
+//    pUniform->type = UType::FLOAT_ARRAY;
+//    pUniform->offset = offset;
+//    pUniform->length = value.size();
+//
+//    glUniform1fv(pUniform->location, pUniform->length, reinterpret_cast<float*>(renderable.unscopedUniforms.pData + pUniform->offset));
+//    spdlog::info("Initialized: {}.{} = [{}]", material.name, name, fmt::join(value, ", "));
+//
+//    offset += sizeof(float) * value.size();
+//    pData += sizeof(float) * value.size();
+//    pUniform++;
+//  }
+//}
 
 RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem)
   : m_registry{registry}
@@ -396,7 +396,7 @@ void RenderSystem::init(int width, int height) {
 
   m_deferredRenderer.init(width, height);
 
-  auto numMaterials = m_registry.view<lsw::geo::Material>().size();
+  auto numMaterials = m_registry.view<Material>().size();
   auto numLights = m_lightSystem->getActiveLightCount();
 
   auto numDeferredRenderables = m_registry.view<gl::DeferredRenderable>().size();
@@ -451,7 +451,7 @@ void RenderSystem::init(int width, int height) {
   }
 
   // handling materials
-  for (auto [entity, material, renderable] : m_registry.view<lsw::geo::Material, Renderable>().each()) {
+  for (auto [entity, material, renderable] : m_registry.view<Material, Renderable>().each()) {
     try {
       if (material.isBinaryShader) {
         renderable.renderState.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);

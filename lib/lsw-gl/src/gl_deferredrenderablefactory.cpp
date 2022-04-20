@@ -15,7 +15,7 @@ DeferredRenderableFactory::DeferredRenderableFactory(RenderSystem& renderSystem,
 
 void DeferredRenderableFactory::addRenderableComponent(entt::registry& registry, entt::entity e, int materialId) {
 
-//  const auto& material = registry.get<lsw::geo::Material>(e);
+//  const auto& material = registry.get<izz::gl::Material>(e);
 //  gl::DeferredRenderable renderable;
   auto& rs = m_renderSystem.createRenderState();
   spdlog::debug("(e: {}) ADD DeferredRenderable; renderState id: {}, material id: {}", static_cast<int>(e), rs.id, materialId);
@@ -25,7 +25,7 @@ void DeferredRenderableFactory::addRenderableComponent(entt::registry& registry,
 //  renderable.materialId = materialId;
 
   auto& material = m_materialSystem.getMaterialById(materialId);
-  RenderUtils::LoadMaterial(material, rs);
+//  RenderUtils::LoadMaterial(material, rs);
 
   // MVP
 //  renderable.mvp = RenderUtils::GetUniformBufferLocation(rs, "UniformBufferBlock");

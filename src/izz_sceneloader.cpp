@@ -27,7 +27,7 @@ SceneLoader::SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, 
   , m_materialSystem{materialSystem} {}
 
 izz::gl::Texture* SceneLoader::readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
-                                                              const geo::Material& material) const {
+                                                              const izz::gl::Material& material) const {
   std::string diffusePath = material.diffuseTexturePath;
 
   if (diffusePath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
@@ -49,7 +49,7 @@ izz::gl::Texture* SceneLoader::readDiffuseTexture(const geo::Scene& scene, const
 }
 
 izz::gl::Texture* SceneLoader::readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
-                                                               const geo::Material& material) const {
+                                                               const izz::gl::Material& material) const {
   std::string specularPath = material.specularTexturePath;
 
   if (specularPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_SPECULAR) > 0) {
@@ -69,7 +69,7 @@ izz::gl::Texture* SceneLoader::readSpecularTexture(const geo::Scene& scene, cons
   return texture;
 }
 
-izz::gl::Texture* SceneLoader::readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p, const geo::Material& material) const {
+izz::gl::Texture* SceneLoader::readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p, const izz::gl::Material& material) const {
   std::string normalPath = material.normalTexturePath;
 
   if (normalPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_NORMALS) > 0) {
@@ -90,7 +90,7 @@ izz::gl::Texture* SceneLoader::readNormalTexture(const geo::Scene& scene, const 
 }
 
 izz::gl::Texture* SceneLoader::readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
-                                                                const geo::Material& material) const {
+                                                                const izz::gl::Material& material) const {
   std::string roughnessPath = material.roughnessTexturePath;
 
   if (roughnessPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0) {
@@ -110,7 +110,7 @@ izz::gl::Texture* SceneLoader::readRoughnessTexture(const geo::Scene& scene, con
   return texture;
 }
 
-void SceneLoader::readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial_p, geo::Material& material) {
+void SceneLoader::readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::gl::Material& material) {
   auto pDiffuse = readDiffuseTexture(scene, aiMaterial_p, material);
   auto pNormal = readNormalTexture(scene, aiMaterial_p, material);
   auto pSpecular = readSpecularTexture(scene, aiMaterial_p, material);
@@ -123,7 +123,7 @@ void SceneLoader::readTextures(const geo::Scene& scene, const aiMaterial* aiMate
 
   // TODO: read remaining generic textures
   for (auto& [name, texturePath] : material.texturePaths) {
-    material.textures[name] = m_textureSystem->loadTexture(texturePath)->id;
+    material.setTexture(name, m_textureSystem->loadTexture(texturePath));
   }
 }
 

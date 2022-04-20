@@ -92,7 +92,7 @@ class Effect {
 
 struct cEffect {
   std::string name;
-//  Graph<std::shared_ptr<lsw::geo::Material>> graph;
+//  Graph<std::shared_ptr<izz::gl::Material>> graph;
 };
 
 }  // namespace gl

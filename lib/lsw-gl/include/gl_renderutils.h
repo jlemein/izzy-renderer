@@ -18,6 +18,7 @@ namespace gl {
 struct BufferedMeshData;
 struct RenderState;
 struct UniformBufferMapping;
+struct Material;
 
 struct RenderUtils {
  public:
@@ -46,7 +47,7 @@ struct RenderUtils {
    * After this call all textures are bound to their appropriate shader texture binds.
    * @param [in] rs                 Render state.
    */
-  static void ActivateTextures(const RenderState& rs);
+//  static void ActivateTextures(const RenderState& rs);
 
   /**
    * Activates the vertex and index buffer for the mesh data.
@@ -60,14 +61,14 @@ struct RenderUtils {
    * and eventual shader binding blocks.
    * @param [in] rs
    */
-  static void PushUniformProperties(const RenderState& rs);
+//  static void PushUniformProperties(const RenderState& rs);
 
   /***
    * Activates all unscoped uniforms. Unscoped uniforms are not part of any
    * buffer block (such as uniform buffer block).
    * @param [in] rs Render state
    */
-  static void ActivateUnscopedUniforms(const RenderState& rs);
+//  static void ActivateUnscopedUniforms(const RenderState& rs);
 
   /**
    * Loads the shaders from the material, and stores the id's of the GPU buffers in render state.
@@ -75,7 +76,7 @@ struct RenderUtils {
    * @param [in] m      Material
    * @param [out] rs    Render state to update.
    */
-  static void LoadMaterial(const izz::gl::Material& m, RenderState& rs);
+  static void LoadMaterial(const Material& m, RenderState& rs);
 
 //  static int GetUniformBufferLocation(const RenderState& rs, std::string uboName);
   static UniformBufferMapping GetUniformBufferLocation(const RenderState& rs, std::string uboName);

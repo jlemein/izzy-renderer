@@ -23,7 +23,7 @@ void MaterialEditor::init() {
 
 void MaterialEditor::render(float time, float dt) {
   static bool showEditor = false;
-  lsw::geo::Material mat;
+  izz::gl::Material mat;
 
   ImGui::Begin("TRYOUT");
   ImGui::BeginChild("Hello", ImVec2(100, 100), false, ImGuiWindowFlags_NoMove);
@@ -41,7 +41,7 @@ void MaterialEditor::render(float time, float dt) {
         //        ImGui::TableSetupColumn("Actions");
         ImGui::TableHeadersRow();
 
-        for (const auto& [e, material] : m_sceneGraph->getRegistry().view<lsw::geo::Material>().each()) {
+        for (const auto& [e, material] : m_sceneGraph->getRegistry().view<izz::gl::Material>().each()) {
           auto name = m_sceneGraph->getRegistry().get<lsw::ecs::Name>(e).name;
           auto r = m_sceneGraph->getRegistry().try_get<gl::Renderable>(e);
 

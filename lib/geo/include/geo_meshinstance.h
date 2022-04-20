@@ -10,7 +10,6 @@ namespace lsw {
 namespace geo {
 
 struct Mesh;
-struct Material;
 
 struct MeshInstance {
   std::string name {""};

@@ -14,7 +14,6 @@ struct Scene;
 struct SceneNode;
 struct Light;
 struct Camera;
-struct Material;
 };  // namespace geo
 
 namespace ecs {
@@ -52,7 +51,7 @@ class SceneGraphHelper {
  public:
   SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory);
 
-  void setDefaultMaterial(std::shared_ptr<lsw::geo::Material> material);
+  void setDefaultMaterial(std::shared_ptr<izz::gl::Material> material);
 
   // TODO: represent the active camera in the scene graph,
   //  probably by flagging the entity with ActiveCamera component.
@@ -68,7 +67,7 @@ class SceneGraphHelper {
   // TODO: currently assigning a material to a geometry disconnects the relationship with the creator.
   //  this does not make it possible to share materials
   SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, int materialId);
-  //  SceneGraphEntity addGeometry(lsw::geo::Mesh&& mesh, lsw::geo::Material&& material);
+  //  SceneGraphEntity addGeometry(lsw::geo::Mesh&& mesh, izz::gl::Material&& material);
   SceneGraphEntity addGeometry(const lsw::geo::Mesh& mesh);
   SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect);
 
@@ -130,7 +129,7 @@ class SceneGraphHelper {
   entt::registry& m_registry;
   std::unique_ptr<RenderableComponentFactory> m_renderableComponentFactory;
 
-  std::shared_ptr<lsw::geo::Material> m_defaultMaterial{nullptr};
+  std::shared_ptr<izz::gl::Material> m_defaultMaterial{nullptr};
   const SceneGraphEntity* m_activeCamera{nullptr};
 
   void processChildren(std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p = nullptr);
