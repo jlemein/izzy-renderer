@@ -60,6 +60,37 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::Re
   m_uniformBlockManagers[izz::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<izz::ufm::MvpManager>();
 }
 
+UniformBuffer MaterialSystem::createUniformBuffer(const Material& m, const char* name, void* pData, std::size_t size) {
+  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", name, m.name);
+
+  UniformBuffer ub {};
+  ub.data = pData;
+  ub.size = size;
+
+  glGenBuffers(1, &ub.bufferId);
+  glBindBuffer(GL_UNIFORM_BUFFER, ub.bufferId);
+
+  glUseProgram(m.programId);
+  ub.blockIndex = glGetUniformBlockIndex(m.programId, name);
+  if (ub.blockIndex == GL_INVALID_INDEX) {
+    throw std::runtime_error(fmt::format("Could not find UBO with name {}", name));
+  }
+  glGetActiveUniformBlockiv(m.programId, ub.blockIndex, GL_UNIFORM_BLOCK_BINDING, &ub.blockBind);
+
+  glBindBufferBase(GL_UNIFORM_BUFFER, ub.blockBind, ub.bufferId);
+  glBufferData(GL_UNIFORM_BUFFER, ub.size, NULL, GL_DYNAMIC_DRAW);
+
+  return ub;
+
+  //  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
+  //  glBufferData(GL_UNIFORM_BUFFER, renderable.pUboLightStructSize, nullptr, GL_DYNAMIC_DRAW);
+
+      //      uniformBlocks[name].bufferId = TODO: fix this
+      //      memcpy(properties[name].data, pData, size);
+//    }
+//    uniformBlocks.at(name).size = size;
+}
+
 void MaterialSystem::readMaterialInstances(json& j) {
   for (auto md : j["material_instances"]) {
     auto instanceName = md["name"].get<std::string>();
@@ -212,8 +243,10 @@ void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent
               m.propertyTypes[name] = PropertyType::UNIFORM_BUFFER_OBJECT;
 
               std::size_t sizeOfStruct = 0;
+
               auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
-              m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
+              m.setUniformBuffer(name.c_str(), UniformBuffer{.size = sizeOfStruct, .data = uniformData});
+//              m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
               m.userProperties.ubo_name = name;
 
               for (const auto& [key, value] : value.items()) {
@@ -291,37 +324,7 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
 }
 }  // namespace
 
-Material& MaterialSystem::createMaterial(const std::string& name) {
-  if (m_materialInstances.count(name) > 0) {
-    Material& material = m_materialInstances.at(name);
-    material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
-    m_createdMaterials[material.id] = material;
-    return m_createdMaterials.at(material.id);
-  }
-
-  // 1. First process material mapping to material name
-  auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
-
-  // 2. Match the specified name with a known material
-  Material material;
-  if (m_materials.count(materialName) > 0) {
-    material = m_materials.at(materialName);
-  } else {
-    if (m_materials.count(m_defaultMaterial) > 0) {
-      // 2. If material does not occur, assign a default one (if available)
-      spdlog::warn("Material with name '{}' not found, default material used.", materialName);
-      material = m_materials.at(m_defaultMaterial);
-
-    } else if (!m_materials.empty()) {
-      // 3. Otherwise choose the first one
-      material = m_materials.begin()->second;
-      spdlog::warn("Material '{}' is not defined. No default material is set. Using the first defined material (0: '{}') instead.", name, material.name);
-    } else {
-      // 4. Otherwise throw an error
-      throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", materialName));
-    }
-  }
-
+void MaterialSystem::allocateBuffers(Material& material) {
   // compile shader
   ShaderSystem shaderCompiler;
   if (material.isBinaryShader) {
@@ -354,38 +357,14 @@ Material& MaterialSystem::createMaterial(const std::string& name) {
     }
   }
 
-  for (auto& [name, mapping] : material.uniformBlocks) {
-//    spdlog::debug("\tUBO with name: {}", name);
-    GLuint uboHandle;
-    glGenBuffers(1, &uboHandle);
-    glBindBuffer(GL_UNIFORM_BUFFER, uboHandle);
+  // load already loaded textures
+  for (auto& [name, textureBuffer] : material.textures) {
+    textureBuffer.location = glGetUniformLocation(material.programId, name.c_str());
+  }
 
-    GLint blockIndex = glGetUniformBlockIndex(material.programId, name.c_str());
-    if (blockIndex == GL_INVALID_INDEX) {
-      throw std::runtime_error(fmt::format("Cannot find ubo block with name '{}' in shader {}", name, material.name));
-    }
-
-    GLint blockBinding;
-    glGetActiveUniformBlockiv(material.programId, blockIndex, GL_UNIFORM_BLOCK_BINDING, &blockBinding);
-
-    // is this needed?
-    //    glUniformBlockBinding(renderable.program, blockIndex, blockBinding);
-
-    glBindBufferBase(GL_UNIFORM_BUFFER, blockBinding, uboHandle);
-
-    glBufferData(GL_UNIFORM_BUFFER, mapping.size, NULL, GL_DYNAMIC_DRAW);
-
-
-
-    // store block handle in renderable
-//    UniformBufferMapping mapping;
-    //    mapping.name = name;
-    mapping.bufferId = uboHandle;
-    mapping.blockIndex = blockIndex;
-    mapping.blockBind = blockBinding;
-//    mapping.size = uniform.size;
-//    mapping.pData = uniform.data;
-//    rs.uniformBlocks.push_back(mapping);
+  for (auto& [name, ubo] : material.uniformBuffers) {
+    spdlog::debug("MaterialSystem: allocating uniform buffer on GPU");
+    ubo = createUniformBuffer(material, name.c_str(), ubo.data, ubo.size);
   }
 
   // INIT UNSCOPED UNIFORMS
@@ -465,8 +444,44 @@ Material& MaterialSystem::createMaterial(const std::string& name) {
     pData += sizeof(float) * value.size();
     pUniform++;
   }
+}
 
-  material.id = m_createdMaterials.size() + 1;
+Material& MaterialSystem::createMaterial(const std::string& name) {
+  Material material;
+
+  if (m_materialInstances.count(name) > 0) {
+    material = m_materialInstances.at(name);
+    allocateBuffers(material);
+    material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
+    m_createdMaterials[material.id] = material;
+    return m_createdMaterials.at(material.id);
+  } else {
+    // 1. First process material mapping to material name
+    auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
+
+    // 2. Match the specified name with a known material
+    if (m_materials.count(materialName) > 0) {
+      material = m_materials.at(materialName);
+    } else {
+      if (m_materials.count(m_defaultMaterial) > 0) {
+        // 2. If material does not occur, assign a default one (if available)
+        spdlog::warn("Material with name '{}' not found, default material used.", materialName);
+        material = m_materials.at(m_defaultMaterial);
+
+      } else if (!m_materials.empty()) {
+        // 3. Otherwise choose the first one
+        material = m_materials.begin()->second;
+        spdlog::warn("Material '{}' is not defined. No default material is set. Using the first defined material (0: '{}') instead.", name, material.name);
+      } else {
+        // 4. Otherwise throw an error
+        throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", materialName));
+      }
+    }
+  }
+
+  allocateBuffers(material);
+
+  material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
   m_createdMaterials[material.id] = material;
   return m_createdMaterials.at(material.id);
 }
@@ -487,7 +502,7 @@ void MaterialSystem::update(float time, float dt) {
 //  auto view = m_registry.view<izz::gl::Material, Renderable>();
 
   for (auto& m : m_createdMaterials) {
-    for (const auto& [name, uniformBlock] : m.second.uniformBlocks) {
+    for (const auto& [name, uniformBlock] : m.second.uniformBuffers) {
 #ifndef NDEBUG
       if (m_uniformBlockManagers.count(name) <= 0) {
         throw std::runtime_error(fmt::format("Material system cannot find manager for ubo block '{}'", name));

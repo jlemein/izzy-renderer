@@ -17,7 +17,7 @@ namespace gl {
 
 struct BufferedMeshData;
 struct RenderState;
-struct UniformBufferMapping;
+struct UniformBuffer;
 struct Material;
 
 struct RenderUtils {
@@ -79,7 +79,7 @@ struct RenderUtils {
   static void LoadMaterial(const Material& m, RenderState& rs);
 
 //  static int GetUniformBufferLocation(const RenderState& rs, std::string uboName);
-  static UniformBufferMapping GetUniformBufferLocation(const RenderState& rs, std::string uboName);
+//  static UniformBufferMapping GetUniformBufferLocation(const RenderState& rs, std::string uboName);
 
 
 };

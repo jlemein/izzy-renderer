@@ -28,8 +28,7 @@ class RenderSystem;
  * It is responsible for reading the material definitions (json) file that list
  * the available materials.
  *
- * Every material described in the materials file should be mapped to a data
- * structure.
+ *
  */
 class MaterialSystem {
  public:
@@ -56,6 +55,10 @@ class MaterialSystem {
    */
   Material& createMaterial(const std::string& name);
   Material& getMaterialById(int id);
+
+  void allocateBuffers(Material& material);
+
+  UniformBuffer createUniformBuffer(const Material& m, const char* name, void* pData, std::size_t size);
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.

@@ -73,9 +73,6 @@ void setupSystems() {
   sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
 
-
-
-
   fontSystem = make_shared<FontSystem>();
   fontSystem->addFont("fonts/SegoeUi.ttf", 20);
   //  fontSystem->addFont("fonts/DroidSans.ttf", 20);

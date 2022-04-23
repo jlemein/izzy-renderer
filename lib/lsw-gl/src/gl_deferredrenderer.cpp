@@ -205,7 +205,7 @@ void DeferredRenderer::update() {
 
     try {
       auto& material = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId);
-      ModelViewProjection* mvp = reinterpret_cast<ModelViewProjection*>(material.uniformBlocks.at("ModelViewProjection").data);
+      ModelViewProjection* mvp = reinterpret_cast<ModelViewProjection*>(material.uniformBuffers.at("ModelViewProjection").data);
       mvp->model = model;
       mvp->view = view;
       mvp->proj = proj;
@@ -231,6 +231,8 @@ void DeferredRenderer::render(const entt::registry& registry) {
 
   for (entt::entity e : view) {
     try {
+      auto name = registry.get<lsw::ecs::Name>(e);
+      std::cout << name.name << std::endl;
       auto rid = view.get<const DeferredRenderable>(e).renderStateId;
       auto materialId = view.get<const DeferredRenderable>(e).materialId;
       const auto& mat = m_renderSystem.getMaterialSystem().getMaterialById(materialId);

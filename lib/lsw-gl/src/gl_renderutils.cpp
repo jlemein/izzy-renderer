@@ -462,30 +462,30 @@ void RenderUtils::LoadMaterial(const Material& material, RenderState& rs) {
 //  }
 }
 
-UniformBufferMapping RenderUtils::GetUniformBufferLocation(const RenderState& rs, std::string uboName) {
-  glUseProgram(rs.program);  // TODO: remove line
-
-  int uboBlockIndex = glGetUniformBlockIndex(rs.program, uboName.c_str());
-  if (uboBlockIndex == GL_INVALID_INDEX) {
-    //    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
-    //                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
-    throw std::runtime_error(fmt::format("Could not find UBO with name {}", uboName));
-  }
-
-  //  renderable.isMvpSupported = true;
-  GLuint bufferId;
-  glGenBuffers(1, &bufferId);
-  glBindBuffer(GL_UNIFORM_BUFFER, bufferId);
-
-  int uboBlockBinding;
-  glGetActiveUniformBlockiv(rs.program, uboBlockIndex, GL_UNIFORM_BLOCK_BINDING, &uboBlockBinding);
-
-  glBindBufferBase(GL_UNIFORM_BUFFER, uboBlockIndex, bufferId);
-  glBufferData(GL_UNIFORM_BUFFER, sizeof(ModelViewProjection), nullptr, GL_DYNAMIC_DRAW);
-
-  UniformBufferMapping mapping;
-  mapping.blockIndex = uboBlockIndex;
-  mapping.blockBind = uboBlockBinding;
-  mapping.size = sizeof(ModelViewProjection);
-  return mapping;
-}
+//UniformBufferMapping RenderUtils::GetUniformBufferLocation(const RenderState& rs, std::string uboName) {
+//  glUseProgram(rs.program);  // TODO: remove line
+//
+//  int uboBlockIndex = glGetUniformBlockIndex(rs.program, uboName.c_str());
+//  if (uboBlockIndex == GL_INVALID_INDEX) {
+//    //    throw std::runtime_error(fmt::format("Shader program does not contain a uniform block with name 'UniformBufferBlock' in {}",
+//    //                                         renderable.material ? renderable.material->vertexShader : "<no material assigned>"));
+//    throw std::runtime_error(fmt::format("Could not find UBO with name {}", uboName));
+//  }
+//
+//  //  renderable.isMvpSupported = true;
+//  GLuint bufferId;
+//  glGenBuffers(1, &bufferId);
+//  glBindBuffer(GL_UNIFORM_BUFFER, bufferId);
+//
+//  int uboBlockBinding;
+//  glGetActiveUniformBlockiv(rs.program, uboBlockIndex, GL_UNIFORM_BLOCK_BINDING, &uboBlockBinding);
+//
+//  glBindBufferBase(GL_UNIFORM_BUFFER, uboBlockIndex, bufferId);
+//  glBufferData(GL_UNIFORM_BUFFER, sizeof(ModelViewProjection), nullptr, GL_DYNAMIC_DRAW);
+//
+//  UniformBufferMapping mapping;
+//  mapping.blockIndex = uboBlockIndex;
+//  mapping.blockBind = uboBlockBinding;
+//  mapping.size = sizeof(ModelViewProjection);
+//  return mapping;
+//}

@@ -82,7 +82,7 @@ struct RenderState {
 //  std::vector<TextureBuffer> textureBuffers;
 
   // TODO: make one attribute
-  std::vector<UniformBufferMapping> uniformBlocks;
+//  std::vector<UniformBufferMapping> uniformBlocks;
 
 //  std::unordered_map<std::string, Renderable_UniformBlockInfo> userProperties;
 //  UnscopedUniforms unscopedUniforms;
