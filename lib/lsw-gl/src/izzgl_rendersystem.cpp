@@ -426,49 +426,49 @@ void RenderSystem::init(int width, int height) {
   // * Push the remaining uniform parameter values to the shader.
 
   // handling curves
-  for (auto [entity, curve, renderable] : m_registry.view<lsw::geo::Curve, Renderable>().each()) {
-    try {
-      RenderUtils::FillBufferedMeshData(curve, renderable.renderState.meshData);
-    } catch (std::exception& e) {
-      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-
-      std::cerr << "Failed initializing curve '" << name << "': " << e.what();
-      exit(1);
-    }
-  }
-
-  // handling meshes
-  for (auto [entity, mesh, renderable] : m_registry.view<lsw::geo::Mesh, Renderable>().each()) {
-    auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-
-    try {
-      RenderUtils::FillBufferedMeshData(mesh, renderable.renderState.meshData);
-
-    } catch (std::exception& e) {
-      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
-    }
-  }
-
-  // handling materials
-  for (auto [entity, material, renderable] : m_registry.view<Material, Renderable>().each()) {
-    try {
-      if (material.isBinaryShader) {
-        renderable.renderState.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
-      } else {
-        renderable.renderState.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
-      }
-
-      spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", renderable.renderState.program, material.vertexShader,
-                    material.fragmentShader);
-
-      initShaderProperties(entity, renderable, material);
-
-    } catch (std::exception& e) {
-      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-      throw std::runtime_error(fmt::format("Entity {}: {}", name, e.what()));
-    }
-  }
+//  for (auto [entity, curve, renderable] : m_registry.view<lsw::geo::Curve, Renderable>().each()) {
+//    try {
+//      RenderUtils::FillBufferedMeshData(curve, renderable.renderState.meshData);
+//    } catch (std::exception& e) {
+//      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+//
+//      std::cerr << "Failed initializing curve '" << name << "': " << e.what();
+//      exit(1);
+//    }
+//  }
+//
+//  // handling meshes
+//  for (auto [entity, mesh, renderable] : m_registry.view<lsw::geo::Mesh, Renderable>().each()) {
+//    auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+//
+//    try {
+//      RenderUtils::FillBufferedMeshData(mesh, renderable.renderState.meshData);
+//
+//    } catch (std::exception& e) {
+//      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+//      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
+//    }
+//  }
+//
+//  // handling materials
+//  for (auto [entity, material, renderable] : m_registry.view<Material, Renderable>().each()) {
+//    try {
+//      if (material.isBinaryShader) {
+//        renderable.renderState.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
+//      } else {
+//        renderable.renderState.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
+//      }
+//
+//      spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", renderable.renderState.program, material.vertexShader,
+//                    material.fragmentShader);
+//
+//      initShaderProperties(entity, renderable, material);
+//
+//    } catch (std::exception& e) {
+//      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+//      throw std::runtime_error(fmt::format("Entity {}: {}", name, e.what()));
+//    }
+//  }
   //  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
 }
 

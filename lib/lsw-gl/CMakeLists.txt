@@ -1,6 +1,6 @@
 add_library(lsw-gl STATIC
         include/ecs_debugmodel.h
-        include/ecs_debugshapefactory.h
+#        include/ecs_debugshapefactory.h
         include/gl_common.h
         include/gl_deferredrenderablefactory.h
         include/gl_deferredrenderer.h
@@ -13,6 +13,7 @@ add_library(lsw-gl STATIC
         include/glrs_lightsystem.h
 #        include/izzgl_effectsystem.h
         include/izzgl_exrloader.h
+        include/izzgl_materialreader.h
         include/izzgl_material.h
         include/izzgl_materialsystem.h
         include/izzgl_rendersystem.h
@@ -30,8 +31,8 @@ add_library(lsw-gl STATIC
         include/uniform_uniformblockmanager.h
         src/uniform_ubermaterial.cpp
 
-        src/ecs_debugshapefactory.cpp
-        src/ecs_debugsystem.cpp
+#        src/ecs_debugshapefactory.cpp
+#        src/ecs_debugsystem.cpp
 #        src/ecs_lightsystem.t.cpp
         src/gl_common.cpp
         src/gl_deferredrenderablefactory.cpp
@@ -46,6 +47,7 @@ add_library(lsw-gl STATIC
         src/glrs_shadersystem.t.cpp
 #        src/izzgl_effectsystem.cpp
         src/izzgl_exrloader.cpp
+        src/izzgl_materialreader.cpp
         src/izzgl_materialsystem.cpp
         src/izzgl_rendersystem.cpp
         src/izzgl_stbtextureloader.cpp

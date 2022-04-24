@@ -243,7 +243,7 @@ void DeferredRenderer::render(const entt::registry& registry) {
       glUseProgram(mat.programId);
 
       mat.useTextures();
-      spdlog::debug("Push uniforms for: {}: {} - {}", mat.programId, mat.name, mat.vertexShader);
+      spdlog::debug("Push uniforms for: {}: {}", mat.programId, mat.name);
       mat.pushUniforms();
 //      RenderUtils::ActivateTextures(rs);
       RenderUtils::UseBufferedMeshData(rs.meshData);

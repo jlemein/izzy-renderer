@@ -5,13 +5,15 @@
 
 #include <GL/glew.h>
 #include <fmt/format.h>
-#include <izzgl_texture.h>
 #include <gl_renderable.h>
+#include <izzgl_texture.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <memory>
+#include <variant>
 #include "izz.h"
+#include <string>
 
 namespace izz {
 namespace gl {
@@ -43,6 +45,12 @@ struct UnscopedUniforms {
   }
 };
 
+struct UniformBufferDescription {
+  std::string name;
+  size_t size {0U};
+  void* data {nullptr};
+};
+
 /**
  * @brief Describes a uniform buffer object in OpenGL. Uniform buffer objects are used for named uniform blocks.
  */
@@ -52,6 +60,11 @@ struct UniformBuffer {
   int blockBind {0};
   size_t size {0U};
   void* data {nullptr};
+};
+
+struct UniformProperty {
+  char name[32];
+  GLint location;
 };
 
 /**
@@ -158,10 +171,12 @@ class FramebufferConfiguration {
 enum class PropertyType {
   TEXTURE2D,
   CUBEMAP,
+  FLOAT_ARRAY,
   FLOAT,
   FLOAT4,
   FLOAT3,
   INT,
+  BOOL, // needed?
   UNIFORM_BUFFER_OBJECT
 };
 
@@ -181,15 +196,50 @@ struct TextureBuffer {
   GLint location {-1}; // as obtained via glGetUniformLocation
 };
 
-struct MaterialDefinition {
+struct TextureDescription {
+  PropertyType type;  /// @brief type of texture. Intended to be set to any value of TEXTURE_*.
+  std::string name; /// @brief name of uniform attribute in shader (the texture sampler).
+  std::filesystem::path path; /// @brief path to the texture file (if known). Leave empty to indicate no texture need to be loaded, either because it will be set
+                    /// later or because it will get assigned a generated texture from previous render passes.
+};
+
+//union PropertyValue {
+//  char asString[32]; // occupies 32 bytes.
+//  bool asBoolean;  // occupies 1 byte.
+//  int32_t asInteger;
+//  float asFloat; // occupies 32 bytes
+//  std::unique_ptr<std::vector<float>> a;
+////  double asDouble; // occupies 64 bytes.
+//};
+
+using PropertyValue = std::variant<bool, int, float, std::string, std::vector<float>>;
+
+struct UniformDescription {
   std::string name;
-  /// Indicates whether the vertex and fragment shader files are in binary format (e.g. pre-compiled SPIRV format).
-  bool isBinaryShader{false};
-  std::string vertexShader{""};
-  std::string geometryShader{""};
-  std::string fragmentShader{""};
+  PropertyType type;
+  PropertyValue value;
+  int length;
+};
+
+struct MaterialDescription {
+//  std::string name;               /// @brief Name used for instantiating a material via MaterialSystem::createMaterial()
+  bool isBinaryShader{false};     /// @brief Are the shader files in binary format (e.g. pre-compiled SPIRV format)?
+  std::string vertexShader{""};   /// @brief Path to the vertex GLSL shader file.
+  std::string geometryShader{""}; /// @brief Path to the vertex GLSL shader file.
+  std::string fragmentShader{""}; /// @brief Path to the vertex GLSL shader file.
 
 
+  std::unordered_map<std::string, TextureDescription> textures;
+
+//  std::unordered_map<std::string, PropertyType> uniforms;
+
+  /// @brief This map contains information about individual uniform parameters (e.g. their data types and default values).
+  /// @details Note that all uniform parameters, both part of a scoped/named uniform block, as well as global or unscoped uniform parameters are added
+  /// together in this map.
+  std::unordered_map<std::string, UniformDescription> uniforms;
+
+  /// @brief This map contains information about the named uniform buffer objects in the shader (such as the size and data pointers).
+  std::unordered_map<std::string, UniformBufferDescription> uniformBuffers;
 };
 
 struct Material {
@@ -292,11 +342,11 @@ struct Material {
 //  unsigned int fbo {0U};
 
   /// Indicates whether the vertex and fragment shader files are in binary format (e.g. pre-compiled SPIRV format).
-  bool isBinaryShader{false};
-
-  std::string vertexShader{""};
-  std::string geometryShader{""};
-  std::string fragmentShader{""};
+//  bool isBinaryShader{false};
+//
+//  std::string vertexShader{""};
+//  std::string geometryShader{""};
+//  std::string fragmentShader{""};
 
   LightingInfo lighting;
 
@@ -339,8 +389,8 @@ struct Material {
    * @brief a texture maps from a parameter name (e.g. my_diffuse_tex) to a file path.
    * When programmatically assigned a texture to an entity, set the texturePath instead of loading the texture in textures.
    */
-  std::unordered_map<std::string, std::string> texturePaths{};
-  std::unordered_map<std::string, std::string> defaultTexturePaths{};
+//  std::unordered_map<std::string, std::string> texturePaths{};
+//  std::unordered_map<std::string, std::string> defaultTexturePaths{};
   /**
    * @brief mapping from parameter name to the texture resource.
    * This variable is for bookkeeping purposes only. Never set this attribute directly, your texture will not be loaded.

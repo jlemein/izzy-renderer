@@ -38,13 +38,8 @@ struct ReservedNames {
   static inline const std::string NORMAL_TEXTURE = "normalTex";
   static inline const std::string ROUGHNESS_TEXTURE = "roughTex";
 };
-
-template <typename T>
-bool isFloatArray(const T& array) {
-  return std::all_of(array.begin(), array.end(), [](const json& el) { return el.is_number_float(); });
 }
 
-}  // namespace
 
 MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager)
   : m_registry{registry}
@@ -60,20 +55,23 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::Re
   m_uniformBlockManagers[izz::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<izz::ufm::MvpManager>();
 }
 
-UniformBuffer MaterialSystem::createUniformBuffer(const Material& m, const char* name, void* pData, std::size_t size) {
-  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", name, m.name);
+void MaterialSystem::addMaterialDescription(std::string name, MaterialDescription materialDescription) {
+  m_materialDescriptions[name] = materialDescription;
+}
+
+UniformBuffer MaterialSystem::createUniformBuffer(const UniformBufferDescription& bufferDescription, const Material& m) {
+  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, m.name);
 
   UniformBuffer ub {};
-  ub.data = pData;
-  ub.size = size;
+  ub.data = m_uniformBlockManagers.at(bufferDescription.name)->CreateUniformBlock(ub.size);
 
   glGenBuffers(1, &ub.bufferId);
   glBindBuffer(GL_UNIFORM_BUFFER, ub.bufferId);
 
-  glUseProgram(m.programId);
-  ub.blockIndex = glGetUniformBlockIndex(m.programId, name);
+  glUseProgram(m.programId); // might not be needed
+  ub.blockIndex = glGetUniformBlockIndex(m.programId, bufferDescription.name.c_str());
   if (ub.blockIndex == GL_INVALID_INDEX) {
-    throw std::runtime_error(fmt::format("Could not find UBO with name {}", name));
+    throw std::runtime_error(fmt::format("Could not find UBO with name {}", bufferDescription.name));
   }
   glGetActiveUniformBlockiv(m.programId, ub.blockIndex, GL_UNIFORM_BLOCK_BINDING, &ub.blockBind);
 
@@ -91,227 +89,28 @@ UniformBuffer MaterialSystem::createUniformBuffer(const Material& m, const char*
 //    uniformBlocks.at(name).size = size;
 }
 
-void MaterialSystem::readMaterialInstances(json& j) {
-  for (auto md : j["material_instances"]) {
-    auto instanceName = md["name"].get<std::string>();
-    auto materialDefinition = md["material_definition"].get<std::string>();
 
-    if (instanceName.empty() || materialDefinition.empty()) {
-      throw std::runtime_error("Failed to read material instance");
-    }
-    if (m_materials.count(materialDefinition) <= 0) {
-      throw std::runtime_error(
-          fmt::format("Material instance '{}', instanced from '{}' does not occur in the list of material definitions.", instanceName, materialDefinition));
-    }
+//void addTextureToMaterial(const std::string& textureName, const std::string& path, izz::gl::Material& material) {
+//  if (textureName == ReservedNames::DIFFUSE_TEXTURE) {
+//    material.diffuseTexturePath = path;
+//  } else if (textureName == ReservedNames::SPECULAR_TEXTURE) {
+//    material.specularTexturePath = path;
+//  } else if (textureName == ReservedNames::NORMAL_TEXTURE) {
+//    material.normalTexturePath = path;
+//  } else if (textureName == ReservedNames::ROUGHNESS_TEXTURE) {
+//    material.roughnessTexturePath = path;
+//  } else {
+//    material.texturePaths[textureName] = path;
+//  }
+//}
 
-    m_materialInstances[instanceName] = m_materials[materialDefinition];
-    auto& mat = m_materialInstances[instanceName];
-
-    if (md.contains("properties")) {
-      auto properties = md["properties"];
-      for (const auto& [key, value] : properties.items()) {
-        try {
-          auto type = mat.propertyTypes.at(key);
-          switch (type) {
-            case PropertyType::TEXTURE2D: {
-              auto texture = m_resourceManager->getTextureSystem()->loadTexture(value.get<std::string>());
-              mat.setTexture(key, texture);
-              break;
-            }
-
-            case PropertyType::FLOAT4:
-              mat.userProperties.setFloatArray(key, value.get<std::vector<float>>());
-              break;
-
-            case PropertyType::FLOAT:
-              mat.userProperties.setFloat(key, value.get<float>());
-              break;
-
-            case PropertyType::INT:
-              mat.userProperties.setInt(key, value.get<int>());
-              break;
-
-            default:
-              spdlog::warn("Material property {} is not part of the material definition. Ignored.", key);
-              break;
-          }
-        } catch (std::out_of_range&) {
-          throw std::runtime_error(
-              fmt::format("Material instance '{}': property '{}' is not part of material definition '{}'.", instanceName, key, materialDefinition));
-        }
-      }
-    }
-  }
+MaterialDescription& MaterialSystem::getMaterialDescription(const std::string& name) {
+  return m_materialDescriptions.at(name);
 }
 
-void addTextureToMaterial(const std::string& textureName, const std::string& path, izz::gl::Material& material) {
-  if (textureName == ReservedNames::DIFFUSE_TEXTURE) {
-    material.diffuseTexturePath = path;
-  } else if (textureName == ReservedNames::SPECULAR_TEXTURE) {
-    material.specularTexturePath = path;
-  } else if (textureName == ReservedNames::NORMAL_TEXTURE) {
-    material.normalTexturePath = path;
-  } else if (textureName == ReservedNames::ROUGHNESS_TEXTURE) {
-    material.roughnessTexturePath = path;
-  } else {
-    material.texturePaths[textureName] = path;
-  }
-}
 
-void MaterialSystem::readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json& j) {
-  spdlog::info("Reading material definitions...");
-
-  for (const auto& material : j["materials"]) {
-    Material m;
-    m.name = material["name"].get<std::string>();
-    spdlog::debug("Reading material with id \"{}\"...", m.name);
-
-    try {
-      if (material.count("lighting") > 0) {
-        const auto& lighting = material["lighting"];
-        m.lighting.ubo_struct_name = lighting["ubo_struct"].get<std::string>();
-      } else {
-        m.lighting.ubo_struct_name = "";
-      }
-    } catch (nlohmann::detail::exception e) {
-      throw std::runtime_error(fmt::format("Failed parsing lighting metadata: {}", e.what()));
-    }
-
-    // pass shader info
-    try {
-      m.isBinaryShader = material.contains("is_binary_shader") ? material["is_binary_shader"].get<bool>() : false;
-      m.vertexShader = parent_path / material["vertex_shader"].get<std::string>();
-      m.geometryShader = parent_path / material["geometry_shader"].get<std::string>();
-      m.fragmentShader = parent_path / material["fragment_shader"].get<std::string>();
-
-      spdlog::debug("\tvertex shader: {}", m.vertexShader);
-      spdlog::debug("\tgeometry shader: {}", m.geometryShader);
-      spdlog::debug("\tfragment shader: {}", m.fragmentShader);
-    } catch (nlohmann::detail::exception e) {
-      throw std::runtime_error(fmt::format("Failed parsing shader names: {}", e.what()));
-    }
-
-    if (material.contains("textures")) {
-      for (const auto& [name, value] : material["textures"].items()) {
-        if (!value.contains("type")) {
-          spdlog::warn("Material '{}': texture misses required attributes 'type'. Property will be ignored.", m.name);
-          continue;
-        }
-
-        std::string type = value["type"];
-
-        if (type == "texture") {
-          m.propertyTypes[name] = PropertyType::TEXTURE2D;
-          std::string path = "";
-
-          if (value.contains("default_value")) {
-            path = value["default_value"].get<std::string>();
-            m.setTexture(name, m_resourceManager->getTextureSystem()->loadTexture(path));
-          } else {
-            m.setTexture(name, nullptr);
-          }
-          spdlog::debug("\t{} texture: {}", name, path);
-//          addTextureToMaterial(name, path, m);
-
-        } else {
-          spdlog::warn("Material '{}' defines property {} of type {} that is not supported. Property will be ignored.", m.name, name, type);
-        }
-      }
-    }
-
-    if (material.contains("properties")) {
-      // dealing with uniform props not in an interface block
-      for (const auto& [key, value] : material["properties"].items()) {
-        if (value.is_boolean()) {
-          m.unscopedUniforms.setBoolean(key, value.get<bool>());
-        } else if (value.is_number_float()) {
-          m.unscopedUniforms.setFloat(key, value.get<float>());
-        } else if (value.is_number_integer()) {
-          m.unscopedUniforms.setInt(key, value.get<int>());
-        } else if (value.is_array() && isFloatArray<>(value)) {
-          m.unscopedUniforms.setFloatArray(key, value.get<std::vector<float>>());
-        } else if (value.is_object()) {
-          // scoped uniform (i.e. using interface block)
-          auto name = key;
-
-          try {
-            if (m_uniformBlockManagers.count(name) <= 0) {
-              throw std::runtime_error(fmt::format(
-                  "{} with uniform block '{}': material system does not contain an UBO handler for this UBO name. Shader will likely misbehave.", m.name,
-                  name));
-            } else {
-              m.propertyTypes[name] = PropertyType::UNIFORM_BUFFER_OBJECT;
-
-              std::size_t sizeOfStruct = 0;
-
-              auto uniformData = m_uniformBlockManagers.at(name)->CreateUniformBlock(sizeOfStruct);
-              m.setUniformBuffer(name.c_str(), UniformBuffer{.size = sizeOfStruct, .data = uniformData});
-//              m.registerUniformBlock(name.c_str(), uniformData, sizeOfStruct);
-              m.userProperties.ubo_name = name;
-
-              for (const auto& [key, value] : value.items()) {
-                if (value.is_array() && isFloatArray<>(value)) {
-                  m.propertyTypes[key] = PropertyType::FLOAT4;
-                  auto list = value.get<std::vector<float>>();
-                  spdlog::debug(fmt::format("\t{}::{} = [{}]", name, key, fmt::join(list.begin(), list.end(), ", ")));
-                  m.userProperties.setFloatArray(key, value.get<std::vector<float>>());
-                } else if (value.is_number_float()) {
-                  m.propertyTypes[key] = PropertyType::FLOAT;
-                  spdlog::debug("\t{}::{} = {}", name, key, value.get<float>());
-                  m.userProperties.setFloat(key, value.get<float>());
-                } else if (value.is_number_integer()) {
-                  m.propertyTypes[key] = PropertyType::INT;
-                  spdlog::debug("\t{}::{} = {}", name, key, value.get<int>());
-                  m.userProperties.setInt(key, value.get<int>());
-                } else {
-                  spdlog::error("Material {} with parameter '{}' is ignored. Data type is not supported.", m.name, key);
-                }
-              }
-            }
-
-          } catch (std::runtime_error& e) {
-            spdlog::error("Failed to parse property {} for material {}, details: {}", name, m.name, e.what());
-            throw e;
-          }
-        }
-      }
-    }
-
-    m_materials[m.name] = m;  // std::move(m);
-  }
-
-  spdlog::debug("READING MATERIALS [DONE]");
-}
-
-void MaterialSystem::loadMaterialsFromFile(const std::filesystem::path& path) {
-  std::ifstream input(path);
-  if (input.fail()) {
-    throw std::runtime_error(fmt::format("MaterialSystem fails to initialize: cannot read from '{}'", path));
-  }
-
-  json j;
-  input >> j;
-
-  // initialization of material system needs to be done in order.
-  // first material definitions are read.
-  readMaterialDefinitions(path.parent_path(), j);
-  readMaterialInstances(j);
-  //  readEffects(j);
-
-  if (j.contains("default_material")) {
-    auto defaultMaterial = j["default_material"];
-    if (m_materials.count(defaultMaterial) > 0) {
-      m_defaultMaterial = defaultMaterial;
-    } else {
-      spdlog::warn("{} specifies a default material '{}' that is not defined in the list of materials", path, defaultMaterial);
-    }
-  }
-
-  input.close();
-}
-
-bool MaterialSystem::isMaterialDefined(const std::string& materialName) {
-  return m_materialMappings.count(materialName) > 0 || m_materials.count(materialName) > 0;
+bool MaterialSystem::hasMaterialDescription(const std::string& materialName) {
+  return m_materialMappings.count(materialName) > 0 || m_materialDescriptions.count(materialName) > 0;
 }
 
 namespace {
@@ -324,66 +123,115 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
 }
 }  // namespace
 
-void MaterialSystem::allocateBuffers(Material& material) {
+void MaterialSystem::setDefaultMaterial(const std::string& name) {
+  if (m_materialDescriptions.count(name) > 0) {
+    m_defaultMaterial = name;
+  } else {
+    spdlog::warn("Setting default material '{}' failed, because material system failed to find a material description with that name.");
+  }
+}
+
+void MaterialSystem::compileShader(Material& material, const MaterialDescription& materialDescription) {
   // compile shader
   ShaderSystem shaderCompiler;
-  if (material.isBinaryShader) {
-    material.programId = shaderCompiler.compileSpirvShader(material.vertexShader, material.fragmentShader);
+  if (materialDescription.isBinaryShader) {
+    material.programId = shaderCompiler.compileSpirvShader(materialDescription.vertexShader, materialDescription.fragmentShader);
   } else {
-    material.programId = shaderCompiler.compileShader(material.vertexShader, material.fragmentShader);
+    material.programId = shaderCompiler.compileShader(materialDescription.vertexShader, materialDescription.fragmentShader);
   }
   spdlog::debug("\tProgram id: {}\n\tShader program compiled successfully (vs: {} fs: {})", material.programId,
-                material.vertexShader, material.fragmentShader);
+                materialDescription.vertexShader, materialDescription.fragmentShader);
+}
+
+void MaterialSystem::allocateBuffers(Material& material, const MaterialDescription& materialDescription) {
 
   // load textures
-  for (const auto& [texname, filepath] : material.texturePaths) {
+  for (const auto& [textureName, texture] : materialDescription.textures) {
     //    for (const auto& [texname, filepath] : material.texturePaths) {
-    spdlog::debug("Loading Texture {}: {}", texname, filepath);
+    spdlog::debug("Loading Texture {}: {}", textureName, texture.path.string());
 
     Texture* pTexture {nullptr};
-    if (!filepath.empty()) {
-      pTexture = m_resourceManager->getTextureSystem()->loadTexture(filepath);
+    if (!texture.path.empty()) {
+      pTexture = m_resourceManager->getTextureSystem()->loadTexture(texture.path);
     }
 
     TextureBuffer tb;
     tb.textureId = pTexture != nullptr ? pTexture->bufferId : -1;
-    tb.location = glGetUniformLocation(material.programId, texname.c_str());
+    tb.location = glGetUniformLocation(material.programId, textureName.c_str());
 
     if (tb.location != GL_INVALID_INDEX) {
-      spdlog::debug("Material {}: added texture {}: '{}'", material.name, texname, filepath);
-      material.textures[texname] = tb;
+      spdlog::debug("Material {}: added texture {}: '{}'", material.name, textureName, texture.path);
+      material.textures[textureName] = tb;
     } else {
-      spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.name, texname);
+      spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.name, textureName);
     }
   }
 
   // load already loaded textures
-  for (auto& [name, textureBuffer] : material.textures) {
-    textureBuffer.location = glGetUniformLocation(material.programId, name.c_str());
-  }
+//  for (auto& [name, textureBuffer] : material.textures) {
+//    textureBuffer.location = glGetUniformLocation(material.programId, name.c_str());
+//  }
 
-  for (auto& [name, ubo] : material.uniformBuffers) {
+  for (auto& [name, uboDescription] : materialDescription.uniformBuffers) {
     spdlog::debug("MaterialSystem: allocating uniform buffer on GPU");
-    ubo = createUniformBuffer(material, name.c_str(), ubo.data, ubo.size);
+    material.uniformBuffers[name] = createUniformBuffer(uboDescription, material);
   }
 
   // INIT UNSCOPED UNIFORMS
   //  first memory allocation. For this we need to know the number of properties and length of data properties.
-  int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
-                      material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
   uint64_t sizeBytes = 0U;
-  sizeBytes += material.unscopedUniforms.booleanValues.size() * sizeof(GLint);
-  sizeBytes += material.unscopedUniforms.intValues.size() * sizeof(GLint);
-  sizeBytes += material.unscopedUniforms.floatValues.size() * sizeof(GLfloat);
-  for (const auto& array : material.unscopedUniforms.floatArrayValues) {
-    sizeBytes += array.second.size() * sizeof(GLfloat);
+  int numProperties = 0;
+  for (const auto& [name, uniform] : materialDescription.uniforms) {
+    switch(uniform.type) {
+      case PropertyType::FLOAT:
+      case PropertyType::INT:
+      case PropertyType::BOOL:
+        ++numProperties;
+        sizeBytes += sizeof(GLint);
+        break;
+
+      case PropertyType::FLOAT3:
+        ++numProperties;
+        sizeBytes += 3*sizeof(GLfloat);
+        break;
+
+      case PropertyType::FLOAT4:
+        ++numProperties;
+        sizeBytes += 4*sizeof(GLfloat);
+        break;
+
+      case PropertyType::FLOAT_ARRAY:
+        ++numProperties;
+        sizeBytes += uniform.length*sizeof(GLfloat);
+        break;
+
+      case PropertyType::UNIFORM_BUFFER_OBJECT:
+      case PropertyType::TEXTURE2D:
+        break;
+
+      default:
+        spdlog::warn("Uniform property {} is ignored", name);
+    }
   }
+//  int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
+//                      material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
+//  uint64_t sizeBytes = 0U;
+//  sizeBytes += material.unscopedUniforms.booleanValues.size() * sizeof(GLint);
+//  sizeBytes += material.unscopedUniforms.intValues.size() * sizeof(GLint);
+//  sizeBytes += material.unscopedUniforms.floatValues.size() * sizeof(GLfloat);
+//  for (const auto& array : material.unscopedUniforms.floatArrayValues) {
+//    sizeBytes += array.second.size() * sizeof(GLfloat);
+//  }
 
   material.unscopedUniformBuffer = UnscopedUniforms::Allocate(numProperties, sizeBytes);
 
   auto pData = material.unscopedUniformBuffer.pData;
   auto pUniform = material.unscopedUniformBuffer.pProperties;
   unsigned int offset = 0U;
+
+//  for (auto [name, value] : materialDescription.uniforms) {
+//    value.
+//  }
 
   for (auto [name, value] : material.unscopedUniforms.booleanValues) {
     *reinterpret_cast<int*>(pData) = value;
@@ -446,40 +294,34 @@ void MaterialSystem::allocateBuffers(Material& material) {
   }
 }
 
-Material& MaterialSystem::createMaterial(const std::string& name) {
-  Material material;
+MaterialDescription& MaterialSystem::resolveMaterialDescription(const std::string name) {
+  // 1. Map the material name to a different material name
+  auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
 
-  if (m_materialInstances.count(name) > 0) {
-    material = m_materialInstances.at(name);
-    allocateBuffers(material);
-    material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
-    m_createdMaterials[material.id] = material;
-    return m_createdMaterials.at(material.id);
-  } else {
-    // 1. First process material mapping to material name
-    auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
+  if (m_materialDescriptions.count(materialName) == 0) {
+    spdlog::warn("Material with name '{}' not found, using default material {}.", materialName, m_defaultMaterial);
 
-    // 2. Match the specified name with a known material
-    if (m_materials.count(materialName) > 0) {
-      material = m_materials.at(materialName);
+    // use a default material, if the "mapped-to-material" is not defined.
+    materialName = m_defaultMaterial;
+
+    // if also the default material is not defined
+    if (m_materialDescriptions.count(m_defaultMaterial) == 0 && m_materialDescriptions.empty()) {
+      throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", materialName));
     } else {
-      if (m_materials.count(m_defaultMaterial) > 0) {
-        // 2. If material does not occur, assign a default one (if available)
-        spdlog::warn("Material with name '{}' not found, default material used.", materialName);
-        material = m_materials.at(m_defaultMaterial);
-
-      } else if (!m_materials.empty()) {
-        // 3. Otherwise choose the first one
-        material = m_materials.begin()->second;
-        spdlog::warn("Material '{}' is not defined. No default material is set. Using the first defined material (0: '{}') instead.", name, material.name);
-      } else {
-        // 4. Otherwise throw an error
-        throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", materialName));
-      }
+      materialName = m_materialDescriptions.begin()->first;
     }
   }
 
-  allocateBuffers(material);
+  return m_materialDescriptions.at(materialName);
+}
+
+Material& MaterialSystem::createMaterial(const std::string& name) {
+  const auto& materialDescription = resolveMaterialDescription(name);
+
+  Material material;
+  compileShader(material, materialDescription);
+
+  allocateBuffers(material, materialDescription);
 
   material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
   m_createdMaterials[material.id] = material;

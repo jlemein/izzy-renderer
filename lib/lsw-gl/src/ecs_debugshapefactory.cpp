@@ -21,7 +21,7 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry& registry, entt::en
   const auto& transform = registry.get<Transform>(target);
 
   box.mesh.push_back(geo::PrimitiveFactory::MakeBox("Debug_BoundingBox", 1.0F, 1.0F, 1.0F));
-  box.material.push_back(izz::gl::Material{.vertexShader = "assets/shaders/debug.vert.spv", .fragmentShader = "assets/shaders/debug.frag.spv"});
+  box.material.push_back(izz::gl::MaterialDescription{.vertexShader = "assets/shaders/debug.vert.spv", .fragmentShader = "assets/shaders/debug.frag.spv"});
 
   box.renderable.push_back(izz::gl::Renderable{.isWireframe = true});
   box.transformations.push_back(Transform{});
@@ -71,7 +71,7 @@ DebugModel DebugShapeFactory::MakeEulerArrow(entt::registry& registry, entt::ent
   eulerArrow.names.push_back({"EulerY"});
   eulerArrow.names.push_back({"EulerZ"});
 
-  auto shader = izz::gl::Material{.vertexShader = "assets/shaders/diffuse-color.vert.spv", .fragmentShader = "assets/shaders/diffuse-color.frag.spv"};
+  auto shader = izz::gl::MaterialDescription{.vertexShader = "assets/shaders/diffuse-color.vert.spv", .fragmentShader = "assets/shaders/diffuse-color.frag.spv"};
   shader.setProperty("ColorBlock", glm::vec4(1.0F, 0.0F, 0.0F, 1.0F));
   eulerArrow.material.push_back(shader);
 

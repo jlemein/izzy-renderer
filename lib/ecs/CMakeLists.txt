@@ -26,7 +26,7 @@ add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrolsystem.h
         src/ecs_transformutil.cpp
         include/ecs_debug.h
-        include/ecs_debugsystem.h
+#        include/ecs_debugsystem.h
         include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h
         include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp
         include/ecs_name.h include/ecs_light.h

@@ -36,7 +36,10 @@ class MaterialSystem {
 
   virtual ~MaterialSystem() = default;
 
-  void loadMaterialsFromFile(const std::filesystem::path& path);
+  void addMaterialDescription(std::string name, MaterialDescription md);
+
+  MaterialDescription& getMaterialDescription(const std::string& name);
+//  const MaterialDescription& getMaterialDescription(const std::string& name) const;
 
   /**
    * @brief Creates a new material associated with the specified material name.
@@ -54,11 +57,9 @@ class MaterialSystem {
    * @returns a unique ptr
    */
   Material& createMaterial(const std::string& name);
+  //  Material createMaterial(MaterialDescription& materialDescription);
   Material& getMaterialById(int id);
 
-  void allocateBuffers(Material& material);
-
-  UniformBuffer createUniformBuffer(const Material& m, const char* name, void* pData, std::size_t size);
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
@@ -79,28 +80,43 @@ class MaterialSystem {
    */
   void synchronizeTextures(RenderSystem& renderSystem);
 
-  bool isMaterialDefined(const std::string& materialName);
+  bool hasMaterialDescription(const std::string& materialName);
 
-  // void setDefaultMaterial(std::shared_ptr<Material> material);
   void setDefaultMaterial(const std::string& name);
 
   izz::gl::Material& makeDefaultMaterial();
 
  private:
+
+  MaterialDescription& resolveMaterialDescription(const std::string name);
+
+  /**
+   * Compiles the shaders referred to by the description, and fills the material with the program id.
+   * @param material                [out] Reference to material that will be filled with program id (on success).
+   * @param materialDescription     [in]  Description of the material, containing the paths to the shader files.
+   * @throws std::runtime_error     If shader compilation fails.
+   */
+  void compileShader(Material& material, const MaterialDescription& materialDescription);
+
+  void allocateBuffers(Material& material, const MaterialDescription& materialDescription);
+  UniformBuffer createUniformBuffer(const UniformBufferDescription& bufferDescription, const Material& m);
+  //  void allocateTextureBuffers(MaterialDescription& materialDescription, Material& material);
+  //  void allocateUniformBuffers();
+
   entt::registry& m_registry;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager;
   std::unordered_map<std::string, std::unique_ptr<izz::ufm::UniformBlockManager>> m_uniformBlockManagers;
 
   /// @brief Contains the material definitions that are loaded from file.
-  std::unordered_map<std::string, Material> m_materials;
+  std::unordered_map<std::string, MaterialDescription> m_materialDescriptions;
+
+  /// materials instances are instanced from an existing material definition.
+  /// similar to how classes and objects work.
+//  std::unordered_map<std::string, MaterialDescription> m_materialInstances;
 
   /// @brief Fbx specific material names are mapped to canonical material names
   /// that are defined in a material definition.
   std::unordered_map<std::string, std::string> m_materialMappings;
-
-  /// materials instances are instanced from an existing material definition.
-  /// similar to how classes and objects work.
-  std::unordered_map<std::string, Material> m_materialInstances;
 
   /// @brief The materials that are created. Maps material id to material.
   std::unordered_map<int, Material> m_createdMaterials;
