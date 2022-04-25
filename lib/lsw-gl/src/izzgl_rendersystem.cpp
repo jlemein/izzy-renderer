@@ -290,7 +290,7 @@ RenderState& RenderSystem::getRenderState(unsigned int id) {
 
 RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem)
   : m_registry{registry}
-  , m_debugSystem(registry)
+//  , m_debugSystem(registry)
   , m_resourceManager{resourceManager}
   , m_materialSystem(materialSystem)
 //  , m_effectSystem{effectSystem}

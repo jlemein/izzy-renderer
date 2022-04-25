@@ -45,6 +45,7 @@ find_package(Boost REQUIRED)
 target_link_libraries(geo
     PRIVATE
         ecs
+        lsw-gl
         assimp::assimp
         glm::glm
         spdlog::spdlog

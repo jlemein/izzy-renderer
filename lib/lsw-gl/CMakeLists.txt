@@ -59,7 +59,7 @@ add_library(lsw-gl STATIC
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(lsw-gl PUBLIC include PRIVATE src)
-target_link_libraries(lsw-gl PUBLIC izzy workspace ecs geo EnTT::EnTT spdlog::spdlog)
+target_link_libraries(lsw-gl PUBLIC izzy workspace ecs EnTT::EnTT spdlog::spdlog)
 
 
 find_package(GTest REQUIRED)

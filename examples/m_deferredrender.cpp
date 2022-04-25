@@ -4,6 +4,7 @@
 
 #include <gl_deferredrenderablefactory.h>
 #include <izzgl_materialsystem.h>
+#include <izzgl_materialreader.h>
 #include "anim_localrotation.h"
 #include "core_util.h"
 #include "ecs_firstpersoncontrol.h"
@@ -154,7 +155,8 @@ int main(int argc, char* argv[]) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     }
     else {
-      materialSystem->loadMaterialsFromFile(programArguments->materialsFile);
+      izz::gl::MaterialReader reader(materialSystem);
+      reader.readMaterials(programArguments->materialsFile);
 //      effectSystem->readEffectsFromFile(programArguments->materialsFile);
     }
 

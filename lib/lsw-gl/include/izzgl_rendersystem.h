@@ -91,7 +91,7 @@ class RenderSystem {
   std::shared_ptr<lsw::ResourceManager> m_resourceManager {nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem {nullptr};
 //  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
-  lsw::ecs::DebugSystem m_debugSystem;
+//  lsw::ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;
 
   entt::entity m_activeCamera{entt::null};

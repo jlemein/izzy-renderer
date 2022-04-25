@@ -26,104 +26,46 @@ SceneLoader::SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, 
   : m_textureSystem{textureSystem}
   , m_materialSystem{materialSystem} {}
 
-izz::gl::Texture* SceneLoader::readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
-                                                              const izz::gl::Material& material) const {
-  std::string diffusePath = material.diffuseTexturePath;
+std::unique_ptr<izz::gl::TextureDescription> SceneLoader::readAiTexture(aiTextureType ttype, const aiMaterial* aiMaterial_p) const {
+  std::unique_ptr<izz::gl::TextureDescription> td = nullptr;
 
-  if (diffusePath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_DIFFUSE) > 0) {
-    aiString aiDiffusePath;
+  if (aiMaterial_p->GetTextureCount(ttype) > 0) {
+    td = std::make_unique<izz::gl::TextureDescription>();
+    td->type = izz::gl::PropertyType::TEXTURE2D;
+
+    aiString aiPath;
     aiTextureMapping textureMapping;
-    aiMaterial_p->GetTexture(aiTextureType_DIFFUSE, 0, &aiDiffusePath, &textureMapping);
-    diffusePath = aiDiffusePath.C_Str();
+    aiMaterial_p->GetTexture(ttype, 0, &aiPath, &textureMapping);
+    td->path = aiPath.C_Str();  // scene.m_dir / aiPath.C_Str();
+    td->name = aiPath.C_Str();
+
+    switch (ttype) {
+      case aiTextureType::aiTextureType_DIFFUSE_ROUGHNESS:
+        td->hint = izz::gl::TextureHint::ROUGHNESS_TEXTURE;
+        break;
+      case aiTextureType::aiTextureType_NORMALS:
+        td->hint = izz::gl::TextureHint::NORMAL_TEXTURE;
+        break;
+      case aiTextureType::aiTextureType_SPECULAR:
+        td->hint = izz::gl::TextureHint::SPECULAR_TEXTURE;
+        break;
+      case aiTextureType::aiTextureType_DIFFUSE:
+        td->hint = izz::gl::TextureHint::DIFFUSE_TEXTURE;
+        break;
+    }
+
+    spdlog::info("SceneLoader: material description identified roughness texture {}", td->path.string());
   }
 
-  izz::gl::Texture* texture{nullptr};
-  if (!diffusePath.empty()) {
-    // diffuse path is relative to scene file
-    auto resolvedPath = scene.m_dir / diffusePath;
-    texture = m_textureSystem->loadTexture(resolvedPath);
-    spdlog::info("Material {}: loaded diffuse texture {}", material.name, resolvedPath.string());
-  }
-
-  return texture;
+  return td;
 }
 
-izz::gl::Texture* SceneLoader::readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
-                                                               const izz::gl::Material& material) const {
-  std::string specularPath = material.specularTexturePath;
-
-  if (specularPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_SPECULAR) > 0) {
-    aiString aiSpecularPath;
-    aiTextureMapping textureMapping;
-    aiMaterial_p->GetTexture(aiTextureType_SPECULAR, 0, &aiSpecularPath, &textureMapping);
-    specularPath = aiSpecularPath.C_Str();
-  }
-
-  izz::gl::Texture* texture{nullptr};
-  if (!specularPath.empty()) {
-    auto resolvedPath = scene.m_dir / specularPath;
-    texture = m_textureSystem->loadTexture(resolvedPath);
-    spdlog::info("Material {}: loaded specular texture {}", material.name, resolvedPath.string());
-  }
-
-  return texture;
-}
-
-izz::gl::Texture* SceneLoader::readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p, const izz::gl::Material& material) const {
-  std::string normalPath = material.normalTexturePath;
-
-  if (normalPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_NORMALS) > 0) {
-    aiString aiNormalPath;
-    aiTextureMapping textureMapping;
-    aiMaterial_p->GetTexture(aiTextureType_NORMALS, 0, &aiNormalPath, &textureMapping);
-    normalPath = aiNormalPath.C_Str();
-  }
-
-  izz::gl::Texture* texture{nullptr};
-  if (!normalPath.empty()) {
-    auto resolvedPath = scene.m_dir / normalPath;
-    texture = m_textureSystem->loadTexture(resolvedPath);
-    spdlog::info("Material {}: loaded specular texture {}", material.name, resolvedPath.string());
-  }
-
-  return texture;
-}
-
-izz::gl::Texture* SceneLoader::readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial_p,
-                                                                const izz::gl::Material& material) const {
-  std::string roughnessPath = material.roughnessTexturePath;
-
-  if (roughnessPath.empty() && aiMaterial_p->GetTextureCount(aiTextureType_DIFFUSE_ROUGHNESS) > 0) {
-    aiString aiNormalPath;
-    aiTextureMapping textureMapping;
-    aiMaterial_p->GetTexture(aiTextureType_DIFFUSE_ROUGHNESS, 0, &aiNormalPath, &textureMapping);
-    roughnessPath = aiNormalPath.C_Str();
-  }
-
-  izz::gl::Texture* texture{nullptr};
-  if (!roughnessPath.empty()) {
-    auto resolvedPath = scene.m_dir / roughnessPath;
-    texture = m_textureSystem->loadTexture(roughnessPath);
-    spdlog::info("Material {}: loaded roughness texture {}", material.name, resolvedPath.string());
-  }
-
-  return texture;
-}
-
-void SceneLoader::readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::gl::Material& material) {
-  auto pDiffuse = readDiffuseTexture(scene, aiMaterial_p, material);
-  auto pNormal = readNormalTexture(scene, aiMaterial_p, material);
-  auto pSpecular = readSpecularTexture(scene, aiMaterial_p, material);
-  auto pRoughness = readRoughnessTexture(scene, aiMaterial_p, material);
-
-  material.diffuseTexture = pDiffuse != nullptr ? pDiffuse->id : -1;
-  material.normalTexture = pNormal != nullptr ? pNormal->id : -1;
-  material.specularTexture = pSpecular != nullptr ? pSpecular->id : -1;
-  material.roughnessTexture = pRoughness != nullptr ? pRoughness->id : -1;
-
-  // TODO: read remaining generic textures
-  for (auto& [name, texturePath] : material.texturePaths) {
-    material.setTexture(name, m_textureSystem->loadTexture(texturePath));
+void SceneLoader::readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::gl::MaterialDescription& material) {
+  std::array<aiTextureType, 4> textureTypes{aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_SPECULAR, aiTextureType_DIFFUSE_ROUGHNESS};
+  for (auto aiTextureType : textureTypes) {
+    if (auto pTextureDescriptions = readAiTexture(aiTextureType_DIFFUSE, aiMaterial_p)) {
+      material.textures[pTextureDescriptions->name] = *pTextureDescriptions;
+    }
   }
 }
 
@@ -132,39 +74,32 @@ void SceneLoader::readMaterials(const aiScene* scene_p, geo::Scene& scene) {
     aiMaterial* aiMaterial = scene_p->mMaterials[i];
 
     std::string name = aiMaterial->GetName().C_Str();
-    auto& material = m_materialSystem->createMaterial(name);
-    auto materialId = material.id;
+    izz::gl::MaterialDescription materialDescription = m_materialSystem->getMaterialDescription(name);
     //    auto material = m_resourceManager->getRawResourceManager()->createResource<geo::Material>(name);
     //    (*material)->name = mat_p->GetName().C_Str();
 
-    spdlog::debug("Read material {} -- mapped to {} (vertex shader: {})", name, material.name, material.vertexShader);
+    spdlog::debug("Read material {} -- (vertex shader: {})", name, materialDescription.vertexShader);
 
-    readTextures(scene, aiMaterial, material);
+    readTextures(scene, aiMaterial, materialDescription);
 
     // overwrite settings with scene file properties
     aiColor3D color(0.f, 0.f, 0.f);
+    aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color);
+    materialDescription.diffuseColor.r = color.r;
+    materialDescription.diffuseColor.g = color.g;
+    materialDescription.diffuseColor.b = color.b;
 
-    if (!material.hasDiffuse) {
-      aiMaterial->Get(AI_MATKEY_COLOR_DIFFUSE, color);
-      material.diffuse.r = color.r;
-      material.diffuse.g = color.g;
-      material.diffuse.b = color.b;
-    }
+    aiMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
+    materialDescription.specularColor.r = color.r;
+    materialDescription.specularColor.g = color.g;
+    materialDescription.specularColor.b = color.b;
 
-    if (!material.hasSpecular) {
-      aiMaterial->Get(AI_MATKEY_COLOR_SPECULAR, color);
-      material.specular.r = color.r;
-      material.specular.g = color.g;
-      material.specular.b = color.b;
-    }
+    aiMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color);
+    materialDescription.ambientColor.r = color.r;
+    materialDescription.ambientColor.g = color.g;
+    materialDescription.ambientColor.b = color.b;
 
-    if (!material.hasAmbient) {
-      aiMaterial->Get(AI_MATKEY_COLOR_AMBIENT, color);
-      material.ambient.r = color.r;
-      material.ambient.g = color.g;
-      material.ambient.b = color.b;
-    }
-    scene.m_materials.push_back(materialId);
+    scene.m_materials.push_back(materialDescription);
   }
 }
 
@@ -178,9 +113,11 @@ void SceneLoader::readMeshes(const aiScene* scene_p, geo::Scene& scene) {
     mesh->name = mesh_p->mName.C_Str();
     mesh->polygonMode = geo::PolygonMode::kTriangles;
 
-    mesh->materialId = scene.m_materials[mesh_p->mMaterialIndex];
-    auto& material = m_materialSystem->getMaterialById(mesh->materialId);
-    spdlog::debug("Reading mesh {}: {} has material {} - {}", n, mesh_p->mName.C_Str(), material.name, material.vertexShader);
+//    mesh->materialId = scene.m_materials[mesh_p->mMaterialIndex];
+    mesh->materialId = mesh_p->mMaterialIndex; // refers to local material descriptions
+//    auto& material = m_materialSystem->getMaterialById(mesh->materialId);
+    const auto& materialDescription = scene.m_materials[mesh->materialId];
+    spdlog::debug("Reading mesh {}: has material {} - {}", n, mesh_p->mName.C_Str(), materialDescription.vertexShader);
 
     for (int i = 0; i < mesh_p->mNumVertices; ++i) {
       auto pVertex = mesh_p->mVertices[i];
@@ -243,11 +180,11 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, geo::Scene& scene) {
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
 
-//      if (node_p->mMetaData != nullptr) {
-//        for (int k = 0; k < node_p->mMetaData->mNumProperties; ++k) {
-//          spdlog::debug("\t\t{}", node_p->mMetaData->mKeys[k].C_Str());
-//        }
-//      }
+      //      if (node_p->mMetaData != nullptr) {
+      //        for (int k = 0; k < node_p->mMetaData->mNumProperties; ++k) {
+      //          spdlog::debug("\t\t{}", node_p->mMetaData->mKeys[k].C_Str());
+      //        }
+      //      }
       meshInstance->mesh = mesh;
       meshInstance->name = std::string{node_p->mName.C_Str()};
       meshInstance->materialId = mesh->materialId;

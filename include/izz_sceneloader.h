@@ -10,13 +10,14 @@
 #include <memory>
 #include <vector>
 #include "geo_transform.h"
+#include <memory>
 
 namespace izz {
 namespace gl {
 class MaterialSystem;
 class TextureSystem;
-struct Texture;
-struct Material;
+struct MaterialDescription;
+struct TextureDescription;
 }  // namespace gl
 }  // namespace izz
 
@@ -81,12 +82,9 @@ class SceneLoader {
    * @param aiMaterial
    * @param material
    */
-  void readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial, izz::gl::Material& material);
+  void readTextures(const geo::Scene& scene, const aiMaterial* aiMaterial, izz::gl::MaterialDescription& material);
 
-  izz::gl::Texture* readDiffuseTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
-  izz::gl::Texture* readSpecularTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
-  izz::gl::Texture* readNormalTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
-  izz::gl::Texture* readRoughnessTexture(const geo::Scene& scene, const aiMaterial* aiMaterial, const izz::gl::Material& material) const;
+  std::unique_ptr<izz::gl::TextureDescription> readAiTexture(aiTextureType ttype, const aiMaterial* aiMaterial) const;
 
   std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};

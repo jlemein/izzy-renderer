@@ -8,6 +8,7 @@
 #include <list>
 #include <vector>
 #include <unordered_map>
+#include <izzgl_material.h>
 
 namespace lsw {
 namespace geo {
@@ -38,7 +39,7 @@ class Scene {
   using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
   //  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
   using TextureIterable = std::vector<std::shared_ptr<Texture>>;
-  using MaterialIterable = std::vector<int>;
+  using MaterialIterable = std::vector<izz::gl::MaterialDescription>;//std::vector<int>;
   using LightIterable = std::vector<std::shared_ptr<Light>>;
   using CameraIterable = std::vector<std::shared_ptr<Camera>>;
   using SceneNodeIterable = std::vector<std::shared_ptr<SceneNode>>;
