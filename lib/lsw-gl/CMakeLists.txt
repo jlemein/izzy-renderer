@@ -17,6 +17,7 @@ add_library(lsw-gl STATIC
         include/izzgl_material.h
         include/izzgl_materialsystem.h
         include/izzgl_rendersystem.h
+        include/izzgl_sceneloader.h
         include/izzgl_stbtextureloader.h
         include/izzgl_texture.h
         include/izzgl_textureloader.h
@@ -50,6 +51,7 @@ add_library(lsw-gl STATIC
         src/izzgl_materialreader.cpp
         src/izzgl_materialsystem.cpp
         src/izzgl_rendersystem.cpp
+        src/izzgl_sceneloader.cpp
         src/izzgl_stbtextureloader.cpp
         src/izzgl_textureloader.cpp
         src/izzgl_texturesystem.cpp
@@ -59,7 +61,7 @@ add_library(lsw-gl STATIC
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(lsw-gl PUBLIC include PRIVATE src)
-target_link_libraries(lsw-gl PUBLIC izzy workspace ecs EnTT::EnTT spdlog::spdlog)
+target_link_libraries(lsw-gl PUBLIC izzy workspace ecs geo EnTT::EnTT spdlog::spdlog)
 
 
 find_package(GTest REQUIRED)

@@ -38,8 +38,6 @@ add_library(izzy STATIC
         include/izz_scenegraphentity.h
         src/izz_scenegraphhelper.cpp
         src/izz_scenegraphentity.cpp
-        include/izz_sceneloader.h
-        src/izz_sceneloader.cpp
         include/izz_scenecompositionsystem.h
         include/izz_renderablecomponentfactory.h)
 

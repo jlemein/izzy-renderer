@@ -36,7 +36,7 @@ Window::Window(entt::registry& registry, std::shared_ptr<gl::RenderSystem> rende
   , m_animationSystem{make_shared<anim::AnimationSystem>(registry)}
   , m_renderSystem{renderSystem}
   , m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)}
-  , m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)}
+//  , m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)}
   , m_transformSystem{make_shared<ecs::TransformSystem>(m_registry)} {}
 
 Window::~Window() {}
@@ -91,7 +91,7 @@ void Window::initialize() {
   glfwSwapInterval(1);
 
   m_cameraSystem->init();
-  m_debugSystem->init();      // for debug visualizations
+//  m_debugSystem->init();      // for debug visualizations
   m_animationSystem->init();  // possible bone initialization
 
   // should be called before render system.

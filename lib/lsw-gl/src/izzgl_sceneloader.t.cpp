@@ -1,12 +1,12 @@
 //
 // Created by jlemein on 24-01-21.
 //
-#include "../include/izz_sceneloader.h"
-#include "geo_scene.h"
+#include "izzgl_sceneloader.h"
 #include <gtest/gtest.h>
 #include <stdlib.h>
 #include "geo_mesh.h"
 #include "geo_meshinstance.h"
+#include "geo_scene.h"
 using namespace lsw::georm;
 
 class SceneLoaderTest : public testing::Test {

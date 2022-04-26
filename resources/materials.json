@@ -5,8 +5,6 @@
       "name": "tea_set_01",
       "material_definition": "BlinnPhongDeferred",
       "properties": {
-        "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
-        "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr",
         "shininess": 32.0,
         "specular_color": [
           0.5,
@@ -14,6 +12,10 @@
           0.5,
           0.0
         ]
+      },
+      "textures": {
+        "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
+        "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr"
       }
     },
     {

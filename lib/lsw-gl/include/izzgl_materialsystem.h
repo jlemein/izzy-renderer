@@ -36,9 +36,9 @@ class MaterialSystem {
 
   virtual ~MaterialSystem() = default;
 
-  void addMaterialDescription(std::string name, MaterialDescription md);
+  void addMaterialDescription(std::string name, izz::geo::MaterialDescription md);
 
-  MaterialDescription& getMaterialDescription(const std::string& name);
+  izz::geo::MaterialDescription& getMaterialDescription(const std::string& name);
 //  const MaterialDescription& getMaterialDescription(const std::string& name) const;
 
   /**
@@ -88,7 +88,7 @@ class MaterialSystem {
 
  private:
 
-  MaterialDescription& resolveMaterialDescription(const std::string name);
+  izz::geo::MaterialDescription& resolveMaterialDescription(const std::string name);
 
   /**
    * Compiles the shaders referred to by the description, and fills the material with the program id.
@@ -96,10 +96,10 @@ class MaterialSystem {
    * @param materialDescription     [in]  Description of the material, containing the paths to the shader files.
    * @throws std::runtime_error     If shader compilation fails.
    */
-  void compileShader(Material& material, const MaterialDescription& materialDescription);
+  void compileShader(Material& material, const izz::geo::MaterialDescription& materialDescription);
 
-  void allocateBuffers(Material& material, const MaterialDescription& materialDescription);
-  UniformBuffer createUniformBuffer(const UniformBufferDescription& bufferDescription, const Material& m);
+  void allocateBuffers(Material& material, const izz::geo::MaterialDescription& materialDescription);
+  UniformBuffer createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& m);
   //  void allocateTextureBuffers(MaterialDescription& materialDescription, Material& material);
   //  void allocateUniformBuffers();
 
@@ -108,7 +108,7 @@ class MaterialSystem {
   std::unordered_map<std::string, std::unique_ptr<izz::ufm::UniformBlockManager>> m_uniformBlockManagers;
 
   /// @brief Contains the material definitions that are loaded from file.
-  std::unordered_map<std::string, MaterialDescription> m_materialDescriptions;
+  std::unordered_map<std::string, izz::geo::MaterialDescription> m_materialDescriptions;
 
   /// materials instances are instanced from an existing material definition.
   /// similar to how classes and objects work.

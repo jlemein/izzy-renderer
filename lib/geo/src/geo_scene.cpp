@@ -1,7 +1,7 @@
 //
 // Created by jlemein on 13-01-21.
 //
-#include <geo_scene.h>
+#include "geo_scene.h"
 #include <fmt/format.h>
 
 #include <assimp/Importer.hpp>

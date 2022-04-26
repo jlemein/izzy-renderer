@@ -8,6 +8,10 @@
 #include <izzgl_rendersystem.h>
 #include <entt/entt.hpp>
 #include "geo_primitivefactory.h"
+#include <geo_curve.h>
+#include <geo_mesh.h>
+#include <ecs_name.h>
+#include <ecs_transform.h>
 using namespace izz::gl;
 
 DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, entt::registry& registry)

@@ -3,8 +3,9 @@
 //
 
 #include <gl_deferredrenderablefactory.h>
-#include <izzgl_materialsystem.h>
 #include <izzgl_materialreader.h>
+#include <izzgl_materialsystem.h>
+#include <izzgl_rendersystem.h>
 #include "anim_localrotation.h"
 #include "core_util.h"
 #include "ecs_firstpersoncontrol.h"
@@ -12,16 +13,17 @@
 #include "ecs_transformutil.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
+#include <geo_mesh.h>
+#include <ecs_transform.h>
 #include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
 #include "izz_fontsystem.h"
 #include "izz_resourcemanager.h"
 #include "izz_scenegraphhelper.h"
-#include "izz_sceneloader.h"
 #include "izzgl_exrloader.h"
+#include "izzgl_sceneloader.h"
 #include "izzgl_stbtextureloader.h"
 #include "izzgl_texturesystem.h"
-#include <izzgl_rendersystem.h>
 
 #include "gui_window.h"
 #include "wsp_workspace.h"
@@ -50,7 +52,7 @@ std::shared_ptr<izz::gl::MaterialSystem> materialSystem{nullptr};
 //std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
 std::shared_ptr<izz::SceneGraphHelper> sceneGraphHelper{nullptr};
 std::shared_ptr<izz::gl::RenderSystem> renderSystem{nullptr};
-std::shared_ptr<SceneLoader> sceneLoader{nullptr};
+std::shared_ptr<izz::gl::SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
 std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
 entt::registry registry;
@@ -71,7 +73,7 @@ void setupSystems() {
   sceneGraphHelper = std::make_shared<izz::SceneGraphHelper>(registry,
                                                              std::make_unique<gl::DeferredRenderableFactory>(*renderSystem, *materialSystem));
 
-  sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
+  sceneLoader = make_shared<izz::gl::SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
 
   fontSystem = make_shared<FontSystem>();

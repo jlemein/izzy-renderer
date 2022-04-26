@@ -55,11 +55,11 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::Re
   m_uniformBlockManagers[izz::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<izz::ufm::MvpManager>();
 }
 
-void MaterialSystem::addMaterialDescription(std::string name, MaterialDescription materialDescription) {
+void MaterialSystem::addMaterialDescription(std::string name, izz::geo::MaterialDescription materialDescription) {
   m_materialDescriptions[name] = materialDescription;
 }
 
-UniformBuffer MaterialSystem::createUniformBuffer(const UniformBufferDescription& bufferDescription, const Material& m) {
+UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& m) {
   spdlog::info("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, m.name);
 
   UniformBuffer ub {};
@@ -104,7 +104,7 @@ UniformBuffer MaterialSystem::createUniformBuffer(const UniformBufferDescription
 //  }
 //}
 
-MaterialDescription& MaterialSystem::getMaterialDescription(const std::string& name) {
+izz::geo::MaterialDescription& MaterialSystem::getMaterialDescription(const std::string& name) {
   return m_materialDescriptions.at(name);
 }
 
@@ -131,7 +131,7 @@ void MaterialSystem::setDefaultMaterial(const std::string& name) {
   }
 }
 
-void MaterialSystem::compileShader(Material& material, const MaterialDescription& materialDescription) {
+void MaterialSystem::compileShader(Material& material, const izz::geo::MaterialDescription& materialDescription) {
   // compile shader
   ShaderSystem shaderCompiler;
   if (materialDescription.isBinaryShader) {
@@ -143,7 +143,7 @@ void MaterialSystem::compileShader(Material& material, const MaterialDescription
                 materialDescription.vertexShader, materialDescription.fragmentShader);
 }
 
-void MaterialSystem::allocateBuffers(Material& material, const MaterialDescription& materialDescription) {
+void MaterialSystem::allocateBuffers(Material& material, const izz::geo::MaterialDescription& materialDescription) {
 
   // load textures
   for (const auto& [textureName, texture] : materialDescription.textures) {
@@ -183,30 +183,30 @@ void MaterialSystem::allocateBuffers(Material& material, const MaterialDescripti
   int numProperties = 0;
   for (const auto& [name, uniform] : materialDescription.uniforms) {
     switch(uniform.type) {
-      case PropertyType::FLOAT:
-      case PropertyType::INT:
-      case PropertyType::BOOL:
+      case izz::geo::PropertyType::FLOAT:
+      case izz::geo::PropertyType::INT:
+      case izz::geo::PropertyType::BOOL:
         ++numProperties;
         sizeBytes += sizeof(GLint);
         break;
 
-      case PropertyType::FLOAT3:
+      case izz::geo::PropertyType::FLOAT3:
         ++numProperties;
         sizeBytes += 3*sizeof(GLfloat);
         break;
 
-      case PropertyType::FLOAT4:
+      case izz::geo::PropertyType::FLOAT4:
         ++numProperties;
         sizeBytes += 4*sizeof(GLfloat);
         break;
 
-      case PropertyType::FLOAT_ARRAY:
+      case izz::geo::PropertyType::FLOAT_ARRAY:
         ++numProperties;
         sizeBytes += uniform.length*sizeof(GLfloat);
         break;
 
-      case PropertyType::UNIFORM_BUFFER_OBJECT:
-      case PropertyType::TEXTURE2D:
+      case izz::geo::PropertyType::UNIFORM_BUFFER_OBJECT:
+      case izz::geo::PropertyType::TEXTURE2D:
         break;
 
       default:
@@ -294,7 +294,7 @@ void MaterialSystem::allocateBuffers(Material& material, const MaterialDescripti
   }
 }
 
-MaterialDescription& MaterialSystem::resolveMaterialDescription(const std::string name) {
+izz::geo::MaterialDescription& MaterialSystem::resolveMaterialDescription(const std::string name) {
   // 1. Map the material name to a different material name
   auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
 

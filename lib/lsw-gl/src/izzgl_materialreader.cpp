@@ -39,15 +39,16 @@ void MaterialReader::readMaterials(std::filesystem::path path) {
   input.close();
 }
 
-static void readUniformDescription(const std::string key, const nlohmann::json& value, MaterialDescription& materialDescription) {
+static void readUniformDescription(const std::string key, const nlohmann::json& value, izz::geo::MaterialDescription& materialDescription) {
   if (value.is_boolean()) {
-    materialDescription.uniforms[key] = UniformDescription {.name = key, .type = PropertyType::BOOL, .value = value.get<bool>()};
+    materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::BOOL, .value = value.get<bool>()};
   } else if (value.is_number_float()) {
-    materialDescription.uniforms[key] = UniformDescription{.name = key, .type = PropertyType::FLOAT, .value = value.get<float>()};
+    materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::FLOAT, .value = value.get<float>()};
   } else if (value.is_number_integer()) {
-    materialDescription.uniforms[key] = UniformDescription {.name = key, .type = PropertyType::INT, .value = value.get<int>()};
+    materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::INT, .value = value.get<int>()};
   } else if (value.is_array() && isFloatArray<>(value)) {
-    materialDescription.uniforms[key] = UniformDescription{.name = key, .type = PropertyType::FLOAT_ARRAY, .value = value.get<std::vector<float>>()};
+    materialDescription.uniforms[key] =
+        izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::FLOAT_ARRAY, .value = value.get<std::vector<float>>()};
   } else if (value.is_object()) {
     // scoped uniform (i.e. using interface block)
 
@@ -57,7 +58,7 @@ static void readUniformDescription(const std::string key, const nlohmann::json& 
     //                  materialDescription.name, name));
     //            } else {
 
-    materialDescription.uniforms[key] = UniformDescription {.name = key, .type = PropertyType::UNIFORM_BUFFER_OBJECT, .value = key};
+    materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::UNIFORM_BUFFER_OBJECT, .value = key};
 
     for (const auto& [key, value] : value.items()) {
       // recursive call.
@@ -74,7 +75,7 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
   // - Then read texture information
   // - Then uniform properties.
   for (const auto& material : j["materials"]) {
-    MaterialDescription materialDescription;
+    izz::geo::MaterialDescription materialDescription;
     auto materialDescriptionName = material["name"].get<std::string>();
     spdlog::debug("MaterialReader: reading material description \"{}\"...", materialDescriptionName);
 
@@ -110,14 +111,14 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
           continue;
         }
 
-        TextureDescription textureDescription;
+        izz::geo::TextureDescription textureDescription;
         textureDescription.name = name;
         textureDescription.path = value.contains("default_value") ? value["default_value"].get<std::string>() : "";
-        textureDescription.type = PropertyType::TEXTURE2D;
+        textureDescription.type = izz::geo::PropertyType::TEXTURE2D;
 
         if (value.contains("type")) {
           if (value["type"] == "texture") {
-            textureDescription.type = PropertyType::TEXTURE2D;
+            textureDescription.type = izz::geo::PropertyType::TEXTURE2D;
             spdlog::debug("MaterialReader: add texture description {}: {}", name, textureDescription.path.c_str());
           } else {
             spdlog::warn("MaterialReader: Material '{}' defines property {} of type {} that is not supported. Property will be ignored.",
@@ -165,30 +166,46 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
     auto materialInstance = m_materialSystem->getMaterialDescription(materialDescriptionName);
     m_materialSystem->addMaterialDescription(instanceName, materialInstance);
 
+    if (instance.contains("textures")) {
+      for (const auto& [key, value] : instance["textures"].items()) {
+        try {
+          auto& texture = materialInstance.textures.at(key);
+          texture.path = value.get<std::string>();
+        } catch (std::out_of_range&) {
+          throw std::runtime_error(
+              fmt::format("Material instance '{}': texture '{}' is not part of material definition '{}'.", instanceName, key, materialDescriptionName));
+        }
+      }
+    }
     if (instance.contains("properties")) {
       for (const auto& [key, value] : instance["properties"].items()) {
         try {
-          auto uniform = materialInstance.uniforms.at(key);
-          switch (uniform.type) {
-            case PropertyType::TEXTURE2D:
-              uniform.value = value.get<std::string>();
-              break;
+          if (materialInstance.textures.count(key) > 0) {
+            auto& texture = materialInstance.textures.at(key);
+            texture.path = value.get<std::string>();
+          } else {
+            auto uniform = materialInstance.uniforms.at(key);
+            switch (uniform.type) {
+              case izz::geo::PropertyType::TEXTURE2D:
+                uniform.value = value.get<std::string>();
+                break;
 
-            case PropertyType::FLOAT4:
-              uniform.value = value.get<std::vector<float>>();
-              break;
+              case izz::geo::PropertyType::FLOAT4:
+                uniform.value = value.get<std::vector<float>>();
+                break;
 
-            case PropertyType::FLOAT:
-              uniform.value = value.get<float>();
-              break;
+              case izz::geo::PropertyType::FLOAT:
+                uniform.value = value.get<float>();
+                break;
 
-            case PropertyType::INT:
-              uniform.value = value.get<int>();
-              break;
+              case izz::geo::PropertyType::INT:
+                uniform.value = value.get<int>();
+                break;
 
-            default:
-              spdlog::warn("Material property {} is not part of the material definition. Ignored.", key);
-              break;
+              default:
+                spdlog::warn("Material property {} is not part of the material definition. Ignored.", key);
+                break;
+            }
           }
         } catch (std::out_of_range&) {
           throw std::runtime_error(

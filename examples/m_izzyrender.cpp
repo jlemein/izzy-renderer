@@ -14,8 +14,8 @@
 #include "izz_fontsystem.h"
 #include "izz_resourcemanager.h"
 #include "izz_scenegraphhelper.h"
-#include "izz_sceneloader.h"
 #include "izzgl_exrloader.h"
+#include "izzgl_sceneloader.h"
 #include "izzgl_stbtextureloader.h"
 #include "izzgl_texturesystem.h"
 

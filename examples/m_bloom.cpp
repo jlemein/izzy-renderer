@@ -3,6 +3,7 @@
 //
 
 #include "../lib/lsw-gl/include/izzgl_exrloader.h"
+#include "../lib/lsw-gl/include/izzgl_sceneloader.h"
 #include "../lib/lsw-gl/include/izzgl_stbtextureloader.h"
 #include "../lib/lsw-gl/include/izzgl_texturesystem.h"
 #include "anim_localrotation.h"
@@ -18,7 +19,6 @@
 #include "izz_fontsystem.h"
 #include "izz_resourcemanager.h"
 #include "izz_scenegraphhelper.h"
-#include "izz_sceneloader.h"
 #include "izzgl_materialsystem.h"
 #include "wsp_workspace.h"
 

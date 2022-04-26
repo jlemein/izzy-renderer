@@ -10,7 +10,7 @@ namespace lsw {
 namespace geo {
 struct Mesh;
 struct Curve;
-struct Scene;
+class Scene;
 struct SceneNode;
 struct Light;
 struct Camera;

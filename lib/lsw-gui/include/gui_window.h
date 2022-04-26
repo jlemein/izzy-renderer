@@ -94,7 +94,7 @@ class Window {
   std::shared_ptr<gl::RenderSystem> m_renderSystem;
   std::shared_ptr<lsw::ecs::TransformSystem> m_transformSystem;
   std::shared_ptr<lsw::ecs::CameraSystem> m_cameraSystem;
-  std::shared_ptr<lsw::ecs::DebugSystem> m_debugSystem;
+//  std::shared_ptr<lsw::ecs::DebugSystem> m_debugSystem;
   std::shared_ptr<lsw::io::InputSystem> m_inputSystem;
   std::shared_ptr<lsw::ecs::FirstPersonMovementSystem> m_firstPersonSystem;
 

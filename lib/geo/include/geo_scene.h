@@ -6,9 +6,9 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <list>
-#include <vector>
 #include <unordered_map>
-#include <izzgl_material.h>
+#include <vector>
+#include <geo_materialdescription.h>
 
 namespace lsw {
 namespace geo {
@@ -18,6 +18,7 @@ struct Light;
 struct Camera;
 struct Mesh;
 struct Texture;
+
 
 /**!
  * @brief A scene node is either representing an intermediate transform node,
@@ -39,7 +40,7 @@ class Scene {
   using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
   //  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
   using TextureIterable = std::vector<std::shared_ptr<Texture>>;
-  using MaterialIterable = std::vector<izz::gl::MaterialDescription>;//std::vector<int>;
+  using MaterialIterable = std::vector<izz::geo::MaterialDescription>;
   using LightIterable = std::vector<std::shared_ptr<Light>>;
   using CameraIterable = std::vector<std::shared_ptr<Camera>>;
   using SceneNodeIterable = std::vector<std::shared_ptr<SceneNode>>;
