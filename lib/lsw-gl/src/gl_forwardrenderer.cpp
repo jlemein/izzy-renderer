@@ -26,9 +26,8 @@ void ForwardRenderer::render(const entt::registry& registry) {
     // for now assume a renderable has one material
     //    auto effect = m_registry.get<izz::geo::Effect>();
 
-    glUseProgram(renderable.renderState.program);
-
     glUseProgram(renderable.material->programId);
+
 //    RenderUtils::ActivateTextures(renderable.renderState);
 
 //    const auto& r = registry.get<const Renderable>(e);
@@ -40,7 +39,9 @@ void ForwardRenderer::render(const entt::registry& registry) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    RenderUtils::UseBufferedMeshData(renderable.renderState.meshData);
+//    m_meshSystem->
+    //TODO: renderable.meshBuffer.bindBuffer(); --> better is to decouple bindBuffer, and delegate to mesh system.
+//    RenderUtils::UseBufferedMeshData(renderable.renderState.meshData);
 //    // bind the vertex buffers
 //    glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
 //    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
@@ -69,11 +70,11 @@ void ForwardRenderer::render(const entt::registry& registry) {
 //    }
 //    RenderUtils::PushUniformProperties(renderable.renderState);
 
-    if (renderable.renderState.meshData.primitiveType == GL_TRIANGLES) {
-      glDrawElements(renderable.renderState.meshData.primitiveType, renderable.renderState.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
-    } else {
-      glDrawArrays(renderable.renderState.meshData.primitiveType, 0, renderable.renderState.meshData.drawElementCount);
-    }
+//    if (renderable.renderState.meshData.primitiveType == GL_TRIANGLES) {
+//      glDrawElements(renderable.renderState.meshData.primitiveType, renderable.renderState.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
+//    } else {
+//      glDrawArrays(renderable.renderState.meshData.primitiveType, 0, renderable.renderState.meshData.drawElementCount);
+//    }
 
 //    // handle debug
 //    checkError(e);

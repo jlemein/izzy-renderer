@@ -23,38 +23,41 @@ DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, entt::re
 void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
   DeferredRenderable& r = registry.get<DeferredRenderable>(e);
   try {
-    auto& rs = r.renderStateId == -1 ? m_renderSystem.createRenderState() : m_renderSystem.getRenderState(r.renderStateId);
-    r.renderStateId = rs.id;
+//    auto& rs = r.renderStateId == -1 ? m_renderSystem.createRenderState() : m_renderSystem.getRenderState(r.renderStateId);
+//    r.renderStateId = rs.id;
 
     // initialize mesh / curve data
     auto pCurve = registry.try_get<lsw::geo::Curve>(e);
-    if (pCurve != nullptr) {
-//      r.materialId = pCurve->materialId;
-      RenderUtils::FillBufferedMeshData(*pCurve, rs.meshData);
+//    if (pCurve != nullptr) {
+////      r.materialId = pCurve->materialId;
+////      RenderUtils::FillBufferedMeshData(*pCurve, rs.meshData);
+//
+//      // initialize material
+////      if (pCurve->materialId > -1) {
+////        auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
+////        RenderUtils::LoadMaterial(material, rs);
+////      }
+//    }
+//    auto& material = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId);
+//    auto& meshBuffer = m_renderSystem.getMeshSystem().getMeshBuffer(r.meshBufferId);
 
-      // initialize material
-//      if (pCurve->materialId > -1) {
+//    auto pMesh = registry.try_get<lsw::geo::Mesh>(e);
+//    if (pMesh != nullptr) {
+//      spdlog::info("\tInitializing {}", pMesh->name);
+//      r.materialId = pMesh->materialId;
+//      RenderUtils::FillBufferedMeshData(*pMesh, rs.meshData);
+//
+//      // initialize material
+//      if (pMesh->materialId > -1) {
 //        auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
-//        RenderUtils::LoadMaterial(material, rs);
+////        RenderUtils::LoadMaterial(material, rs);
+//
+//        spdlog::info("\t[e: {}] Mesh {} initialized - material id {} -- {}",
+//                     static_cast<int>(e), pMesh->name, pMesh->materialId, material.name);
+//      } else {
+//        spdlog::warn("No material assigned to mesh {}", pMesh->name);
 //      }
-    }
-    auto pMesh = registry.try_get<lsw::geo::Mesh>(e);
-    if (pMesh != nullptr) {
-      spdlog::info("\tInitializing {}", pMesh->name);
-      r.materialId = pMesh->materialId;
-      RenderUtils::FillBufferedMeshData(*pMesh, rs.meshData);
-
-      // initialize material
-      if (pMesh->materialId > -1) {
-        auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
-//        RenderUtils::LoadMaterial(material, rs);
-
-        spdlog::info("\t[e: {}] Mesh {} initialized - material id {} -- {}",
-                     static_cast<int>(e), pMesh->name, pMesh->materialId, material.name);
-      } else {
-        spdlog::warn("No material assigned to mesh {}", pMesh->name);
-      }
-    }
+//    }
   } catch (std::exception& e) {
 //    auto name = registry.all_of<lsw::ecs::Name>(e) ? m_registry.get<lsw::ecs::Name>(e).name : "Unnamed";
     auto name = "BLABLA";
@@ -141,20 +144,19 @@ void DeferredRenderer::createGBuffer(int width, int height) {
 
 void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = lsw::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
-  auto& rs = m_renderSystem.createRenderState();
+  const auto& meshBuffer = m_renderSystem.getMeshSystem().createMeshBuffer(rectangle);
   const auto& material = m_renderSystem.getMaterialSystem().createMaterial("DeferredLightingPass");
   m_screenSpaceMaterial = material.id;
+  m_screenSpaceMeshBufferId = meshBuffer.id;
 
 //  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("Deferred_VisualizeGBuffer");
 
-  RenderUtils::FillBufferedMeshData(rectangle, rs.meshData);
+//  RenderUtils::FillBufferedMeshData(rectangle, rs.meshData);
 //  RenderUtils::LoadMaterial(material, rs);
 
   m_gPositionLoc = glGetUniformLocation(material.programId, "gbuffer_position");
   m_gNormalLoc = glGetUniformLocation(material.programId, "gbuffer_normal");
   m_gAlbedoSpecLoc = glGetUniformLocation(material.programId, "gbuffer_albedospec");
-
-  m_screenSpaceRenderStateId = rs.id;
 }
 
 void DeferredRenderer::init(int width, int height) {
@@ -165,14 +167,14 @@ void DeferredRenderer::init(int width, int height) {
   createScreenSpaceRect();
 
   // handling curves
-  for (auto [entity, curve, r] : m_registry.view<lsw::geo::Curve, DeferredRenderable>().each()) {
-    try {
-      RenderUtils::FillBufferedMeshData(curve, m_renderSystem.getRenderState(r.renderStateId).meshData);
-    } catch (std::exception& e) {
-      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-      throw std::runtime_error(fmt::format("Failed initializing curve '{}': {}", name, e.what()));
-    }
-  }
+//  for (auto [entity, curve, r] : m_registry.view<lsw::geo::Curve, DeferredRenderable>().each()) {
+//    try {
+//      RenderUtils::FillBufferedMeshData(curve, m_renderSystem.getRenderState(r.renderStateId).meshData);
+//    } catch (std::exception& e) {
+//      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+//      throw std::runtime_error(fmt::format("Failed initializing curve '{}': {}", name, e.what()));
+//    }
+//  }
 
   // handling meshes
   spdlog::info("Deferred Renderer: Mesh Initialization");
@@ -215,7 +217,14 @@ void DeferredRenderer::update() {
       mvp->proj = proj;
       mvp->viewPos = glm::vec3(model[3]);
     } catch(std::out_of_range&) {
-      throw std::runtime_error(fmt::format("(e: {}): cannot access MVP matrix. Does material have 'MVP' ubo?", e));
+      auto materialName = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId).name;
+      auto nameComponent = m_registry.try_get<lsw::ecs::Name>(e);
+      auto name = (nameComponent != nullptr) ? nameComponent->name : "<unnamed>";
+      throw std::runtime_error(fmt::format("{}: e:{} ({}): cannot access ModelViewProjection matrix for material '{}'. Does shader have 'ModelViewProjection' uniform buffer?", ID, e, name, materialName));
+    } catch (std::runtime_error error) {
+      auto nameComponent = m_registry.try_get<lsw::ecs::Name>(e);
+      auto name = (nameComponent != nullptr) ? nameComponent->name : "<unnamed>";
+      throw std::runtime_error(fmt::format("{}: e:{} ({}): {}", ID, e, name, error.what()));
     }
   }
 }
@@ -237,11 +246,13 @@ void DeferredRenderer::render(const entt::registry& registry) {
     try {
       auto name = registry.get<lsw::ecs::Name>(e);
       std::cout << name.name << std::endl;
-      auto rid = view.get<const DeferredRenderable>(e).renderStateId;
-      auto materialId = view.get<const DeferredRenderable>(e).materialId;
+
+      auto deferred = view.get<const DeferredRenderable>(e);
+      auto materialId = deferred.materialId;
       const auto& mat = m_renderSystem.getMaterialSystem().getMaterialById(materialId);
 
-      const RenderState& rs = m_renderSystem.getRenderState(rid);
+      auto meshBufferId = deferred.meshBufferId;
+      const auto& mesh = m_renderSystem.getMeshSystem().getMeshBuffer(meshBufferId);
 
       //    RenderUtils::ActivateProgram();
       glUseProgram(mat.programId);
@@ -250,7 +261,7 @@ void DeferredRenderer::render(const entt::registry& registry) {
       spdlog::debug("Push uniforms for: {}: {}", mat.programId, mat.name);
       mat.pushUniforms();
 //      RenderUtils::ActivateTextures(rs);
-      RenderUtils::UseBufferedMeshData(rs.meshData);
+      m_renderSystem.getMeshSystem().bindBuffer(mesh);
       // TODO: check if shader is dirty
       //  reason: if we push properties every frame (Except for MVP), we might
       //  unnecessary spend time doing that while we can immediately just render.
@@ -259,10 +270,10 @@ void DeferredRenderer::render(const entt::registry& registry) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
       // 1. Render data to G-buffer
-      if (rs.meshData.primitiveType == GL_TRIANGLES) {
-        glDrawElements(rs.meshData.primitiveType, rs.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
+      if (mesh.primitiveType == GL_TRIANGLES) {
+        glDrawElements(mesh.primitiveType, mesh.drawElementCount, GL_UNSIGNED_INT, 0);
       } else {
-        glDrawArrays(rs.meshData.primitiveType, 0, rs.meshData.drawElementCount);
+        glDrawArrays(mesh.primitiveType, 0, mesh.drawElementCount);
       }
     } catch (std::exception& exc) {
       std::string msg = "";
@@ -291,7 +302,7 @@ void DeferredRenderer::render(const entt::registry& registry) {
     glClearColor(0.0,0.0,0.0,0.0);
 
     auto& material = m_renderSystem.getMaterialSystem().getMaterialById(m_screenSpaceMaterial);
-    auto& rs = m_renderSystem.getRenderState(m_screenSpaceRenderStateId);
+
     glUseProgram(material.programId);
 
     glActiveTexture(GL_TEXTURE0);
@@ -315,10 +326,11 @@ void DeferredRenderer::render(const entt::registry& registry) {
 ////    m.textures["dog_texture"] = m_textureManager.loadTexture("dog.png");
 //
 //    RenderUtils::ActivateTextures(rs);
-    RenderUtils::UseBufferedMeshData(rs.meshData);
+    auto& meshBuffer = m_renderSystem.getMeshSystem().getMeshBuffer(m_screenSpaceMeshBufferId);
+    m_renderSystem.getMeshSystem().bindBuffer(meshBuffer);
     material.pushUniforms();
 //    RenderUtils::PushUniformProperties(rs);
-    glDrawElements(rs.meshData.primitiveType, rs.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
+    glDrawElements(meshBuffer.primitiveType, meshBuffer.drawElementCount, GL_UNSIGNED_INT, 0);
 
   //  /* Copy the color and depth buffer from your FBO to the default framebuffer       */
 //    glBlitFramebuffer(0, 0, m_screenWidth, m_screenHeight, 0, 0, m_screenWidth, m_screenHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);

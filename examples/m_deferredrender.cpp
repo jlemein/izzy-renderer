@@ -2,6 +2,8 @@
 // Created by jlemein on 17-02-22.
 //
 
+#include <ecs_transform.h>
+#include <geo_mesh.h>
 #include <gl_deferredrenderablefactory.h>
 #include <izzgl_materialreader.h>
 #include <izzgl_materialsystem.h>
@@ -13,8 +15,6 @@
 #include "ecs_transformutil.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
-#include <geo_mesh.h>
-#include <ecs_transform.h>
 #include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
 #include "izz_fontsystem.h"
@@ -28,13 +28,13 @@
 #include "gui_window.h"
 #include "wsp_workspace.h"
 
+#include <ecs_transformutil.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
-#include "geo_primitivefactory.h"
 #include "ecs_camera.h"
+#include "geo_primitivefactory.h"
 #include "gui_mainmenu.h"
-#include <ecs_transformutil.h>
 using namespace std;
 using namespace lsw;
 using namespace izz;
@@ -49,12 +49,13 @@ namespace {
 std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<izz::gl::MaterialSystem> materialSystem{nullptr};
-//std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
+std::shared_ptr<izz::gl::MeshSystem> meshSystem{nullptr};
+// std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
 std::shared_ptr<izz::SceneGraphHelper> sceneGraphHelper{nullptr};
 std::shared_ptr<izz::gl::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<izz::gl::SceneLoader> sceneLoader{nullptr};
-std::shared_ptr<FontSystem> fontSystem {nullptr};
-std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
+std::shared_ptr<FontSystem> fontSystem{nullptr};
+std::shared_ptr<izz::gui::GuiSystem> guiSystem{nullptr};
 entt::registry registry;
 }  // namespace
 
@@ -67,11 +68,12 @@ void setupSystems() {
   resourceManager->setTextureSystem(textureSystem);
 
   materialSystem = make_shared<izz::gl::MaterialSystem>(registry, resourceManager);
-//  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
+  meshSystem = make_shared<izz::gl::MeshSystem>();
+  //  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
   resourceManager->setMaterialSystem(materialSystem);
-  renderSystem = std::make_shared<izz::gl::RenderSystem>(registry, resourceManager, materialSystem/*, effectSystem*/);
-  sceneGraphHelper = std::make_shared<izz::SceneGraphHelper>(registry,
-                                                             std::make_unique<gl::DeferredRenderableFactory>(*renderSystem, *materialSystem));
+  renderSystem = std::make_shared<izz::gl::RenderSystem>(registry, resourceManager, materialSystem, meshSystem /*, effectSystem*/);
+  sceneGraphHelper = make_shared<izz::SceneGraphHelper>(registry, std::make_unique<gl::DeferredRenderableFactory>(*renderSystem, *materialSystem),
+                                                        materialSystem, meshSystem);
 
   sceneLoader = make_shared<izz::gl::SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
@@ -114,17 +116,17 @@ void setupScene() {
   // adding a custom primitive to the scene
   auto plane = sceneGraphHelper->makeMoveableEntity("Plane");
   auto& mesh = plane.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
+  auto& meshBuffer = meshSystem->createMeshBuffer(mesh);
   lsw::ecs::TransformUtil::Translate(plane.get<lsw::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
   auto& material = materialSystem->createMaterial("DeferredStandard");
   mesh.materialId = material.id;
-  auto& dr = plane.add<gl::DeferredRenderable>();
+//  auto& dr = plane.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
 
-//  MeshUtil::ScaleUvCoords(plane, 3, 3);
-//  auto effect = effectSystem->createEffect("table_cloth");
-//  auto ee = sceneGraphHelper->addGeometry(plane, material.id);
-//  auto& tf = registry.get<ecs::Transform>(ee);
-//  ecs::TransformUtil::Translate(tf, glm::vec3(0,0,5));
-
+  //  MeshUtil::ScaleUvCoords(plane, 3, 3);
+  //  auto effect = effectSystem->createEffect("table_cloth");
+  //  auto ee = sceneGraphHelper->addGeometry(plane, material.id);
+  //  auto& tf = registry.get<ecs::Transform>(ee);
+  //  ecs::TransformUtil::Translate(tf, glm::vec3(0,0,5));
 }
 
 void setupUserInterface() {
@@ -155,25 +157,22 @@ int main(int argc, char* argv[]) {
 
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
-    }
-    else {
+    } else {
       izz::gl::MaterialReader reader(materialSystem);
       reader.readMaterials(programArguments->materialsFile);
-//      effectSystem->readEffectsFromFile(programArguments->materialsFile);
+      //      effectSystem->readEffectsFromFile(programArguments->materialsFile);
     }
 
     setupScene();
     setupLights();
     // visualize point lights using a custom material.
     renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight").id);
-    renderSystem->init(window->getDisplayDetails().windowWidth,
-                         window->getDisplayDetails().windowHeight);
-//
+    renderSystem->init(window->getDisplayDetails().windowWidth, window->getDisplayDetails().windowHeight);
+    //
 
-//
+    //
 
-//    setupUserInterface();
-
+    //    setupUserInterface();
 
     //    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
     //    auto vignette = materialSystem->createMaterial("VignettePostEffect");

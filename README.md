@@ -2,16 +2,18 @@
 
 The Izzy renderer is a flexible lightweight renderer for Linux. The renderer is a rasterized renderer using OpenGL.
 The renderer can render a diverse collection of scene file formats.
-The renderer does not require much apriori knowledge. 
+The renderer does not require much apriori knowledge.
 The renderer is designed to facilitate experimentation of rendering techniques. Therefore, it is set up in a very
 flexible way using the ECS architectural design pattern.
 
 Izzy came to the world because of my fascination for computer graphics. I wanted a controlled environment to write
-shaders and test rendering techniques. Most popular engines do not provide the fine grained control you want. And so Izzy
+shaders and test rendering techniques. Most popular engines do not provide the fine grained control you want. And so
+Izzy
 renderer is born. For now Izzy makes use of OpenGL, but Vulkan is on the radar. Also, the idea is to support physics
 based renderer as well.
 
 There are two ways to use Izzy renderer.
+
 1. By making use of a scene file and materials file.
 2. By using the renderer as a library. For examples, refer to the `examples` subfolder.
 
@@ -20,14 +22,17 @@ To use Izzy renderer with the first mode, run the following command:
 `izzyrender --scene=hello.fbx --materials=materials.json`
 
 Izzy renderer takes two input arguments:
+
 * `--scene` Any of the supported scene file formats, such as *.fbx or *.collada files.
 * `--materials` Materials file, which is a JSON file mapping the materials in the scene file to concrete shaders.
 
 The library has been tested on:
+
 * Ubuntu 18.04
 * Ubuntu 20.04 (with AMD Ryzen 5700G)
 
 ## Screenshots
+
 Tea set rendered using Blinn-Phong shading and a diffuse plane, acting as table cloth.
 All materials use textures for the albedo and normal maps.
 ![Rendering a teapot](doc/teaset_on_tablecloth.png)
@@ -35,31 +40,39 @@ All materials use textures for the albedo and normal maps.
 Brass vase is rendered using Blinn-Phong shading once again. The shininess can be observed clearly.
 ![Brase Vass](doc/brase_vass.png)
 
-Brass vase is rendered using Blinn-Phong shading. The effect of normal mapping is clearly visible in this 
+Brass vase is rendered using Blinn-Phong shading. The effect of normal mapping is clearly visible in this
 rendering, since the model itself is a smooth barrel.
 ![Barrel](doc/barrel.png)
 
 # Getting started
 
-Take a look at `examples/m_izzyrender.cpp`. Most of the code will look intuitive enough to start exploring izzy renderer.
+Take a look at `examples/m_izzyrender.cpp`. Most of the code will look intuitive enough to start exploring izzy
+renderer.
 
 For more detailed explanations, continue reading.
 
 ### Introduction
 
-The renderer is designed on the entity component system (ECS) pattern. An ECS system builds on entities. Items or subjects in the scene are called **entities**.
-Entities are just a number. There is nothing more to it. By adding **components** to the entities you can control the behavior of an entity.
-Components by definition only contain data. The behavior of the entities is implemented in **systems**. Hence the name 
+The renderer is designed on the entity component system (ECS) pattern. An ECS system builds on entities. Items or
+subjects in the scene are called **entities**.
+Entities are just a number. There is nothing more to it. By adding **components** to the entities you can control the
+behavior of an entity.
+Components by definition only contain data. The behavior of the entities is implemented in **systems**. Hence the name
 "entity component system".
 
-This is a fundamentally different technique compared to object oriented (OO) design. OO tries to encapsulate implementation
+This is a fundamentally different technique compared to object oriented (OO) design. OO tries to encapsulate
+implementation
 details behind interfaces and classes., whereas ECS works with public data. ECS is mainly used for simulations or game
 applications, where a lot of different entities are present with varying behaviors. More on ECS systems can be found
-on [skypjack's github page](https://github.com/skypjack/entt), writer and maintainer of the EnTT library that is used in izzy renderer as well.
+on [skypjack's github page](https://github.com/skypjack/entt), writer and maintainer of the EnTT library that is used in
+izzy renderer as well.
 
 ### Setting up systems
-The first thing to setup are the systems. The systems are the heart of the simulation. Without systems nothing will happen.
-Izzy renderer will contain a huge amount of systems. Setting up the systems can be tricky because the order is important.
+
+The first thing to setup are the systems. The systems are the heart of the simulation. Without systems nothing will
+happen.
+Izzy renderer will contain a huge amount of systems. Setting up the systems can be tricky because the order is
+important.
 In future this will likely be hidden in factory methods.
 
 Setting up the systems for an interactive renderer:
@@ -97,8 +110,7 @@ void setupSystems() {
 }
 ```
 
-
-###  Loading a scene file
+### Loading a scene file
 
 ```shell
 auto scene = sceneLoader->loadScene("models/mymodel.fbx");
@@ -106,15 +118,19 @@ sceneGraph->makeScene(*scene);
 ```
 
 The `makeScene` method has a second optional argument `ecsg::SceneLoaderFlags` that describes which components of the
-scene file to load. By default, it loads geometry, materials and animations. If you also want to load the cameras and light
-sources from the scene file, you need to explicitly enable that, for example by specifying to load all data, i.e. `ecsg::SceneLoaderFlags::All()`.
+scene file to load. By default, it loads geometry, materials and animations. If you also want to load the cameras and
+light
+sources from the scene file, you need to explicitly enable that, for example by specifying to load all data,
+i.e. `ecsg::SceneLoaderFlags::All()`.
 
 If the loaded scene is too large, then scale the entire scene by scaling the root node.
+
 ```shell
 ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
 ```
 
 If you also want to generate smooth normals, tangents and bitangents:
+
 ```shell
 for (auto& mesh : scene->m_meshes) {
   geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
@@ -125,11 +141,13 @@ for (auto& mesh : scene->m_meshes) {
 ### Adding a light source
 
 Adding a directional light source, named "Sun" from direction (0, 1, 1).
+
 ```cpp
 sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
 ```
 
 Adding a point light:
+
 ```cpp
 auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
 ptLight.get<ecs::PointLight>().intensity = 4.0F;
@@ -137,24 +155,28 @@ ptLight.get<ecs::PointLight>().intensity = 4.0F;
 
 ### Adding geometry
 
-Izzy renderer comes with a `PrimitiveFactory` that can generate simple primitive meshes, such as spheres, boxes and planes.
+Izzy renderer comes with a `PrimitiveFactory` that can generate simple primitive meshes, such as spheres, boxes and
+planes.
 The primitive factory exists to facilitate easy spawning objects to the scene without needing to specify your own vertex
 buffers, uv coordinates and normal data.
 
 Generating a plane:
+
 ```cpp
 auto plane = PrimitiveFactory::MakePlane("Plane", 15.0, 15.0); // plane with dimensions 15 x 15
 auto blinnPhong = materialSystem->createMaterial("BlinnPhong");
 sceneGraph->addGeometry(plane, blinnPhong);
 ```
 
-
 #### Visualizing a light source
 
 Usually you also want to render the light source, for example to visualize the point light source, to add bloom effects
-or to make the light into an area light. This is trivial. Just add a `geo::Mesh` component to the same entity as the point
-light source. The lighting system will add a `geo::Material` component to the entity if it does not have one. The default
+or to make the light into an area light. This is trivial. Just add a `geo::Mesh` component to the same entity as the
+point
+light source. The lighting system will add a `geo::Material` component to the entity if it does not have one. The
+default
 lighting shader must be set before the light system is initialized:
+
 ```shell
 lightSystem->setDefaultPointLightMaterial(m_materialSystem->makeMaterial("MyPointLight"));
 ```
@@ -166,8 +188,11 @@ the material later on in the simulation.
 # Material and effect system
 
 The izzy renderer has materials and effects.
-* **Material**: single pass rendering technique. It describes surface properties and is corresponding to a compiled shader program, consisting of vertex and fragment shader.
-* **Effect**: multi pass rendering technique. An effect is composed of multiple materials. The connection between materials is described using a node graph.
+
+* **Material**: single pass rendering technique. It describes surface properties and is corresponding to a compiled
+  shader program, consisting of vertex and fragment shader.
+* **Effect**: multi pass rendering technique. An effect is composed of multiple materials. The connection between
+  materials is described using a node graph.
 
 Both materials and effects are uniquely described by a name in the `materials.json`.
 The material name inside a 3d model file will correspond to either an effect or a material.
@@ -175,12 +200,16 @@ The material name inside a 3d model file will correspond to either an effect or 
 The following order is used to resolve the material or effect.
 
 1. First, the effect system is queried. If the name matches an effect, the effect is returned.
-2. If no effect is found, the material instance mapping is searched. If there is a material instance with the same name, the name gets mapped to the "concrete" material name. If not found, the "concrete" material name is set to the same name.
-3. Given a (mapped) material name, the material system is queried. If found, a single pass effect is returned, with the single pass being the material searched for.
+2. If no effect is found, the material instance mapping is searched. If there is a material instance with the same name,
+   the name gets mapped to the "concrete" material name. If not found, the "concrete" material name is set to the same
+   name.
+3. Given a (mapped) material name, the material system is queried. If found, a single pass effect is returned, with the
+   single pass being the material searched for.
 
 ## Render order
 
-The scene is rendered using a specific rendering strategy. Example rendering strategies are forward-rendering, or deferred
+The scene is rendered using a specific rendering strategy. Example rendering strategies are forward-rendering, or
+deferred
 rendering. The rendering strategy is in control on what and how to render. Note that it is not exclusively forward or
 deferred rendering, but it can also be a hybrid strategy. The strategy is free to implement.
 
@@ -190,12 +219,12 @@ Usually the following order is used:
 1. The rendering strategy decides upon a rendering effect to use.
 2. Loop over all renderable objects
 
-
 #### Adding post processing effects
 
 Post-processing is supported via camera entities. A camera entity can have zero, one or multiple post-processing
 effects assigned to it. This is done by assigning a `PostprocessCollection` component.
-A postprocess collection component maintains an ordered list of post-processing effects. Each post-processing effect is an entity
+A postprocess collection component maintains an ordered list of post-processing effects. Each post-processing effect is
+an entity
 in itself and should be assigned the `Postprocess`, `Renderable` and `Material` component.
 
 Example of adding two post-processing effects. Note that the post-processing effects are materials. They behave
@@ -217,6 +246,7 @@ camera.add<PosteffectCollection>({.posteffects = {grayscale, vignette}});
 The software has been built using the following dependencies.
 
 Requirements:
+
 * GLEW libraries - `sudo apt install libglew-dev`
 * Conan 1.42.0 - https://docs.conan.io/en/latest/installation.html
 * CMake 3.21.1
@@ -224,12 +254,12 @@ Requirements:
 
 Project makes use of Git LFS.
 
-
 ## Resolving materials and textures
 
 Every renderer is may support different advanced features. It is for the time being impractical to have
-a single unified material file format that supports all features of modern renderers. 
-Most 3d models, however, provide some basic support for material settings, such as diffuse and specular colors, roughness values and
+a single unified material file format that supports all features of modern renderers.
+Most 3d models, however, provide some basic support for material settings, such as diffuse and specular colors,
+roughness values and
 texture information.
 Izzy Renderer derives as much as it can from the 3d models and render it to the best of it's knowledge.
 If you want fancier results, then you need to use the materials file. The material file is used to override the default
@@ -237,10 +267,12 @@ material properties. Also the material file is used to express parameters to com
 file is in that sense a material file format for the Izzy Renderer.
 
 Resources are always loaded relative from the point of declaration.
+
 * Textures specified in the scene file (as part of the fbx file) are resolved as part of the location of the scene file.
 * Textures specified in the materials file are resolved from the location of the materials file.
 
-Most meshes make use of external data, such as textures, animation files, lookup data, etcetera. By default, relative paths in the model
+Most meshes make use of external data, such as textures, animation files, lookup data, etcetera. By default, relative
+paths in the model
 are resolved to the directory where the mesh is located.
 If the relative path cannot be found, it is resolved to the workspace.
 
@@ -250,27 +282,35 @@ If not found, it throws an error if --strict is an argument.
 
 Otherwise, it finds suitable default values so that the renderer at least renders something.
 
-
 The Izzy renderer is written with the scene graph implemented as an entity component systems (ECS).
 The renderer consists of the following major systems:
+
 * Render system
-  * Texture system
-  * Shading system: Part of the render system, dealing with compilation and managing shader properties.
+    * Texture system
+    * Shading system: Part of the render system, dealing with compilation and managing shader properties.
 * Resource manager
 * Material system
-  * Therefore the material is responsible to provide all the information that is required to render a specified effect
-  * Textures
+    * Therefore the material is responsible to provide all the information that is required to render a specified effect
+    * Textures
 * Texture system: responsible for loading textures and keeping a registry of texture loaders.
-
 
 ## Material system
 
-A material is described the visual attributes that are required to render a specific geometry.
+A material describes the visual attributes to render a geometry. In Izzy renderer the material
+system is built upon multiple layers.
 
+When creating a material using the same shader file names, the engine will try to reuse an existing material program, because rebinding program is generally considered more costly than changing shader uniforms.
+
+| C++ class                     | Description                                                                                                                                                                                               | Lives on |
+|-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
+| `MaterialDescription`         | Describes the complete material on CPU side. Used to instantiate the real GPU specific materials.                                                                                                         | CPU      |
+| `MaterialInstanceDescription` | Inherits from `MaterialDescription` and differs only in specified attributes. This makes it possible to define multiple materials in a mesh object, but still using the same Material program in the end. | CPU      |
+| `Material`                    | Material program (accompanied with program id and allocated texture and uniform buffers.                                                                                                                  | GPU      |
 
 # Project overview
 
 The project is built using Cmake:
+
 * cmake for building and generation of a source code project. Tested with make files.
 * **ctest** for running the unit tests
 * cmake install for installing the project
@@ -314,18 +354,27 @@ For linux follow the instructions:
 
 # Object creation
 
-* **PrimitiveFactory**: factory for creating simple objects, planes, triangles, boxes, spheres, cubes, cylinders, etcetera. A primitive factory produces a mesh object to which additional operations can be performed using the mesh utilities.
+* **PrimitiveFactory**: factory for creating simple objects, planes, triangles, boxes, spheres, cubes, cylinders,
+  etcetera. A primitive factory produces a mesh object to which additional operations can be performed using the mesh
+  utilities.
 
 # Utilities
 
-A entity component approach seperates data and logic. Applying operations to the data is done using appropriate utility functions.
-Creating meshes can be done by loading in scene files, or by generating them using utilities. After meshes are created or loaded from file, they often lack essential data Therefore a couple of 
+A entity component approach seperates data and logic. Applying operations to the data is done using appropriate utility
+functions.
+Creating meshes can be done by loading in scene files, or by generating them using utilities. After meshes are created
+or loaded from file, they often lack essential data Therefore a couple of
 fingertips.
 
-* **Mesh utilities** (`geo::MeshUtil`): essential for transforming raw mesh data. This includes generating normals and tangent data. Changes are applied to the mesh data itself, meaning that no computation logic is needed after a mesh utility is used. 
-* **Transform utilities** (`ecs::TransformUtil`): essential for applying transformations to entities, such as scaling, rotating and moving objects.
+* **Mesh utilities** (`geo::MeshUtil`): essential for transforming raw mesh data. This includes generating normals and
+  tangent data. Changes are applied to the mesh data itself, meaning that no computation logic is needed after a mesh
+  utility is used.
+* **Transform utilities** (`ecs::TransformUtil`): essential for applying transformations to entities, such as scaling,
+  rotating and moving objects.
 
 # Special thanks
 
 Special thanks to:
-* James Ray Cock (Texturing), Jurita Burger (Graphic Design), Rico Cilliers (Model) - for the tea set model from Polyhaven.
+
+* James Ray Cock (Texturing), Jurita Burger (Graphic Design), Rico Cilliers (Model) - for the tea set model from
+  Polyhaven.

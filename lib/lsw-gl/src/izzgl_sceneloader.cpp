@@ -26,7 +26,7 @@ SceneLoader::SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, 
   : m_textureSystem{textureSystem}
   , m_materialSystem{materialSystem} {}
 
-std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(aiTextureType ttype, const aiMaterial* aiMaterial_p) const {
+std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const lsw::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial_p) const {
   std::unique_ptr<izz::geo::TextureDescription> td = nullptr;
 
   if (aiMaterial_p->GetTextureCount(ttype) > 0) {
@@ -36,7 +36,7 @@ std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(aiTextu
     aiString aiPath;
     aiTextureMapping textureMapping;
     aiMaterial_p->GetTexture(ttype, 0, &aiPath, &textureMapping);
-    td->path = aiPath.C_Str();  // scene.m_dir / aiPath.C_Str();
+    td->path = scene.m_dir / aiPath.C_Str();
     td->name = aiPath.C_Str();
 
     switch (ttype) {
@@ -63,7 +63,7 @@ std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(aiTextu
 void SceneLoader::readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::geo::MaterialDescription& material) {
   std::array<aiTextureType, 4> textureTypes{aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_SPECULAR, aiTextureType_DIFFUSE_ROUGHNESS};
   for (auto aiTextureType : textureTypes) {
-    if (auto pTextureDescriptions = readAiTexture(aiTextureType_DIFFUSE, aiMaterial_p)) {
+    if (auto pTextureDescriptions = readAiTexture(scene, aiTextureType, aiMaterial_p)) {
       material.textures[pTextureDescriptions->name] = *pTextureDescriptions;
     }
   }
@@ -99,6 +99,7 @@ void SceneLoader::readMaterials(const aiScene* scene_p, lsw::geo::Scene& scene) 
     materialDescription.ambientColor.g = color.g;
     materialDescription.ambientColor.b = color.b;
 
+    // a loaded scene maintains own copy of material descriptions.
     scene.m_materials.push_back(materialDescription);
   }
 }
@@ -116,7 +117,7 @@ void SceneLoader::readMeshes(const aiScene* scene_p, lsw::geo::Scene& scene) {
 //    mesh->materialId = scene.m_materials[mesh_p->mMaterialIndex];
     mesh->materialId = mesh_p->mMaterialIndex; // refers to local material descriptions
 //    auto& material = m_materialSystem->getMaterialById(mesh->materialId);
-    const auto& materialDescription = scene.m_materials[mesh->materialId];
+    const auto& materialDescription = scene.m_materials.at(mesh->materialId);
     spdlog::debug("Reading mesh {}: has material {} - {}", n, mesh_p->mName.C_Str(), materialDescription.vertexShader);
 
     for (int i = 0; i < mesh_p->mNumVertices; ++i) {

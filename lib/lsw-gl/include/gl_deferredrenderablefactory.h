@@ -29,7 +29,7 @@ class DeferredRenderableFactory : public RenderableComponentFactory {
    * @param renderSystem
    * @return
    */
-  void addRenderableComponent(entt::registry& registry, entt::entity e, int materialId) override;
+  void addRenderableComponent(entt::registry& registry, entt::entity e, int materialId, int meshBufferId) override;
 
  private:
   RenderSystem& m_renderSystem;

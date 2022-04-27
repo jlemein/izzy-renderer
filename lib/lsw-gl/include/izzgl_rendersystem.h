@@ -13,6 +13,7 @@
 #include <glrs_lightsystem.h>
 #include <entt/fwd.hpp>
 #include "gl_hdrframebuffer.h"
+#include "izzgl_meshsystem.h"
 #include "izzgl_texture.h"
 
 namespace lsw {
@@ -36,10 +37,12 @@ class RenderSystem {
    * Constructor.
    * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
+   * @param [in] meshSystem      Mesh system to allocate vertex and index buffers for mesh data.
    */
   RenderSystem(entt::registry& registry,
                std::shared_ptr<lsw::ResourceManager> resourceManager,
-               std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
+               std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
+               std::shared_ptr<izz::gl::MeshSystem> meshSystem);
 
   /**
    * Traverses the scene graph and creates corresponding objects in the render system so that the entities can be rendered.
@@ -50,12 +53,9 @@ class RenderSystem {
 
   IFramebuffer& getFramebuffer();
 
-  RenderState& createRenderState();
-
-  const RenderState& getRenderState(unsigned int id) const;
-  RenderState& getRenderState(unsigned int id);
-
   MaterialSystem& getMaterialSystem();
+
+  MeshSystem& getMeshSystem();
 
   void resize(int width, int height);
 
@@ -66,15 +66,6 @@ class RenderSystem {
 
   void setActiveCamera(entt::entity cameraEntity);
 
-//  void allocateTextureBuffers();
-
-  /// @brief Activates the effect. Sets up framebuffer.
-  void activateEffect(entt::entity e);
-
-//  void pushShaderProperties(const RenderState& renderable);
-//  void pushLightingData(const RenderState& renderable);
-//  void pushModelViewProjection(const RenderState& renderable);
-
  private:
 //  std::unique_ptr<IFramebuffer> m_framebuffer;
 
@@ -83,13 +74,11 @@ class RenderSystem {
 
   std::unordered_map<TextureId, GLuint> m_allocatedTextures;
 
-  /// Contains render state attributes (such as program id, vertex attrib counts, etc).
-  std::vector<izz::gl::RenderState> m_renderStates;
-
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
   std::shared_ptr<lsw::ResourceManager> m_resourceManager {nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem {nullptr};
+  std::shared_ptr<izz::gl::MeshSystem> m_meshSystem {nullptr};
 //  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
 //  lsw::ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;

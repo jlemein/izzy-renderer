@@ -57,7 +57,16 @@ class MaterialSystem {
    * @returns a unique ptr
    */
   Material& createMaterial(const std::string& name);
-  //  Material createMaterial(MaterialDescription& materialDescription);
+
+  Material& createMaterial(const izz::geo::MaterialDescription& materialDescription);
+
+  /**
+   * Overloaded for R-values.
+   * @param materialDescription
+   * @return
+   */
+//  Material& createMaterial(const izz::geo::MaterialDescription&& materialDescription);
+
   Material& getMaterialById(int id);
 
 

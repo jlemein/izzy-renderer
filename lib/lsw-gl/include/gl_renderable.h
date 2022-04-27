@@ -14,6 +14,7 @@
 #include <unordered_map>
 #include "ecs_texture.h"
 #include "gl_renderutils.h"
+#include "izzgl_meshbuffer.h"
 
 namespace izz {
 namespace gl {
@@ -46,62 +47,12 @@ struct UniformPointLights {
   static inline const char* PARAM_NAME = "PointLight";
 };
 
-struct VertexAttribArray {
-  GLint size;
-  GLuint buffer_offset;
-};
-
-
-
 struct Posteffect {
   GLuint program;
 
   /// @brief contains ID of the vertex buffer; Usually shared for posteffects applied to same
   GLuint vertex_buffer_object;
   GLuint vertex_array_object;
-};
-
-
-/// @brief Represents the buffered mesh data, stored on the GPU
-struct BufferedMeshData {
-  GLuint vertex_buffer{0U}, index_buffer{0U};
-  GLuint vertex_array_object;
-
-  GLuint vertexAttribCount{0};
-//  VertexAttribArray vertexAttribArray[8];
-  std::array<VertexAttribArray, 8> vertexAttribArray;
-  GLenum primitiveType;
-  GLuint drawElementCount;
-};
-
-struct RenderState {
-  int id;
-  GLuint program {0};
-
-  BufferedMeshData meshData;
-//  std::vector<TextureBuffer> textureBuffers;
-
-  // TODO: make one attribute
-//  std::vector<UniformBufferMapping> uniformBlocks;
-
-//  std::unordered_map<std::string, Renderable_UniformBlockInfo> userProperties;
-//  UnscopedUniforms unscopedUniforms;
-//  UniformBlock uniformBlock{glm::mat4(1.0F), glm::mat4(1.0F), glm::mat4(1.0F)};
-
-  /* shader specific details */
-//  bool isMvpSupported{false};
-//  GLuint uboId{0};            // id of the buffer object
-//  GLint uboBlockIndex{-1};    // arbitrary location in the shader (decided upon by GLSL compiler)
-//  GLint uboBlockBinding{-1};  //
-
-  // stores simple lighting properties
-  bool isLightingSupported{false};
-  GLuint uboLightingId{0};       // id as returned from glGenBuffers(GL_UNIFORM,...)
-  GLint uboLightingIndex{-1};    // index as determined by GLSL compiler
-  GLint uboLightingBinding{-1};  // binding as specified in shader (binding = x)
-
-  const void* pUboLightStruct{nullptr};  // address of light struct - maintained by light system
-  unsigned int pUboLightStructSize{0U};  // size of the struct
 };
 
 struct Renderable {
@@ -115,7 +66,7 @@ struct Renderable {
   int category {0};
 
   //  std::string name{"Unnamed"};
-  RenderState renderState;
+//  RenderState renderState;
 
   // unscoped uniforms
 

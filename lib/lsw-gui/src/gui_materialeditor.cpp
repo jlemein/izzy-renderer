@@ -6,6 +6,7 @@
 #include <spdlog/spdlog.h>
 #include <entt/entt.hpp>
 #include "ecs_name.h"
+#include "gl_deferredrenderer.h"
 #include "gl_renderable.h"
 #include "izz_scenegraphhelper.h"
 #include "izzgl_material.h"
@@ -43,10 +44,10 @@ void MaterialEditor::render(float time, float dt) {
 
         for (const auto& [e, material] : m_sceneGraph->getRegistry().view<izz::gl::Material>().each()) {
           auto name = m_sceneGraph->getRegistry().get<lsw::ecs::Name>(e).name;
-          auto r = m_sceneGraph->getRegistry().try_get<gl::Renderable>(e);
+          auto r = m_sceneGraph->getRegistry().try_get<izz::gl::DeferredRenderable>(e);
 
           ImGui::TableNextColumn();
-          ImGui::Text(r != nullptr ? std::to_string(static_cast<int>(r->renderState.program)).c_str() : "N.A.");
+          ImGui::Text(r != nullptr ? std::to_string(static_cast<int>(r->materialId)).c_str() : "N.A.");
           ImGui::TableNextColumn();
 
           ImGui::PushID(static_cast<int>(e));
@@ -54,7 +55,7 @@ void MaterialEditor::render(float time, float dt) {
           ImGui::SameLine();
           if (ImGui::Button("Edit")) {
             m_shaderEditor.openDialog(e);
-            spdlog::info("Open material editor for program id: {}", r->renderState.program);
+            spdlog::info("Open material editor for program id -- material id: {}", r->materialId);
           }
           ImGui::PopID();
         }

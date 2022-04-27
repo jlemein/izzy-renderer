@@ -21,14 +21,18 @@
 #include "geo_scene.h"
 #include "gl_deferredrenderer.h"
 #include "izzgl_material.h"
+#include "izzgl_materialsystem.h"
 
 using namespace izz;
 using namespace lsw;
 using namespace lsw::ecs;
 
-SceneGraphHelper::SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory)
+SceneGraphHelper::SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory,
+                                   std::shared_ptr<izz::gl::MaterialSystem> materialSystem, std::shared_ptr<izz::gl::MeshSystem> meshSystem)
   : m_registry{registry}
-  , m_renderableComponentFactory{std::move(renderableComponentFactory)} {}
+  , m_renderableComponentFactory{std::move(renderableComponentFactory)}
+  , m_materialSystem{materialSystem}
+  , m_meshSystem{meshSystem} {}
 
 void SceneGraphHelper::setDefaultMaterial(std::shared_ptr<izz::gl::Material> material) {
   m_defaultMaterial = material;
@@ -37,25 +41,26 @@ void SceneGraphHelper::setDefaultMaterial(std::shared_ptr<izz::gl::Material> mat
 SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh mesh, int materialId) {
   auto e = makeMoveableEntity(mesh.name);
   e.add<lsw::geo::Mesh>(mesh);
-  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
+  auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
+  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId, meshBuffer.id);
 
   // TODO: make sure we store a shared ptr instead of a copy.
   //  shared materials offer option to share materials.
-//  e.add<izz::gl::Material>(*mat);
+  //  e.add<izz::gl::Material>(*mat);
 
   return e;
 }
 
-//SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect) {
-//  auto e = makeMoveableEntity(mesh.name);
-//  e.add<lsw::geo::Mesh>(mesh);
-//  // TODO: make sure we store a shared ptr instead of a copy.
-//  //  shared materials offer option to share materials.
-//  e.add<geo::cEffect>(effect);
-//  m_renderableComponentFactory->addRenderableComponent(m_registry, e, );
+// SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect) {
+//   auto e = makeMoveableEntity(mesh.name);
+//   e.add<lsw::geo::Mesh>(mesh);
+//   // TODO: make sure we store a shared ptr instead of a copy.
+//   //  shared materials offer option to share materials.
+//   e.add<geo::cEffect>(effect);
+//   m_renderableComponentFactory->addRenderableComponent(m_registry, e, );
 //
-//  return e;
-//}
+//   return e;
+// }
 
 // SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh&& mesh, izz::gl::Material&& material) {
 //   auto e = makeEntity(mesh.name);
@@ -160,6 +165,7 @@ SceneGraphEntity SceneGraphHelper::makeDirectionalLight(std::string name, glm::v
 SceneGraphEntity SceneGraphHelper::makeMesh(const lsw::geo::Mesh& mesh) {
   auto meshEntity = makeMoveableEntity(mesh.name);
 
+  auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
   meshEntity.add<lsw::geo::Mesh>(mesh);
 
   // Watch out here, izz::gl::Material is a value type so we can do this.
@@ -168,9 +174,9 @@ SceneGraphEntity SceneGraphHelper::makeMesh(const lsw::geo::Mesh& mesh) {
   if (m_defaultMaterial == nullptr) {
     throw std::runtime_error("No default material set, cannot create mesh");
   }
-//  meshEntity.add<izz::gl::Material>(*m_defaultMaterial);
+  //  meshEntity.add<izz::gl::Material>(*m_defaultMaterial);
 
-  m_renderableComponentFactory->addRenderableComponent(m_registry, meshEntity, m_defaultMaterial->id);
+  m_renderableComponentFactory->addRenderableComponent(m_registry, meshEntity, m_defaultMaterial->id, meshBuffer.id);
 
   //  auto& shader = meshEntity.add<ecs::Shader>(
   //      {"assets/shaders/diffuse.vert.spv",
@@ -187,7 +193,8 @@ SceneGraphEntity SceneGraphHelper::makeEmptyMesh(const lsw::geo::Mesh& mesh) {
   auto e = sge.handle();
 
   m_registry.emplace<lsw::geo::Mesh>(e, mesh);
-  m_renderableComponentFactory->addRenderableComponent(m_registry, e, m_defaultMaterial->id);
+  const auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
+  m_renderableComponentFactory->addRenderableComponent(m_registry, e, m_defaultMaterial->id, meshBuffer.id);
   return sge;
 }
 
@@ -214,24 +221,26 @@ SceneGraphEntity SceneGraphHelper::makeCurve(std::string name) {
   auto curve = makeMoveableEntity(std::move(name));
 
   curve.add<lsw::geo::Curve>();
-//  auto& s = curve.add<izz::gl::Material>({.name = "default curve material",
-//                                           .vertexShader = "assets/shaders/default_curve.vert.spv",
-//                                           .fragmentShader = "assets/shaders/default_curve.frag.spv"});
+  //  auto& s = curve.add<izz::gl::Material>({.name = "default curve material",
+  //                                           .vertexShader = "assets/shaders/default_curve.vert.spv",
+  //                                           .fragmentShader = "assets/shaders/default_curve.frag.spv"});
 
-//  auto block = new gl::ColorBlock;
-//  block->color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
-//  s.setProperty("ColorBlock", block);
+  //  auto block = new gl::ColorBlock;
+  //  block->color = glm::vec4(0.45F, 0.52F, 0.68F, 0.0F);
+  //  s.setProperty("ColorBlock", block);
   // TODO: Add color block manager to material system,
   //  OR make a separate list of constantUniformBlocks that dont need management,
   //  OR whenever you look for ColorBlock manager and you cannot find one, then ignore.
   //  s.registerUniformBlock("ColorBlock", block, sizeof(ecs::ColorBlock));
 
-  m_renderableComponentFactory->addRenderableComponent(m_registry, curve, m_defaultMaterial->id);
+  //  auto& meshBuffer = m_meshSystem->createMeshBuffer();
+  //  m_renderableComponentFactory->addRenderableComponent(m_registry, curve, m_defaultMaterial->id, meshBuffer.id);
 
   return curve;
 }
 
-void SceneGraphHelper::processChildren(std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p) {
+void SceneGraphHelper::processChildren(const lsw::geo::Scene& scene, std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags,
+                                       SceneGraphEntity* parent_p) {
   auto root = makeMoveableEntity(node->name);
   root.setTransform(node->transform);
 
@@ -260,83 +269,78 @@ void SceneGraphHelper::processChildren(std::shared_ptr<const lsw::geo::SceneNode
   if (flags.geometry) {
     // add mesh instances for this root
     for (auto& instance : node->meshInstances) {
-      // make shader from material
-      // TODO: make a material system that loads a default
-      //    auto material =
-      //        m_resourceManager->getResource<izz::gl::Material>("UberMaterial");
-      //
-      //    (*material)->diffuseTexture = (*instance->material)->diffuseTexture;
-      //
-      //    (*material)->setProperty<lsw::geo::UberMaterialData>(
-      //        {.diffuse = glm::vec4((*instance->material)->diffuse, 1.0F),
-      //         .specular = glm::vec4((*instance->material)->specular, 1.0F),
-      //         .ambient = glm::vec4((*instance->material)->ambient, 1.0F),
-      //         .hasDiffuseTex = (*instance->material)->diffuseTexture !=
-      //         nullptr});
+      auto& materialDescription = scene.m_materials[instance->materialId];
+      auto& material = m_materialSystem->createMaterial(materialDescription);
 
-      // create mesh instance mesh data
+      auto meshBuffer = m_meshSystem->createMeshBuffer(*instance->mesh);
+
       // TODO: make mesh instance instead of copy mesh
       //    auto e = makeRenderable(*instance->mesh, instance->transform,
       //    **material);
-      auto e = makeRenderable(*instance->mesh, instance->transform, instance->materialId);
+
+      auto e = makeRenderable(instance->name, meshBuffer, instance->transform, material.id);
 
       root.addChild(e);
     }
   }
 
   for (auto& child : node->children) {
-    processChildren(child, flags, &root);
+    processChildren(scene, child, flags, &root);
   }
 }
 
 SceneGraphEntity SceneGraphHelper::makeScene(const lsw::geo::Scene& scene, SceneLoaderFlags flags) {
+  spdlog::debug("{}: instantiating scene objects ({})", ID, scene.m_path.string());
+
   auto rootScene = makeMoveableEntity();
 
   // for geometry and mesh data
-  processChildren(scene.rootNode(), flags, &rootScene);
+  processChildren(scene, scene.rootNode(), flags, &rootScene);
 
   return rootScene;
 }
 
-SceneGraphEntity SceneGraphHelper::makeRenderable(const lsw::geo::Mesh& mesh, glm::mat4 transform, int materialId) {
-  auto e = makeMoveableEntity(mesh.name);
+SceneGraphEntity SceneGraphHelper::makeRenderable(std::string name, const izz::gl::MeshBuffer& meshBuffer, glm::mat4 transform, MaterialId materialId) {
+  auto e = makeMoveableEntity(name);
   e.setTransform(std::move(transform));
 
-  e.add<lsw::geo::Mesh>(mesh);
-  m_renderableComponentFactory->addRenderableComponent(m_registry, e.handle(), materialId);
+//  e.add<izz::gl::MeshBuffer>(meshBuffer);
 
-  spdlog::info("(e: {}) Added mesh {} - with renderStateId: {}", static_cast<int>(e.handle()),
-               mesh.name, m_registry.get<gl::DeferredRenderable>(e).renderStateId);
+  m_renderableComponentFactory->addRenderableComponent(m_registry, e.handle(), materialId, meshBuffer.id);
+
+  spdlog::info("(e: {}) Added mesh {} with material id: {}, mesh buffer id: {}", static_cast<int>(e.handle()), name,
+               m_registry.get<gl::DeferredRenderable>(e).materialId, m_registry.get<gl::DeferredRenderable>(e).meshBufferId);
   return e;
 }
 
-SceneGraphEntity SceneGraphHelper::makeRenderable(lsw::geo::Mesh&& mesh, int materialId) {
+SceneGraphEntity SceneGraphHelper::makeRenderable(izz::gl::MeshBuffer&& meshBuffer, MaterialId materialId) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<lsw::geo::Mesh>(e, std::move(mesh));
-//  m_registry.emplace<izz::gl::Material>(e, material);
-  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
+  //  m_registry.emplace<izz::gl::MeshBuffer>(e, std::move(mesh));
+  //  m_registry.emplace<izz::gl::Material>(e, material);
+  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId, meshBuffer.id);
 
   return SceneGraphEntity{m_registry, e};
 }
 
-SceneGraphEntity SceneGraphHelper::makeRenderable(lsw::geo::Curve&& curve, int materialId) {
+SceneGraphEntity SceneGraphHelper::makeRenderable(lsw::geo::Curve&& curve, MaterialId materialId) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
   m_registry.emplace<lsw::geo::Curve>(e, std::move(curve));
-  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
- throw std::runtime_error("No curves supported yet");
-//  return SceneGraphEntity{m_registry, e};
+//  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId, meshBuffer.id);
+  throw std::runtime_error("No curves supported yet");
+  //  return SceneGraphEntity{m_registry, e};
 }
 
 entt::entity makeTexture();
 
 SceneGraphEntity SceneGraphHelper::makePosteffect(const std::string name, int materialId) {
   auto e = makeEntity(name);
-//  e.add<izz::gl::Material>(material);
+  //  e.add<izz::gl::Material>(material);
   e.add<gl::Posteffect>();
-  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
-  return e;
+//  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
+  throw std::runtime_error("Not supported yet");
+//  return e;
 }
 
 SceneGraphEntity SceneGraphHelper::makeRectangularGrid(float size, float spacing) {

@@ -41,8 +41,8 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
   return location;
 }
 
-//void pushShaderProperties(const Renderable&);
-// void pushUnscopedUniforms(const Renderable&);
+// void pushShaderProperties(const Renderable&);
+//  void pushUnscopedUniforms(const Renderable&);
 
 constexpr void* BUFFER_OFFSET(unsigned int offset) {
   uint8_t* pAddress = 0;
@@ -76,7 +76,7 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
 //   }
 // }
 //
-//void initMVPUniformBlock(RenderState& renderable) {
+// void initMVPUniformBlock(RenderState& renderable) {
 //  glUseProgram(renderable.program);  // TODO: remove line
 //  renderable.uboBlockIndex = glGetUniformBlockIndex(renderable.program, "UniformBufferBlock");
 //
@@ -148,7 +148,7 @@ LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 //
-//void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const izz::gl::Material& material) {
+// void RenderSystem::initShaderProperties(entt::entity entity, Renderable& renderable, const izz::gl::Material& material) {
 //  glUseProgram(renderable.renderState.program);
 //
 //  if (!m_registry.all_of<Posteffect>(entity)) {
@@ -186,30 +186,8 @@ LightSystem& RenderSystem::getLightSystem() {
 //  initUnscopedShaderProperties(entity, renderable, material);
 //}
 
-RenderState& RenderSystem::createRenderState() {
-  RenderState rs;
-  rs.id = m_renderStates.size();
-  m_renderStates.push_back(rs);
-  return m_renderStates[rs.id];
-}
-
-const RenderState& RenderSystem::getRenderState(unsigned int id) const {
-  try {
-    return m_renderStates.at(id);
-  } catch (std::out_of_range e) {
-    throw std::runtime_error(fmt::format("Could not obtain render state with id {}", id));
-  }
-}
-
-RenderState& RenderSystem::getRenderState(unsigned int id) {
-  try {
-    return m_renderStates.at(id);
-  } catch (std::out_of_range e) {
-    throw std::runtime_error(fmt::format("Could not obtain render state with id {}", id));
-  }
-}
 //
-//void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const izz::gl::Material& material) {
+// void RenderSystem::initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const izz::gl::Material& material) {
 //  // first memory allocation. For this we need to know the number of properties and length of data properties.
 //  int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
 //                      material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
@@ -288,15 +266,15 @@ RenderState& RenderSystem::getRenderState(unsigned int id) {
 //  }
 //}
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem)
-  : m_registry{registry}
-//  , m_debugSystem(registry)
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem,
+                           std::shared_ptr<izz::gl::MeshSystem> meshSystem)
+  : m_registry{registry}  //  , m_debugSystem(registry)
   , m_resourceManager{resourceManager}
   , m_materialSystem(materialSystem)
-//  , m_effectSystem{effectSystem}
+  //  , m_effectSystem{effectSystem}
+  , m_meshSystem{meshSystem}
   , m_shaderSystem(std::make_shared<ShaderSystem>())
-  , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}
-//  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
+  , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(*this)
   , m_deferredRenderer(*this, registry) {}
 
@@ -321,7 +299,7 @@ void RenderSystem::initPostprocessBuffers() {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 //
-//void RenderSystem::allocateTextureBuffers() {
+// void RenderSystem::allocateTextureBuffers() {
 //    const auto& textures = m_resourceManager->getTextureSystem()->getTextures();
 //
 //  for(auto& [name, texture] : textures) {
@@ -381,13 +359,13 @@ void RenderSystem::init(int width, int height) {
   glFrontFace(GL_CCW);
   glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
 
-//  m_framebuffer->initialize();
+  //  m_framebuffer->initialize();
   m_lightSystem->initialize();
-//  m_effectSystem->initialize();
+  //  m_effectSystem->initialize();
 
   // convert material descriptions to openGL specific material data.
-//  allocateTextureBuffers();
-//  m_materialSystem->synchronizeTextures(*this);
+  //  allocateTextureBuffers();
+  //  m_materialSystem->synchronizeTextures(*this);
 
   //  m_effectSystem->initialize();
 
@@ -426,90 +404,89 @@ void RenderSystem::init(int width, int height) {
   // * Push the remaining uniform parameter values to the shader.
 
   // handling curves
-//  for (auto [entity, curve, renderable] : m_registry.view<lsw::geo::Curve, Renderable>().each()) {
-//    try {
-//      RenderUtils::FillBufferedMeshData(curve, renderable.renderState.meshData);
-//    } catch (std::exception& e) {
-//      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-//
-//      std::cerr << "Failed initializing curve '" << name << "': " << e.what();
-//      exit(1);
-//    }
-//  }
-//
-//  // handling meshes
-//  for (auto [entity, mesh, renderable] : m_registry.view<lsw::geo::Mesh, Renderable>().each()) {
-//    auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-//
-//    try {
-//      RenderUtils::FillBufferedMeshData(mesh, renderable.renderState.meshData);
-//
-//    } catch (std::exception& e) {
-//      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-//      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
-//    }
-//  }
-//
-//  // handling materials
-//  for (auto [entity, material, renderable] : m_registry.view<Material, Renderable>().each()) {
-//    try {
-//      if (material.isBinaryShader) {
-//        renderable.renderState.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
-//      } else {
-//        renderable.renderState.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
-//      }
-//
-//      spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", renderable.renderState.program, material.vertexShader,
-//                    material.fragmentShader);
-//
-//      initShaderProperties(entity, renderable, material);
-//
-//    } catch (std::exception& e) {
-//      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
-//      throw std::runtime_error(fmt::format("Entity {}: {}", name, e.what()));
-//    }
-//  }
+  //  for (auto [entity, curve, renderable] : m_registry.view<lsw::geo::Curve, Renderable>().each()) {
+  //    try {
+  //      RenderUtils::FillBufferedMeshData(curve, renderable.renderState.meshData);
+  //    } catch (std::exception& e) {
+  //      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+  //
+  //      std::cerr << "Failed initializing curve '" << name << "': " << e.what();
+  //      exit(1);
+  //    }
+  //  }
+  //
+  //  // handling meshes
+  //  for (auto [entity, mesh, renderable] : m_registry.view<lsw::geo::Mesh, Renderable>().each()) {
+  //    auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+  //
+  //    try {
+  //      RenderUtils::FillBufferedMeshData(mesh, renderable.renderState.meshData);
+  //
+  //    } catch (std::exception& e) {
+  //      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+  //      throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
+  //    }
+  //  }
+  //
+  //  // handling materials
+  //  for (auto [entity, material, renderable] : m_registry.view<Material, Renderable>().each()) {
+  //    try {
+  //      if (material.isBinaryShader) {
+  //        renderable.renderState.program = m_shaderSystem->compileSpirvShader(material.vertexShader, material.fragmentShader);
+  //      } else {
+  //        renderable.renderState.program = m_shaderSystem->compileShader(material.vertexShader, material.fragmentShader);
+  //      }
+  //
+  //      spdlog::debug("#{} Shader program compiled successfully (vs: {} fs: {})", renderable.renderState.program, material.vertexShader,
+  //                    material.fragmentShader);
+  //
+  //      initShaderProperties(entity, renderable, material);
+  //
+  //    } catch (std::exception& e) {
+  //      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+  //      throw std::runtime_error(fmt::format("Entity {}: {}", name, e.what()));
+  //    }
+  //  }
   //  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
 }
 
 void RenderSystem::update(float time, float dt) {
   // synchronizes the transformation for the entity into the renderable
   // component.
-//  synchMvpMatrices();
+  //  synchMvpMatrices();
 
   m_deferredRenderer.update();
   m_lightSystem->updateLightProperties();
   m_materialSystem->update(time, dt);
 
-
   //  m_materialSystem->update(time, dt); --> not needed I think
 }
 
-//void RenderSystem::synchMvpMatrices() {
-//  // Updates the
-//  // Render system updates the model view projection matrix for each of the
-//  // The camera
-//  auto view = m_registry.view<Renderable>();
-//  for (auto entity : view) {
-//    auto& renderable = m_registry.get<Renderable>(entity);
+// void RenderSystem::synchMvpMatrices() {
+//   // Updates the
+//   // Render system updates the model view projection matrix for each of the
+//   // The camera
+//   auto view = m_registry.view<Renderable>();
+//   for (auto entity : view) {
+//     auto& renderable = m_registry.get<Renderable>(entity);
 //
-//    if (renderable.isMvpSupported) {
-//      updateModelMatrix(entity);
-//      updateCamera(renderable);
-//    }
-//  }
-//}
+//     if (renderable.isMvpSupported) {
+//       updateModelMatrix(entity);
+//       updateCamera(renderable);
+//     }
+//   }
+// }
 
-//void RenderSystem::updateModelMatrix(entt::entity e) {
-//  auto& renderable = m_registry.get<Renderable>(e);
+// void RenderSystem::updateModelMatrix(entt::entity e) {
+//   auto& renderable = m_registry.get<Renderable>(e);
 //
-//  // if the transformation matrix exists, apply it, otherwise take identity
-//  // matrix.
-//  // TODO: enforce that all entities do have a transform.
-//  auto transform = m_registry.try_get<ecs::Transform>(e);
+//   // if the transformation matrix exists, apply it, otherwise take identity
+//   // matrix.
+//   // TODO: enforce that all entities do have a transform.
+//   auto transform = m_registry.try_get<ecs::Transform>(e);
 //
-//  renderable.uniformBlock.model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
-//}
+//   renderable.uniformBlock.model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
+// }
 
 void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
   if (!m_registry.all_of<lsw::ecs::Camera>(cameraEntity)) {
@@ -534,31 +511,21 @@ void RenderSystem::updateCamera(Renderable& renderable) {
   renderable.uniformBlock.viewPos = glm::vec3(transform.worldTransform[3]);
 }
 
-void RenderSystem::activateEffect(entt::entity e) {
-  //  if (m_registry.all_of<geo::cEffect>(e)) {
-  //    const auto& cfx = m_registry.get<izz::geo::cEffect>(e);
-  //    const izz::geo::Effect& fx = m_effectSystem.getById(cfx.name);
-  //
-  //    fx.graph.
-  //  }
-  //  activateTextures(e);
-}
-
 void RenderSystem::render() {
   //  // 1. Select buffer to render into
-//  m_framebuffer->bind();
+  //  m_framebuffer->bind();
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//  m_forwardRenderer.render(m_registry);
+  //  m_forwardRenderer.render(m_registry);
   m_deferredRenderer.render(m_registry);
 
-//  renderPosteffects();
+  //  renderPosteffects();
 
-//  m_framebuffer->apply();
+  //  m_framebuffer->apply();
 }
 //
-//void RenderSystem::renderPosteffects() {
+// void RenderSystem::renderPosteffects() {
 //  // activate screen quad
 //  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
 //  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
@@ -664,17 +631,20 @@ void RenderSystem::render() {
 //   glBindVertexArray(0);
 // }
 
-//IFramebuffer& RenderSystem::getFramebuffer() {
-//  return *m_framebuffer;
-//}
+// IFramebuffer& RenderSystem::getFramebuffer() {
+//   return *m_framebuffer;
+// }
 
 void RenderSystem::resize(int width, int height) {
-//  getFramebuffer().resize(width, height);
-
+  //  getFramebuffer().resize(width, height);
 }
 
 MaterialSystem& RenderSystem::getMaterialSystem() {
   return *m_materialSystem;
+}
+
+MeshSystem& RenderSystem::getMeshSystem() {
+  return *m_meshSystem;
 }
 
 void RenderSystem::checkError(entt::entity e) {

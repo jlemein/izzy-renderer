@@ -316,9 +316,14 @@ izz::geo::MaterialDescription& MaterialSystem::resolveMaterialDescription(const 
 }
 
 Material& MaterialSystem::createMaterial(const std::string& name) {
-  const auto& materialDescription = resolveMaterialDescription(name);
+  auto& material = createMaterial(resolveMaterialDescription(name));
+  material.name = name;
+  return material;
+}
 
+Material& MaterialSystem::createMaterial(const izz::geo::MaterialDescription& materialDescription) {
   Material material;
+  material.name = materialDescription.vertexShader;
   compileShader(material, materialDescription);
 
   allocateBuffers(material, materialDescription);

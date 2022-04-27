@@ -78,7 +78,7 @@ class SceneLoader {
    */
   void readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial, izz::geo::MaterialDescription& material);
 
-  std::unique_ptr<izz::geo::TextureDescription> readAiTexture(aiTextureType ttype, const aiMaterial* aiMaterial) const;
+  std::unique_ptr<izz::geo::TextureDescription> readAiTexture(const lsw::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial) const;
 
   std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};

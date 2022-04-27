@@ -16,9 +16,8 @@ class RenderSystem;
 
 struct DeferredRenderable {
   //  BufferedMeshData meshData;
-  int renderStateId{-1};
-  int materialId{-1};
-  std::string nn = "Hello";
+  MaterialId materialId{-1};
+  MeshBufferId meshBufferId {-1};
 
   //  UniformBufferMapping mvp;
   //  UniformBufferMapping lights;
@@ -26,6 +25,8 @@ struct DeferredRenderable {
 };
 
 class DeferredRenderer {
+  static constexpr inline const char* ID = "DeferredRenderer";
+
  public:
   DeferredRenderer(RenderSystem& renderSystem, entt::registry& registry);
 
@@ -77,7 +78,7 @@ class DeferredRenderer {
 
   int m_screenWidth = 10, m_screenHeight = 10;
 
-  int m_screenSpaceRenderStateId = -1;
+  MeshBufferId m_screenSpaceMeshBufferId {-1};
   MaterialId m_screenSpaceMaterial {-1};
 };
 

@@ -58,7 +58,7 @@ static void readUniformDescription(const std::string key, const nlohmann::json& 
     //                  materialDescription.name, name));
     //            } else {
 
-    materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::UNIFORM_BUFFER_OBJECT, .value = key};
+    materialDescription.uniformBuffers[key] = izz::geo::UniformBufferDescription{.name = key};
 
     for (const auto& [key, value] : value.items()) {
       // recursive call.

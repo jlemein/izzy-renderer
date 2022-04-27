@@ -1,6 +1,5 @@
 add_library(lsw-gl STATIC
         include/ecs_debugmodel.h
-#        include/ecs_debugshapefactory.h
         include/gl_common.h
         include/gl_deferredrenderablefactory.h
         include/gl_deferredrenderer.h
@@ -11,11 +10,12 @@ add_library(lsw-gl STATIC
         include/gl_renderable.h
         include/gl_renderutils.h
         include/glrs_lightsystem.h
-#        include/izzgl_effectsystem.h
         include/izzgl_exrloader.h
-        include/izzgl_materialreader.h
         include/izzgl_material.h
+        include/izzgl_materialreader.h
         include/izzgl_materialsystem.h
+        include/izzgl_meshbuffer.h
+        include/izzgl_meshsystem.h
         include/izzgl_rendersystem.h
         include/izzgl_sceneloader.h
         include/izzgl_stbtextureloader.h
@@ -30,11 +30,6 @@ add_library(lsw-gl STATIC
         include/uniform_parallax.h
         include/uniform_ubermaterial.h
         include/uniform_uniformblockmanager.h
-        src/uniform_ubermaterial.cpp
-
-#        src/ecs_debugshapefactory.cpp
-#        src/ecs_debugsystem.cpp
-#        src/ecs_lightsystem.t.cpp
         src/gl_common.cpp
         src/gl_deferredrenderablefactory.cpp
         src/gl_deferredrenderer.cpp
@@ -42,19 +37,26 @@ add_library(lsw-gl STATIC
         src/gl_hdrframebuffer.cpp
         src/gl_multipassframebuffer.cpp
         src/gl_renderutils.cpp
-        src/izzgl_shadersystem.cpp
-        src/izzgl_shadersystem.h
         src/glrs_lightsystem.cpp
         src/glrs_shadersystem.t.cpp
-#        src/izzgl_effectsystem.cpp
         src/izzgl_exrloader.cpp
         src/izzgl_materialreader.cpp
         src/izzgl_materialsystem.cpp
+        src/izzgl_meshsystem.cpp
         src/izzgl_rendersystem.cpp
         src/izzgl_sceneloader.cpp
+        src/izzgl_shadersystem.cpp
+        src/izzgl_shadersystem.h
         src/izzgl_stbtextureloader.cpp
         src/izzgl_textureloader.cpp
         src/izzgl_texturesystem.cpp
+        src/uniform_ubermaterial.cpp
+#        include/ecs_debugshapefactory.h
+#        include/izzgl_effectsystem.h
+#        src/ecs_debugshapefactory.cpp
+#        src/ecs_debugsystem.cpp
+#        src/ecs_lightsystem.t.cpp
+#        src/izzgl_effectsystem.cpp
         )
 #test/node.t.cpp
 

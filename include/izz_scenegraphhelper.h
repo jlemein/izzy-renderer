@@ -5,6 +5,7 @@
 #include <memory>
 #include "geo_effect.h"
 #include "izz_renderablecomponentfactory.h"
+#include "izzgl_meshsystem.h"
 
 namespace lsw {
 namespace geo {
@@ -23,6 +24,9 @@ struct PointLight;
 }  // namespace lsw
 
 namespace izz {
+namespace gl {
+class MaterialSystem;
+}
 class SceneGraphEntity;
 
 /**
@@ -41,15 +45,18 @@ struct SceneLoaderFlags {
   }
 };
 
-
 /**!
  * SceneGraph is the central authority to deal with the scene hierarchy.
  * The scene grap deals with storing entities and their relationship.
  *
  */
 class SceneGraphHelper {
+  static inline const char* ID = "SceneGraphHelper";
+
  public:
-  SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory);
+  SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory,
+                   std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
+                   std::shared_ptr<izz::gl::MeshSystem> meshSystem);
 
   void setDefaultMaterial(std::shared_ptr<izz::gl::Material> material);
 
@@ -104,9 +111,9 @@ class SceneGraphHelper {
   SceneGraphEntity makeEmptyMesh(const lsw::geo::Mesh& mesh);
   SceneGraphEntity makeCurve(std::string name);
 
-  SceneGraphEntity makeRenderable(lsw::geo::Mesh&& mesh, int materialId);
-  SceneGraphEntity makeRenderable(const lsw::geo::Mesh& mesh, glm::mat4 transform, int materialId);
-  SceneGraphEntity makeRenderable(lsw::geo::Curve&& curve, int materialId);
+  SceneGraphEntity makeRenderable(izz::gl::MeshBuffer&& mesh, MaterialId materialId);
+  SceneGraphEntity makeRenderable(std::string name, const izz::gl::MeshBuffer& mesh, glm::mat4 transform, MaterialId materialId);
+  SceneGraphEntity makeRenderable(lsw::geo::Curve&& curve, MaterialId materialId);
 
   /**!
    * Loads a complete scene and adds it to the scene graph.
@@ -128,11 +135,13 @@ class SceneGraphHelper {
   /// Uses EnTT in the background for scene management
   entt::registry& m_registry;
   std::unique_ptr<RenderableComponentFactory> m_renderableComponentFactory;
+  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
+  std::shared_ptr<izz::gl::MeshSystem> m_meshSystem{nullptr};
 
   std::shared_ptr<izz::gl::Material> m_defaultMaterial{nullptr};
   const SceneGraphEntity* m_activeCamera{nullptr};
 
-  void processChildren(std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p = nullptr);
+  void processChildren(const lsw::geo::Scene& scene, std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p = nullptr);
 };
 
 //====================================

@@ -12,6 +12,7 @@
 
 #include <geo_boundingbox.h>
 #include <boost/functional/hash.hpp>
+#include "geo_materialdescription.h"
 
 namespace lsw {
 namespace geo {
@@ -35,6 +36,9 @@ struct Vertex {
   glm::vec2 uv {0, 0};
 };
 
+/**
+ * Generic mesh structure containing vertex data.
+ */
 struct Mesh {
   struct Vertex {
     float x, y, z;
@@ -55,10 +59,16 @@ struct Mesh {
 
 //  std::shared_ptr<Material> material{nullptr};
   int materialId;
+//  std::string materialId;
 
   // describes the data
   PolygonMode polygonMode{PolygonMode::kTriangles};
 };
+
+//struct RenderableMesh {
+//  Mesh mesh;
+//  izz::geo::MaterialDescription material;
+//};
 
 inline auto as_tuple(Mesh::Vertex const& v) {
   return std::tie(v.x, v.y, v.z);

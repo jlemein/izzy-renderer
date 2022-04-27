@@ -15,8 +15,6 @@ namespace geo {
 
 struct UniformBufferDescription {
   std::string name;
-  size_t size{0U};
-  void* data{nullptr};
 };
 
 enum class PropertyType {
@@ -79,5 +77,25 @@ struct MaterialDescription {
   /// @brief This map contains information about the named uniform buffer objects in the shader (such as the size and data pointers).
   std::unordered_map<std::string, UniformBufferDescription> uniformBuffers;
 };
+
+//struct MaterialInstanceDescription {
+//  const MaterialDescription* pMaterialDescription {nullptr};
+//
+//  // fallback values
+//  glm::vec4 diffuseColor;
+//  glm::vec4 specularColor;
+//  glm::vec4 ambientColor;
+//
+//  std::unordered_map<std::string, TextureDescription> textures {};
+//
+//  /// @brief This map contains information about individual uniform parameters (e.g. their data types and default values).
+//  /// @details Note that all uniform parameters, both part of a scoped/named uniform block, as well as global or unscoped uniform parameters are added
+//  /// together in this map.
+//  std::unordered_map<std::string, UniformDescription> uniforms {};
+//
+//  /// @brief This map contains information about the named uniform buffer objects in the shader (such as the size and data pointers).
+//  std::unordered_map<std::string, UniformBufferDescription> uniformBuffers {};
+//};
+
 }  // namespace geo
 }  // namespace izz
