@@ -13,9 +13,9 @@ using namespace izz::gl;
 
 namespace {
 void updatePointLightVisualization(Material& material, lsw::ecs::PointLight light) {
-  material.userProperties.setValue("color", glm::vec4(light.color, 0.0));
-  material.userProperties.setFloat("radius", light.radius);
-  material.userProperties.setFloat("intensity", light.intensity);
+  material.setUniformVec4("color", glm::vec4(light.color, 0.0));
+  material.setUniformFloat("radius", light.radius);
+  material.setUniformFloat("intensity", light.intensity);
 }
 }
 

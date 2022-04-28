@@ -36,7 +36,7 @@ namespace {
 int getUniformLocation(GLint program, const char* name, const std::string& materialName) {
   int location = glGetUniformLocation(program, name);
   if (location == -1) {
-    throw std::runtime_error(fmt::format("unknown uniform parameter '{}' (material: '{}').", name, materialName));
+    throw std::runtime_error(fmt::format("{}: unknown uniform parameter '{}' (material: '{}').", RenderSystem::ID, name, materialName));
   }
   return location;
 }

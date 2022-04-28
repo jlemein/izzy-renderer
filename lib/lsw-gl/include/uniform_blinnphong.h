@@ -26,8 +26,8 @@ class BlinnPhongManager : public UniformBlockManager {
   }
   void UpdateUniform(void* data, const gl::Material& m) override {
     auto blinn = reinterpret_cast<BlinnPhong*>(data);
-    blinn->shininess = m.userProperties.getFloat("shininess");
-    blinn->specular = m.userProperties.getVec4f("specular_color");
+    blinn->shininess = m.getUniformFloat("shininess");
+    blinn->specular = m.getUniformVec4("specular_color");
   }
 };
 

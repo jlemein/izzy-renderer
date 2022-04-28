@@ -74,7 +74,8 @@ void SceneLoader::readMaterials(const aiScene* scene_p, lsw::geo::Scene& scene) 
     aiMaterial* aiMaterial = scene_p->mMaterials[i];
 
     std::string name = aiMaterial->GetName().C_Str();
-    izz::geo::MaterialDescription materialDescription = m_materialSystem->getMaterialDescription(name);
+//    izz::geo::MaterialDescription materialDescription = m_materialSystem->getMaterialDescription(name);
+    izz::geo::MaterialDescription materialDescription = m_materialSystem->resolveMaterialDescription(name);
     //    auto material = m_resourceManager->getRawResourceManager()->createResource<geo::Material>(name);
     //    (*material)->name = mat_p->GetName().C_Str();
 

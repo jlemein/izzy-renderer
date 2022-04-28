@@ -19,9 +19,9 @@ void UberUniformManager::DestroyUniformBlock(void* block) {
 void UberUniformManager::UpdateUniform(void* data, const Material& material) {
   auto uber = reinterpret_cast<Uber*>(data);
 
-  const auto& ambientData = material.userProperties.getFloatArray("ambient_color");
-  const auto& specularData = material.userProperties.getFloatArray("specular_color");
-  const auto& diffuseData = material.userProperties.getFloatArray("diffuse_color");
+  const auto& ambientData = material.getUniformFloatArray("ambient_color");
+  const auto& specularData = material.getUniformFloatArray("specular_color");
+  const auto& diffuseData = material.getUniformFloatArray("diffuse_color");
 
   uber->ambient = glm::vec4(ambientData[0], ambientData[1], ambientData[2], 0.0F);
   uber->specular = glm::vec4(specularData[0], specularData[1], specularData[2], 0.0F);

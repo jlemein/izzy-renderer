@@ -24,7 +24,7 @@ class ParallaxManager : public UniformBlockManager {
   }
   void UpdateUniform(void* data, const gl::Material& m) override {
     auto parallax = reinterpret_cast<Parallax*>(data);
-    parallax->height_scale = m.userProperties.getFloat("height_scale");
+    parallax->height_scale = m.getUniformFloat("height_scale");
   }
 
 //  ValueSemantic GetSemantic(const char* name) override {

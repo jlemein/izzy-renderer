@@ -21,23 +21,23 @@ void izz::gui::ShaderEditor::render(float time, float dt) {
 
       auto id = fmt::format("ShaderEditor_{}", static_cast<int>(entity));
       ImGui::PushID(id.c_str());
-      ImGui::Begin("Shader Editor", &show);
-        for (auto& p : material.unscopedUniforms.floatValues) {
-          ImGui::DragFloat(p.first.c_str(), &p.second);
-          material.userProperties.setFloat(p.first.c_str(), 0.1);
-          p.second = 100.0;
-        }
-
-        for (auto& p : material.userProperties.floatValues) {
-          ImGui::DragFloat(p.first.c_str(), &p.second);
-          material.userProperties.setFloat(p.first.c_str(), 0.1);
-          p.second = 100.0;
-        }
-
-        for (auto& p : material.userProperties.floatArrayValues) {
-          ImGui::DragFloat4(p.first.c_str(), p.second.data(), 0.1F);
-        }
-      ImGui::End();
+//      ImGui::Begin("Shader Editor", &show);
+//        for (auto& p : material.unscopedUniforms.floatValues) {
+//          ImGui::DragFloat(p.first.c_str(), &p.second);
+//          material.setUniformFloat(p.first.c_str(), 0.1);
+//          p.second = 100.0;
+//        }
+//
+//        for (auto& p : material.userProperties.floatValues) {
+//          ImGui::DragFloat(p.first.c_str(), &p.second);
+//          material.setUniformFloat(p.first.c_str(), 0.1);
+//          p.second = 100.0;
+//        }
+//
+//        for (auto& p : material.userProperties.floatArrayValues) {
+//          ImGui::DragFloat4(p.first.c_str(), p.second.data(), 0.1F);
+//        }
+//      ImGui::End();
       ImGui::PopID();
     }
   }

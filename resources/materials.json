@@ -294,6 +294,9 @@
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
       },
+      "properties": {
+        "ModelViewProjection": {}
+      },
       "textures": {
         "albedoMap": {
           "type": "texture",

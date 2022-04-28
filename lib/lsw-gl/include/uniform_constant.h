@@ -26,9 +26,9 @@ class ConstantManager : public UniformBlockManager {
   }
   void UpdateUniform(void* data, const izz::gl::Material& m) override {
     auto constant = reinterpret_cast<ConstantLight*>(data);
-    constant->radius = m.userProperties.getFloat("radius");
-    constant->intensity = m.userProperties.getFloat("intensity");
-    constant->color = m.userProperties.getVec4f("color");
+    constant->radius = m.getUniformFloat("radius");
+    constant->intensity = m.getUniformFloat("intensity");
+    constant->color = m.getUniformVec4("color");
   }
 };
 

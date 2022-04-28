@@ -11,6 +11,7 @@
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <memory>
 #include <string>
 #include <variant>
@@ -21,28 +22,33 @@ namespace gl {
 
 enum class UType : uint32_t { FLOAT, FLOAT2, FLOAT3, FLOAT4, FLOAT_ARRAY, BOOL, INT, INT2, INT3, INT4, INT_ARRAY, MAT2, MAT3, MAT4 };
 
-struct Renderable_UnscopedUniform {
-  GLint location;  /// @brief the location of the uniform parameter in the GLSL shader.
-  UType type;      /// @brief Type of the uniform property stored. @see UType.
-  int offset;      /// @brief Offset in the UnscopedUniforms::pData attribute where the value is stored. Offset is expressed in bytes (uint8_t).
-  int length;      /// @brief length of the property. This is expressed in number of elements (i.e. the length of the array irrespective of data type)
+class UniformProperty {
+ public:
+  UniformProperty(GLint location = 0, void* data = nullptr, int length = 1)
+    : m_location{location}
+    , m_data{data}
+    , m_length{length} {}
+
+  GLint m_location;  /// @brief the location of the uniform parameter in the GLSL shader.
+                     //  UType type;      /// @brief Type of the uniform property stored. @see UType.
+  void* m_data;      /// @brief Offset in the UnscopedUniforms::pData attribute where the value is stored. Offset is expressed in bytes (uint8_t).
+  int m_length;      /// @brief length of the property. This is expressed in number of elements (i.e. the length of the array irrespective of data type)
 };
 
 struct UnscopedUniforms {
   //  std::unique_ptr<Renderable_UnscopedUniform[]> pProperties;
-  Renderable_UnscopedUniform* pProperties;
+  UniformProperty* pProperties;
   int numProperties;
-  //  uint8_t* pData;
-  uint8_t* pData;
-  std::size_t size;
+  uint8_t* data;
+  std::size_t sizeData;
 
   static inline UnscopedUniforms Allocate(int numProperties, std::size_t sizeOfData) {
-    return UnscopedUniforms{new Renderable_UnscopedUniform[numProperties], numProperties, new uint8_t[sizeOfData], sizeOfData};
+    return UnscopedUniforms{new UniformProperty[numProperties], numProperties, new uint8_t[sizeOfData], sizeOfData};
   }
 
   static inline void DeallocateUnscopedUniforms(UnscopedUniforms* unscopedUniforms) {
     delete[] unscopedUniforms->pProperties;
-    delete[] unscopedUniforms->pData;
+    delete[] unscopedUniforms->data;
   }
 };
 
@@ -55,11 +61,6 @@ struct UniformBuffer {
   int blockBind{0};
   size_t size{0U};
   void* data{nullptr};
-};
-
-struct UniformProperty {
-  char name[32];
-  GLint location;
 };
 
 /**
@@ -80,77 +81,11 @@ struct UserProperties {
   // not sure if this is correct. ubo_name is overwritten for every new UBO
   std::string ubo_name;  // name of the uniform block in the shader, used by render engine to find ID.
 
-  std::unordered_map<std::string, float> floatValues;
-  std::unordered_map<std::string, int> intValues;
-  std::unordered_map<std::string, std::vector<float>> floatArrayValues;
-  std::unordered_map<std::string, bool> booleanValues;
-
-  float getFloat(const std::string& key) const {
-    if (floatValues.count(key) > 0) {
-      return floatValues.at(key);
-    } else {
-      throw std::runtime_error(fmt::format("Property {} (float) does not exist for uniform buffer struct {}", key, ubo_name));
-    }
-  }
-
-  int getInt(const std::string& key) const {
-    if (intValues.count(key) > 0) {
-      return intValues.at(key);
-    } else {
-      throw std::runtime_error(fmt::format("Property {} (int) does not exist for uniform buffer struct {}", key, ubo_name));
-    }
-  }
-
-  std::vector<float> getFloatArray(const std::string& key) const {
-    if (floatArrayValues.count(key) > 0) {
-      return floatArrayValues.at(key);
-    } else {
-      throw std::runtime_error(fmt::format("Property {} (float[]) does not exist for uniform buffer struct {}", key, ubo_name));
-    }
-  }
-
-  const glm::vec4& getVec4f(const std::string& key) const {
-    if (floatArrayValues.count(key) > 0) {
-      if (floatArrayValues.at(key).size() < 4) {
-        throw std::runtime_error("requesting a vec4f but the requested property is not a vec4f");
-      }
-      return *reinterpret_cast<const glm::vec4*>(floatArrayValues.at(key).data());
-    } else {
-      throw std::runtime_error(fmt::format("Property {} (vec4) does not exist for uniform buffer struct {}", key, ubo_name));
-    }
-  }
-
-  void setFloat(const std::string& name, float value) {
-    floatValues[name] = value;
-  }
-
-  void setFloatArray(const std::string& name, std::vector<float> floatArray) {
-    floatArrayValues[name] = floatArray;
-  }
-
-  //  void setMatrix(const std::string& name, glm::mat4 matrix) {
-  //    matrixValues[name] = matrix;
-  //  }
-  //
-  //  const glm::mat4& getMatrix(const std::string& name) {
-  //    return matrixValues.at(name);
-  //  }
-
-  void setValue(const std::string& name, const glm::vec4& value) {
-    setFloatArray(name, std::vector<float>{value.r, value.g, value.b, value.a});
-  }
-
-  void setInt(const std::string& name, int value) {
-    intValues[name] = value;
-  }
-
-  bool getBoolean(const std::string& name) {
-    return booleanValues.at(name);
-  }
-
-  void setBoolean(const std::string& name, bool value) {
-    booleanValues[name] = value;
-  }
+  //  std::unordered_map<std::string, std::unique_ptr<UniformProperty>> uniforms;
+  std::unordered_map<std::string, UniformProperty*> floatValues;
+  std::unordered_map<std::string, UniformProperty*> intValues;
+  std::unordered_map<std::string, UniformProperty*> floatArrayValues;
+  std::unordered_map<std::string, UniformProperty*> booleanValues;
 };
 
 enum class ColorBuffer { UNUSED, CUBEMAP, BUFFER_1D, BUFFER_2D, TEXTURE_2D, TEXTURE_2D_MULTISAMPLE };
@@ -195,29 +130,20 @@ struct Material {
   }
 
   void pushUnscopedUniforms() const {
-    for (unsigned int i = 0; i < unscopedUniformBuffer.numProperties; ++i) {
-      const auto& uniform = unscopedUniformBuffer.pProperties[i];
+    for (const auto& value : unscopedUniforms.booleanValues) {
+      glUniform1i(value.second->m_location, *reinterpret_cast<GLint*>(value.second->m_data));
+    }
 
-      switch (uniform.type) {
-        case UType::BOOL:
-        case UType::INT:
-          glUniform1i(uniform.location, *reinterpret_cast<int*>(unscopedUniformBuffer.pData + uniform.offset));
-          break;
+    for (const auto& value : unscopedUniforms.intValues) {
+      glUniform1i(value.second->m_location, *reinterpret_cast<int*>(value.second->m_data));
+    }
 
-        case UType::FLOAT_ARRAY:
-        case UType::FLOAT2:
-        case UType::FLOAT3:
-        case UType::FLOAT4:
-          glUniform1fv(uniform.location, uniform.length, reinterpret_cast<float*>(unscopedUniformBuffer.pData + uniform.offset));
-          break;
+    for (const auto& value : unscopedUniforms.floatValues) {
+      glUniform1f(value.second->m_location, *reinterpret_cast<GLfloat*>(value.second->m_data));
+    }
 
-        case UType::INT_ARRAY:
-        case UType::INT2:
-        case UType::INT3:
-        case UType::INT4:
-          glUniform1iv(uniform.location, uniform.length, reinterpret_cast<GLint*>(unscopedUniformBuffer.pData + uniform.offset));
-          break;
-      }
+    for (const auto& value : unscopedUniforms.floatArrayValues) {
+      glUniform1fv(value.second->m_location, value.second->m_length, reinterpret_cast<GLfloat*>(value.second->m_data));
     }
   }
 
@@ -298,9 +224,9 @@ struct Material {
   izz::TextureId roughnessTexture{-1};
   izz::TextureId opacityTexture{-1};
 
-  UnscopedUniforms unscopedUniformBuffer;  /// @brief GPU representation
-  UserProperties unscopedUniforms;         /// @brief uniforms not in an interface block (less efficient).
-  UserProperties userProperties;           /// @brief uniforms as part of a interface block (i.e. named uniform buffer object).
+  UnscopedUniforms unscopedUniformBuffer;                           /// @brief GPU representation
+  UserProperties unscopedUniforms;                                  /// @brief uniforms as part of a interface block (i.e. named uniform buffer object).
+  std::unordered_map<std::string, UniformProperty*> m_allUniforms;  // Refers to all the uniform properties (unscoped and scoped).
 
   // contains map from name to property type
   std::unordered_map<std::string, izz::geo::PropertyType> propertyTypes;
@@ -356,6 +282,48 @@ struct Material {
   template <typename T>
   void setProperty(const T& data) {
     setProperty(T::PARAM_NAME, data);
+  }
+
+  void setUniformFloat(std::string name, float value) {
+    // dangerous cast here
+    auto pValue = reinterpret_cast<GLfloat*>(m_allUniforms.at(name)->m_data);
+    *pValue = value;
+  }
+
+  void setUniformVec4(std::string name, const glm::vec4& value) {
+    // dangerous cast here
+    memcpy(m_allUniforms.at(name)->m_data, glm::value_ptr(value), sizeof(GLfloat) * 4);
+  }
+
+  void setUniformInt(std::string name, int value) {
+    // dangerous cast here
+    auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
+    *pValue = value;
+  }
+
+  void setUniformBool(std::string name, bool value) {
+    // dangerous cast here
+    auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
+    *pValue = static_cast<GLint>(value);
+  }
+
+  void setUniformFloatArray(std::string name, const std::vector<float>& value) {
+    // dangerous cast here
+    memcpy(m_allUniforms.at(name)->m_data, value.data(), sizeof(GLfloat) * value.size());
+  }
+
+  glm::vec4& getUniformVec4(std::string name) const {
+    return *reinterpret_cast<glm::vec4*>(m_allUniforms.at(name)->m_data);
+  }
+
+  float& getUniformFloat(std::string name) const {
+    return *reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
+  }
+
+  std::vector<float> getUniformFloatArray(std::string name) const {
+    auto prop = m_allUniforms.at(name);
+    float* pStart = reinterpret_cast<float*>(prop->m_data);
+    return std::vector<float>{pStart, pStart + prop->m_length};
   }
 
   // TODO: deprecated, remove it in favor of the register call below.

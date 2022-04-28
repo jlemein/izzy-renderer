@@ -37,7 +37,7 @@ uniform ForwardLighting {
 };
 
 layout(binding = 1)
-uniform UniformBufferBlock {
+uniform ModelViewProjection {
     mat4 model;
     mat4 view;
     mat4 proj;

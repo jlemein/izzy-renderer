@@ -117,7 +117,7 @@ namespace {
 int getUniformLocation(GLint program, const char* name, const std::string& materialName) {
   int location = glGetUniformLocation(program, name);
   if (location == -1) {
-    throw std::runtime_error(fmt::format("unknown uniform parameter '{}' (material: '{}').", name, materialName));
+    spdlog::warn(fmt::format("{}: unknown uniform parameter '{}' (material: '{}'). Is parameter present and used in shader?", MaterialSystem::ID, name, materialName));
   }
   return location;
 }
@@ -166,11 +166,6 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
       spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.name, textureName);
     }
   }
-
-  // load already loaded textures
-//  for (auto& [name, textureBuffer] : material.textures) {
-//    textureBuffer.location = glGetUniformLocation(material.programId, name.c_str());
-//  }
 
   for (auto& [name, uboDescription] : materialDescription.uniformBuffers) {
     spdlog::debug("MaterialSystem: allocating uniform buffer on GPU");
@@ -223,75 +218,95 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
 //    sizeBytes += array.second.size() * sizeof(GLfloat);
 //  }
 
+  // allocate enough storage room to store uniform properties.
   material.unscopedUniformBuffer = UnscopedUniforms::Allocate(numProperties, sizeBytes);
 
-  auto pData = material.unscopedUniformBuffer.pData;
-  auto pUniform = material.unscopedUniformBuffer.pProperties;
-  unsigned int offset = 0U;
+  auto pData = material.unscopedUniformBuffer.data;
+  auto property = material.unscopedUniformBuffer.pProperties;
+//  unsigned int offset = 0U;
 
-//  for (auto [name, value] : materialDescription.uniforms) {
-//    value.
-//  }
+  // TODO: useProgram
 
-  for (auto [name, value] : material.unscopedUniforms.booleanValues) {
-    *reinterpret_cast<int*>(pData) = value;
-    pUniform->location = getUniformLocation(material.programId, name.c_str(), material.name);
-    pUniform->type = UType::BOOL;
-    pUniform->offset = offset;
-    pUniform->length = 1;
+    for (const auto& [name, p] : materialDescription.uniforms) {
+      switch (p.type) {
+        case geo::PropertyType::BOOL:
+          *reinterpret_cast<GLint*>(pData) = static_cast<GLint>(std::get<bool>(p.value));
+          property->m_location = getUniformLocation(material.programId, name.c_str(), material.name);
+          property->m_data = pData;
+          property->m_length = 1;
 
-    glUniform1i(pUniform->location, *reinterpret_cast<int*>(material.unscopedUniformBuffer.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+          if (property->m_location != GL_INVALID_INDEX) {
+            glUniform1i(property->m_location, *reinterpret_cast<GLint*>(pData));
+            spdlog::info("Initialized: {}.{} = {}", material.name, name, std::get<bool>(p.value));
+          }
 
-    offset += sizeof(GLint);
-    pData += sizeof(GLint);
-    pUniform++;
-  }
+          material.unscopedUniforms.booleanValues[name] = property;
+          material.m_allUniforms[name] = property;
 
-  for (auto [name, value] : material.unscopedUniforms.intValues) {
-    *reinterpret_cast<int*>(pData) = value;
-    pUniform->location = getUniformLocation(material.programId, name.c_str(), material.name);
-    pUniform->type = UType::INT;
-    pUniform->offset = offset;
-    pUniform->length = 1;
+          property++;
+          pData += sizeof(GLint);
+          break;
 
-    glUniform1i(pUniform->location, *reinterpret_cast<int*>(material.unscopedUniformBuffer.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+        case geo::PropertyType::INT:
+          *reinterpret_cast<GLint*>(pData) = static_cast<GLint>(std::get<int>(p.value));
+          property->m_location = getUniformLocation(material.programId, name.c_str(), material.name);
+          property->m_data = pData;
+          property->m_length = 1;
 
-    offset += sizeof(GLint);
-    pData += sizeof(GLint);
-    pUniform++;
-  }
+          if (property->m_location != GL_INVALID_INDEX) {
+            glUniform1i(property->m_location, *reinterpret_cast<GLint*>(pData));
+            spdlog::info("Initialized: {}.{} = {}", material.name, name, std::get<bool>(p.value));
+          }
 
-  for (auto [name, value] : material.unscopedUniforms.floatValues) {
-    *reinterpret_cast<float*>(pData) = value;
-    pUniform->location = getUniformLocation(material.programId, name.c_str(), material.name);
-    pUniform->type = UType::FLOAT;
-    pUniform->offset = offset;
-    pUniform->length = 1;
+          material.unscopedUniforms.intValues[name] = property;
+          material.m_allUniforms[name] = property;
 
-    glUniform1f(pUniform->location, *reinterpret_cast<float*>(material.unscopedUniformBuffer.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = {}", material.name, name, value);
+          pData += sizeof(GLint);
+          property++;
+          break;
 
-    offset += sizeof(float);
-    pData += sizeof(float);
-    pUniform++;
-  }
+        case geo::PropertyType::FLOAT:
+          *reinterpret_cast<GLint*>(pData) = static_cast<GLfloat>(std::get<float>(p.value));
+          property->m_location = getUniformLocation(material.programId, name.c_str(), material.name);
+          property->m_data = pData;
+          property->m_length = 1;
 
-  for (auto [name, value] : material.unscopedUniforms.floatArrayValues) {
-    memcpy(reinterpret_cast<float*>(pData), value.data(), sizeof(float) * value.size());
-    pUniform->location = getUniformLocation(material.programId, name.c_str(), material.name);
-    pUniform->type = UType::FLOAT_ARRAY;
-    pUniform->offset = offset;
-    pUniform->length = value.size();
+          if (property->m_location != GL_INVALID_INDEX) {
+            glUniform1f(property->m_location, *reinterpret_cast<GLfloat*>(pData));
+            spdlog::info("Initialized: {}.{} = {}", material.name, name, std::get<float>(p.value));
+          }
 
-    glUniform1fv(pUniform->location, pUniform->length, reinterpret_cast<float*>(material.unscopedUniformBuffer.pData + pUniform->offset));
-    spdlog::info("Initialized: {}.{} = [{}]", material.name, name, fmt::join(value, ", "));
+          material.unscopedUniforms.floatValues[name] = property;//std::get<float>(p.value);
+          material.m_allUniforms[name] = property;
 
-    offset += sizeof(float) * value.size();
-    pData += sizeof(float) * value.size();
-    pUniform++;
-  }
+          pData += sizeof(GLfloat);
+          property++;
+          break;
+
+        case geo::PropertyType::FLOAT_ARRAY: {
+          auto value = std::get<std::vector<float>>(p.value);
+          memcpy(reinterpret_cast<GLfloat*>(pData), value.data(), sizeof(GLfloat) * value.size());
+          property->m_location = getUniformLocation(material.programId, name.c_str(), material.name);
+          property->m_data = pData;
+          property->m_length = value.size();
+
+          if (property->m_location != GL_INVALID_INDEX) {
+            glUniform1fv(property->m_location, property->m_length, reinterpret_cast<GLfloat*>(pData));
+            spdlog::info("Initialized: {}.{} = {}", material.name, name, fmt::join(value, ","));
+          }
+
+          material.unscopedUniforms.floatArrayValues[name] = property;
+          material.m_allUniforms[name] = property;
+          pData += sizeof(GLfloat) * p.length;
+          property++;
+          break;
+        }
+
+        default:
+          spdlog::warn("{}: could not set uniform property '{}'. Data type not supported.", ID, p.name);
+          break;
+      }
+    }
 }
 
 izz::geo::MaterialDescription& MaterialSystem::resolveMaterialDescription(const std::string name) {

@@ -32,6 +32,8 @@ class RenderSystem;
  */
 class MaterialSystem {
  public:
+  static inline const char* ID = "MaterialSystem";
+
   MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
@@ -39,6 +41,7 @@ class MaterialSystem {
   void addMaterialDescription(std::string name, izz::geo::MaterialDescription md);
 
   izz::geo::MaterialDescription& getMaterialDescription(const std::string& name);
+  izz::geo::MaterialDescription& resolveMaterialDescription(const std::string name);
 //  const MaterialDescription& getMaterialDescription(const std::string& name) const;
 
   /**
@@ -96,8 +99,6 @@ class MaterialSystem {
   izz::gl::Material& makeDefaultMaterial();
 
  private:
-
-  izz::geo::MaterialDescription& resolveMaterialDescription(const std::string name);
 
   /**
    * Compiles the shaders referred to by the description, and fills the material with the program id.

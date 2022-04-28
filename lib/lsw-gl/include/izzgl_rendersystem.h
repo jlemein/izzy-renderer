@@ -33,6 +33,8 @@ struct Texture;
  */
 class RenderSystem {
  public:
+  static inline const char* ID = "RenderSystem";
+
   /**
    * Constructor.
    * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
