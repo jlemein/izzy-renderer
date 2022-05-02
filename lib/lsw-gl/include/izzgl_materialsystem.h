@@ -109,6 +109,8 @@ class MaterialSystem {
   void compileShader(Material& material, const izz::geo::MaterialDescription& materialDescription);
 
   void allocateBuffers(Material& material, const izz::geo::MaterialDescription& materialDescription);
+  void allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::geo::TextureDescription>& textureDescriptions);
+
   UniformBuffer createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& m);
   //  void allocateTextureBuffers(MaterialDescription& materialDescription, Material& material);
   //  void allocateUniformBuffers();

@@ -13,8 +13,8 @@ using namespace izz::gl;
 
 namespace {
 void updatePointLightVisualization(Material& material, lsw::ecs::PointLight light) {
-  material.setUniformVec4("color", glm::vec4(light.color, 0.0));
-  material.setUniformFloat("radius", light.radius);
+//  material.setUniformVec4("color", glm::vec4(light.color, 0.0));
+//  material.setUniformFloat("radius", light.radius);
   material.setUniformFloat("intensity", light.intensity);
 }
 }
@@ -35,13 +35,14 @@ void LightSystem::setDefaultPointLightMaterial(int materialId) {
 }
 
 void LightSystem::initialize() {
+  spdlog::debug("Initializing light system");
   for (auto&& [e, light, mesh] : m_registry.view<lsw::ecs::PointLight, lsw::geo::Mesh>().each()) {
-    spdlog::debug("Initializing light system");
     if (!m_registry.all_of<izz::gl::Material>(e)) {
       if (m_lightMaterial == -1) {
         auto name = m_registry.get<lsw::ecs::Name>(e).name;
         spdlog::error("Cannot add a material for point light '{}'. No light material set", name);
-      } else {
+      }
+      else {
 //        m_registry.emplace<Renderable>(e);
 
 //        auto& material = m_registry.emplace<izz::gl::Material>(e, izz::gl::MaterialUtil::CloneMaterial(*m_lightMaterial));

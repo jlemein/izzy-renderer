@@ -39,7 +39,7 @@ void MaterialReader::readMaterials(std::filesystem::path path) {
   input.close();
 }
 
-static void readUniformDescription(const std::string key, const nlohmann::json& value, izz::geo::MaterialDescription& materialDescription) {
+static void readUniformDescription(std::string key, const nlohmann::json& value, izz::geo::MaterialDescription& materialDescription) {
   if (value.is_boolean()) {
     materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::BOOL, .value = value.get<bool>()};
   } else if (value.is_number_float()) {
@@ -47,8 +47,9 @@ static void readUniformDescription(const std::string key, const nlohmann::json& 
   } else if (value.is_number_integer()) {
     materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::INT, .value = value.get<int>()};
   } else if (value.is_array() && isFloatArray<>(value)) {
+    auto v = value.get<std::vector<float>>();
     materialDescription.uniforms[key] =
-        izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::FLOAT_ARRAY, .value = value.get<std::vector<float>>()};
+        izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::FLOAT_ARRAY, .value = v, .length = static_cast<int>(v.size())};
   } else if (value.is_object()) {
     // scoped uniform (i.e. using interface block)
 
@@ -60,9 +61,11 @@ static void readUniformDescription(const std::string key, const nlohmann::json& 
 
     materialDescription.uniformBuffers[key] = izz::geo::UniformBufferDescription{.name = key};
 
-    for (const auto& [key, value] : value.items()) {
+    // TODO: one problem of recursive call. Uniform properties are added to a list and treated as unscoped uniforms.
+    //  could cause issues with allocated memory.
+    for (const auto& [propName, value] : value.items()) {
       // recursive call.
-      readUniformDescription(key, value, materialDescription);
+      readUniformDescription(key + "." + propName, value, materialDescription);
     }
   }
 }

@@ -101,6 +101,14 @@ void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
 //   m_screenHeight = height;
 // }
 
+namespace {
+void checkError(const char* name) {
+  GLenum err;
+  if ((err = glGetError()) != GL_NO_ERROR) {
+    std::cerr << "OpenGL error occurred for " << name << ": " << err << std::endl;
+  }
+}
+}
 void DeferredRenderer::createGBuffer(int width, int height) {
   // Create a framebuffer for the gbuffer (geometry pass).
   glGenFramebuffers(1, &m_gBufferFbo);
@@ -109,7 +117,7 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   // GBuffer: position texture
   glGenTextures(1, &m_gPosition);
   glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gPosition, 0);
@@ -117,7 +125,7 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   // GBuffer: normal texture
   glGenTextures(1, &m_gNormal);
   glBindTexture(GL_TEXTURE_2D, m_gNormal);  // so that all subsequent calls will affect normal texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, m_gNormal, 0);

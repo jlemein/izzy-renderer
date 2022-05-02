@@ -24,7 +24,7 @@ enum class UType : uint32_t { FLOAT, FLOAT2, FLOAT3, FLOAT4, FLOAT_ARRAY, BOOL, 
 
 class UniformProperty {
  public:
-  UniformProperty(GLint location = 0, void* data = nullptr, int length = 1)
+  UniformProperty(GLint location = 0, unsigned char* data = nullptr, int length = 1)
     : m_location{location}
     , m_data{data}
     , m_length{length} {}
@@ -35,21 +35,115 @@ class UniformProperty {
   int m_length;      /// @brief length of the property. This is expressed in number of elements (i.e. the length of the array irrespective of data type)
 };
 
-struct UnscopedUniforms {
-  //  std::unique_ptr<Renderable_UnscopedUniform[]> pProperties;
-  UniformProperty* pProperties;
-  int numProperties;
-  uint8_t* data;
-  std::size_t sizeData;
+class UniformProperties {
+ private:
+  UniformProperty* m_properties;
+  std::vector<uint8_t> m_data {};
+  uint32_t m_usedBytes = 0U;
+  uint32_t m_numProperties = 0;
 
-  static inline UnscopedUniforms Allocate(int numProperties, std::size_t sizeOfData) {
-    return UnscopedUniforms{new UniformProperty[numProperties], numProperties, new uint8_t[sizeOfData], sizeOfData};
+ public:
+  UniformProperties() {}
+
+  UniformProperties(std::size_t size, int numProperties) {
+    m_properties = new UniformProperty[numProperties];
+    m_numProperties = 0;
+    m_data = std::vector<uint8_t>();
+    m_data.resize(size);
   }
 
-  static inline void DeallocateUnscopedUniforms(UnscopedUniforms* unscopedUniforms) {
-    delete[] unscopedUniforms->pProperties;
-    delete[] unscopedUniforms->data;
+  ~UniformProperties() {
+    delete[] m_properties;
   }
+
+  const unsigned char* data() const {
+    return m_data.data();
+  }
+
+  UniformProperty* addBoolean(std::string name, bool value, int location) {
+    GLint* data = reinterpret_cast<GLint*>(m_data.data() + m_usedBytes);
+    *data = static_cast<GLint>(value);
+
+    if (location != GL_INVALID_INDEX) {
+      glUniform1i(location, *reinterpret_cast<GLint*>(data));
+    }
+
+    UniformProperty* p = &m_properties[m_numProperties++];
+    p->m_data = data;
+    p->m_location = location;
+    p->m_length = 1;
+
+    booleanValues[name] = p;
+    m_usedBytes += sizeof(GLint);
+
+    return p;
+  }
+
+  UniformProperty* addInt(std::string name, int value, int location) {
+    GLint* data = reinterpret_cast<GLint*>(m_data.data() + m_usedBytes);
+    *data = static_cast<GLint>(value);
+
+    if (location != GL_INVALID_INDEX) {
+      glUniform1i(location, *reinterpret_cast<GLint*>(data));
+    }
+
+    UniformProperty* p = &m_properties[m_numProperties++];
+    p->m_data = data;
+    p->m_location = location;
+    p->m_length = 1;
+
+    intValues[name] = p;
+    m_usedBytes += sizeof(GLint);
+
+    return p;
+  }
+
+  UniformProperty* addFloat(std::string name, float value, int location) {
+    GLfloat* data = reinterpret_cast<GLfloat*>(m_data.data() + m_usedBytes);
+    *data = static_cast<GLfloat>(value);
+
+    if (location != GL_INVALID_INDEX) {
+      glUniform1f(location, *data);
+    }
+
+    UniformProperty* p = &m_properties[m_numProperties++];
+    p->m_data = data;
+    p->m_location = location;
+    p->m_length = 1;
+
+    floatValues[name] = p;
+    m_usedBytes += sizeof(GLfloat);
+
+    return p;
+  }
+
+  UniformProperty* addFloatArray(std::string name, std::vector<float> values, int location) {
+    GLfloat* data = reinterpret_cast<GLfloat*>(m_data.data() + m_usedBytes);
+    memcpy(reinterpret_cast<GLfloat*>(data), values.data(), sizeof(float) * values.size());
+
+    if (location != GL_INVALID_INDEX) {
+      glUniform1fv(location, values.size(), reinterpret_cast<GLfloat*>(data));
+    }
+
+    UniformProperty* p = &m_properties[m_numProperties++];
+    p->m_data = data;
+    p->m_location = location;
+    p->m_length = static_cast<int>(values.size());
+
+    floatArrayValues[name] = p;
+    m_usedBytes += sizeof(GLfloat) * values.size();
+
+    return p;
+  }
+
+  /// @brief maps the name of a uniform property to a float property in the m_properties vector.
+  std::unordered_map<std::string, UniformProperty*> floatValues;
+  /// @brief maps the name of a uniform property to a integer property in the m_properties vector.
+  std::unordered_map<std::string, UniformProperty*> intValues;
+  /// @brief maps the name of a uniform property to a float array property in the m_properties vector.
+  std::unordered_map<std::string, UniformProperty*> floatArrayValues;
+  /// @brief maps the name of a uniform property to a boolean property in the m_properties vector.
+  std::unordered_map<std::string, UniformProperty*> booleanValues;
 };
 
 /**
@@ -77,17 +171,6 @@ struct LightingInfo {
   std::string ubo_struct_name;
 };
 
-struct UserProperties {
-  // not sure if this is correct. ubo_name is overwritten for every new UBO
-  std::string ubo_name;  // name of the uniform block in the shader, used by render engine to find ID.
-
-  //  std::unordered_map<std::string, std::unique_ptr<UniformProperty>> uniforms;
-  std::unordered_map<std::string, UniformProperty*> floatValues;
-  std::unordered_map<std::string, UniformProperty*> intValues;
-  std::unordered_map<std::string, UniformProperty*> floatArrayValues;
-  std::unordered_map<std::string, UniformProperty*> booleanValues;
-};
-
 enum class ColorBuffer { UNUSED, CUBEMAP, BUFFER_1D, BUFFER_2D, TEXTURE_2D, TEXTURE_2D_MULTISAMPLE };
 
 enum class FramebufferFormat { UNUSED, RGBA_FLOAT32, RGBA_UINT8 };
@@ -103,7 +186,10 @@ struct TextureBuffer {
   GLint location{-1};   // as obtained via glGetUniformLocation
 };
 
-struct Material {
+class Material {
+ public:
+  static inline const char* ID = "Material";
+
   // ==== PART OF MATERIAL DEFINITION ======================
   MaterialId id{-1};
   std::string name;
@@ -112,58 +198,19 @@ struct Material {
   //    return textures[name];
   //  }
 
-  void useTextures() const {
-    int tid = 0;
-    for (auto& [name, texture] : textures) {
-      //    for (int t = 0; t < textures.size(); ++t) {
-      //      const auto& [name, texture] = textures[t];
+  void addUniformBool(std::string paramName, bool value);
 
-      std::cout << "Activating texture " << name << " " << tid << std::endl;
-      auto l = glGetUniformLocation(programId, name.c_str());
-      std::cout << name << ": location " << texture.location << ", but found: " << l << std::endl;
+  void addUniformInt(std::string paramName, int value);
 
-      glActiveTexture(GL_TEXTURE0 + tid);
-      glBindTexture(GL_TEXTURE_2D, texture.textureId);
-      glUniform1i(texture.location, tid);
-      ++tid;
-    }
-  }
+  void addUniformFloat(std::string paramName, float value);
 
-  void pushUnscopedUniforms() const {
-    for (const auto& value : unscopedUniforms.booleanValues) {
-      glUniform1i(value.second->m_location, *reinterpret_cast<GLint*>(value.second->m_data));
-    }
+  void addUniformFloatArray(std::string paramName, const std::vector<float>& value);
 
-    for (const auto& value : unscopedUniforms.intValues) {
-      glUniform1i(value.second->m_location, *reinterpret_cast<int*>(value.second->m_data));
-    }
+  void useTextures() const;
 
-    for (const auto& value : unscopedUniforms.floatValues) {
-      glUniform1f(value.second->m_location, *reinterpret_cast<GLfloat*>(value.second->m_data));
-    }
+  void pushUnscopedUniforms() const;
 
-    for (const auto& value : unscopedUniforms.floatArrayValues) {
-      glUniform1fv(value.second->m_location, value.second->m_length, reinterpret_cast<GLfloat*>(value.second->m_data));
-    }
-  }
-
-  void pushUniforms() const {
-    for (const auto& uniform : uniformBuffers) {
-      const auto& mapping = uniform.second;
-      glBindBuffer(GL_UNIFORM_BUFFER, uniform.second.bufferId);
-      glBindBufferBase(GL_UNIFORM_BUFFER, mapping.blockBind, mapping.bufferId);
-
-      // is this needed?
-      glUniformBlockBinding(programId, mapping.blockIndex, mapping.blockBind);
-
-      spdlog::debug("Material {}: push uniforms", id);
-      void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
-      std::memcpy(buff_ptr, mapping.data, mapping.size);
-      glUnmapBuffer(GL_UNIFORM_BUFFER);
-    }
-
-    pushUnscopedUniforms();
-  }
+  void pushUniforms() const;
 
   void setTexture(const std::string& name, Texture* pTexture) {
     if (!textures.contains(name)) {
@@ -186,20 +233,6 @@ struct Material {
     }
   }
 
-  /// @brief Specifies input and output buffers for the shader.
-  /// Materials can be chained to create multi-pass effects.
-  FramebufferConfiguration framebufferConfiguration;
-
-  /// Framebuffer object id
-  //  unsigned int fbo {0U};
-
-  /// Indicates whether the vertex and fragment shader files are in binary format (e.g. pre-compiled SPIRV format).
-  //  bool isBinaryShader{false};
-  //
-  //  std::string vertexShader{""};
-  //  std::string geometryShader{""};
-  //  std::string fragmentShader{""};
-
   LightingInfo lighting;
 
   std::string shaderLayout{""};
@@ -211,21 +244,11 @@ struct Material {
   glm::vec3 specular;
   glm::vec3 transparent;
 
-  bool hasDiffuse{false};
-  bool hasEmissive{false};
-  bool hasSpecular{false};
-  bool hasTransparent{false};
-  bool hasAmbient{false};
+  /// @brief Globally declared uniforms. It's not adviceable to use many global uniforms. Use uniform buffers instead.
+  std::shared_ptr<UniformProperties> globalUniforms{nullptr};
+  std::shared_ptr<UniformProperties> scopedUniforms{nullptr};
 
-  /// @brief predefined textures that gets mapped to from existing scene files.
-  izz::TextureId diffuseTexture{-1};
-  izz::TextureId specularTexture{-1};
-  izz::TextureId normalTexture{-1};
-  izz::TextureId roughnessTexture{-1};
-  izz::TextureId opacityTexture{-1};
-
-  UnscopedUniforms unscopedUniformBuffer;                           /// @brief GPU representation
-  UserProperties unscopedUniforms;                                  /// @brief uniforms as part of a interface block (i.e. named uniform buffer object).
+  /// @brief collection of uniform name to uniform property. This map contains both scoped as well as unscoped uniforms.
   std::unordered_map<std::string, UniformProperty*> m_allUniforms;  // Refers to all the uniform properties (unscoped and scoped).
 
   // contains map from name to property type
@@ -236,48 +259,12 @@ struct Material {
   std::filesystem::path normalTexturePath{""};
   std::filesystem::path roughnessTexturePath{""};
 
-  // TODO: move in separate class or struct.
-  /**
-   * @brief a texture maps from a parameter name (e.g. my_diffuse_tex) to a file path.
-   * When programmatically assigned a texture to an entity, set the texturePath instead of loading the texture in textures.
-   */
-  //  std::unordered_map<std::string, std::string> texturePaths{};
-  //  std::unordered_map<std::string, std::string> defaultTexturePaths{};
-  /**
-   * @brief mapping from parameter name to the texture resource.
-   * This variable is for bookkeeping purposes only. Never set this attribute directly, your texture will not be loaded.
-   * Use @see texturePaths instead.
-   */
-
   // ==== PROPERTIES PART OF DEFINITION =======
 
   // ==== PROPERTIES BELOW ARE PART OF GPU ================================
   int programId{0};  /// @brief Program id as obtained via glCreateProgram()
   std::unordered_map<std::string, izz::gl::TextureBuffer> textures{};
   std::unordered_map<std::string, UniformBuffer> uniformBuffers{};
-  //  std::vector<UniformBufferMapping> uniformBlocks;
-
-  void setDiffuseMap(const std::string& path) {
-    diffuseTexturePath = path;
-  }
-
-  void setNormalMap(const std::string& path) {
-    normalTexturePath = path;
-  }
-
-  void setRoughnessMap(const std::string& path) {
-    roughnessTexturePath = path;
-  }
-
-  void setSpecularMap(const std::string& path) {
-    specularTexturePath = path;
-  }
-
-  // geo::ShadingMode shadingMode
-
-  using UniformBlockRegistry = std::unordered_map<std::string, UniformBlockInfo>;
-
-  //  UniformBlockRegistry uniformBlocks;
 
   template <typename T>
   void setProperty(const T& data) {
@@ -286,34 +273,45 @@ struct Material {
 
   void setUniformFloat(std::string name, float value) {
     // dangerous cast here
-    auto pValue = reinterpret_cast<GLfloat*>(m_allUniforms.at(name)->m_data);
-    *pValue = value;
+    if (m_allUniforms.count(name) > 0) {
+      auto pValue = reinterpret_cast<GLfloat*>(m_allUniforms.at(name)->m_data);
+      *pValue = value;
+    }
   }
 
   void setUniformVec4(std::string name, const glm::vec4& value) {
     // dangerous cast here
-    memcpy(m_allUniforms.at(name)->m_data, glm::value_ptr(value), sizeof(GLfloat) * 4);
+    if (m_allUniforms.count(name) > 0) {
+      memcpy(m_allUniforms.at(name)->m_data, glm::value_ptr(value), sizeof(GLfloat) * 4);
+    }
   }
 
   void setUniformInt(std::string name, int value) {
-    // dangerous cast here
-    auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
-    *pValue = value;
+    if (m_allUniforms.count(name) > 0) {
+      // dangerous cast here
+      auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
+      *pValue = value;
+    }
   }
 
   void setUniformBool(std::string name, bool value) {
-    // dangerous cast here
-    auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
-    *pValue = static_cast<GLint>(value);
+    if (m_allUniforms.count(name) > 0) {
+      // dangerous cast here
+      auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
+      *pValue = static_cast<GLint>(value);
+    }
   }
 
   void setUniformFloatArray(std::string name, const std::vector<float>& value) {
-    // dangerous cast here
-    memcpy(m_allUniforms.at(name)->m_data, value.data(), sizeof(GLfloat) * value.size());
+    if (m_allUniforms.count(name) > 0) {
+      // dangerous cast here
+      memcpy(m_allUniforms.at(name)->m_data, value.data(), sizeof(GLfloat) * value.size());
+    }
   }
 
-  glm::vec4& getUniformVec4(std::string name) const {
-    return *reinterpret_cast<glm::vec4*>(m_allUniforms.at(name)->m_data);
+  glm::vec4 getUniformVec4(std::string name) const {
+    auto pArr = reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
+    return glm::vec4(pArr[0], pArr[1], pArr[2], pArr[3]);
   }
 
   float& getUniformFloat(std::string name) const {

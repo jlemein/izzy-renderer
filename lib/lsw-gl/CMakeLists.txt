@@ -40,6 +40,7 @@ add_library(lsw-gl STATIC
         src/glrs_lightsystem.cpp
         src/glrs_shadersystem.t.cpp
         src/izzgl_exrloader.cpp
+        src/izzgl_material.cpp
         src/izzgl_materialreader.cpp
         src/izzgl_materialsystem.cpp
         src/izzgl_meshsystem.cpp
@@ -69,5 +70,7 @@ target_link_libraries(lsw-gl PUBLIC izzy workspace ecs geo EnTT::EnTT spdlog::sp
 find_package(GTest REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-add_executable(lsw-gl-test test/deferredrendersystem.t.cpp)
+add_executable(lsw-gl-test
+#        test/deferredrendersystem.t.cpp
+        test/izzgl_material.t.cpp)
 target_link_libraries(lsw-gl-test PUBLIC gtest::gtest lsw-gl geo OpenGL::GL GLEW::GLEW)

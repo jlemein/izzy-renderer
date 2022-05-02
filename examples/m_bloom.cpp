@@ -144,8 +144,8 @@ int main(int argc, char* argv[]) {
     auto gaussianBlurH = materialSystem->createMaterial("GaussianBlur");
     auto gaussianBlurV = materialSystem->createMaterial("GaussianBlur");
 
-    gaussianBlurH->unscopedUniforms.setBoolean("horizontal", true);
-    gaussianBlurV->unscopedUniforms.setBoolean("horizontal", false);
+    gaussianBlurH->globalUniforms.setBoolean("horizontal", true);
+    gaussianBlurV->globalUniforms.setBoolean("horizontal", false);
 
     auto peFilterBright = sceneGraph->makePosteffect("FilterBright", *fbright);
     auto peGaussianBlur1 = sceneGraph->makePosteffect("GuassianBlur1", *gaussianBlurH);

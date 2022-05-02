@@ -351,6 +351,8 @@ void RenderSystem::initPostprocessBuffers() {
 //}
 
 void RenderSystem::init(int width, int height) {
+
+
   glShadeModel(GL_SMOOTH);
   glEnable(GL_MULTISAMPLE);
   glEnable(GL_DEPTH_TEST);
@@ -358,6 +360,11 @@ void RenderSystem::init(int width, int height) {
   glCullFace(GL_BACK);
   glFrontFace(GL_CCW);
   glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
+
+  GLuint m_gPosition;
+  glGenTextures(1, &m_gPosition);
+  glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 
   //  m_framebuffer->initialize();
   m_lightSystem->initialize();
