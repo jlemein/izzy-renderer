@@ -19,12 +19,7 @@ using namespace izz::gl;
 void Material::useTextures() const {
   int tid = 0;
   for (auto& [name, texture] : textures) {
-    //    for (int t = 0; t < textures.size(); ++t) {
-    //      const auto& [name, texture] = textures[t];
-
-    std::cout << "Activating texture " << name << " " << tid << std::endl;
     auto l = glGetUniformLocation(programId, name.c_str());
-    std::cout << name << ": location " << texture.location << ", but found: " << l << std::endl;
 
     glActiveTexture(GL_TEXTURE0 + tid);
     glBindTexture(GL_TEXTURE_2D, texture.textureId);
@@ -42,7 +37,6 @@ void Material::pushUniforms() const {
     // is this needed?
     glUniformBlockBinding(programId, mapping.blockIndex, mapping.blockBind);
 
-    spdlog::debug("Material {}: push uniforms", id);
     void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
     std::memcpy(buff_ptr, mapping.data, mapping.size);
     glUnmapBuffer(GL_UNIFORM_BUFFER);

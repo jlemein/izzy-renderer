@@ -111,16 +111,26 @@ void setupScene() {
   }
 
   // add to scene graph
-  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
+//  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
 
-  // adding a custom primitive to the scene
-  auto plane = sceneGraphHelper->makeMoveableEntity("Plane");
-  auto& mesh = plane.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
-  auto& meshBuffer = meshSystem->createMeshBuffer(mesh);
-  lsw::ecs::TransformUtil::Translate(plane.get<lsw::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
-  auto& material = materialSystem->createMaterial("DeferredStandard");
-  mesh.materialId = material.id;
-//  auto& dr = plane.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
+  {
+    // adding a custom primitive to the scene
+    auto plane = sceneGraphHelper->makeMoveableEntity("Plane");
+    auto& mesh = plane.add<Mesh>(PrimitiveFactory::MakePlane("MyPlane", 15, 15));
+    auto& meshBuffer = meshSystem->createMeshBuffer(mesh);
+    auto& material = materialSystem->createMaterial("DeferredStandard_Color");
+    mesh.materialId = material.id;
+    auto& dr = plane.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
+  }
+  {
+    auto box = sceneGraphHelper->makeMoveableEntity("Box");
+    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
+    auto& meshBuffer = meshSystem->createMeshBuffer(mesh);
+    lsw::ecs::TransformUtil::Translate(box.get<lsw::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
+    auto& material = materialSystem->createMaterial("DeferredStandard_Color");
+    mesh.materialId = material.id;
+    auto& dr = box.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
+  }
 
   //  MeshUtil::ScaleUvCoords(plane, 3, 3);
   //  auto effect = effectSystem->createEffect("table_cloth");

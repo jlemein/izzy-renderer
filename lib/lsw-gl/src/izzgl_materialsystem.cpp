@@ -21,6 +21,7 @@
 
 #include <fstream>
 #include <memory>
+#include "uniform_albedospecularity.h"
 #include "uniform_blinnphong.h"
 #include "uniform_blinnphongsimple.h"
 #include "uniform_mvp.h"
@@ -58,6 +59,7 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::Re
   m_uniformBlockManagers[izz::ufm::Parallax::PARAM_NAME] = std::make_unique<izz::ufm::ParallaxManager>();
   m_uniformBlockManagers[izz::ufm::Uber::PARAM_NAME] = std::make_unique<izz::ufm::UberUniformManager>();
   m_uniformBlockManagers[izz::ufm::ConstantLight::PARAM_NAME] = std::make_unique<izz::ufm::ConstantManager>();
+  m_uniformBlockManagers[izz::ufm::AlbedoSpecularity::PARAM_NAME] = std::make_unique<izz::ufm::AlbedoSpecularityManager>();
   m_uniformBlockManagers[izz::ufm::BlinnPhong::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongManager>();
   m_uniformBlockManagers[izz::ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongSimpleManager>();
   m_uniformBlockManagers[izz::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<izz::ufm::MvpManager>();
@@ -68,7 +70,11 @@ void MaterialSystem::addMaterialDescription(std::string name, izz::geo::Material
 }
 
 UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& m) {
-  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, m.name);
+  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, m.getName());
+
+  if (m_uniformBlockManagers.count(bufferDescription.name) == 0) {
+    throw std::runtime_error(fmt::format("No uniform buffer manager defined for uniform buffer '{}'", bufferDescription.name));
+  }
 
   UniformBuffer ub{};
   ub.data = m_uniformBlockManagers.at(bufferDescription.name)->CreateUniformBlock(ub.size);
@@ -131,15 +137,24 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
     tb.location = glGetUniformLocation(material.programId, textureName.c_str());
 
     if (tb.location != GL_INVALID_INDEX) {
-      spdlog::debug("Material {}: added texture {}: '{}'", material.name, textureName, texture.path);
+      spdlog::debug("Material {}: added texture {}: '{}'", material.getName(), textureName, texture.path);
       material.textures[textureName] = tb;
     } else {
-      spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.name, textureName);
+      spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.getName(), textureName);
     }
   }
 }
 
 void MaterialSystem::allocateBuffers(Material& material, const izz::geo::MaterialDescription& materialDescription) {
+  static std::unordered_map<izz::geo::PropertyType, uint64_t> PropertyTypeSize = {
+      {izz::geo::PropertyType::BOOL, sizeof(GLint)},
+      {izz::geo::PropertyType::INT, sizeof(GLint)},
+      {izz::geo::PropertyType::FLOAT, sizeof(GLfloat)},
+      {izz::geo::PropertyType::FLOAT4, 4*sizeof(GLfloat)},
+      {izz::geo::PropertyType::FLOAT3, 3*sizeof(GLfloat)},
+      {izz::geo::PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
+  };
+
   // allocate texture buffers based on texture descriptions.
   allocateTextureBuffers(material, materialDescription.textures);
 
@@ -150,40 +165,27 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
 
   // INIT UNSCOPED UNIFORMS
   //  first memory allocation. For this we need to know the number of properties and length of data properties.
-  uint64_t sizeBytes = 0U;
-  int numProperties = 0;
+  uint64_t globalUniformSize = 0U;
+  uint64_t scopedUniformSize = 0U;
+  int globalUniformCount = 0;
+  int scopedUniformCount = 0;
+
   for (const auto& [name, uniform] : materialDescription.uniforms) {
-    switch (uniform.type) {
-      case izz::geo::PropertyType::FLOAT:
-      case izz::geo::PropertyType::INT:
-      case izz::geo::PropertyType::BOOL:
-        ++numProperties;
-        sizeBytes += sizeof(GLint);
-        break;
+    if (PropertyTypeSize.count(uniform.type) == 0) {
+      spdlog::warn("Property {} ignored", uniform.name);
+      continue;
+    }
 
-      case izz::geo::PropertyType::FLOAT3:
-        ++numProperties;
-        sizeBytes += 3 * sizeof(GLfloat);
-        break;
-
-      case izz::geo::PropertyType::FLOAT4:
-        ++numProperties;
-        sizeBytes += 4 * sizeof(GLfloat);
-        break;
-
-      case izz::geo::PropertyType::FLOAT_ARRAY:
-        ++numProperties;
-        sizeBytes += uniform.length * sizeof(GLfloat);
-        break;
-
-      case izz::geo::PropertyType::UNIFORM_BUFFER_OBJECT:
-      case izz::geo::PropertyType::TEXTURE2D:
-        break;
-
-      default:
-        spdlog::warn("Uniform property {} is ignored", name);
+    bool isGlobalUniform = (name.find(".") == std::string::npos);
+    if (isGlobalUniform) {
+      globalUniformCount++;
+      globalUniformSize += PropertyTypeSize.at(uniform.type) * uniform.length;
+    } else {
+      scopedUniformCount++;
+      scopedUniformSize += PropertyTypeSize.at(uniform.type) * uniform.length;
     }
   }
+
   //  int numProperties = material.unscopedUniforms.booleanValues.size() + material.unscopedUniforms.intValues.size() +
   //                      material.unscopedUniforms.floatValues.size() + material.unscopedUniforms.floatArrayValues.size();
   //  uint64_t sizeBytes = 0U;
@@ -195,46 +197,53 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
   //  }
 
   // allocate enough storage room to store uniform properties.
-  material.globalUniforms = std::make_shared<UniformProperties>(sizeBytes, numProperties);
+  material.globalUniforms = std::make_shared<UniformProperties>(globalUniformSize, globalUniformCount);
+  material.scopedUniforms = std::make_shared<UniformProperties>(scopedUniformSize, scopedUniformCount);
 
   // TODO: useProgram
 
   for (const auto& [name, p] : materialDescription.uniforms) {
-    bool isGlobalUniform = (name.find(".") == std::string::npos);
+    // global uniforms should not contain a "."
+    int dotPosition = name.find(".");
+    bool isGlobalUniform = (dotPosition == std::string::npos);
     auto& uniforms = isGlobalUniform ? material.globalUniforms : material.scopedUniforms;
-    auto location = getUniformLocation(material.programId, name.c_str(), material.name);
+    auto location = getUniformLocation(material.programId, name.c_str(), material.getName());
     UniformProperty* prop;
 
     switch (p.type) {
       case geo::PropertyType::BOOL:
         prop = uniforms->addBoolean(name, std::get<bool>(p.value), location);
         material.m_allUniforms[name] = prop;
-
-//        material.addUniformBool(name, std::get<bool>(p.value));
-        spdlog::info("Initialized: {}.{} = {}", material.name, name, std::get<int>(p.value));
+        if (!isGlobalUniform) {
+          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+        }
+        spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<int>(p.value));
         break;
 
       case geo::PropertyType::INT:
         prop = uniforms->addInt(name, std::get<int>(p.value), location);
         material.m_allUniforms[name] = prop;
-
-//        material.addUniformInt(name, std::get<int>(p.value));
-        spdlog::info("Initialized: {}.{} = {}", material.name, name, std::get<int>(p.value));
+        if (!isGlobalUniform) {
+          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+        }
+        spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<int>(p.value));
         break;
 
       case geo::PropertyType::FLOAT:
         prop = uniforms->addFloat(name, std::get<float>(p.value), location);
         material.m_allUniforms[name] = prop;
-
-//        material.addUniformFloat(name, std::get<float>(p.value));
-        spdlog::info("Initialized: {}.{} = {}", material.name, name, std::get<float>(p.value));
+        if (!isGlobalUniform) {
+          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+        }
+        spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<float>(p.value));
         break;
 
       case geo::PropertyType::FLOAT_ARRAY: {
         prop = uniforms->addFloatArray(name, std::get<std::vector<float>>(p.value), location);
         material.m_allUniforms[name] = prop;
-
-//        material.addUniformFloatArray(name, std::get<std::vector<float>>(p.value));
+        if (!isGlobalUniform) {
+          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+        }
         break;
       }
 
@@ -280,8 +289,8 @@ Material& MaterialSystem::createMaterial(const izz::geo::MaterialDescription& ma
   allocateBuffers(material, materialDescription);
 
   material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
-  m_createdMaterials[material.id] = material;
-  return m_createdMaterials.at(material.id);
+  m_createdMaterials[material.getId()] = material;
+  return m_createdMaterials.at(material.getId());
 }
 
 izz::gl::Material& MaterialSystem::makeDefaultMaterial() {

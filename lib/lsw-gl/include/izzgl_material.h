@@ -38,7 +38,7 @@ class UniformProperty {
 class UniformProperties {
  private:
   UniformProperty* m_properties;
-  std::vector<uint8_t> m_data {};
+  std::vector<uint8_t> m_data{};
   uint32_t m_usedBytes = 0U;
   uint32_t m_numProperties = 0;
 
@@ -190,10 +190,6 @@ class Material {
  public:
   static inline const char* ID = "Material";
 
-  // ==== PART OF MATERIAL DEFINITION ======================
-  MaterialId id{-1};
-  std::string name;
-
   //  MaterialProperty& operator[](const std::string& name) {
   //    return textures[name];
   //  }
@@ -233,6 +229,14 @@ class Material {
     }
   }
 
+  inline MaterialId getId() const {
+    return id;
+  }
+
+  inline const std::string& getName() const {
+    return name;
+  }
+
   LightingInfo lighting;
 
   std::string shaderLayout{""};
@@ -243,6 +247,10 @@ class Material {
   glm::vec3 ambient;
   glm::vec3 specular;
   glm::vec3 transparent;
+
+  // ==== PART OF MATERIAL DEFINITION ======================
+  MaterialId id{-1};
+  std::string name;
 
   /// @brief Globally declared uniforms. It's not adviceable to use many global uniforms. Use uniform buffers instead.
   std::shared_ptr<UniformProperties> globalUniforms{nullptr};
@@ -299,6 +307,8 @@ class Material {
       // dangerous cast here
       auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
       *pValue = static_cast<GLint>(value);
+    } else {
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
 
@@ -306,22 +316,36 @@ class Material {
     if (m_allUniforms.count(name) > 0) {
       // dangerous cast here
       memcpy(m_allUniforms.at(name)->m_data, value.data(), sizeof(GLfloat) * value.size());
+    } else {
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
 
   glm::vec4 getUniformVec4(std::string name) const {
-    auto pArr = reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
-    return glm::vec4(pArr[0], pArr[1], pArr[2], pArr[3]);
+    if (m_allUniforms.count(name) > 0) {
+      auto pArr = reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
+      return glm::vec4(pArr[0], pArr[1], pArr[2], pArr[3]);
+    } else {
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
+    }
   }
 
   float& getUniformFloat(std::string name) const {
-    return *reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
+    if (m_allUniforms.count(name) > 0) {
+      return *reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
+    } else {
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
+    }
   }
 
   std::vector<float> getUniformFloatArray(std::string name) const {
-    auto prop = m_allUniforms.at(name);
-    float* pStart = reinterpret_cast<float*>(prop->m_data);
-    return std::vector<float>{pStart, pStart + prop->m_length};
+    if (m_allUniforms.count(name) > 0) {
+      auto prop = m_allUniforms.at(name);
+      float* pStart = reinterpret_cast<float*>(prop->m_data);
+      return std::vector<float>{pStart, pStart + prop->m_length};
+    } else {
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
+    }
   }
 
   // TODO: deprecated, remove it in favor of the register call below.
@@ -348,18 +372,10 @@ class Material {
     if (uniformBuffers.count(name) > 0) {
       throw std::runtime_error("Cannot add a uniform block {} to material {} that already exists.");
     } else {
-      spdlog::info("Material {}: registered UBO {}", id, name);
+      spdlog::info("Material {}: registered UBO {}", getId(), name);
       uniformBuffers[name] = buffer;
     }
   }
-  //
-  //  void* getProperty(const char* name) {
-  //    try {
-  //      return uniformBlocks.at(name).data;
-  //    } catch (std::out_of_range&) {
-  //      throw std::runtime_error(fmt::format("Cannot find shader property {} in shader.", name));
-  //    }
-  //  }
 
   template <typename T>
   T* getProperty() {

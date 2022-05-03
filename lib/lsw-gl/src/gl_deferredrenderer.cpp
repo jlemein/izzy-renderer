@@ -153,8 +153,9 @@ void DeferredRenderer::createGBuffer(int width, int height) {
 void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = lsw::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
   const auto& meshBuffer = m_renderSystem.getMeshSystem().createMeshBuffer(rectangle);
-  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("DeferredLightingPass");
-  m_screenSpaceMaterial = material.id;
+//  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("DeferredLightingPass");
+  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("VisualizeGBuffer");
+  m_screenSpaceMaterial = material.getId();
   m_screenSpaceMeshBufferId = meshBuffer.id;
 
 //  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("Deferred_VisualizeGBuffer");
@@ -225,7 +226,7 @@ void DeferredRenderer::update() {
       mvp->proj = proj;
       mvp->viewPos = glm::vec3(model[3]);
     } catch(std::out_of_range&) {
-      auto materialName = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId).name;
+      auto materialName = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId).getName();
       auto nameComponent = m_registry.try_get<lsw::ecs::Name>(e);
       auto name = (nameComponent != nullptr) ? nameComponent->name : "<unnamed>";
       throw std::runtime_error(fmt::format("{}: e:{} ({}): cannot access ModelViewProjection matrix for material '{}'. Does shader have 'ModelViewProjection' uniform buffer?", ID, e, name, materialName));
@@ -253,7 +254,6 @@ void DeferredRenderer::render(const entt::registry& registry) {
   for (entt::entity e : view) {
     try {
       auto name = registry.get<lsw::ecs::Name>(e);
-      std::cout << name.name << std::endl;
 
       auto deferred = view.get<const DeferredRenderable>(e);
       auto materialId = deferred.materialId;
@@ -266,7 +266,6 @@ void DeferredRenderer::render(const entt::registry& registry) {
       glUseProgram(mat.programId);
 
       mat.useTextures();
-      spdlog::debug("Push uniforms for: {}: {}", mat.programId, mat.name);
       mat.pushUniforms();
 //      RenderUtils::ActivateTextures(rs);
       m_renderSystem.getMeshSystem().bindBuffer(mesh);

@@ -22,6 +22,7 @@ add_library(lsw-gl STATIC
         include/izzgl_texture.h
         include/izzgl_textureloader.h
         include/izzgl_texturesystem.h
+        include/uniform_albedospecularity.h
         include/uniform_blinnphong.h
         include/uniform_blinnphongsimple.h
         include/uniform_constant.h

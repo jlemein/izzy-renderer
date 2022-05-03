@@ -82,17 +82,6 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
     auto materialDescriptionName = material["name"].get<std::string>();
     spdlog::debug("MaterialReader: reading material description \"{}\"...", materialDescriptionName);
 
-    //    try {
-    //      if (material.count("lighting") > 0) {
-    //        const auto& lighting = material["lighting"];
-    //        materialDescription.lighting.ubo_struct_name = lighting["ubo_struct"].get<std::string>();
-    //      } else {
-    //        materialDescription.lighting.ubo_struct_name = "";
-    //      }
-    //    } catch (nlohmann::detail::exception e) {
-    //      throw std::runtime_error(fmt::format("Failed parsing lighting metadata: {}", e.what()));
-    //    }
-
     // pass shader info
     try {
       materialDescription.isBinaryShader = material.contains("is_binary_shader") ? material["is_binary_shader"].get<bool>() : false;
@@ -122,13 +111,12 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
         if (value.contains("type")) {
           if (value["type"] == "texture") {
             textureDescription.type = izz::geo::PropertyType::TEXTURE2D;
-            spdlog::debug("MaterialReader: add texture description {}: {}", name, textureDescription.path.c_str());
+            spdlog::debug("\t{} = {}", name, textureDescription.path.c_str());
           } else {
-            spdlog::warn("MaterialReader: Material '{}' defines property {} of type {} that is not supported. Property will be ignored.",
-                         materialDescriptionName, name, value["type"]);
+            spdlog::warn("\tUnsupported property {} of type {}. Property will be ignored.", name, value["type"]);
           }
         } else {
-          spdlog::warn("MaterialReader: no texture type specified for material {}:{}. Assuming texture is a TEXTURE2D", materialDescriptionName, name);
+          spdlog::warn("\tno texture type specified for material {}. Assuming texture is a TEXTURE2D", name);
         }
         materialDescription.textures[name] = textureDescription;
       }

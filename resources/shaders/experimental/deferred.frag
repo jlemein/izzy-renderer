@@ -15,11 +15,13 @@ layout(binding = 3) uniform sampler2D albedoMap;
 
 void main()
 {
-    vec3 surf_normal = normalize(texture(normalMap, in_uv).rgb*2.0-1.0);
+    vec4 normal = texture(normalMap, in_uv);
+    vec3 surf_normal = normalize(normal.rgb*2.0-1.0);
     vec4 material_color = texture(albedoMap, in_uv);
+    float specularity = normal.w;
 
     // store the fragment position vector in the first gbuffer texture
-    gPosition = vec4(in_position, 1);//vec4(1, 0, 0, 1);//in_position;
+    gPosition = vec4(in_position, 0);//vec4(1, 0, 0, 1);//in_position;
     gNormal = vec4(surf_normal, 1);
     gAlbedoSpec = material_color;
 
