@@ -106,7 +106,7 @@
       "properties":{
         "ModelViewProjection": {},
         "AlbedoSpecularity": {
-          "albedo": [1.0, 0.0, 0.0, 0.0],
+          "albedo": [1.0, 1.0, 1.0, 0.0],
           "specularity": 0.5
         }
       }
@@ -153,6 +153,9 @@
       "vertex_shader": "shaders/experimental/deferred_lighting.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/experimental/deferred_lighting.frag",
+      "properties": {
+        "DeferredLighting": {}
+      },
       "textures": {
         "gbuffer_position": {
           "type": "texture"

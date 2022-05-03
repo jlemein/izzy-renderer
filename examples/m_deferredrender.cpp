@@ -111,7 +111,7 @@ void setupScene() {
   }
 
   // add to scene graph
-//  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
+  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   {
     // adding a custom primitive to the scene

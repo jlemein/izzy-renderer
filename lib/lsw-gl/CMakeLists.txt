@@ -26,6 +26,7 @@ add_library(lsw-gl STATIC
         include/uniform_blinnphong.h
         include/uniform_blinnphongsimple.h
         include/uniform_constant.h
+        include/uniform_deferredlighting.h
         include/uniform_lambert.h
         include/uniform_mvp.h
         include/uniform_parallax.h

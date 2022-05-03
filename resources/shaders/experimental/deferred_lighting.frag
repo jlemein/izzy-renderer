@@ -10,24 +10,39 @@ layout(binding = 0) uniform sampler2D gbuffer_position;
 layout(binding = 1) uniform sampler2D gbuffer_normal;
 layout(binding = 2) uniform sampler2D gbuffer_albedospec;
 
+struct PointLight {
+    vec4 position;
+    vec4 color;
+    float intensity;
+    float radius;
+};
+
+#define MAX_POINT_LIGHTS 32
+
+layout(std140, binding=2)
+uniform DeferredLighting {
+    vec3 viewPos;
+    int numberOfLights;
+    PointLight pointLights[MAX_POINT_LIGHTS];
+};
+
+
 void main()
 {
-//    out_color = texture(gbuffer_position, 2*in_uv); //vec4(1, 0, 0, 0);
-    // store the fragment position vector in the first gbuffer texture
-    if ((in_uv.x > 0.4995 && in_uv.x < 0.5005) || (in_uv.y >0.4995 && in_uv.y <= 0.5005)) {
-        out_color = vec4(0.125);
-        return;
+    vec3 fragPos = texture(gbuffer_position, in_uv).rgb;
+    vec3 normal = texture(gbuffer_normal, in_uv).rgb;
+    vec3 albedo = texture(gbuffer_albedospec, in_uv).rgb;
+    float specular = texture(gbuffer_albedospec, in_uv).a;
+
+    vec3 lighting = albedo * 0.1;
+
+    for (int i=0; i<numberOfLights; ++i) {
+        PointLight pt = pointLights[i];
+        vec3 lightdir = normalize(pt.position.xyz - fragPos);
+        vec3 diffuse = max(0.0, dot(normal, lightdir)) * albedo * pt.color.rgb * pt.intensity;
+
+        lighting += diffuse;
     }
-    if (in_uv.x < 0.5 && in_uv.y >= 0.5) {
-        out_color = texture(gbuffer_position, in_uv*2.0);
-    } else if (in_uv.x >= 0.5 && in_uv.y >= 0.5) {
-        out_color = texture(gbuffer_normal, (in_uv-0.5)*2.0);
-    } else if (in_uv.x < 0.5 && in_uv.y < 0.5) {
-        vec2 uv = vec2(in_uv.x*2.0, in_uv.y*2.0);
-        out_color = vec4(texture(gbuffer_albedospec, uv).rgb, 1);
-    } else {
-        // specular color
-        vec2 uv = vec2((in_uv.x-0.5)*2.0, in_uv.y*2.0);
-        out_color = vec4(texture(gbuffer_albedospec, uv).w);
-    }
+
+    out_color = vec4(lighting, 0.0);
 }

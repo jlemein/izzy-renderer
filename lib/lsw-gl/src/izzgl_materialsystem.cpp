@@ -24,6 +24,7 @@
 #include "uniform_albedospecularity.h"
 #include "uniform_blinnphong.h"
 #include "uniform_blinnphongsimple.h"
+#include "uniform_deferredlighting.h"
 #include "uniform_mvp.h"
 
 using json = nlohmann::json;
@@ -63,6 +64,7 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::Re
   m_uniformBlockManagers[izz::ufm::BlinnPhong::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongManager>();
   m_uniformBlockManagers[izz::ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongSimpleManager>();
   m_uniformBlockManagers[izz::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<izz::ufm::MvpManager>();
+  m_uniformBlockManagers[izz::ufm::DeferredLighting::PARAM_NAME] = std::make_unique<izz::ufm::DeferredLightingManager>();
 }
 
 void MaterialSystem::addMaterialDescription(std::string name, izz::geo::MaterialDescription materialDescription) {
