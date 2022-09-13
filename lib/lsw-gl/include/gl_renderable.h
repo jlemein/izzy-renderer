@@ -82,7 +82,7 @@ struct Renderable {
 
 //  UnscopedUniforms unscopedUniforms;
 
-  ModelViewProjection uniformBlock{glm::mat4(1.0F), glm::mat4(1.0F), glm::mat4(1.0F)};
+  ModelViewProjection uniformBlock{glm::mat4(1.0F), glm::mat4(1.0F), glm::mat4(1.0F), glm::vec4(0.0)};
 };
 
 }  // namespace glrs

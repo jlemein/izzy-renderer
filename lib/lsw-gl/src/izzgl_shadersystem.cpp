@@ -2,6 +2,7 @@
 #include <izzgl_shadersystem.h>
 #include <fstream>
 #include "izzgl_material.h"
+#include <izzgl_shaderlogprettifier.h>
 using namespace izz::gl;
 
 namespace {
@@ -52,7 +53,8 @@ std::string getShaderLog(GLint shader) {
   glGetShaderInfoLog(shader, reqBufferSize, nullptr, buffer.data());
 
   std::string log(buffer.begin(), buffer.end());
-  return log;
+
+  return ShaderLogPrettifier().MakePretty(log);
 }
 
 void printLinkingLog(GLint program) {

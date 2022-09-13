@@ -129,13 +129,21 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, m_gNormal, 0);
 
+  // GBuffer: tangent texture
+  glGenTextures(1, &m_gTangent);
+  glBindTexture(GL_TEXTURE_2D, m_gTangent);  // so that all subsequent calls will affect normal texture.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, m_gTangent, 0);
+
   // GBuffer: albedoTexture
   glGenTextures(1, &m_gAlbedoSpec);
   glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);  // so that all subsequent calls will affect albedoSpec texture.
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, m_gAlbedoSpec, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 3, GL_TEXTURE_2D, m_gAlbedoSpec, 0);
 
   glGenRenderbuffers(1, &m_depthBuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
@@ -165,6 +173,7 @@ void DeferredRenderer::createScreenSpaceRect() {
 
   m_gPositionLoc = glGetUniformLocation(material.programId, "gbuffer_position");
   m_gNormalLoc = glGetUniformLocation(material.programId, "gbuffer_normal");
+  m_gTangentLoc = glGetUniformLocation(material.programId, "gbuffer_tangent");
   m_gAlbedoSpecLoc = glGetUniformLocation(material.programId, "gbuffer_albedospec");
 }
 
@@ -223,7 +232,10 @@ void DeferredRenderer::update() {
       mvp->model = model;
       mvp->view = view;
       mvp->proj = proj;
-      mvp->viewPos = glm::vec3(model[3]);
+
+      // camera position is stored in 4-th column of inverse view matrix.
+      mvp->viewPos = glm::inverse(view)[3];
+
     } catch (std::out_of_range&) {
       auto materialName = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId).getName();
       auto nameComponent = m_registry.try_get<lsw::ecs::Name>(e);
@@ -241,11 +253,11 @@ void DeferredRenderer::update() {
   auto& lightingMaterial = m_renderSystem.getMaterialSystem().getMaterialById(m_screenSpaceMaterial);
   izz::ufm::DeferredLighting* deferred = reinterpret_cast<izz::ufm::DeferredLighting*>(lightingMaterial.uniformBuffers.at("DeferredLighting").data);
 
-  deferred->numberOfLights = 5;
+  deferred->numberOfLights = 1;
   deferred->viewPos = view[3];
   for (int i=0; i<25; i++) {
     deferred->pointLights[i].color = glm::vec4(1, 1, 1, 0);
-    deferred->pointLights[i].position = glm::vec4(2*(i%5 - 2.5), .4, 2*(-2.5 + i/5), 0);
+    deferred->pointLights[i].position = glm::vec4(0.5f,2.f,0.f, 0.f); // glm::vec4(2*(i%5 - 2.5), .4, 2*(-2.5 + i/5), 0);
     deferred->pointLights[i].radius = 1.0;
     deferred->pointLights[i].intensity = 1.0;
   }
@@ -253,8 +265,11 @@ void DeferredRenderer::update() {
 
 void DeferredRenderer::render(const entt::registry& registry) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
-  static unsigned int colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
-  glDrawBuffers(3, colorAttachments);
+  static unsigned int colorAttachments[] = {
+      GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
+  };
+  int attachmentCount = sizeof(colorAttachments) / sizeof(unsigned int);
+  glDrawBuffers(attachmentCount, colorAttachments);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   auto view = registry.view<const DeferredRenderable, const lsw::ecs::Transform>();
@@ -269,8 +284,7 @@ void DeferredRenderer::render(const entt::registry& registry) {
 
       auto meshBufferId = deferred.meshBufferId;
       const auto& mesh = m_renderSystem.getMeshSystem().getMeshBuffer(meshBufferId);
-
-      //    RenderUtils::ActivateProgram();
+      
       glUseProgram(mat.programId);
 
       mat.useTextures();
@@ -327,8 +341,12 @@ void DeferredRenderer::render(const entt::registry& registry) {
   glUniform1i(m_gNormalLoc, 1);
 
   glActiveTexture(GL_TEXTURE0 + 2);
+  glBindTexture(GL_TEXTURE_2D, m_gTangent);
+  glUniform1i(m_gTangentLoc, 2);
+
+  glActiveTexture(GL_TEXTURE0 + 3);
   glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
-  glUniform1i(m_gAlbedoSpecLoc, 2);
+  glUniform1i(m_gAlbedoSpecLoc, 3);
 
   auto& meshBuffer = m_renderSystem.getMeshSystem().getMeshBuffer(m_screenSpaceMeshBufferId);
   m_renderSystem.getMeshSystem().bindBuffer(meshBuffer);

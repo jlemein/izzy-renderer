@@ -1,12 +1,14 @@
 #version 460
 
-layout (location = 0) out vec4 gPosition;
-layout (location = 1) out vec4 gNormal;
-layout (location = 2) out vec4 gAlbedoSpec;
+layout (location = 0) out vec4 gbuffer_position;
+layout (location = 1) out vec4 gbuffer_normal;
+layout (location = 2) out vec4 gbuffer_tangent;
+layout (location = 3) out vec4 gbuffer_albedospec;
 
 layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec4 in_normal;
+layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
+layout(location = 3) in vec3 in_tangent;
 
 layout(binding = 0) uniform sampler2D texture_diffuse1;
 layout(binding = 1) uniform sampler2D texture_specular1;
@@ -15,15 +17,19 @@ layout(binding = 3) uniform sampler2D albedoMap;
 
 void main()
 {
-    vec4 normal = texture(normalMap, in_uv);
-    vec3 surf_normal = normalize(normal.rgb*2.0-1.0);
-    vec4 material_color = texture(albedoMap, in_uv);
-    float specularity = normal.w;
+    // create TBN matrix (tangent to world space)
+    // needed to map the normal map data (in tangent space) to world space.
+    vec3 T = normalize(in_tangent);
+    vec3 N = normalize(in_normal);
+    vec3 B = cross(T, N);
+    mat3 TBN = transpose(mat3(T, B, N));
 
-    // store the fragment position vector in the first gbuffer texture
-    gPosition = vec4(in_position, 0);//vec4(1, 0, 0, 1);//in_position;
-    gNormal = vec4(surf_normal, 1);
-    gAlbedoSpec = material_color;
+    gbuffer_position = vec4(in_position, 1);
+    gbuffer_normal = vec4(TBN * in_normal, 0);
+
+    vec4 material_color = texture(albedoMap, in_uv);
+    //    materialcolor.w = albedo_specularity;
+    gbuffer_albedospec = material_color;
 
     // also store the per-fragment normals into the gbuffer
 //    gNormal = normalize(in_normal);

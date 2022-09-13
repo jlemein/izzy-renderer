@@ -5,17 +5,36 @@ uniform AlbedoSpecularity {
     vec4 albedo_specularity;
 };
 
-layout (location = 0) out vec4 gPosition;
-layout (location = 1) out vec4 gNormal;
-layout (location = 2) out vec4 gAlbedoSpec;
+layout(std140, binding = 1)
+uniform ModelViewProjection {
+    mat4 model;
+    mat4 view;
+    mat4 proj;
+    vec3 viewPosition;// position of camera in world coordinates
+};
+
+// hardcoded. Cannot add or change order, or change names
+layout (location = 0) out vec4 gbuffer_position;
+layout (location = 1) out vec4 gbuffer_normal;
+layout (location = 2) out vec4 gbuffer_tangent;
+layout (location = 3) out vec4 gbuffer_albedospec;
 
 layout(location = 0) in vec3 in_position;
-layout(location = 1) in vec4 in_normal;
+layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
+layout(location = 3) in vec3 in_tangent;
+//layout(location = 4) in mat3 in_TBN;
 
 void main()
 {
-    gPosition = vec4(in_position, 0);
-    gNormal = vec4(in_normal.xyz, 1);
-    gAlbedoSpec = albedo_specularity;
+    // create TBN matrix (tangent to world space)
+    // needed to map the normal map data (in tangent space) to world space.
+    vec3 T = normalize(in_tangent);
+    vec3 N = normalize(in_normal);
+    vec3 B = cross(T, N);
+    mat3 TBN = transpose(mat3(T, B, N));
+
+    gbuffer_position = vec4(in_position, 1);
+    gbuffer_normal = vec4(N, 0);
+    gbuffer_albedospec = albedo_specularity;
 }
