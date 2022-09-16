@@ -51,7 +51,7 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
 }
 }  // namespace
 
-MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager)
+MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager)
   : m_registry{registry}
   , m_resourceManager{resourceManager} {
   // for now register the uniform blocks

@@ -29,6 +29,8 @@ class FirstPersonMovementSystem {
   entt::registry& m_registry;
   io::InputSystem* m_inputSystem;
 
+  const float SPEED_FACTOR = 1.6F;
+
   void getRelativeMovement(float& forward, float& right);
 };
 

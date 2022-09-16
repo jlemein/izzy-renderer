@@ -47,7 +47,7 @@ struct SceneLoaderFlags {
 
 /**!
  * SceneGraph is the central authority to deal with the scene hierarchy.
- * The scene grap deals with storing entities and their relationship.
+ * The scene graph deals with storing entities and their relationship.
  *
  */
 class SceneGraphHelper {

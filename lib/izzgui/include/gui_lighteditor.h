@@ -7,30 +7,27 @@
 #include <memory>
 #include "gui_iguiwindow.h"
 
-namespace lsw {
-class ResourceManager;
-}  // namespace lsw
-
 namespace izz {
+class ResourceManager;
 namespace gui {
 
 class ResourceInspector : public IGuiWindow {
  public:
-  ResourceInspector(std::shared_ptr<lsw::ResourceManager> manager);
+  ResourceInspector(std::shared_ptr<izz::ResourceManager> manager);
 
   void init() override;
 
   void render(float time, float dt) override;
 
  private:
-  std::shared_ptr<lsw::ResourceManager> m_resourceManager{nullptr};
+  std::shared_ptr<izz::ResourceManager> m_resourceManager{nullptr};
 };
 // Multiple GUI windows are needed
 // * Scene hierarchy view
 // * Resource inspector (i.e. textures, videos, sounds, images)
 class LightEditor : public IGuiWindow {
  public:
-  LightEditor(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<lsw::FontSystem> fontSystem);
+  LightEditor(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<izz::FontSystem> fontSystem);
 
   void init() override;
   void render(float dt, float totalTime) override;
@@ -39,7 +36,7 @@ class LightEditor : public IGuiWindow {
 
  private:
   std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
-  std::shared_ptr<lsw::FontSystem> m_fontSystem;
+  std::shared_ptr<izz::FontSystem> m_fontSystem;
 
   std::vector<ImFont*> m_fonts;
 

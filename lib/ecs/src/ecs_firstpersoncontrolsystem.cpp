@@ -70,6 +70,11 @@ void ecs::FirstPersonMovementSystem::getRelativeMovement(float& forward, float& 
   if (m_inputSystem->isKeyPressed('D')) {  // move right (z axis)
     right += 1.0F;
   }
+
+  if (m_inputSystem->isKeyPressed(io::Key::kLEFT_SHIFT)) {
+    forward *= SPEED_FACTOR;
+    right *= SPEED_FACTOR;
+  }
 }
 
 void ecs::FirstPersonMovementSystem::update(float dt) {

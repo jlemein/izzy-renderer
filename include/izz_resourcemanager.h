@@ -15,7 +15,7 @@ class TextureSystem;
 class SceneLoader;
 }  // namespace gl
 }  // namespace izz
-namespace lsw {
+namespace izz {
 namespace geo {
 class Texture;
 class Scene;
@@ -48,4 +48,4 @@ class ResourceManager : public std::enable_shared_from_this<ResourceManager> {
   std::shared_ptr<izz::gl::TextureSystem> m_textureSystem;
 };
 
-}  // namespace lsw
+}  // namespace izz

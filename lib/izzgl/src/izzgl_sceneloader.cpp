@@ -312,7 +312,7 @@ void readTextures(const aiScene* scene_p, lsw::geo::Scene& scene) {
   }
 }
 
-std::shared_ptr<lsw::geo::Scene> SceneLoader::loadScene(const std::string& path) {
+std::unique_ptr<lsw::geo::Scene> SceneLoader::loadScene(std::filesystem::path path) {
   lsw::geo::Scene scene;
   scene.m_path = path;
   scene.m_dir = scene.m_path.parent_path();
@@ -322,7 +322,7 @@ std::shared_ptr<lsw::geo::Scene> SceneLoader::loadScene(const std::string& path)
 
   aiScene_p = m_importer.ReadFile(path, aiProcess_Triangulate);
   if (!aiScene_p) {
-    throw std::runtime_error(fmt::format("Failed to load scene file: {}", path));
+    throw std::runtime_error(fmt::format("Failed to load scene file: {}", path.string()));
   }
 
   readMaterials(aiScene_p, scene);
@@ -335,5 +335,5 @@ std::shared_ptr<lsw::geo::Scene> SceneLoader::loadScene(const std::string& path)
   readLights(aiScene_p, scene);
   readCameras(aiScene_p, scene);
 
-  return std::make_shared<lsw::geo::Scene>(std::move(scene));
+  return std::make_unique<lsw::geo::Scene>(std::move(scene));
 }

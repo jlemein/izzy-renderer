@@ -4,7 +4,7 @@
 
 #include <ecs_transform.h>
 #include <geo_mesh.h>
-#include <gl_deferredrenderablefactory.h>
+#include <izzgl_deferredrenderablefactory.h>
 #include <izzgl_materialreader.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_rendersystem.h>
@@ -35,6 +35,7 @@
 #include "ecs_camera.h"
 #include "geo_primitivefactory.h"
 #include "gui_mainmenu.h"
+#include <izz_izzy.h>
 using namespace std;
 using namespace lsw;
 using namespace izz;
@@ -46,63 +47,56 @@ using lsw::wsp::Workspace;
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
 namespace {
+std::shared_ptr<izz::Izzy> izzy {nullptr};
 std::shared_ptr<Workspace> programArguments{nullptr};
-std::shared_ptr<ResourceManager> resourceManager{nullptr};
-std::shared_ptr<izz::gl::MaterialSystem> materialSystem{nullptr};
-std::shared_ptr<izz::gl::MeshSystem> meshSystem{nullptr};
-// std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
-std::shared_ptr<izz::SceneGraphHelper> sceneGraphHelper{nullptr};
-std::shared_ptr<izz::gl::RenderSystem> renderSystem{nullptr};
-std::shared_ptr<izz::gl::SceneLoader> sceneLoader{nullptr};
-std::shared_ptr<FontSystem> fontSystem{nullptr};
-std::shared_ptr<izz::gui::GuiSystem> guiSystem{nullptr};
-entt::registry registry;
 }  // namespace
 
 void setupSystems() {
-  resourceManager = make_shared<ResourceManager>();
+  izzy = Izzy::CreateSystems();
 
-  auto textureSystem = make_shared<izz::gl::TextureSystem>();
-  textureSystem->setTextureLoader(".exr", std::make_unique<izz::gl::ExrLoader>(true));
-  textureSystem->setTextureLoader(izz::gl::ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<izz::gl::StbTextureLoader>(true));
-  resourceManager->setTextureSystem(textureSystem);
-
-  materialSystem = make_shared<izz::gl::MaterialSystem>(registry, resourceManager);
-  meshSystem = make_shared<izz::gl::MeshSystem>();
-  //  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
-  resourceManager->setMaterialSystem(materialSystem);
-  renderSystem = std::make_shared<izz::gl::RenderSystem>(registry, resourceManager, materialSystem, meshSystem /*, effectSystem*/);
-  sceneGraphHelper = make_shared<izz::SceneGraphHelper>(registry, std::make_unique<gl::DeferredRenderableFactory>(*renderSystem, *materialSystem),
-                                                        materialSystem, meshSystem);
-
-  sceneLoader = make_shared<izz::gl::SceneLoader>(textureSystem, materialSystem);
-  resourceManager->setSceneLoader(sceneLoader);
-
-  fontSystem = make_shared<FontSystem>();
-  fontSystem->addFont("fonts/SegoeUi.ttf", 20);
-  //  fontSystem->addFont("fonts/DroidSans.ttf", 20);
-  guiSystem = make_shared<gui::GuiSystem>(fontSystem);
+//  resourceManager = make_shared<ResourceManager>();
+//
+//  auto textureSystem = make_shared<izz::gl::TextureSystem>();
+//  textureSystem->setTextureLoader(".exr", std::make_unique<izz::gl::ExrLoader>(true));
+//  textureSystem->setTextureLoader(izz::gl::ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<izz::gl::StbTextureLoader>(true));
+//  resourceManager->setTextureSystem(textureSystem);
+//
+//  materialSystem = make_shared<izz::gl::MaterialSystem>(registry, resourceManager);
+//  meshSystem = make_shared<izz::gl::MeshSystem>();
+//  //  effectSystem = make_shared<gl::EffectSystem>(*sceneGraphHelper, *materialSystem);
+//  resourceManager->setMaterialSystem(materialSystem);
+//  renderSystem = std::make_shared<izz::gl::RenderSystem>(registry, resourceManager, materialSystem, meshSystem /*, effectSystem*/);
+//  sceneGraphHelper = make_shared<izz::SceneGraphHelper>(registry, std::make_unique<gl::DeferredRenderableFactory>(*renderSystem, *materialSystem),
+//                                                        materialSystem, meshSystem);
+//
+//  sceneLoader = make_shared<izz::gl::SceneLoader>(textureSystem, materialSystem);
+//  resourceManager->setSceneLoader(sceneLoader);
+//
+//  fontSystem = make_shared<FontSystem>();
+//  fontSystem->addFont("fonts/SegoeUi.ttf", 20);
+//  //  fontSystem->addFont("fonts/DroidSans.ttf", 20);
+//  guiSystem = make_shared<gui::GuiSystem>(fontSystem);
 }
 
 void setupLights() {
   // Sun
-  sceneGraphHelper->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
-
-  // Point light 1
-  auto ptLight1 = sceneGraphHelper->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
-  auto& lightComp = ptLight1.get<ecs::PointLight>();
-  lightComp.intensity = 1.0;
-  lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
-
-  // Point light 2
-  auto ptLight2 = sceneGraphHelper->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
-  ptLight2.get<ecs::PointLight>().intensity = 1.4;
-  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  izzy->sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+//
+//  // Point light 1
+//  auto ptLight1 = izzy->sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
+//  auto& lightComp = ptLight1.get<ecs::PointLight>();
+//  lightComp.intensity = 1.0;
+//  lightComp.color = glm::vec3(1.0, 1.0, 1.0);
+//  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+//
+//  // Point light 2
+//  auto ptLight2 = izzy->sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
+//  ptLight2.get<ecs::PointLight>().intensity = 1.4;
+//  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 }
 
 void setupScene() {
-  auto scene = sceneLoader->loadScene(programArguments->sceneFile);
+  auto scene = izzy->sceneLoader->loadScene(programArguments->sceneFile);
 
   // post process meshes in scene file
   for (auto& mesh : scene->m_meshes) {
@@ -111,37 +105,37 @@ void setupScene() {
   }
 
   // add to scene graph
-  sceneGraphHelper->makeScene(*scene, izz::SceneLoaderFlags::All());
+  izzy->sceneGraph->makeScene(*scene, izz::SceneLoaderFlags::All());
 
   {
     // adding a custom primitive to the scene
-    auto plane = sceneGraphHelper->makeMoveableEntity("Plane");
+    auto plane = izzy->sceneGraph->makeMoveableEntity("Plane");
     auto& mesh = plane.add<Mesh>(PrimitiveFactory::MakePlane("MyPlane", 15, 15));
-    auto& meshBuffer = meshSystem->createMeshBuffer(mesh);
-    auto& material = materialSystem->createMaterial("DeferredStandard_Color");
+    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+    auto& material = izzy->materialSystem->createMaterial("DeferredStandard_Color");
     mesh.materialId = material.id;
     auto& dr = plane.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
   }
   {
-    auto box = sceneGraphHelper->makeMoveableEntity("Box");
+    auto box = izzy->sceneGraph->makeMoveableEntity("Box");
     auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
-    auto& meshBuffer = meshSystem->createMeshBuffer(mesh);
+    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
     lsw::ecs::TransformUtil::Translate(box.get<lsw::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
-    auto& material = materialSystem->createMaterial("DeferredStandard_Color");
+    auto& material = izzy->materialSystem->createMaterial("DeferredStandard_Color");
     mesh.materialId = material.id;
     auto& dr = box.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
   }
 
   //  MeshUtil::ScaleUvCoords(plane, 3, 3);
   //  auto effect = effectSystem->createEffect("table_cloth");
-  //  auto ee = sceneGraphHelper->addGeometry(plane, material.id);
+  //  auto ee = izzy->sceneGraph->addGeometry(plane, material.id);
   //  auto& tf = registry.get<ecs::Transform>(ee);
   //  ecs::TransformUtil::Translate(tf, glm::vec3(0,0,5));
 }
 
 void setupUserInterface() {
-  guiSystem->addDialog(make_shared<gui::LightEditor>(sceneGraphHelper, fontSystem));
-  guiSystem->addDialog(make_shared<gui::MainMenu>(sceneGraphHelper));
+  izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->sceneGraph, izzy->fontSystem));
+  izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(izzy->sceneGraph));
 }
 
 int main(int argc, char* argv[]) {
@@ -153,22 +147,23 @@ int main(int argc, char* argv[]) {
       spdlog::set_level(spdlog::level::debug);
     }
 
-    setupSystems();
+    // creates and initializes all resource systems
+    izzy = Izzy::CreateSystems();
 
-    auto window = make_shared<gui::Window>(registry, renderSystem, guiSystem);  // guiSystem);
+    auto window = make_shared<gui::Window>(izzy->getRegistry(), izzy->renderSystem, izzy->guiSystem);  // guiSystem);
     window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initialize();
 
     // setup camera
-    auto camera = sceneGraphHelper->makeCamera("DummyCamera", 4);
+    auto camera = izzy->sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
     window->setActiveCamera(camera);
 
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
-      izz::gl::MaterialReader reader(materialSystem);
+      izz::gl::MaterialReader reader(izzy->materialSystem);
       reader.readMaterials(programArguments->materialsFile);
       //      effectSystem->readEffectsFromFile(programArguments->materialsFile);
     }
@@ -176,13 +171,13 @@ int main(int argc, char* argv[]) {
     setupScene();
     setupLights();
     // visualize point lights using a custom material.
-    renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight").id);
-    renderSystem->init(window->getDisplayDetails().windowWidth, window->getDisplayDetails().windowHeight);
+    izzy->renderSystem->getLightSystem().setDefaultPointLightMaterial(izzy->materialSystem->createMaterial("pointlight").id);
+    izzy->renderSystem->init(window->getDisplayDetails().windowWidth, window->getDisplayDetails().windowHeight);
     //
 
     //
 
-    //    setupUserInterface();
+        setupUserInterface();
 
     //    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
     //    auto vignette = materialSystem->createMaterial("VignettePostEffect");

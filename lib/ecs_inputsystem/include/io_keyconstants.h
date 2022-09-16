@@ -11,7 +11,7 @@ namespace io
 {
 
 enum class Key {
-  kESCAPE, kSPACEBAR, kLEFT_SHIFT
+  kESCAPE, kSPACEBAR, kLEFT_SHIFT, kRIGHT_SHIFT
 };
 enum class MouseButton {
   kLEFT = 0,

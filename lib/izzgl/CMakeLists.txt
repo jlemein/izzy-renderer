@@ -1,7 +1,7 @@
 add_library(lsw-gl STATIC
         include/ecs_debugmodel.h
         include/gl_common.h
-        include/gl_deferredrenderablefactory.h
+        include/izzgl_deferredrenderablefactory.h
         include/gl_deferredrenderer.h
         include/gl_forwardrenderer.h
         include/gl_hdrframebuffer.h
@@ -33,7 +33,7 @@ add_library(lsw-gl STATIC
         include/uniform_ubermaterial.h
         include/uniform_uniformblockmanager.h
         src/gl_common.cpp
-        src/gl_deferredrenderablefactory.cpp
+        src/izzgl_deferredrenderablefactory.cpp
         src/gl_deferredrenderer.cpp
         src/gl_forwardrenderer.cpp
         src/gl_hdrframebuffer.cpp

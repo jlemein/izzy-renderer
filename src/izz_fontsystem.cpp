@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <fmt/format.h>
 
-using namespace lsw;
+using namespace izz;
 namespace fs = std::filesystem;
 
 void FontSystem::addFont(std::filesystem::path path, int preferredSize) {

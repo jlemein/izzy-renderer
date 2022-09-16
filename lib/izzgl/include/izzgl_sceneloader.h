@@ -26,11 +26,24 @@ namespace gl {
 class MaterialSystem;
 class TextureSystem;
 
+/**
+ * @brief Scene loader loads a scene file
+ */
 class SceneLoader {
  public:
+  /**
+   * Constructor
+   * @param textureSystem needed to resolve and load textures used in the scene file.
+   * @param materialSystem needed to resolve material names used in the scene file.
+   */
   SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem);
 
-  std::shared_ptr<lsw::geo::Scene> loadScene(const std::string& path);
+  /**
+   * Loads a 3D scene from disk, such as an *.fbx file.
+   * @param path File path to the scene file.
+   * @return A unique pointer to the scene file.
+   */
+  std::unique_ptr<lsw::geo::Scene> loadScene(std::filesystem::path path);
 
  private:
   /**

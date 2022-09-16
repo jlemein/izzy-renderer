@@ -2,8 +2,7 @@
 // Created by jlemein on 11-11-20.
 //
 
-#ifndef GLVIEWER_ECS_RELATIONSHIP_H
-#define GLVIEWER_ECS_RELATIONSHIP_H
+#pragma once
 
 #include <entt/entt.hpp>
 #include <vector>
@@ -27,5 +26,3 @@ struct Relationship {
 
 } // enf of package
 } // end of enterprise
-
-#endif // GLVIEWER_ECS_RELATIONSHIP_H

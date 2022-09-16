@@ -7,5 +7,7 @@
 
 class RenderableComponentFactory {
  public:
+  virtual ~RenderableComponentFactory() = default;
+
   virtual void addRenderableComponent(entt::registry& registry, entt::entity e, int materialId, int meshBufferId) = 0;
 };

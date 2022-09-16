@@ -11,13 +11,11 @@
 #include "gl_renderable.h"
 
 #include <spdlog/spdlog.h>
-#include <entt/entt.hpp>
 #include "geo_camera.h"
 #include "geo_curve.h"
 #include "geo_light.h"
 #include "geo_mesh.h"
 #include "geo_meshinstance.h"
-#include "geo_meshtransform.h"
 #include "geo_scene.h"
 #include "gl_deferredrenderer.h"
 #include "izzgl_material.h"

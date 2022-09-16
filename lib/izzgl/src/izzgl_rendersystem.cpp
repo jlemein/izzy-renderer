@@ -266,7 +266,7 @@ LightSystem& RenderSystem::getLightSystem() {
 //  }
 //}
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem,
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem,
                            std::shared_ptr<izz::gl::MeshSystem> meshSystem)
   : m_registry{registry}  //  , m_debugSystem(registry)
   , m_resourceManager{resourceManager}
@@ -524,7 +524,7 @@ void RenderSystem::render() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  //  m_forwardRenderer.render(m_registry);
+//  m_forwardRenderer.render(m_registry);
   m_deferredRenderer.render(m_registry);
 
   //  renderPosteffects();
@@ -643,7 +643,8 @@ void RenderSystem::render() {
 // }
 
 void RenderSystem::resize(int width, int height) {
-  //  getFramebuffer().resize(width, height);
+//  m_forwardRenderer.resize(width, height);
+  m_deferredRenderer.resize(width, height);
 }
 
 MaterialSystem& RenderSystem::getMaterialSystem() {

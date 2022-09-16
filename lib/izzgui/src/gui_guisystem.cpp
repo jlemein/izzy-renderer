@@ -17,14 +17,14 @@
 using namespace izz;
 using namespace izz::gui;
 
-GuiSystem::GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem)
+GuiSystem::GuiSystem(std::shared_ptr<izz::FontSystem> fontSystem)
   : m_fontSystem{fontSystem} {}
 
-GuiSystem::GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem, std::shared_ptr<IGuiWindow> dialog)
+GuiSystem::GuiSystem(std::shared_ptr<izz::FontSystem> fontSystem, std::shared_ptr<IGuiWindow> dialog)
   : m_fontSystem{fontSystem}
   , m_dialogs{dialog} {}
 
-GuiSystem::GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem, std::vector<std::shared_ptr<IGuiWindow>> dialogs)
+GuiSystem::GuiSystem(std::shared_ptr<izz::FontSystem> fontSystem, std::vector<std::shared_ptr<IGuiWindow>> dialogs)
   : m_fontSystem{fontSystem}
   , m_dialogs{dialogs.begin(), dialogs.end()} {}
 

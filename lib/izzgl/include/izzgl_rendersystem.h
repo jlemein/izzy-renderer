@@ -16,11 +16,8 @@
 #include "izzgl_meshsystem.h"
 #include "izzgl_texture.h"
 
-namespace lsw {
-class ResourceManager;
-}
-
 namespace izz {
+class ResourceManager;
 namespace gl {
 class EffectSystem;
 class MaterialSystem;
@@ -42,7 +39,7 @@ class RenderSystem {
    * @param [in] meshSystem      Mesh system to allocate vertex and index buffers for mesh data.
    */
   RenderSystem(entt::registry& registry,
-               std::shared_ptr<lsw::ResourceManager> resourceManager,
+               std::shared_ptr<izz::ResourceManager> resourceManager,
                std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
                std::shared_ptr<izz::gl::MeshSystem> meshSystem);
 
@@ -52,8 +49,6 @@ class RenderSystem {
   void init(int width, int height);
   void update(float time, float dt);
   void render();
-
-  IFramebuffer& getFramebuffer();
 
   MaterialSystem& getMaterialSystem();
 
@@ -69,8 +64,6 @@ class RenderSystem {
   void setActiveCamera(entt::entity cameraEntity);
 
  private:
-//  std::unique_ptr<IFramebuffer> m_framebuffer;
-
   ForwardRenderer m_forwardRenderer;
   DeferredRenderer m_deferredRenderer;
 
@@ -78,7 +71,7 @@ class RenderSystem {
 
   entt::registry& m_registry;
   std::shared_ptr<ShaderSystem> m_shaderSystem;
-  std::shared_ptr<lsw::ResourceManager> m_resourceManager {nullptr};
+  std::shared_ptr<izz::ResourceManager> m_resourceManager {nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem {nullptr};
   std::shared_ptr<izz::gl::MeshSystem> m_meshSystem {nullptr};
 //  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;

@@ -21,84 +21,7 @@ DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, entt::re
   //  m_registry.on_construct<gl::DeferredRenderable>().connect<&DeferredRenderer::onConstruct>(this);
 }
 
-void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
-  DeferredRenderable& r = registry.get<DeferredRenderable>(e);
-  try {
-    //    auto& rs = r.renderStateId == -1 ? m_renderSystem.createRenderState() : m_renderSystem.getRenderState(r.renderStateId);
-    //    r.renderStateId = rs.id;
-
-    // initialize mesh / curve data
-    auto pCurve = registry.try_get<lsw::geo::Curve>(e);
-    //    if (pCurve != nullptr) {
-    ////      r.materialId = pCurve->materialId;
-    ////      RenderUtils::FillBufferedMeshData(*pCurve, rs.meshData);
-    //
-    //      // initialize material
-    ////      if (pCurve->materialId > -1) {
-    ////        auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
-    ////        RenderUtils::LoadMaterial(material, rs);
-    ////      }
-    //    }
-    //    auto& material = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId);
-    //    auto& meshBuffer = m_renderSystem.getMeshSystem().getMeshBuffer(r.meshBufferId);
-
-    //    auto pMesh = registry.try_get<lsw::geo::Mesh>(e);
-    //    if (pMesh != nullptr) {
-    //      spdlog::info("\tInitializing {}", pMesh->name);
-    //      r.materialId = pMesh->materialId;
-    //      RenderUtils::FillBufferedMeshData(*pMesh, rs.meshData);
-    //
-    //      // initialize material
-    //      if (pMesh->materialId > -1) {
-    //        auto& material = m_renderSystem.getMaterialSystem().getMaterialById(pMesh->materialId);
-    ////        RenderUtils::LoadMaterial(material, rs);
-    //
-    //        spdlog::info("\t[e: {}] Mesh {} initialized - material id {} -- {}",
-    //                     static_cast<int>(e), pMesh->name, pMesh->materialId, material.name);
-    //      } else {
-    //        spdlog::warn("No material assigned to mesh {}", pMesh->name);
-    //      }
-    //    }
-  } catch (std::exception& e) {
-    //    auto name = registry.all_of<lsw::ecs::Name>(e) ? m_registry.get<lsw::ecs::Name>(e).name : "Unnamed";
-    auto name = "BLABLA";
-    throw std::runtime_error(fmt::format("Failed initializing mesh '{}': {}", name, e.what()));
-  }
-
-  //
-  //  // if render state exists
-  //  std::cout << "Hello On construct - renderstateid = " << r.renderStateId << std::endl;
-  //  RenderState& rs = r.renderStateId == -1 ? m_renderSystem.createRenderState() : m_renderSystem.getRenderState(r.renderStateId);
-  //  r.renderStateId = rs.id;
-  //
-  //
-  //  if (r.meshEntity != entt::null) {
-  //    auto pCurve = m_registry.try_get<lsw::geo::Curve>(r.meshEntity);
-  //    if (pCurve != nullptr) {
-  //      RenderUtils::FillBufferedMeshData(*pCurve, rs.meshData);
-  //    }
-  //
-  //    auto pMesh = m_registry.try_get<lsw::geo::Curve>(r.meshEntity);
-  //    if (pMesh != nullptr) {
-  //      RenderUtils::FillBufferedMeshData(*pMesh, rs.meshData);
-  //    }
-  //  }
-  //
-  //  if (r.materialId != -1) {
-  //    auto& material = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId);
-  //    RenderUtils::LoadMaterial(material, rs);
-  //    // MVP
-  //    r.mvp = RenderUtils::GetUniformBufferLocation(rs, "UniformBufferBlock");
-  //    //    r.lights = RenderUtils::GetUniformBufferLocation(rs, "ForwardLighting");
-  //  } else {
-  //    spdlog::warn("DeferredRenderable is incomplete. Does not contain material properties.");
-  //  }
-}
-
-// void DeferredRenderer::resize(int width, int height) {
-//   m_screenWidth = width;
-//   m_screenHeight = height;
-// }
+void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {}
 
 namespace {
 void checkError(const char* name) {
@@ -157,6 +80,33 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   }
 }
 
+void DeferredRenderer::resize(int width, int height) {
+  spdlog::info("Deferred Buffers resized");
+  m_screenWidth = width;
+  m_screenHeight = height;
+
+  glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+
+  // GBuffer: normal texture
+  glBindTexture(GL_TEXTURE_2D, m_gNormal);  // so that all subsequent calls will affect normal texture.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+
+  // GBuffer: tangent texture
+  glBindTexture(GL_TEXTURE_2D, m_gTangent);  // so that all subsequent calls will affect normal texture.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+
+  // GBuffer: albedoTexture
+  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);  // so that all subsequent calls will affect albedoSpec texture.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  //
+  //  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
+  //    spdlog::info("Deferred renderer: successfully created framebuffer");
+  //  } else {
+  //    throw std::runtime_error("Deferred renderer: failed creating a valid frame buffer");
+  //  }
+}
+
 void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = lsw::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
   const auto& meshBuffer = m_renderSystem.getMeshSystem().createMeshBuffer(rectangle);
@@ -210,6 +160,11 @@ void DeferredRenderer::init(int width, int height) {
   spdlog::info("=== Deferred Renderer Initialization Complete ===");
 }
 
+namespace {
+  std::once_flag flag1;
+  float colors[75];
+}
+
 void DeferredRenderer::update() {
   // Updates the Render system updates the model view projection matrix for each of the
   if (m_activeCamera == entt::null) {
@@ -253,11 +208,21 @@ void DeferredRenderer::update() {
   auto& lightingMaterial = m_renderSystem.getMaterialSystem().getMaterialById(m_screenSpaceMaterial);
   izz::ufm::DeferredLighting* deferred = reinterpret_cast<izz::ufm::DeferredLighting*>(lightingMaterial.uniformBuffers.at("DeferredLighting").data);
 
-  deferred->numberOfLights = 1;
+  deferred->numberOfLights = 25;
   deferred->viewPos = view[3];
-  for (int i=0; i<25; i++) {
-    deferred->pointLights[i].color = glm::vec4(1, 1, 1, 0);
-    deferred->pointLights[i].position = glm::vec4(0.5f,2.f,0.f, 0.f); // glm::vec4(2*(i%5 - 2.5), .4, 2*(-2.5 + i/5), 0);
+
+  std::call_once(flag1, [](){
+    for (int i=0; i<75; ++i) {
+      colors[i] = 0.2 * 0.01 * (rand() % 100);
+    }
+  });
+
+  for (int i = 0; i < 25; i++) {
+//      deferred->pointLights[i].color = glm::vec4(0.8, 0.2, 0.2, 0);
+      deferred->pointLights[i].color = glm::vec4(colors[3*i], colors[3*i+1], colors[3*i+2], 0);
+
+    deferred->pointLights[i].position = glm::vec4(2 * (i % 5 - 2.5), .4, 2 * (-2.5 + i / 5), 0);
+//    spdlog::info("[{}]: Position is: {} {} {}", i, deferred->pointLights[i].position.x, deferred->pointLights[i].position.y, deferred->pointLights[i].position.z);
     deferred->pointLights[i].radius = 1.0;
     deferred->pointLights[i].intensity = 1.0;
   }
@@ -265,9 +230,7 @@ void DeferredRenderer::update() {
 
 void DeferredRenderer::render(const entt::registry& registry) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
-  static unsigned int colorAttachments[] = {
-      GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3
-  };
+  static unsigned int colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3};
   int attachmentCount = sizeof(colorAttachments) / sizeof(unsigned int);
   glDrawBuffers(attachmentCount, colorAttachments);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -276,15 +239,12 @@ void DeferredRenderer::render(const entt::registry& registry) {
 
   for (entt::entity e : view) {
     try {
-      auto name = registry.get<lsw::ecs::Name>(e);
-
       auto deferred = view.get<const DeferredRenderable>(e);
-      auto materialId = deferred.materialId;
-      const auto& mat = m_renderSystem.getMaterialSystem().getMaterialById(materialId);
+      const auto& mat = m_renderSystem.getMaterialSystem().getMaterialById(deferred.materialId);
 
       auto meshBufferId = deferred.meshBufferId;
       const auto& mesh = m_renderSystem.getMeshSystem().getMeshBuffer(meshBufferId);
-      
+
       glUseProgram(mat.programId);
 
       mat.useTextures();
@@ -321,12 +281,8 @@ void DeferredRenderer::render(const entt::registry& registry) {
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glDrawBuffer(GL_BACK); /* Use backbuffer as color dst.         */
 
-  /* Read from your FBO */
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_gBufferFbo);
-  glReadBuffer(GL_COLOR_ATTACHMENT1); /* Use Color Attachment 0 as color src. */
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   auto& material = m_renderSystem.getMaterialSystem().getMaterialById(m_screenSpaceMaterial);
 

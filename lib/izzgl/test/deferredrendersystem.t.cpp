@@ -6,7 +6,7 @@
 #include <izzgl_rendersystem.h>
 #include <entt/entt.hpp>
 #include <memory>
-#include "gl_deferredrenderablefactory.h"
+#include "izzgl_deferredrenderablefactory.h"
 using namespace izz::gl;
 
 class DeferredRendererTest : public ::testing::Test {

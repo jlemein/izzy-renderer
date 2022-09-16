@@ -12,13 +12,8 @@
 #include "izzgl_rendersystem.h"
 #include "uniform_uniformblockmanager.h"
 
-namespace lsw {
-
-class ResourceManager;
-
-}  // namespace lsw
-
 namespace izz {
+class ResourceManager;
 namespace gl {
 
 class RenderSystem;
@@ -34,7 +29,7 @@ class MaterialSystem {
  public:
   static inline const char* ID = "MaterialSystem";
 
-  MaterialSystem(entt::registry& registry, std::shared_ptr<lsw::ResourceManager> resourceManager);
+  MaterialSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
 
@@ -116,7 +111,7 @@ class MaterialSystem {
   //  void allocateUniformBuffers();
 
   entt::registry& m_registry;
-  std::shared_ptr<lsw::ResourceManager> m_resourceManager;
+  std::shared_ptr<izz::ResourceManager> m_resourceManager;
   std::unordered_map<std::string, std::unique_ptr<izz::ufm::UniformBlockManager>> m_uniformBlockManagers;
 
   /// @brief Contains the material definitions that are loaded from file.

@@ -10,7 +10,8 @@
 using namespace lsw::io;
 
 namespace {
-std::unordered_map<Key, int> toGlfwKey = {{Key::kESCAPE, GLFW_KEY_ESCAPE}, {Key::kSPACEBAR, GLFW_KEY_SPACE}, {Key::kLEFT_SHIFT, GLFW_KEY_LEFT_SHIFT}};
+std::unordered_map<Key, int> toGlfwKey = {
+    {Key::kESCAPE, GLFW_KEY_ESCAPE}, {Key::kSPACEBAR, GLFW_KEY_SPACE}, {Key::kLEFT_SHIFT, GLFW_KEY_LEFT_SHIFT}, {Key::kRIGHT_SHIFT, GLFW_KEY_RIGHT_SHIFT}};
 }
 
 InputSystem::InputSystem(GLFWwindow* window, int width, int height)
@@ -47,7 +48,8 @@ bool InputSystem::isKeyPressed(char key) const {
 }
 
 bool InputSystem::isKeyPressed(Key key) const {
-  return glfwGetKey(m_window, toGlfwKey.at(key)) == GLFW_PRESS;
+  int glfwKeyCode = toGlfwKey.at(key);
+  return glfwGetKey(m_window, glfwKeyCode) == GLFW_PRESS;
 }
 
 bool InputSystem::isMouseButtonPressed(MouseButton button) const {
@@ -60,7 +62,7 @@ void InputSystem::getRelativeMouseMovement(double* dx, double* dy) const {
   *dy = m_relativeMouseY / m_windowHeight;
 }
 
-void InputSystem::setWindowSize(int width, int height){
+void InputSystem::setWindowSize(int width, int height) {
   m_windowWidth = width;
   m_windowHeight = height;
 }

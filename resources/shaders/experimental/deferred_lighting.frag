@@ -1,6 +1,6 @@
 #version 460
 
-#define MAX_POINT_LIGHTS 4
+#define MAX_POINT_LIGHTS 32
 //#define DEBUG // define to show quad view (contents of gbuffer).
 
 layout (location = 0) out vec4 out_color;
@@ -8,8 +8,6 @@ layout (location = 0) out vec4 out_color;
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
-layout(location = 3) in vec3 in_TangentFragPosition;
-layout(location = 4) in vec4 in_TangentPointLightPosition[MAX_POINT_LIGHTS];
 
 layout(binding = 0) uniform sampler2D gbuffer_position;
 layout(binding = 1) uniform sampler2D gbuffer_normal;
@@ -101,7 +99,7 @@ void main()
         vec3 view_position = viewPosition;//inverse(view)[3];// * vec4(0,0,0,1);
         vec3 v = normalize(view_position.xyz - p.xyz);
 //        vec3 v = normalize(viewPosition.xyz - p.xyz);
-
+        out_color = vec4(0.0);
     //        out_color = vec4(albedo_spec.rgb, 0.0);
 
         // convert light and view direction in tangent space

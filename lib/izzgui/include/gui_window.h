@@ -19,10 +19,6 @@ namespace anim {
 class AnimationSystem;
 }
 
-
-
-class ResourceManager;
-
 namespace ecs {
 class TransformSystem;
 class CameraSystem;
@@ -36,6 +32,7 @@ class InputSystem;
 }  // namespace lsw
 
 namespace izz {
+class ResourceManager;
 namespace gl {
 class RenderSystem;
 }
@@ -86,7 +83,7 @@ class Window {
 
  private:
   std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
-  std::shared_ptr<lsw::ResourceManager> m_resourceManager;
+  std::shared_ptr<izz::ResourceManager> m_resourceManager;
   std::shared_ptr<gui::GuiSystem> m_guiSystem{nullptr};
   std::shared_ptr<lsw::anim::AnimationSystem> m_animationSystem;
   entt::registry& m_registry;

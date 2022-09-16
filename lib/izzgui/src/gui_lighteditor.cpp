@@ -15,7 +15,7 @@ using namespace izz::gui;
 using namespace lsw;
 using namespace std;
 
-LightEditor::LightEditor(shared_ptr<izz::SceneGraphHelper> sceneGraph, shared_ptr<lsw::FontSystem> fontSystem)
+LightEditor::LightEditor(shared_ptr<izz::SceneGraphHelper> sceneGraph, shared_ptr<izz::FontSystem> fontSystem)
   : m_sceneGraph{sceneGraph}
   , m_fontSystem(fontSystem)
   , m_registry(sceneGraph->getRegistry()) {}

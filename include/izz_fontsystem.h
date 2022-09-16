@@ -4,7 +4,7 @@
 #include <string>
 #include <filesystem>
 
-namespace lsw {
+namespace izz {
 
 struct Font {
   std::string name;
@@ -30,4 +30,4 @@ class FontSystem {
   std::vector<Font> m_availableFontFiles;
 };
 
-} // namespace lsw
+} // namespace izz

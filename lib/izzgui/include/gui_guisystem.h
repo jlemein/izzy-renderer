@@ -9,11 +9,8 @@
 #include <imgui.h>
 #include <vector>
 
-namespace lsw {
-class FontSystem;
-}  // namespace lsw
-
 namespace izz {
+class FontSystem;
 namespace gui {
 
 class Window;
@@ -22,9 +19,9 @@ struct DisplayDetails;
 class GuiSystem : public IWindowExtension {
  public:
   GuiSystem() = default;
-  GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem);
-  GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem, std::shared_ptr<IGuiWindow> dialog);
-  GuiSystem(std::shared_ptr<lsw::FontSystem> fontSystem, std::vector<std::shared_ptr<IGuiWindow>> dialogs);
+  GuiSystem(std::shared_ptr<izz::FontSystem> fontSystem);
+  GuiSystem(std::shared_ptr<izz::FontSystem> fontSystem, std::shared_ptr<IGuiWindow> dialog);
+  GuiSystem(std::shared_ptr<izz::FontSystem> fontSystem, std::vector<std::shared_ptr<IGuiWindow>> dialogs);
 
   void addDialog(std::shared_ptr<IGuiWindow> dialog);
 
@@ -38,7 +35,7 @@ class GuiSystem : public IWindowExtension {
 
  private:
   //  std::shared_ptr<IGuiWindow> m_window {nullptr};
-  std::shared_ptr<lsw::FontSystem> m_fontSystem;
+  std::shared_ptr<izz::FontSystem> m_fontSystem;
   std::vector<std::shared_ptr<IGuiWindow>> m_dialogs{};
 
   void* m_windowHandle{nullptr};

@@ -1,6 +1,6 @@
 #version 460
 
-#define MAX_POINT_LIGHTS 4
+#define MAX_POINT_LIGHTS 32
 
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNormal;

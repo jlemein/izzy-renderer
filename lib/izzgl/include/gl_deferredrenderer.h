@@ -55,6 +55,11 @@ class DeferredRenderer {
 
   void render(const entt::registry& registry);
 
+  /**
+   * Should be called whenever the framebuffer needs resizing. For example after a window resize event.
+   * @param width Width of the new window size.
+   * @param height Height of the new window size.
+   */
   void resize(int width, int height);
 
   inline void setActiveCamera(entt::entity cameraEntity) {
