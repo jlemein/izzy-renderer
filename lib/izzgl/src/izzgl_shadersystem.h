@@ -9,11 +9,11 @@
 namespace izz {
 namespace gl {
 
-class ShaderSystem {
+class ShaderCompiler {
 public:
     using Program = GLint;
 
-    ShaderSystem();
+    ShaderCompiler();
 
     /**
      * Compiles a GLSL vertex and fragment shader from source.

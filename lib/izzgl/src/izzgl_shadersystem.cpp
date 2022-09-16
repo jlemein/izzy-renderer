@@ -72,18 +72,18 @@ void printLinkingLog(GLint program) {
 }
 }  // namespace
 
-ShaderSystem::ShaderSystem() {
+ShaderCompiler::ShaderCompiler() {
   // detect binary shader support (on integrated GPU, such as AMD Ryzen 7 5700G, there is no support).
   GLint numberShaderBinaryFormats = 0;
   glGetIntegerv(GL_NUM_SHADER_BINARY_FORMATS, &numberShaderBinaryFormats);
   m_hasBinaryShaderSupport = numberShaderBinaryFormats > 0;
 }
 
-bool ShaderSystem::hasBinaryShaderSupport() {
+bool ShaderCompiler::hasBinaryShaderSupport() {
   return m_hasBinaryShaderSupport;
 }
 
-ShaderSystem::Program ShaderSystem::compileShader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
+ShaderCompiler::Program ShaderCompiler::compileShader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
   std::vector<const char*> vertexShaderSource{}, fragmentShaderSource{};
   std::vector<GLint> vertexShaderSourceLengths{}, fragmentShaderSourceLengths{};
 
@@ -136,10 +136,10 @@ ShaderSystem::Program ShaderSystem::compileShader(const std::string& vertexShade
     printLinkingLog(program);
   }
 
-  return static_cast<ShaderSystem::Program>(program);
+  return static_cast<ShaderCompiler::Program>(program);
 }
 
-ShaderSystem::Program ShaderSystem::compileSpirvShader(const std::string& vertexShader, const std::string& fragmentShader) {
+ShaderCompiler::Program ShaderCompiler::compileSpirvShader(const std::string& vertexShader, const std::string& fragmentShader) {
   if (!this->hasBinaryShaderSupport()) {
     throw std::runtime_error("Cannot compile material into shader program: no binary shader support for this machine");
   }
@@ -185,5 +185,5 @@ ShaderSystem::Program ShaderSystem::compileSpirvShader(const std::string& vertex
     printLinkingLog(program);
   }
 
-  return static_cast<ShaderSystem::Program>(program);
+  return static_cast<ShaderCompiler::Program>(program);
 }

@@ -115,7 +115,7 @@ void MaterialSystem::setDefaultMaterial(const std::string& name) {
 
 void MaterialSystem::compileShader(Material& material, const izz::geo::MaterialDescription& materialDescription) {
   // compile shader
-  ShaderSystem shaderCompiler;
+  ShaderCompiler shaderCompiler;
   if (materialDescription.isBinaryShader) {
     material.programId = shaderCompiler.compileSpirvShader(materialDescription.vertexShader, materialDescription.fragmentShader);
   } else {
@@ -297,6 +297,10 @@ Material& MaterialSystem::createMaterial(const izz::geo::MaterialDescription& ma
 
 izz::gl::Material& MaterialSystem::makeDefaultMaterial() {
   return createMaterial(m_defaultMaterial);
+}
+
+const std::unordered_map<int, Material>& MaterialSystem::getCreatedMaterials() {
+  return m_createdMaterials;
 }
 
 izz::gl::Material& MaterialSystem::getMaterialById(int id) {

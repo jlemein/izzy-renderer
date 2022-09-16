@@ -22,7 +22,7 @@ namespace gl {
 class EffectSystem;
 class MaterialSystem;
 class LightSystem;
-class ShaderSystem;
+class ShaderCompiler;
 struct Texture;
 
 /**!
@@ -70,7 +70,7 @@ class RenderSystem {
   std::unordered_map<TextureId, GLuint> m_allocatedTextures;
 
   entt::registry& m_registry;
-  std::shared_ptr<ShaderSystem> m_shaderSystem;
+  std::shared_ptr<ShaderCompiler> m_shaderSystem;
   std::shared_ptr<izz::ResourceManager> m_resourceManager {nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem {nullptr};
   std::shared_ptr<izz::gl::MeshSystem> m_meshSystem {nullptr};

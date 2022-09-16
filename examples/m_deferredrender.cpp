@@ -135,7 +135,7 @@ void setupScene() {
 
 void setupUserInterface() {
   izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->sceneGraph, izzy->fontSystem));
-  izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(izzy->sceneGraph));
+  izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(*izzy));
 }
 
 int main(int argc, char* argv[]) {

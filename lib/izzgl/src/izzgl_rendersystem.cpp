@@ -273,7 +273,7 @@ RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::Resour
   , m_materialSystem(materialSystem)
   //  , m_effectSystem{effectSystem}
   , m_meshSystem{meshSystem}
-  , m_shaderSystem(std::make_shared<ShaderSystem>())
+  , m_shaderSystem(std::make_shared<ShaderCompiler>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(*this)
   , m_deferredRenderer(*this, registry) {}

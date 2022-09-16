@@ -5,11 +5,12 @@
 #include <gui_mainmenu.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
+#include "izz_izzy.h"
 using namespace izz::gui;
 
-MainMenu::MainMenu(std::shared_ptr<izz::SceneGraphHelper> sceneGraph)
-  : m_sceneGraph{sceneGraph}
-  , m_materialEditor(sceneGraph) {}
+MainMenu::MainMenu(Izzy& izzy)
+  : m_sceneGraph{izzy.sceneGraph}
+  , m_materialEditor(izzy.materialSystem, izzy.sceneGraph) {}
 
 void MainMenu::init() {
   m_materialEditor.init();

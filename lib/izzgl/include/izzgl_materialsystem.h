@@ -93,6 +93,8 @@ class MaterialSystem {
 
   izz::gl::Material& makeDefaultMaterial();
 
+  const std::unordered_map<int, Material>& getCreatedMaterials();
+
  private:
 
   /**
