@@ -118,7 +118,7 @@ void DeferredRenderer::createScreenSpaceRect() {
   }
 
   //  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("VisualizeGBuffer");
-  m_screenSpaceMaterial = material.getId();
+  m_lightPassMaterialId = material.getId();
   m_screenSpaceMeshBufferId = meshBuffer.id;
 
   m_gPositionLoc = glGetUniformLocation(material.programId, "gbuffer_position");
@@ -161,9 +161,9 @@ void DeferredRenderer::init(int width, int height) {
 }
 
 namespace {
-  std::once_flag flag1;
-  float colors[75];
-}
+std::once_flag flag1;
+float colors[75];
+}  // namespace
 
 void DeferredRenderer::update() {
   // Updates the Render system updates the model view projection matrix for each of the
@@ -205,27 +205,79 @@ void DeferredRenderer::update() {
     }
   }
 
-  auto& lightingMaterial = m_renderSystem.getMaterialSystem().getMaterialById(m_screenSpaceMaterial);
-  izz::ufm::DeferredLighting* deferred = reinterpret_cast<izz::ufm::DeferredLighting*>(lightingMaterial.uniformBuffers.at("DeferredLighting").data);
+  // TODO: if lights are not so dynamic, we don't have to do this each frame.
+  // update the uniform buffer data for the lighting pass
+  auto& lightPassMaterial = m_renderSystem.getMaterialSystem().getMaterialById(m_lightPassMaterialId);
+  auto deferredLightingUniformBuffer = lightPassMaterial.uniformBuffers.at(izz::ufm::DeferredLighting::PARAM_NAME);
+  izz::ufm::DeferredLighting* deferred = reinterpret_cast<izz::ufm::DeferredLighting*>(deferredLightingUniformBuffer.data);
 
-  deferred->numberOfLights = 25;
+  // process light information from the light system
+  auto pointLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::PointLight>();
+  auto directionalLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::DirectionalLight>();
+  auto ambientLights = m_registry.view<lsw::ecs::AmbientLight>();
+
+//  deferred->numberOfLights = pointLights.size_hint();
+//  deferred->numberOfLights = pointLights.size_hint();
+
   deferred->viewPos = view[3];
+  int i = 0;
+  for(auto [e, transform, light] : pointLights.each()) {
+    deferred->pointLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
+    deferred->pointLights[i].radius = light.radius;
+    deferred->pointLights[i].intensity = light.intensity;
+    deferred->pointLights[i].position = transform.worldTransform[3];
 
-  std::call_once(flag1, [](){
-    for (int i=0; i<75; ++i) {
-      colors[i] = 0.2 * 0.01 * (rand() % 100);
+    // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
+    if (++i >= izz::ufm::DeferredLighting::MAX_POINT_LIGHTS) {
+      break;
     }
-  });
-
-  for (int i = 0; i < 25; i++) {
-//      deferred->pointLights[i].color = glm::vec4(0.8, 0.2, 0.2, 0);
-      deferred->pointLights[i].color = glm::vec4(colors[3*i], colors[3*i+1], colors[3*i+2], 0);
-
-    deferred->pointLights[i].position = glm::vec4(2 * (i % 5 - 2.5), .4, 2 * (-2.5 + i / 5), 0);
-//    spdlog::info("[{}]: Position is: {} {} {}", i, deferred->pointLights[i].position.x, deferred->pointLights[i].position.y, deferred->pointLights[i].position.z);
-    deferred->pointLights[i].radius = 1.0;
-    deferred->pointLights[i].intensity = 1.0;
   }
+  deferred->numberOfSpotLights = i;
+
+  i = 0;
+  for(auto [e, transform, light] : pointLights.each()) {
+    deferred->pointLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
+    deferred->pointLights[i].radius = light.radius;
+    deferred->pointLights[i].intensity = light.intensity;
+    deferred->pointLights[i].position = transform.worldTransform[3];
+
+    // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
+    if (++i >= izz::ufm::DeferredLighting::MAX_POINT_LIGHTS) {
+      break;
+    }
+  }
+  deferred->numberOfPointLights = i;
+
+  i = 0;
+  for(auto [e, transform, light] : directionalLights.each()) {
+    deferred->directionalLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
+    deferred->directionalLights[i].position = transform.worldTransform[3];
+
+    // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
+    if (++i >= izz::ufm::DeferredLighting::MAX_DIRECTIONAL_LIGHTS) {
+      break;
+    }
+  }
+
+  // because we iterated the point lights, now we exactly know the number of lights.
+  deferred->numberOfDirectionalLights = i;
+//
+//  std::call_once(flag1, []() {
+//    for (int i = 0; i < 75; ++i) {
+//      colors[i] = 0.2 * 0.01 * (rand() % 100);
+//    }
+//  });
+//
+//  for (int i = 0; i < 25; i++) {
+//    //      deferred->pointLights[i].color = glm::vec4(0.8, 0.2, 0.2, 0);
+//    deferred->pointLights[i].color = glm::vec4(colors[3 * i], colors[3 * i + 1], colors[3 * i + 2], 0);
+//
+//    deferred->pointLights[i].position = glm::vec4(2 * (i % 5 - 2.5), .4, 2 * (-2.5 + i / 5), 0);
+//    //    spdlog::info("[{}]: Position is: {} {} {}", i, deferred->pointLights[i].position.x, deferred->pointLights[i].position.y,
+//    //    deferred->pointLights[i].position.z);
+//    deferred->pointLights[i].radius = 1.0;
+//    deferred->pointLights[i].intensity = 1.0;
+//  }
 }
 
 void DeferredRenderer::render(const entt::registry& registry) {
@@ -284,7 +336,7 @@ void DeferredRenderer::render(const entt::registry& registry) {
   glClearColor(0.0, 0.0, 0.0, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  auto& material = m_renderSystem.getMaterialSystem().getMaterialById(m_screenSpaceMaterial);
+  auto& material = m_renderSystem.getMaterialSystem().getMaterialById(m_lightPassMaterialId);
 
   glUseProgram(material.programId);
 
@@ -313,3 +365,5 @@ void DeferredRenderer::render(const entt::registry& registry) {
   //  /* Copy the color and depth buffer from your FBO to the default framebuffer       */
   //    glBlitFramebuffer(0, 0, m_screenWidth, m_screenHeight, 0, 0, m_screenWidth, m_screenHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
+
+void DeferredRenderer::updateUniformLightingParams() {}

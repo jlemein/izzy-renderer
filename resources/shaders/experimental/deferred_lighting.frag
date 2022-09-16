@@ -1,5 +1,6 @@
 #version 460
 
+#define MAX_DIRECTIONAL_LIGHTS 2
 #define MAX_POINT_LIGHTS 32
 //#define DEBUG // define to show quad view (contents of gbuffer).
 
@@ -21,6 +22,11 @@ struct PointLight {
     float radius;
 };
 
+struct DirectionalLight {
+    vec4 direction;
+    vec4 color;
+};
+
 layout(std140, binding = 1)
 uniform ModelViewProjection {
     mat4 model;
@@ -32,7 +38,11 @@ uniform ModelViewProjection {
 layout(std140, binding=2)
 uniform DeferredLighting {
     vec3 viewPos;
-    int numberOfLights;
+    int numberOfDirectionalLights;
+    int numberOfPointLights;
+    int numberOfSpotLights;
+
+    DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
     PointLight pointLights[MAX_POINT_LIGHTS];
 };
 
@@ -79,37 +89,35 @@ vec4 debugview() {
     return out_color;
 }
 
+vec3 CalculatePointLight();
+
 //#define DEBUG // define to show quad view (contents of gbuffer).
 void main()
 {
     #ifdef DEBUG
-    out_color = debugview();
+        out_color = debugview();
+
     #else // DEBUG
 
-        // gbuffer layout
-        // positions in world space.
-        //   |-- normals in world space.
-        //   |-- tangents in world space.
         // fetch normal and tangent from gBuffer.
-
         vec4 p = texture(gbuffer_position, in_uv);
         vec3 n = texture(gbuffer_normal, in_uv).rgb;
         vec4 albedo_spec = texture(gbuffer_albedospec, in_uv);
 
         vec3 view_position = viewPosition;//inverse(view)[3];// * vec4(0,0,0,1);
         vec3 v = normalize(view_position.xyz - p.xyz);
-//        vec3 v = normalize(viewPosition.xyz - p.xyz);
-        out_color = vec4(0.0);
-    //        out_color = vec4(albedo_spec.rgb, 0.0);
 
-        // convert light and view direction in tangent space
-//        vec3 tsNormal = TBN * gbNormal;
-//        vec3 tsView = TBN * viewPosition;
-//        vec3 tsPosition = TBN * texture(gbuffer_position, in_uv).rgb;
-//        vec3 tsViewDir = tsView - tsPosition;
-//
-//        // loop over the lights
-        for (int i=0; i<numberOfLights; i++) {
+        out_color = vec4(0.0);
+
+        for (int i=0; i<numberOfDirectionalLights; i++) {
+            DirectionalLight light = directionalLights[i];
+            vec3 l = light.direction.xyz;
+            float lambertian = max(0.0, dot(n, l));
+            vec3 diffuse = albedo_spec.rgb * light.color.rgb * lambertian;
+            out_color.rgb += diffuse;
+        }
+        // loop over the point lights
+        for (int i=0; i<numberOfPointLights; i++) {
             PointLight light = pointLights[i];
             vec3 l = light.worldPosition.xyz - p.xyz;
             l = normalize(l);
@@ -128,24 +136,5 @@ void main()
             out_color.rgb += diffuse + specular;
         }
 
-//            out_color = vec4((n + 1.0)/2.0, 0);
-//
-//        // normal (tangent space)
-//aure(gbuffer_albedospec, in_uv).rgb;
-//        float specular = texture(gbuffer_albedospec, in_uv).a;
-//
-//        vec3 lighting = albedo * 0.1;
-//
-//        for (int i=0; i<numberOfLights; ++i) {
-//            PointLight pt = pointLights[i];
-//            vec3 light_vector = in_TangentPointLightPosition[i].xyz;// - in_TangentFragPosition;
-//    //        vec3 lightdir = normalize(pt.position.xyz - fragPos);
-//
-//            vec3 diffuse = light_vector;// max(0.0, dot(normal, normalize(light_vector))) * albedo * pt.color.rgb * pt.intensity;
-//
-//            lighting += diffuse;
-//        }
-//
-//        out_color = vec4(lighting, 0.0);
-        #endif
+        #endif // DEBUG
 }

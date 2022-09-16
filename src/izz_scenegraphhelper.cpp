@@ -306,6 +306,8 @@ SceneGraphEntity SceneGraphHelper::makeRenderable(std::string name, const izz::g
 
   m_renderableComponentFactory->addRenderableComponent(m_registry, e.handle(), materialId, meshBuffer.id);
 
+
+
   spdlog::info("(e: {}) Added mesh {} with material id: {}, mesh buffer id: {}", static_cast<int>(e.handle()), name,
                m_registry.get<gl::DeferredRenderable>(e).materialId, m_registry.get<gl::DeferredRenderable>(e).meshBufferId);
   return e;

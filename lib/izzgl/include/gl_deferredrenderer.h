@@ -67,6 +67,8 @@ class DeferredRenderer {
   }
 
  private:
+  void updateUniformLightingParams();
+
   int m_fbo{0};
   RenderSystem& m_renderSystem;
   entt::registry& m_registry;
@@ -84,7 +86,7 @@ class DeferredRenderer {
   int m_screenWidth = 10, m_screenHeight = 10;
 
   MeshBufferId m_screenSpaceMeshBufferId {-1};
-  MaterialId m_screenSpaceMaterial {-1};
+  MaterialId m_lightPassMaterialId{-1};
 };
 
 }  // namespace gl

@@ -1,5 +1,6 @@
 #version 460
 
+#define MAX_DIRECTIONAL_LIGHTS 2
 #define MAX_POINT_LIGHTS 32
 
 layout(location = 0) in vec3 aPos;
@@ -19,6 +20,11 @@ struct PointLight {
     float radius;
 };
 
+struct DirectionalLight {
+    vec4 direction;
+    vec4 color;
+};
+
 layout(std140, binding = 1)
 uniform ModelViewProjection {
     mat4 model;
@@ -30,7 +36,11 @@ uniform ModelViewProjection {
 layout(std140, binding=2)
 uniform DeferredLighting {
     vec3 viewPos;
-    int numberOfLights;
+    int numberOfDirectionalLights;
+    int numberOfPointLights;
+    int numberOfSpotLights;
+
+    DirectionalLight directionalLights[MAX_DIRECTIONAL_LIGHTS];
     PointLight pointLights[MAX_POINT_LIGHTS];
 };
 

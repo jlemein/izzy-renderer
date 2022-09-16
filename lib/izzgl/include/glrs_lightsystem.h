@@ -1,11 +1,12 @@
 #pragma once
 
 #include <gl_renderable.h>
+#include <izzgl_material.h>
 #include <izzgl_materialsystem.h>
 #include <entt/entity/registry.hpp>
 #include <glm/glm.hpp>
 #include <memory>
-#include <izzgl_material.h>
+#include "ecs_light.h"
 
 namespace izz {
 namespace gl {

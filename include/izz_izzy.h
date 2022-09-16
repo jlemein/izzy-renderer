@@ -61,6 +61,7 @@ class Izzy {
     izz->meshSystem = std::make_shared<izz::gl::MeshSystem>();
     izz->resourceManager->setMaterialSystem(izz->materialSystem);
     izz->renderSystem = std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->resourceManager, izz->materialSystem, izz->meshSystem);
+
     izz->sceneGraph = std::make_shared<izz::SceneGraphHelper>(
        izz->registry, std::make_unique<izz::gl::DeferredRenderableFactory>(*izz->renderSystem, *izz->materialSystem), izz->materialSystem, izz->meshSystem);
 

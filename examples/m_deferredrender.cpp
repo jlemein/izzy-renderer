@@ -82,17 +82,17 @@ void setupLights() {
   // Sun
   izzy->sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
 //
-//  // Point light 1
-//  auto ptLight1 = izzy->sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
-//  auto& lightComp = ptLight1.get<ecs::PointLight>();
-//  lightComp.intensity = 1.0;
-//  lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-//  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
-//
-//  // Point light 2
-//  auto ptLight2 = izzy->sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
-//  ptLight2.get<ecs::PointLight>().intensity = 1.4;
-//  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  // Point light 1
+  auto ptLight1 = izzy->sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
+  auto& lightComp = ptLight1.get<ecs::PointLight>();
+  lightComp.intensity = 1.0;
+  lightComp.color = glm::vec3(1.0, 1.0, 1.0);
+  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+
+  // Point light 2
+  auto ptLight2 = izzy->sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
+  ptLight2.get<ecs::PointLight>().intensity = 1.4;
+  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 }
 
 void setupScene() {
