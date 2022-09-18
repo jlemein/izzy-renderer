@@ -15,7 +15,7 @@
 #include <memory>
 #include <string>
 #include <variant>
-#include "geo_materialdescription.h"
+#include "geo_materialtemplate.h"
 
 namespace izz {
 namespace gl {

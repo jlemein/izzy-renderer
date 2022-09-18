@@ -19,7 +19,7 @@ struct Scene;
 
 namespace izz {
 namespace geo {
-struct MaterialDescription;
+struct MaterialTemplate;
 struct TextureDescription;
 }  // namespace geo
 namespace gl {
@@ -89,7 +89,7 @@ class SceneLoader {
    * @param aiMaterial
    * @param material
    */
-  void readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial, izz::geo::MaterialDescription& material);
+  void readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial, izz::geo::MaterialTemplate& material);
 
   std::unique_ptr<izz::geo::TextureDescription> readAiTexture(const lsw::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial) const;
 

@@ -6,7 +6,7 @@ add_library(geo STATIC
         include/geo_effect.h
         include/geo_graph.h
         include/geo_light.h
-        include/geo_materialdescription.h
+        include/geo_materialtemplate.h
         include/geo_materialutil.h
         include/geo_mesh.h
         include/geo_meshinstance.h

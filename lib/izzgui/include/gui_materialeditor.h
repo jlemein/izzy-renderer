@@ -28,6 +28,9 @@ class MaterialEditor : public gui::IGuiWindow {
   ShaderEditor m_shaderEditor;
   std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
   bool m_show{false};
+
+  void drawMaterialTable();
+  void drawShaderProgramTable();
 };
 
 }  // namespace gui
