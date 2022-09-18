@@ -303,8 +303,8 @@ When creating a material using the same shader file names, the engine will try t
 
 | C++ class                     | Description                                                                                                                                                                                               | Lives on |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
-| `MaterialDescription`         | Describes the complete material on CPU side. Used to instantiate the real GPU specific materials.                                                                                                         | CPU      |
-| `MaterialInstanceDescription` | Inherits from `MaterialDescription` and differs only in specified attributes. This makes it possible to define multiple materials in a mesh object, but still using the same Material program in the end. | CPU      |
+| `MaterialTemplate`         | Describes the complete material on CPU side. Used to instantiate the real GPU specific materials.                                                                                                         | CPU      |
+| `MaterialInstanceDescription` | Inherits from `MaterialTemplate` and differs only in specified attributes. This makes it possible to define multiple materials in a mesh object, but still using the same Material program in the end. | CPU      |
 | `Material`                    | Material program (accompanied with program id and allocated texture and uniform buffers.                                                                                                                  | GPU      |
 
 # Project overview

@@ -39,7 +39,7 @@ void MaterialReader::readMaterials(std::filesystem::path path) {
   input.close();
 }
 
-static void readUniformDescription(std::string key, const nlohmann::json& value, izz::geo::MaterialDescription& materialDescription) {
+static void readUniformDescription(std::string key, const nlohmann::json& value, izz::geo::MaterialTemplate& materialDescription) {
   if (value.is_boolean()) {
     materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::BOOL, .value = value.get<bool>()};
   } else if (value.is_number_float()) {
@@ -78,9 +78,9 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
   // - Then read texture information
   // - Then uniform properties.
   for (const auto& material : j["materials"]) {
-    izz::geo::MaterialDescription materialDescription;
-    auto materialDescriptionName = material["name"].get<std::string>();
-    spdlog::debug("MaterialReader: reading material description \"{}\"...", materialDescriptionName);
+    izz::geo::MaterialTemplate materialDescription;
+    materialDescription.name = material["name"].get<std::string>();
+    spdlog::debug("MaterialReader: reading material description \"{}\"...", materialDescription.name);
 
     // pass shader info
     try {
@@ -99,7 +99,7 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
     if (material.contains("textures")) {
       for (const auto& [name, value] : material["textures"].items()) {
         if (!value.contains("type")) {
-          spdlog::warn("Material '{}': texture misses required attributes 'type'. Property will be ignored.", materialDescriptionName);
+          spdlog::warn("Material '{}': texture misses required attributes 'type'. Property will be ignored.", materialDescription.name);
           continue;
         }
 
@@ -130,10 +130,10 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
         }
       }
     } catch (std::runtime_error& e) {
-      throw std::runtime_error(fmt::format("Failed to parse material properties for material {}, details: {}", materialDescriptionName, e.what()));
+      throw std::runtime_error(fmt::format("Failed to parse material properties for material {}, details: {}", materialDescription.name, e.what()));
     }
 
-    m_materialSystem->addMaterialDescription(materialDescriptionName, materialDescription);
+    m_materialSystem->addMaterialTemplate(materialDescription);
   }
 
   spdlog::debug("READING MATERIALS [DONE]");
@@ -142,20 +142,21 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
 void MaterialReader::readMaterialInstances(nlohmann::json& j) {
   for (auto instance : j["material_instances"]) {
     auto instanceName = instance["name"].get<std::string>();
-    auto materialDescriptionName = instance["material_definition"].get<std::string>();
+    auto materialTemplateName = instance["material_definition"].get<std::string>();
 
-    if (instanceName.empty() || materialDescriptionName.empty()) {
+    if (instanceName.empty() || materialTemplateName.empty()) {
       throw std::runtime_error("Failed to read material instance");
     }
 
-    if (!m_materialSystem->hasMaterialDescription(materialDescriptionName)) {
+    if (!m_materialSystem->hasMaterialTemplate(materialTemplateName)) {
       throw std::runtime_error(fmt::format("Material instance '{}', instanced from '{}' does not occur in the list of material definitions.", instanceName,
-                                           materialDescriptionName));
+                                           materialTemplateName));
     }
 
     // make a copy
-    auto materialInstance = m_materialSystem->getMaterialDescription(materialDescriptionName);
-    m_materialSystem->addMaterialDescription(instanceName, materialInstance);
+    auto materialInstance = m_materialSystem->getMaterialTemplate(materialTemplateName);
+    materialInstance.name = instanceName;
+    m_materialSystem->addMaterialTemplate(materialInstance);
 
     if (instance.contains("textures")) {
       for (const auto& [key, value] : instance["textures"].items()) {
@@ -164,7 +165,7 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
           texture.path = value.get<std::string>();
         } catch (std::out_of_range&) {
           throw std::runtime_error(
-              fmt::format("Material instance '{}': texture '{}' is not part of material definition '{}'.", instanceName, key, materialDescriptionName));
+              fmt::format("Material instance '{}': texture '{}' is not part of material definition '{}'.", instanceName, key, materialTemplateName));
         }
       }
     }
@@ -200,10 +201,10 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
           }
         } catch (std::out_of_range&) {
           throw std::runtime_error(
-              fmt::format("Material instance '{}': property '{}' is not part of material definition '{}'.", instanceName, key, materialDescriptionName));
+              fmt::format("Material instance '{}': property '{}' is not part of material definition '{}'.", instanceName, key, materialTemplateName));
         }
       }
     }
-    m_materialSystem->addMaterialDescription(instanceName, materialInstance);
+    m_materialSystem->addMaterialTemplate(materialInstance);
   }
 }

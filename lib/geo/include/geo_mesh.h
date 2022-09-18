@@ -12,7 +12,7 @@
 
 #include <geo_boundingbox.h>
 #include <boost/functional/hash.hpp>
-#include "geo_materialdescription.h"
+#include "geo_materialtemplate.h"
 
 namespace lsw {
 namespace geo {

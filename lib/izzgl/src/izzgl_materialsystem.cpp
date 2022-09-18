@@ -4,10 +4,8 @@
 #include <izzgl_materialsystem.h>
 
 #include <izzgl_shadersystem.h>
-#include <wsp_workspace.h>
 #include "izz_resourcemanager.h"
 #include "izz_scenegraphhelper.h"
-#include "izzgl_rendersystem.h"
 #include "izzgl_textureloader.h"
 #include "izzgl_texturesystem.h"
 #include "uniform_constant.h"
@@ -67,8 +65,8 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
   m_uniformBlockManagers[izz::ufm::DeferredLighting::PARAM_NAME] = std::make_unique<izz::ufm::DeferredLightingManager>();
 }
 
-void MaterialSystem::addMaterialDescription(std::string name, izz::geo::MaterialDescription materialDescription) {
-  m_materialDescriptions[name] = materialDescription;
+void MaterialSystem::addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate) {
+  m_materialTemplates[materialTemplate.name] = materialTemplate;
 }
 
 UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& m) {
@@ -97,32 +95,32 @@ UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferD
   return ub;
 }
 
-izz::geo::MaterialDescription& MaterialSystem::getMaterialDescription(const std::string& name) {
-  return m_materialDescriptions.at(name);
-}
-
-bool MaterialSystem::hasMaterialDescription(const std::string& materialName) {
-  return m_materialMappings.count(materialName) > 0 || m_materialDescriptions.count(materialName) > 0;
+bool MaterialSystem::hasMaterialTemplate(const std::string& materialTemplateName) {
+  return m_materialMappings.count(materialTemplateName) > 0 || m_materialTemplates.count(materialTemplateName) > 0;
 }
 
 void MaterialSystem::setDefaultMaterial(const std::string& name) {
-  if (m_materialDescriptions.count(name) > 0) {
-    m_defaultMaterial = name;
+  if (m_materialTemplates.count(name) > 0) {
+    m_defaultMaterialTemplateName = name;
   } else {
     spdlog::warn("Setting default material '{}' failed, because material system failed to find a material description with that name.");
   }
 }
 
-void MaterialSystem::compileShader(Material& material, const izz::geo::MaterialDescription& materialDescription) {
-  // compile shader
+ShaderVariantInfo MaterialSystem::compileShader(const izz::geo::MaterialTemplate& materialTemplate) {
+  ShaderVariantInfo info;
   ShaderCompiler shaderCompiler;
-  if (materialDescription.isBinaryShader) {
-    material.programId = shaderCompiler.compileSpirvShader(materialDescription.vertexShader, materialDescription.fragmentShader);
+
+  if (materialTemplate.isBinaryShader) {
+    info.programId = shaderCompiler.compileSpirvShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
   } else {
-    material.programId = shaderCompiler.compileShader(materialDescription.vertexShader, materialDescription.fragmentShader);
+    info.programId = shaderCompiler.compileShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
   }
-  spdlog::debug("\tProgram id: {}\n\tShader program compiled successfully (vs: {} fs: {})", material.programId, materialDescription.vertexShader,
-                materialDescription.fragmentShader);
+  spdlog::debug("\tProgram id: {}\n\tShader program compiled successfully (vs: {} fs: {})", info.programId, materialTemplate.vertexShader,
+                materialTemplate.fragmentShader);
+
+  info.materialTemplateName = materialTemplate.name;
+  return info;
 }
 
 void MaterialSystem::allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::geo::TextureDescription>& textureDescriptions) {
@@ -147,20 +145,17 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
   }
 }
 
-void MaterialSystem::allocateBuffers(Material& material, const izz::geo::MaterialDescription& materialDescription) {
+void MaterialSystem::allocateBuffers(Material& material, const izz::geo::MaterialTemplate& materialTemplate) {
   static std::unordered_map<izz::geo::PropertyType, uint64_t> PropertyTypeSize = {
-      {izz::geo::PropertyType::BOOL, sizeof(GLint)},
-      {izz::geo::PropertyType::INT, sizeof(GLint)},
-      {izz::geo::PropertyType::FLOAT, sizeof(GLfloat)},
-      {izz::geo::PropertyType::FLOAT4, 4*sizeof(GLfloat)},
-      {izz::geo::PropertyType::FLOAT3, 3*sizeof(GLfloat)},
-      {izz::geo::PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
+      {izz::geo::PropertyType::BOOL, sizeof(GLint)},         {izz::geo::PropertyType::INT, sizeof(GLint)},
+      {izz::geo::PropertyType::FLOAT, sizeof(GLfloat)},      {izz::geo::PropertyType::FLOAT4, 4 * sizeof(GLfloat)},
+      {izz::geo::PropertyType::FLOAT3, 3 * sizeof(GLfloat)}, {izz::geo::PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
   };
 
   // allocate texture buffers based on texture descriptions.
-  allocateTextureBuffers(material, materialDescription.textures);
+  allocateTextureBuffers(material, materialTemplate.textures);
 
-  for (auto& [name, uboDescription] : materialDescription.uniformBuffers) {
+  for (auto& [name, uboDescription] : materialTemplate.uniformBuffers) {
     spdlog::debug("MaterialSystem: allocating uniform buffer on GPU");
     material.uniformBuffers[name] = createUniformBuffer(uboDescription, material);
   }
@@ -172,7 +167,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
   int globalUniformCount = 0;
   int scopedUniformCount = 0;
 
-  for (const auto& [name, uniform] : materialDescription.uniforms) {
+  for (const auto& [name, uniform] : materialTemplate.uniforms) {
     if (PropertyTypeSize.count(uniform.type) == 0) {
       spdlog::warn("Property {} ignored", uniform.name);
       continue;
@@ -204,7 +199,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
 
   // TODO: useProgram
 
-  for (const auto& [name, p] : materialDescription.uniforms) {
+  for (const auto& [name, p] : materialTemplate.uniforms) {
     // global uniforms should not contain a "."
     int dotPosition = name.find(".");
     bool isGlobalUniform = (dotPosition == std::string::npos);
@@ -217,7 +212,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         prop = uniforms->addBoolean(name, std::get<bool>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
-          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+          material.m_allUniforms[name.substr(dotPosition + 1)] = prop;
         }
         spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<int>(p.value));
         break;
@@ -226,7 +221,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         prop = uniforms->addInt(name, std::get<int>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
-          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+          material.m_allUniforms[name.substr(dotPosition + 1)] = prop;
         }
         spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<int>(p.value));
         break;
@@ -235,7 +230,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         prop = uniforms->addFloat(name, std::get<float>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
-          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+          material.m_allUniforms[name.substr(dotPosition + 1)] = prop;
         }
         spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<float>(p.value));
         break;
@@ -244,7 +239,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         prop = uniforms->addFloatArray(name, std::get<std::vector<float>>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
-          material.m_allUniforms[name.substr(dotPosition+1)] = prop;
+          material.m_allUniforms[name.substr(dotPosition + 1)] = prop;
         }
         break;
       }
@@ -256,51 +251,81 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
   }
 }
 
-izz::geo::MaterialDescription& MaterialSystem::resolveMaterialDescription(const std::string name) {
-  // 1. Map the material name to a different material name
-  auto materialName = m_materialMappings.count(name) > 0 ? m_materialMappings.at(name) : name;
+Material& MaterialSystem::createMaterial(const izz::geo::MaterialTemplate& materialTemplate) {
+  return createMaterial(materialTemplate.name);
+}
 
-  if (m_materialDescriptions.count(materialName) == 0) {
-    spdlog::warn("Material with name '{}' not found, using default material {}.", materialName, m_defaultMaterial);
+Material& MaterialSystem::createMaterial(std::string meshMaterialName, std::string instanceName) {
+  const auto& materialTemplate = getMaterialTemplate(meshMaterialName);
 
-    // use a default material, if the "mapped-to-material" is not defined.
-    materialName = m_defaultMaterial;
-
-    // if also the default material is not defined
-    if (m_materialDescriptions.count(m_defaultMaterial) == 0 && m_materialDescriptions.empty()) {
-      throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", materialName));
-    } else {
-      materialName = m_materialDescriptions.begin()->first;
-    }
+  // 1. Check material name for collisions.
+  if (!instanceName.empty() && m_createdMaterialNames.count(instanceName) > 0) {
+    throw std::runtime_error("Cannot create material with name that already exists.");
   }
 
-  return m_materialDescriptions.at(materialName);
-}
+  // 2. If shader is not compiled, then compile it.
+  if (!m_compiledMaterialTemplates.contains(materialTemplate.name)) {
+    ShaderVariantInfo info = compileShader(materialTemplate);
+    m_compiledShaderPrograms[info.programId] = info;
+    m_compiledMaterialTemplates[materialTemplate.name] = info.programId;
 
-Material& MaterialSystem::createMaterial(const std::string& name) {
-  auto& material = createMaterial(resolveMaterialDescription(name));
-  material.name = name;
-  return material;
-}
+    spdlog::debug("Compiled new program id {} from template {}", info.programId, materialTemplate.name);
+  }
 
-Material& MaterialSystem::createMaterial(const izz::geo::MaterialDescription& materialDescription) {
+  // 3. Get a reference to the compiled shader info object.
+  auto& shaderInfo = m_compiledShaderPrograms.at(m_compiledMaterialTemplates.at(materialTemplate.name));
+  shaderInfo.numberOfInstances++;
+
+  // 3. Create material and assign the material name.
   Material material;
-  material.name = materialDescription.vertexShader;
-  compileShader(material, materialDescription);
-
-  allocateBuffers(material, materialDescription);
-
   material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
-  m_createdMaterials[material.getId()] = material;
-  return m_createdMaterials.at(material.getId());
+  material.programId = shaderInfo.programId;
+  material.name = instanceName;
+
+  // 4. Generate a unique material name (if no material name is specified).
+  if (material.name.empty()) {
+    material.name = materialTemplate.name + "_" + std::to_string(shaderInfo.numberOfInstances-1);
+  }
+
+  // 5. Allocate unique buffers (i.e. texture buffers, uniform buffers, etc.).
+  allocateBuffers(material, materialTemplate);
+
+  // 6. Bookkeeping: register the material's id and material's name.
+  m_createdMaterials[material.id] = material;
+  m_createdMaterialNames[material.name] = material.id;
+
+  return m_createdMaterials.at(material.id);
+}
+
+const geo::MaterialTemplate& MaterialSystem::getMaterialTemplate(std::string meshMaterialName) {
+  // 1. Map the mesh material name (if available in the mapping table).
+  auto templateName = m_materialMappings.count(meshMaterialName) > 0 ? m_materialMappings.at(meshMaterialName) : meshMaterialName;
+
+  if (!m_materialTemplates.contains(templateName)) {
+    if (!m_materialTemplates.contains(m_defaultMaterialTemplateName)) {
+      throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", templateName));
+    }
+
+    templateName = m_defaultMaterialTemplateName;
+  }
+
+  return m_materialTemplates.at(templateName);
 }
 
 izz::gl::Material& MaterialSystem::makeDefaultMaterial() {
-  return createMaterial(m_defaultMaterial);
+  return createMaterial(m_defaultMaterialTemplateName);
 }
 
 const std::unordered_map<int, Material>& MaterialSystem::getCreatedMaterials() {
   return m_createdMaterials;
+}
+
+const ShaderVariantInfo& MaterialSystem::getShaderVariantInfo(const Material& material) const {
+  return m_compiledShaderPrograms.at(material.programId);
+}
+
+const std::unordered_map<int, ShaderVariantInfo>& MaterialSystem::getShaderPrograms() const{
+  return m_compiledShaderPrograms;
 }
 
 izz::gl::Material& MaterialSystem::getMaterialById(int id) {

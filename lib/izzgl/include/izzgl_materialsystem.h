@@ -18,6 +18,17 @@ namespace gl {
 
 class RenderSystem;
 
+/// @brief information about shader variant.
+struct ShaderVariantInfo {
+  /// Program id of the shader variant.
+  unsigned int programId{0};
+
+  /// Number of instances in the scene currently using this shader variant.
+  int numberOfInstances{0};
+
+  std::string materialTemplateName;
+};
+
 /**
  * The material system manages the material components in the scene.
  * It is responsible for reading the material definitions (json) file that list
@@ -33,40 +44,26 @@ class MaterialSystem {
 
   virtual ~MaterialSystem() = default;
 
-  void addMaterialDescription(std::string name, izz::geo::MaterialDescription md);
-
-  izz::geo::MaterialDescription& getMaterialDescription(const std::string& name);
-  izz::geo::MaterialDescription& resolveMaterialDescription(const std::string name);
-//  const MaterialDescription& getMaterialDescription(const std::string& name) const;
+  void addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate);
 
   /**
-   * @brief Creates a new material associated with the specified material name.
-   * A new material means that there is no relationship between different instances
-   * using the same material name.
-   *
-   * @details the material is loaded based on material name. There are four
-   * possibilities:
-   *  1. The provided material name is mapped to a different material name
-   *  (based on material mapping).
-   *  2. If the provided material name is not a key in the material map, a
-   *  direct material lookup is performed.
-   *  3. If not found, then the default material is used.
-   *  4. If there is no default material, an exception is thrown.
-   * @returns a unique ptr
-   */
-  Material& createMaterial(const std::string& name);
-
-  Material& createMaterial(const izz::geo::MaterialDescription& materialDescription);
-
-  /**
-   * Overloaded for R-values.
-   * @param materialDescription
+   * Creates a new material from template
+   * @param materialTemplate
    * @return
    */
-//  Material& createMaterial(const izz::geo::MaterialDescription&& materialDescription);
+  Material& createMaterial(const izz::geo::MaterialTemplate& materialTemplate);
+
+  /**
+   * Creates a new material with it's own set of data.
+   *
+   * @param meshMaterialName    [in] Name of the material.
+   * @param instanceName        [in] Optional. If specified and not empty, then the name should not collide with any material created before.
+   *                            Otherwise it throws an std::runtime_error.
+   * @return a reference to the created material.
+   */
+  Material& createMaterial(std::string meshMaterialName, std::string instanceName = "");
 
   Material& getMaterialById(int id);
-
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
@@ -87,7 +84,7 @@ class MaterialSystem {
    */
   void synchronizeTextures(RenderSystem& renderSystem);
 
-  bool hasMaterialDescription(const std::string& materialName);
+  bool hasMaterialTemplate(const std::string& materialTemplateName);
 
   void setDefaultMaterial(const std::string& name);
 
@@ -95,17 +92,32 @@ class MaterialSystem {
 
   const std::unordered_map<int, Material>& getCreatedMaterials();
 
- private:
+  /**
+   * @brief returns information about the shader variant corresponding to the specified material.
+   * @param material [in]   Material to request shader variant info.
+   * @return shader variant info struct.
+   */
+  const ShaderVariantInfo& getShaderVariantInfo(const Material& material) const;
+
+  const std::unordered_map<int, ShaderVariantInfo>& getShaderPrograms() const;
 
   /**
+   * Looks up the corresponding material template, corresponding to the material template name.
+   * The name of the material should be present in the materials.json file.
+   * @param materialTemplateName The name of a material template, or definition, which should be present in the materials.json file.
+   * @returns a reference to the material template.
+   */
+  const geo::MaterialTemplate& getMaterialTemplate(std::string materialTemplateName);
+
+ private:
+  /**
    * Compiles the shaders referred to by the description, and fills the material with the program id.
-   * @param material                [out] Reference to material that will be filled with program id (on success).
-   * @param materialDescription     [in]  Description of the material, containing the paths to the shader files.
+   * @param materialTemplate     [in]  Description of the material, containing the paths to the shader files.
    * @throws std::runtime_error     If shader compilation fails.
    */
-  void compileShader(Material& material, const izz::geo::MaterialDescription& materialDescription);
+  ShaderVariantInfo compileShader(const izz::geo::MaterialTemplate& materialTemplate);
 
-  void allocateBuffers(Material& material, const izz::geo::MaterialDescription& materialDescription);
+  void allocateBuffers(Material& material, const izz::geo::MaterialTemplate& materialTemplate);
   void allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::geo::TextureDescription>& textureDescriptions);
 
   UniformBuffer createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& m);
@@ -117,26 +129,24 @@ class MaterialSystem {
   std::unordered_map<std::string, std::unique_ptr<izz::ufm::UniformBlockManager>> m_uniformBlockManagers;
 
   /// @brief Contains the material definitions that are loaded from file.
-  std::unordered_map<std::string, izz::geo::MaterialDescription> m_materialDescriptions;
-
-  /// materials instances are instanced from an existing material definition.
-  /// similar to how classes and objects work.
-//  std::unordered_map<std::string, MaterialDescription> m_materialInstances;
+  std::unordered_map<std::string, izz::geo::MaterialTemplate> m_materialTemplates;
 
   /// @brief Fbx specific material names are mapped to canonical material names
   /// that are defined in a material definition.
   std::unordered_map<std::string, std::string> m_materialMappings;
 
-  /// @brief The materials that are created. Maps material id to material.
+  /// @brief The materials that have been created. Maps material id to material.
   std::unordered_map<int, Material> m_createdMaterials;
+  std::unordered_map<std::string, int> m_createdMaterialNames;
 
-  std::string m_defaultMaterial{""};
+  /// @brief maps shader program id to a shader variant information struct.
+  std::unordered_map<int, ShaderVariantInfo> m_compiledShaderPrograms;
 
-  void readMaterialInstances(nlohmann::json& json);
-  void readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json& json);
+  /// @brief Maps template name to shader variant (program id).
+  std::unordered_map<std::string, int> m_compiledMaterialTemplates;
 
-  // @see IRenderSubsystem
-  void onRender(entt::entity entity);
+
+  std::string m_defaultMaterialTemplateName{""};
 };
 
 }  // namespace gl

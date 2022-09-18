@@ -8,7 +8,7 @@
 #include <assimp/Importer.hpp>
 #include "geo_camera.h"
 #include "geo_light.h"
-#include "geo_materialdescription.h"
+#include "geo_materialtemplate.h"
 #include "geo_mesh.h"
 #include "geo_meshinstance.h"
 #include "geo_scene.h"
@@ -60,7 +60,7 @@ std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const l
   return td;
 }
 
-void SceneLoader::readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::geo::MaterialDescription& material) {
+void SceneLoader::readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::geo::MaterialTemplate& material) {
   std::array<aiTextureType, 4> textureTypes{aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_SPECULAR, aiTextureType_DIFFUSE_ROUGHNESS};
   for (auto aiTextureType : textureTypes) {
     if (auto pTextureDescriptions = readAiTexture(scene, aiTextureType, aiMaterial_p)) {
@@ -74,10 +74,7 @@ void SceneLoader::readMaterials(const aiScene* scene_p, lsw::geo::Scene& scene) 
     aiMaterial* aiMaterial = scene_p->mMaterials[i];
 
     std::string name = aiMaterial->GetName().C_Str();
-//    izz::geo::MaterialDescription materialDescription = m_materialSystem->getMaterialDescription(name);
-    izz::geo::MaterialDescription materialDescription = m_materialSystem->resolveMaterialDescription(name);
-    //    auto material = m_resourceManager->getRawResourceManager()->createResource<geo::Material>(name);
-    //    (*material)->name = mat_p->GetName().C_Str();
+    izz::geo::MaterialTemplate materialDescription = m_materialSystem->getMaterialTemplate(name);
 
     spdlog::debug("Read material {} -- (vertex shader: {})", name, materialDescription.vertexShader);
 

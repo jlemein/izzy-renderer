@@ -53,8 +53,19 @@ struct UniformDescription {
   int length {1};
 };
 
-struct MaterialDescription {
-  //  std::string name;               /// @brief Name used for instantiating a material via MaterialSystem::createMaterial()
+/**
+ * A material template represents the definition, description or blueprint of a shader object.
+ * It therefore has all information to instantiate a shader. This means:
+ * - it knows the vertex, fragment shader and potential other shader files.
+ * - it knows the definition of the shader's uniform attributes (for uniform blocks and textures).
+ * - it might have default values for the uniform attributes.
+ *
+ * A material template is used to instantiate a concrete @see Material object. When a material
+ * gets instantiated, only then the shader files get compiled.
+ * It is very similar to how classes and objects work. The template is the class, the material is the object.
+ */
+struct MaterialTemplate {
+  std::string name {"<unnamed>"};
   bool isBinaryShader{false};      /// @brief Are the shader files in binary format (e.g. pre-compiled SPIRV format)?
   std::string vertexShader{""};    /// @brief Path to the vertex GLSL shader file.
   std::string geometryShader{""};  /// @brief Path to the vertex GLSL shader file.
@@ -78,24 +89,6 @@ struct MaterialDescription {
   std::unordered_map<std::string, UniformBufferDescription> uniformBuffers;
 };
 
-//struct MaterialInstanceDescription {
-//  const MaterialDescription* pMaterialDescription {nullptr};
-//
-//  // fallback values
-//  glm::vec4 diffuseColor;
-//  glm::vec4 specularColor;
-//  glm::vec4 ambientColor;
-//
-//  std::unordered_map<std::string, TextureDescription> textures {};
-//
-//  /// @brief This map contains information about individual uniform parameters (e.g. their data types and default values).
-//  /// @details Note that all uniform parameters, both part of a scoped/named uniform block, as well as global or unscoped uniform parameters are added
-//  /// together in this map.
-//  std::unordered_map<std::string, UniformDescription> uniforms {};
-//
-//  /// @brief This map contains information about the named uniform buffer objects in the shader (such as the size and data pointers).
-//  std::unordered_map<std::string, UniformBufferDescription> uniformBuffers {};
-//};
 
 }  // namespace geo
 }  // namespace izz
