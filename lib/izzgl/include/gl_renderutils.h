@@ -5,7 +5,7 @@
 
 #include <gl_renderable.h>
 
-namespace lsw {
+namespace izz {
 namespace geo {
 struct Curve;
 struct Mesh;
@@ -27,7 +27,7 @@ struct RenderUtils {
    * @param [in]  curve             Curve data to be moved to GPU.
    * @param [out] bufferedMeshData  Mesh data buffers that will be filled.
    */
-  static void FillBufferedMeshData(const lsw::geo::Curve& curve, MeshBuffer& bufferedMeshData);
+  static void FillBufferedMeshData(const izz::geo::Curve& curve, MeshBuffer& bufferedMeshData);
 };
 
 }  // namespace gl

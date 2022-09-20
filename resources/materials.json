@@ -80,60 +80,23 @@
       "fragment_shader": "shaders/postprocess/grayscale.frag"
     },
     {
-      "name": "DeferredStandard",
-      "vertex_shader": "shaders/experimental/deferred.vert",
-      "geometry_shader": "",
-      "fragment_shader": "shaders/experimental/deferred.frag",
-      "properties":{
-        "ModelViewProjection": {}
-      },
-      "textures": {
-        "gbuffer_position": {
-          "type": "texture"
-        },
-        "gbuffer_normal": {
-          "type": "texture"
-        },
-        "gbuffer_tangent": {
-          "type": "texture"
-        },
-        "gbuffer_albedospec": {
-          "type": "texture"
-        }
-      }
-    },
-    {
       "name": "DeferredStandard_Color",
-      "vertex_shader": "shaders/experimental/deferred.color.vert",
+      "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/experimental/deferred.color.frag",
+      "fragment_shader": "shaders/deferred_color.frag",
       "properties":{
         "ModelViewProjection": {},
         "AlbedoSpecularity": {
           "albedo": [1.0, 1.0, 1.0, 0.0],
           "specularity": 0.5
         }
-      },
-      "textures": {
-        "gbuffer_position": {
-          "type": "texture"
-        },
-        "gbuffer_normal": {
-          "type": "texture"
-        },
-        "gbuffer_tangent": {
-          "type": "texture"
-        },
-        "gbuffer_albedospec": {
-          "type": "texture"
-        }
       }
     },
     {
       "name": "BlinnPhongDeferred",
-      "vertex_shader": "shaders/experimental/blinnphong_deferred.vert",
+      "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/experimental/blinnphong_deferred.frag",
+      "fragment_shader": "shaders/deferred_blinnphong.frag",
       "properties":{
         "ModelViewProjection": {},
         "BlinnPhong": {
@@ -159,7 +122,7 @@
     },
     {
       "name": "Deferred_VisualizeGBuffer",
-      "vertex_shader": "shaders/experimental/deferred_visualize_gbuffer.vert",
+      "vertex_shader": "shaders/passthrough.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/experimental/deferred_visualize_gbuffer.frag",
       "properties":{
@@ -168,9 +131,9 @@
     },
     {
       "name": "DeferredLightingPass",
-      "vertex_shader": "shaders/experimental/deferred_lighting.vert",
+      "vertex_shader": "shaders/passthrough.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/experimental/deferred_lighting.frag",
+      "fragment_shader": "shaders/deferred_lighting.frag",
       "properties": {
         "DeferredLighting": {}
       },
@@ -179,9 +142,6 @@
           "type": "texture"
         },
         "gbuffer_normal": {
-          "type": "texture"
-        },
-        "gbuffer_tangent": {
           "type": "texture"
         },
         "gbuffer_albedospec": {

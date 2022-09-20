@@ -6,7 +6,7 @@
 #include <ecsu_relationshipsorter.h>
 #include <entt/entt.hpp>
 
-using namespace lsw::ecs;
+using namespace izz::ecs;
 
 //
 // Created by jlemein on 10-11-20.

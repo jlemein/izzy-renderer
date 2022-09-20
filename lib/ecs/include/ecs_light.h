@@ -2,12 +2,11 @@
 // Created by jlemein on 11-01-21.
 //
 
-#ifndef GLVIEWER_ECS_LIGHT_H
-#define GLVIEWER_ECS_LIGHT_H
+#pragma once
 
 #include <glm/glm.hpp>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 struct AmbientLight {
@@ -30,8 +29,12 @@ struct DirectionalLight {
   glm::vec3 color {1.0F, 1.0, 1.0F};
 };
 
-struct SpotLight {};
+struct SpotLight {
+  float intensity{1.F};
+  glm::vec3 color {1.F};
+  float umbra = M_PI_4; // 45 degrees
+  float penumbra = M_PI/6.0F; // 30 degrees
+};
 
 }  // namespace ecs
 }  // namespace lsw
-#endif  // GLVIEWER_ECS_LIGHT_H

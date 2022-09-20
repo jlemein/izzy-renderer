@@ -11,7 +11,7 @@
 #include <vector>
 #include "geo_transform.h"
 
-namespace lsw {
+namespace izz {
 namespace geo {
 struct Scene;
 }  // namespace geo
@@ -43,7 +43,7 @@ class SceneLoader {
    * @param path File path to the scene file.
    * @return A unique pointer to the scene file.
    */
-  std::unique_ptr<lsw::geo::Scene> loadScene(std::filesystem::path path);
+  std::unique_ptr<izz::geo::Scene> loadScene(std::filesystem::path path);
 
  private:
   /**
@@ -51,35 +51,35 @@ class SceneLoader {
    * @param aiScene Assimp scene
    * @param scene Scene that will contain the read materials from assimp scene.
    */
-  void readMaterials(const aiScene* aiScene, lsw::geo::Scene& scene);
+  void readMaterials(const aiScene* aiScene, izz::geo::Scene& scene);
 
   /**
    * Reads meshes from assimp scene, and adds the meshes to the scene reference.
    * @param aiScene Assimp scene
    * @param scene Scene that will contain the read meshes from assimp scene.
    */
-  void readMeshes(const aiScene* aiScene, lsw::geo::Scene& scene);
+  void readMeshes(const aiScene* aiScene, izz::geo::Scene& scene);
 
   /**
    * Reads hierarchy from assimp scene, and adds the hierarchy to the scene reference.
    * @param aiScene Assimp scene
    * @param scene Scene that will contain the read hierarchy from assimp scene.
    */
-  void readHierarchy(const aiScene* aiScene, lsw::geo::Scene& scene);
+  void readHierarchy(const aiScene* aiScene, izz::geo::Scene& scene);
 
   /**
    * Reads lights from assimp scene, and adds the lights to the scene reference.
    * @param aiScene Assimp scene
    * @param scene Scene that will contain the read lights from assimp scene.
    */
-  void readLights(const aiScene* aiScene, lsw::geo::Scene& scene);
+  void readLights(const aiScene* aiScene, izz::geo::Scene& scene);
 
   /**
    * Reads cameras from assimp scene, and adds the cameras to the scene reference.
    * @param aiScene Assimp scene
    * @param scene Scene that will contain the read cameras from assimp scene.
    */
-  void readCameras(const aiScene* aiScene, lsw::geo::Scene& scene);
+  void readCameras(const aiScene* aiScene, izz::geo::Scene& scene);
 
   /**
    * @brief Reads the textures associated to the material. If material system
@@ -89,9 +89,9 @@ class SceneLoader {
    * @param aiMaterial
    * @param material
    */
-  void readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial, izz::geo::MaterialTemplate& material);
+  void readTextures(const izz::geo::Scene& scene, const aiMaterial* aiMaterial, izz::geo::MaterialTemplate& material);
 
-  std::unique_ptr<izz::geo::TextureDescription> readAiTexture(const lsw::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial) const;
+  std::unique_ptr<izz::geo::TextureDescription> readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial) const;
 
   std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};

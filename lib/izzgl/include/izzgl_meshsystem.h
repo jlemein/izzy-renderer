@@ -6,7 +6,7 @@
 #include <izz.h>
 #include <izzgl_meshbuffer.h>
 
-namespace lsw {
+namespace izz {
 namespace geo {
 struct Mesh;
 }
@@ -17,7 +17,7 @@ namespace gl {
 
 class MeshSystem {
  public:
-  MeshBuffer& createMeshBuffer(const lsw::geo::Mesh& mesh);
+  MeshBuffer& createMeshBuffer(const izz::geo::Mesh& mesh);
 
   inline MeshBuffer& getMeshBuffer(MeshBufferId id) {
     return m_allocatedBuffers.at(id);

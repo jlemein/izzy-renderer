@@ -21,13 +21,13 @@
 #include "gui_iguiwindow.h"
 
 using namespace std;
-using namespace lsw;
+using namespace izz;
 using namespace geo;
-using lsw::core::Util;
+using izz::core::Util;
 using namespace glm;
 using namespace izz;
 
-using lsw::wsp::Workspace;
+using izz::wsp::Workspace;
 
 namespace {
 #ifndef NDEBUG

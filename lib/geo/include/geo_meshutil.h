@@ -5,7 +5,7 @@
 
 #include <glm/glm.hpp>
 
-namespace lsw {
+namespace izz {
 namespace geo {
 
 class Mesh;

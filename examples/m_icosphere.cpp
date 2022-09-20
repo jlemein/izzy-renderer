@@ -12,9 +12,9 @@
 #include <iostream>
 
 using namespace std;
-using namespace lsw;
+using namespace izz;
 using namespace geo;
-using lsw::core::Util;
+using izz::core::Util;
 using namespace glm;
 
 std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char* argv[]) {

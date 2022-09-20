@@ -62,7 +62,7 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
   m_uniformBlockManagers[izz::ufm::BlinnPhong::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongManager>();
   m_uniformBlockManagers[izz::ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongSimpleManager>();
   m_uniformBlockManagers[izz::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<izz::ufm::MvpManager>();
-  m_uniformBlockManagers[izz::ufm::DeferredLighting::PARAM_NAME] = std::make_unique<izz::ufm::DeferredLightingManager>();
+  m_uniformBlockManagers[izz::ufm::DeferredLighting::BUFFER_NAME] = std::make_unique<izz::ufm::DeferredLightingManager>();
 }
 
 void MaterialSystem::addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate) {

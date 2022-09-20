@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
 #include <gtest/gtest.h>
-using namespace lsw::ecs;
+using namespace izz::ecs;
 
 class TransformSystemTest : public ::testing::Test {};
 

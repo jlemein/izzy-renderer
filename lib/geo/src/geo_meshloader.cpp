@@ -13,7 +13,7 @@
 #include <assimp/postprocess.h>
 
 using namespace std;
-using namespace lsw::geo;
+using namespace izz::geo;
 
 void MeshLoader::loadSceneFile(const std::string &name, Mesh& mesh) {
   Assimp::Importer importer;

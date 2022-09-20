@@ -7,8 +7,8 @@
 #include <geo_shapeutil.h>
 #include <glm/gtx/quaternion.hpp>
 
-using namespace lsw;
-using namespace lsw::geo;
+using namespace izz;
+using namespace izz::geo;
 
 void MeshTransform::ScaleToUniformSize(Mesh& mesh, float size) {
   auto bb = ShapeUtil::computeBoundingBox(mesh);

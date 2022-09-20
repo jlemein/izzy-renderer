@@ -1,10 +1,5 @@
 #version 460
 
-layout(std140, binding=0)
-uniform ColorBlock {
-    vec4 uColor;
-};
-
 layout(std140, binding = 1)
 uniform ModelViewProjection {
     mat4 model;
@@ -25,12 +20,10 @@ layout(location = 3) out vec3 out_tangent;
 
 void main() {
     mat4 MVP = proj * view * model;
-//    mat4 invTranspose = inverse(transpose(model));
+    vec3 N = normalize(mat3(model) * aNormal);
+    vec3 T = normalize(vec3(model * vec4(aTangent, 0.0)));
 
-    vec4 N = normalize(model * vec4(aNormal, 0.0));
-    vec4 T = normalize(model * vec4(aTangent, 0.0));
-
-    out_position = vec3(model * vec4(aPos, 1.0));
+    out_position = vec3(model * vec4(aPos, 1.0)); // world space coordinate
     out_normal = N.xyz;
     out_tangent = T.xyz;
     out_uv = aUv;

@@ -5,7 +5,7 @@
 #include <ecsu_relationshipsorter.h>
 #include <iostream>
 
-using namespace lsw::ecsu;
+using namespace izz::ecsu;
 
 bool RelationshipSorter::Compare(const entt::registry& registry, const entt::entity lhs, const entt::entity rhs) {
   const auto &clhs = registry.get<ecs::Relationship>(lhs);

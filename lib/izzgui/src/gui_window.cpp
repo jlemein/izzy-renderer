@@ -20,7 +20,7 @@
 #include <vector>
 
 using namespace std;
-using namespace lsw;
+using namespace izz;
 using namespace izz::gui;
 
 namespace {
@@ -78,7 +78,7 @@ void Window::initialize() {
   m_displayDetails.shadingLanguage = "glsl";
   m_displayDetails.shadingLanguageVersion = "#version 130";
 
-  m_inputSystem = std::make_shared<lsw::io::InputSystem>(window, m_displayDetails.windowWidth, m_displayDetails.windowHeight);
+  m_inputSystem = std::make_shared<izz::io::InputSystem>(window, m_displayDetails.windowWidth, m_displayDetails.windowHeight);
   m_genericInputListener = std::make_shared<WindowInputListener>(window);
   m_inputSystem->registerInputListener(m_genericInputListener);
   m_firstPersonSystem = std::make_shared<ecs::FirstPersonMovementSystem>(m_registry, m_inputSystem.get());

@@ -17,9 +17,9 @@
 #include <wsp_workspace.h>
 
 using namespace std;
-using namespace lsw;
+using namespace izz;
 using namespace geo;
-using lsw::core::Util;
+using izz::core::Util;
 
 std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char* argv[]) {
   const std::string PROGRAM_NAME = "parallax";

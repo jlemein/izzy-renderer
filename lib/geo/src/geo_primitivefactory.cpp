@@ -5,8 +5,8 @@
 #include <geo_mesh.h>
 #include <geo_meshutil.h>
 #include <geo_primitivefactory.h>
-using namespace lsw;
-using namespace lsw::geo;
+using namespace izz;
+using namespace izz::geo;
 
 Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float depth) {
   Mesh mesh{.name = name};

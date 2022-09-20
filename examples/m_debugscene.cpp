@@ -27,12 +27,12 @@
 #include <cxxopts.hpp>
 #include <memory>
 using namespace std;
-using namespace lsw;
 using namespace izz;
-using namespace lsw::geo;
-using lsw::core::Util;
+using namespace izz;
+using namespace izz::geo;
+using izz::core::Util;
 using namespace glm;
-using lsw::wsp::Workspace;
+using izz::wsp::Workspace;
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 

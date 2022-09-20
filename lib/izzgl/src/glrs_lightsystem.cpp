@@ -12,7 +12,7 @@ using namespace izz;
 using namespace izz::gl;
 
 namespace {
-void updatePointLightVisualization(Material& material, lsw::ecs::PointLight light) {
+void updatePointLightVisualization(Material& material, izz::ecs::PointLight light) {
 //  material.setUniformVec4("color", glm::vec4(light.color, 0.0));
 //  material.setUniformFloat("radius", light.radius);
   material.setUniformFloat("intensity", light.intensity);
@@ -23,9 +23,9 @@ LightSystem::LightSystem(entt::registry& registry, std::shared_ptr<MaterialSyste
   : m_registry{registry}, m_materialSystem{materialSystem} {}
 
 int LightSystem::getActiveLightCount() const {
-  auto pointLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::PointLight>();
-  auto dirLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::DirectionalLight>();
-  auto ambientLights = m_registry.view<lsw::ecs::AmbientLight>();
+  auto pointLights = m_registry.view<izz::ecs::Transform, izz::ecs::PointLight>();
+  auto dirLights = m_registry.view<izz::ecs::Transform, izz::ecs::DirectionalLight>();
+  auto ambientLights = m_registry.view<izz::ecs::AmbientLight>();
 
   return pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 }
@@ -36,10 +36,10 @@ void LightSystem::setDefaultPointLightMaterial(int materialId) {
 
 void LightSystem::initialize() {
   spdlog::debug("Initializing light system");
-  for (auto&& [e, light, mesh] : m_registry.view<lsw::ecs::PointLight, lsw::geo::Mesh>().each()) {
+  for (auto&& [e, light, mesh] : m_registry.view<izz::ecs::PointLight, izz::geo::Mesh>().each()) {
     if (!m_registry.all_of<izz::gl::Material>(e)) {
       if (m_lightMaterial == -1) {
-        auto name = m_registry.get<lsw::ecs::Name>(e).name;
+        auto name = m_registry.get<izz::ecs::Name>(e).name;
         spdlog::error("Cannot add a material for point light '{}'. No light material set", name);
       }
       else {
@@ -89,9 +89,9 @@ void LightSystem::initialize() {
 
 void LightSystem::updateLightProperties() {
   //
-  auto pointLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::PointLight>();
-  auto dirLights = m_registry.view<lsw::ecs::Transform, lsw::ecs::DirectionalLight>();
-  auto ambientLights = m_registry.view<lsw::ecs::AmbientLight>();
+  auto pointLights = m_registry.view<izz::ecs::Transform, izz::ecs::PointLight>();
+  auto dirLights = m_registry.view<izz::ecs::Transform, izz::ecs::DirectionalLight>();
+  auto ambientLights = m_registry.view<izz::ecs::AmbientLight>();
   auto numLights = pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
 
   int numberOfPointLights = std::clamp(static_cast<unsigned int>(pointLights.size_hint()), 0U, 4U);
@@ -107,8 +107,8 @@ void LightSystem::updateLightProperties() {
     if (i++ > numberOfDirectionalLights) {
       break;
     }
-    const auto& light = dirLights.get<lsw::ecs::DirectionalLight>(e);
-    const auto& transform = dirLights.get<lsw::ecs::Transform>(e);
+    const auto& light = dirLights.get<izz::ecs::DirectionalLight>(e);
+    const auto& transform = dirLights.get<izz::ecs::Transform>(e);
 
     m_forwardLighting.directionalLight.direction = transform.worldTransform[3];
     m_forwardLighting.directionalLight.color = glm::vec4(light.color, 0.0F);
@@ -121,7 +121,7 @@ void LightSystem::updateLightProperties() {
     if (i++ > numberOfAmbientLights) {
       break;
     }
-    auto& light = ambientLights.get<lsw::ecs::AmbientLight>(e);
+    auto& light = ambientLights.get<izz::ecs::AmbientLight>(e);
     m_forwardLighting.ambientLight.color = glm::vec4(light.color, 0.0F);
     m_forwardLighting.ambientLight.intensity = light.intensity;
   }
@@ -132,8 +132,8 @@ void LightSystem::updateLightProperties() {
     if (i > numberOfPointLights) {
       break;
     }
-    const auto& light = pointLights.get<lsw::ecs::PointLight>(e);
-    const auto& transform = pointLights.get<lsw::ecs::Transform>(e);
+    const auto& light = pointLights.get<izz::ecs::PointLight>(e);
+    const auto& transform = pointLights.get<izz::ecs::Transform>(e);
 
     auto& ubo = m_forwardLighting.pointLights[i++];
     ubo.linearAttenuation = light.linearAttenuation;

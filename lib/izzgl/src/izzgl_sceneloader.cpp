@@ -26,7 +26,7 @@ SceneLoader::SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, 
   : m_textureSystem{textureSystem}
   , m_materialSystem{materialSystem} {}
 
-std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const lsw::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial_p) const {
+std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial_p) const {
   std::unique_ptr<izz::geo::TextureDescription> td = nullptr;
 
   if (aiMaterial_p->GetTextureCount(ttype) > 0) {
@@ -60,7 +60,7 @@ std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const l
   return td;
 }
 
-void SceneLoader::readTextures(const lsw::geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::geo::MaterialTemplate& material) {
+void SceneLoader::readTextures(const izz::geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::geo::MaterialTemplate& material) {
   std::array<aiTextureType, 4> textureTypes{aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_SPECULAR, aiTextureType_DIFFUSE_ROUGHNESS};
   for (auto aiTextureType : textureTypes) {
     if (auto pTextureDescriptions = readAiTexture(scene, aiTextureType, aiMaterial_p)) {
@@ -69,7 +69,7 @@ void SceneLoader::readTextures(const lsw::geo::Scene& scene, const aiMaterial* a
   }
 }
 
-void SceneLoader::readMaterials(const aiScene* scene_p, lsw::geo::Scene& scene) {
+void SceneLoader::readMaterials(const aiScene* scene_p, izz::geo::Scene& scene) {
   for (int i = 0; i < scene_p->mNumMaterials; ++i) {
     aiMaterial* aiMaterial = scene_p->mMaterials[i];
 
@@ -102,15 +102,15 @@ void SceneLoader::readMaterials(const aiScene* scene_p, lsw::geo::Scene& scene) 
   }
 }
 
-void SceneLoader::readMeshes(const aiScene* scene_p, lsw::geo::Scene& scene) {
+void SceneLoader::readMeshes(const aiScene* scene_p, izz::geo::Scene& scene) {
   scene.m_meshes.reserve(scene_p->mNumMeshes);
 
   for (unsigned int n = 0U; n < scene_p->mNumMeshes; ++n) {
-    auto mesh = std::make_shared<lsw::geo::Mesh>();
+    auto mesh = std::make_shared<izz::geo::Mesh>();
     const aiMesh* mesh_p = scene_p->mMeshes[n];
 
     mesh->name = mesh_p->mName.C_Str();
-    mesh->polygonMode = lsw::geo::PolygonMode::kTriangles;
+    mesh->polygonMode = izz::geo::PolygonMode::kTriangles;
 
 //    mesh->materialId = scene.m_materials[mesh_p->mMaterialIndex];
     mesh->materialId = mesh_p->mMaterialIndex; // refers to local material descriptions
@@ -146,8 +146,8 @@ void SceneLoader::readMeshes(const aiScene* scene_p, lsw::geo::Scene& scene) {
   }
 }
 
-void SceneLoader::readHierarchy(const aiScene* scene_p, lsw::geo::Scene& scene) {
-  using ChildParent = std::pair<aiNode*, std::shared_ptr<lsw::geo::SceneNode>>;
+void SceneLoader::readHierarchy(const aiScene* scene_p, izz::geo::Scene& scene) {
+  using ChildParent = std::pair<aiNode*, std::shared_ptr<izz::geo::SceneNode>>;
   std::deque<ChildParent> queue;
 
   queue.push_back(std::make_pair<>(scene_p->mRootNode, nullptr));
@@ -159,7 +159,7 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, lsw::geo::Scene& scene) 
     auto [node_p, parent_p] = queue.front();
     queue.pop_front();
 
-    auto node = std::make_shared<lsw::geo::SceneNode>();
+    auto node = std::make_shared<izz::geo::SceneNode>();
     if (parent_p != nullptr) {
       parent_p->children.push_back(node);
     } else {
@@ -175,7 +175,7 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, lsw::geo::Scene& scene) 
     // loops through all mesh instances of this node
     node->meshInstances.reserve(node_p->mNumMeshes);
     for (int i = 0U; i < node_p->mNumMeshes; ++i) {
-      auto meshInstance = std::make_shared<lsw::geo::MeshInstance>();
+      auto meshInstance = std::make_shared<izz::geo::MeshInstance>();
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
 
@@ -202,11 +202,11 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, lsw::geo::Scene& scene) 
   }
 }
 
-lsw::geo::Scene::SceneNodeIterable lsw::geo::Scene::getSceneNodesByName(const std::string& name) {
+izz::geo::Scene::SceneNodeIterable izz::geo::Scene::getSceneNodesByName(const std::string& name) {
   return m_sceneNodes.count(name) > 0 ? m_sceneNodes.at(name) : SceneNodeIterable{};
 }
 
-void lsw::geo::Scene::registerSceneNode(std::shared_ptr<lsw::geo::SceneNode> node) {
+void izz::geo::Scene::registerSceneNode(std::shared_ptr<izz::geo::SceneNode> node) {
   m_sceneNodes[node->name].push_back(node);
 
   if (m_sceneNodes.at(node->name).size() > 1) {
@@ -214,11 +214,11 @@ void lsw::geo::Scene::registerSceneNode(std::shared_ptr<lsw::geo::SceneNode> nod
   }
 }
 
-void SceneLoader::readCameras(const aiScene* scene_p, lsw::geo::Scene& scene) {
+void SceneLoader::readCameras(const aiScene* scene_p, izz::geo::Scene& scene) {
   for (int i = 0; i < scene_p->mNumCameras; ++i) {
     auto aiCamera_p = scene_p->mCameras[i];
 
-    auto camera = std::make_shared<lsw::geo::Camera>();
+    auto camera = std::make_shared<izz::geo::Camera>();
     camera->name = aiCamera_p->mName.C_Str();
     camera->fovx = aiCamera_p->mHorizontalFOV;
     camera->aspect = aiCamera_p->mAspect;
@@ -243,10 +243,10 @@ void SceneLoader::readCameras(const aiScene* scene_p, lsw::geo::Scene& scene) {
   }
 }
 
-void SceneLoader::readLights(const aiScene* aiScene, lsw::geo::Scene& scene) {
+void SceneLoader::readLights(const aiScene* aiScene, izz::geo::Scene& scene) {
   for (int i = 0; i < aiScene->mNumLights; ++i) {
     auto aiLight = aiScene->mLights[i];
-    auto light = std::make_shared<lsw::geo::Light>();
+    auto light = std::make_shared<izz::geo::Light>();
     light->name = std::string{aiLight->mName.C_Str()};
 
     // diffuse color encodes wattage
@@ -266,21 +266,21 @@ void SceneLoader::readLights(const aiScene* aiScene, lsw::geo::Scene& scene) {
 
     switch (aiLight->mType) {
       case aiLightSource_POINT:
-        light->type = lsw::geo::Light::Type::POINT_LIGHT;
+        light->type = izz::geo::Light::Type::POINT_LIGHT;
         break;
 
       case aiLightSource_DIRECTIONAL:
-        light->type = lsw::geo::Light::Type::DIRECTIONAL_LIGHT;
+        light->type = izz::geo::Light::Type::DIRECTIONAL_LIGHT;
         light->position = glm::vec3(aiLight->mDirection.x, aiLight->mDirection.y, aiLight->mDirection.z);
         light->position *= -1;
         break;
 
       case aiLightSource_AMBIENT:
-        light->type = lsw::geo::Light::Type::AMBIENT_LIGHT;
+        light->type = izz::geo::Light::Type::AMBIENT_LIGHT;
         break;
 
       case aiLightSource_SPOT:
-        light->type = lsw::geo::Light::Type::SPOT_LIGHT;
+        light->type = izz::geo::Light::Type::SPOT_LIGHT;
         break;
 
       default:
@@ -302,15 +302,15 @@ void SceneLoader::readLights(const aiScene* aiScene, lsw::geo::Scene& scene) {
   }
 }
 
-void readTextures(const aiScene* scene_p, lsw::geo::Scene& scene) {
+void readTextures(const aiScene* scene_p, izz::geo::Scene& scene) {
   for (int i = 0; i < scene_p->mNumTextures; ++i) {
     auto aiTexture = scene_p->mTextures[i];
     std::cerr << "Could not load texture: " << aiTexture->mFilename.C_Str() << ": not yet implemented\n";
   }
 }
 
-std::unique_ptr<lsw::geo::Scene> SceneLoader::loadScene(std::filesystem::path path) {
-  lsw::geo::Scene scene;
+std::unique_ptr<izz::geo::Scene> SceneLoader::loadScene(std::filesystem::path path) {
+  izz::geo::Scene scene;
   scene.m_path = path;
   scene.m_dir = scene.m_path.parent_path();
 
@@ -332,5 +332,5 @@ std::unique_ptr<lsw::geo::Scene> SceneLoader::loadScene(std::filesystem::path pa
   readLights(aiScene_p, scene);
   readCameras(aiScene_p, scene);
 
-  return std::make_unique<lsw::geo::Scene>(std::move(scene));
+  return std::make_unique<izz::geo::Scene>(std::move(scene));
 }

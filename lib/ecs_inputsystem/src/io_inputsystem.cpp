@@ -7,7 +7,7 @@
 #include <io_keyconstants.h>
 
 #include <unordered_map>
-using namespace lsw::io;
+using namespace izz::io;
 
 namespace {
 std::unordered_map<Key, int> toGlfwKey = {

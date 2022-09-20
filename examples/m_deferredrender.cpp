@@ -9,7 +9,6 @@
 #include <izzgl_materialsystem.h>
 #include <izzgl_rendersystem.h>
 #include "anim_localrotation.h"
-#include "core_util.h"
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
 #include "ecs_transformutil.h"
@@ -37,12 +36,11 @@
 #include "gui_mainmenu.h"
 #include <izz_izzy.h>
 using namespace std;
-using namespace lsw;
 using namespace izz;
-using namespace lsw::geo;
+using namespace izz;
+using namespace izz::geo;
 using namespace glm;
-using lsw::core::Util;
-using lsw::wsp::Workspace;
+using izz::wsp::Workspace;
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
@@ -80,8 +78,21 @@ void setupSystems() {
 
 void setupLights() {
   // Sun
-  izzy->sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+  auto sun = izzy->sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+  sun.get<ecs::DirectionalLight>().intensity = 0.1F;
+
+  // Ambient light
+  auto ambientLight1 = izzy->sceneGraph->makeAmbientLight("Ambient", glm::vec3(0.1F, 0.0F, 0.2F));
+  ambientLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+
 //
+  // Spot light 1
+  auto spotLight1 = izzy->sceneGraph->makeSpotLightFromLookAt("SpotLight", glm::vec3(0.1F, 2.0F, 0.0F));
+  auto& spot = spotLight1.get<ecs::SpotLight>();
+  spot.intensity = 1.0;
+  spot.color = glm::vec3(1.0, 0.3, .3);
+  spotLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+
   // Point light 1
   auto ptLight1 = izzy->sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
   auto& lightComp = ptLight1.get<ecs::PointLight>();
@@ -120,7 +131,7 @@ void setupScene() {
     auto box = izzy->sceneGraph->makeMoveableEntity("Box");
     auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
     auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
-    lsw::ecs::TransformUtil::Translate(box.get<lsw::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
+    izz::ecs::TransformUtil::Translate(box.get<izz::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
     auto& material = izzy->materialSystem->createMaterial("DeferredStandard_Color");
     mesh.materialId = material.id;
     auto& dr = box.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
@@ -139,7 +150,7 @@ void setupUserInterface() {
 }
 
 int main(int argc, char* argv[]) {
-  using namespace lsw::ecs;
+  using namespace izz::ecs;
 
   try {
     programArguments = parseProgramArguments(argc, argv);

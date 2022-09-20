@@ -12,7 +12,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 using namespace izz::gui;
-using namespace lsw;
+using namespace izz;
 using namespace std;
 
 LightEditor::LightEditor(shared_ptr<izz::SceneGraphHelper> sceneGraph, shared_ptr<izz::FontSystem> fontSystem)
@@ -43,9 +43,9 @@ void RenderDirectionalLightWindow(ecs::DirectionalLight& light, const char* name
     showWindow[name] = true;
 
     ImGui::Begin(fmt::format("{} (Directional Light)", name).c_str(), &showWindow.at(name));
-    ImGui::DragFloat("Intensity", &light.intensity, 0.01F, 0.0F);
+    ImGui::DragFloat("Intensity", &light.intensity, 0.01F, 0.0F, 5.0F);
     ImGui::ColorEdit3("Color", glm::value_ptr(light.color));
-    ImGui::InputFloat3("Direction", glm::value_ptr(transform.localTransform[3]));
+    ImGui::DragFloat3("Direction", glm::value_ptr(transform.localTransform[3]));
     ImGui::End();
   }
 }
@@ -57,14 +57,31 @@ void RenderPointLightWindow(ecs::PointLight& light, const char* name, ecs::Trans
     showWindow[name] = true;
 
     ImGui::Begin(fmt::format("{} (Point Light)", name).c_str(), &showWindow.at(name));
-    ImGui::DragFloat("Intensity", &light.intensity, 0.01F);
+    ImGui::DragFloat("Intensity", &light.intensity, 0.01F, 0.0F, 5.0F);
     ImGui::DragFloat("Radius", &light.radius, 0.01F, 0.0F);
     ImGui::ColorEdit3("Color", glm::value_ptr(light.color));
-    ImGui::InputFloat3("Position", glm::value_ptr(transform.localTransform[3]));
-    //    ImGui::DragFloat("Attenuation", &light.radius, 0.01F, 0.0F);
+    ImGui::DragFloat3("Position", glm::value_ptr(transform.localTransform[3]), 0.01F);
     ImGui::End();
   }
 }
+
+void RenderSpotLightWindow(ecs::SpotLight& light, const char* name, ecs::Transform& transform, bool click) {
+  static std::unordered_map<std::string, bool> showWindow;
+
+  if (click || showWindow[name]) {
+    showWindow[name] = true;
+
+    ImGui::Begin(fmt::format("{} (Point Light)", name).c_str(), &showWindow.at(name));
+    ImGui::DragFloat("Intensity", &light.intensity, .01F, 0.0F, 5.0F);
+    ImGui::ColorEdit3("Color", glm::value_ptr(light.color));
+    ImGui::SliderAngle("Inner cone", &light.penumbra, .0F, 90.F);
+    ImGui::SliderAngle("Outer cone", &light.umbra, .0F, 90.F);
+    ImGui::DragFloat3("Position", glm::value_ptr(transform.localTransform[3]), 0.01F);
+    ImGui::DragFloat3("Direction", glm::value_ptr(transform.localTransform[3]), 0.01F);
+    ImGui::End();
+  }
+}
+
 
 void RenderAmbientLightWindow(ecs::AmbientLight& light, const char* name, bool click) {
   static std::unordered_map<std::string, bool> showWindow;
@@ -73,8 +90,8 @@ void RenderAmbientLightWindow(ecs::AmbientLight& light, const char* name, bool c
     showWindow[name] = true;
 
     ImGui::Begin(fmt::format("{} (Ambient Light)", name).c_str(), &showWindow.at(name));
+    ImGui::DragFloat("Intensity", &light.intensity, 0.01F, 0.0F, 1.0F);
     ImGui::ColorPicker3("Color", glm::value_ptr(light.color));
-    ImGui::DragFloat("Intensity", &light.intensity, 0.01F);
     ImGui::End();
   }
 }
@@ -85,7 +102,6 @@ void LightEditor::render(float dt, float totalTime) {
     // set next window position. call before Begin(). use pivot=(0.5f,0.5f) to center on given point, etc.
     ImGui::SetNextWindowPos(ImVec2(5, 5), ImGuiCond_Once);
     ImGui::SetNextWindowSize(ImVec2(400, 200), ImGuiCond_Once);
-    //  ImGui::StyleColorsLight();
 
     if (!m_fonts.empty()) {
       ImGui::PushFont(*m_fonts.begin());
@@ -110,6 +126,11 @@ void LightEditor::render(float dt, float totalTime) {
     for (auto [e, light, name, transform] : pointLights.each()) {
       RenderPointLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
     }
+
+    auto spotLights = m_registry.view<ecs::SpotLight, ecs::Name, ecs::Transform>();
+    for (auto [e, light, name, transform] : spotLights.each()) {
+      RenderSpotLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
+    }
     // ==================================================================
 
     ImGui::End();
@@ -118,43 +139,4 @@ void LightEditor::render(float dt, float totalTime) {
       ImGui::PopFont();
     }
   }
-}
-
-ResourceInspector::ResourceInspector(std::shared_ptr<ResourceManager> resourceManager)
-  : m_resourceManager{resourceManager} {}
-
-void ResourceInspector::init() {
-  //    m_resourceManager->getTextures();
-}
-
-void ResourceInspector::render(float time, float dt) {
-  // render your GUI
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImGui::Begin("Resource Inspector");
-  ImGui::Button("Hello!");
-
-  //    ImGui::Begin("OpenGL Texture Text");
-  //    auto texResource = m_resourceManager->getTextures().begin()->second;
-  //    auto& tex = **texResource;
-
-  //    ImGui::EndChild();
-  if (ImGui::BeginTable("Textures", 3)) {
-    //        for (int row = 0; row < 4; row++)
-    //        {
-    ImGui::TableNextRow();
-    for (const auto& [name, tex] : m_resourceManager->getTextureSystem()->getTextures()) {
-      ImGui::TableSetColumnIndex(0);
-      //            spdlog::warn(name);
-      ImGui::Text(name.c_str());
-    }
-    //            for (int column = 0; column < 3; column++)
-    //            {
-    //                ImGui::TableSetColumnIndex(column);
-    //                ImGui::Text("Row %d Column %d", row, column);
-    //            }
-    //        }
-    ImGui::EndTable();
-  }
-
-  ImGui::End();
 }

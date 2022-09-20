@@ -5,7 +5,7 @@
 
 #include <string>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 struct Name {

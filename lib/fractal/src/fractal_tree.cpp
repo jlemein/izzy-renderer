@@ -1,6 +1,6 @@
 #include <fractal_tree.h>
 #include <iostream>
-using namespace lsw::fractal;
+using namespace izz::fractal;
 
 
 FractalTree::FractalTree(std::string initiator, const State& state)

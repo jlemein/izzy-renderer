@@ -5,7 +5,7 @@
 
 #include <izz_renderablecomponentfactory.h>
 
-namespace lsw {
+namespace izz {
 namespace geo {
 struct Material;
 }

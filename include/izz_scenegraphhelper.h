@@ -7,7 +7,7 @@
 #include "izz_renderablecomponentfactory.h"
 #include "izzgl_meshsystem.h"
 
-namespace lsw {
+namespace izz {
 namespace geo {
 struct Mesh;
 struct Curve;
@@ -55,8 +55,7 @@ class SceneGraphHelper {
 
  public:
   SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory,
-                   std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
-                   std::shared_ptr<izz::gl::MeshSystem> meshSystem);
+                   std::shared_ptr<izz::gl::MaterialSystem> materialSystem, std::shared_ptr<izz::gl::MeshSystem> meshSystem);
 
   void setDefaultMaterial(std::shared_ptr<izz::gl::Material> material);
 
@@ -73,10 +72,10 @@ class SceneGraphHelper {
    */
   // TODO: currently assigning a material to a geometry disconnects the relationship with the creator.
   //  this does not make it possible to share materials
-  SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, int materialId);
+  SceneGraphEntity addGeometry(izz::geo::Mesh mesh, int materialId);
   //  SceneGraphEntity addGeometry(lsw::geo::Mesh&& mesh, izz::gl::Material&& material);
-  SceneGraphEntity addGeometry(const lsw::geo::Mesh& mesh);
-  SceneGraphEntity addGeometry(lsw::geo::Mesh mesh, geo::cEffect effect);
+  SceneGraphEntity addGeometry(const izz::geo::Mesh& mesh);
+  SceneGraphEntity addGeometry(izz::geo::Mesh mesh, geo::cEffect effect);
 
   void setActiveCamera(const SceneGraphEntity* activeCamera);
 
@@ -90,13 +89,28 @@ class SceneGraphHelper {
   /// looking at the origin
   SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F, float fovx = 120.0F, float aspect = 1.0F, float zNear = 0.1F, float zFar = 1000.0F);
 
-  SceneGraphEntity makeCamera(const lsw::geo::Camera& geoCamera);
+  SceneGraphEntity makeCamera(const izz::geo::Camera& geoCamera);
 
-  SceneGraphEntity makeLight(const lsw::geo::Light& light);
+  SceneGraphEntity makeLight(const izz::geo::Light& light);
 
   SceneGraphEntity makeAmbientLight(std::string name, glm::vec3 color = {.1F, .1F, .1F}, float intensity = 1.0F);
-  SceneGraphEntity makePointLight(std::string name, glm::vec3 position, lsw::ecs::PointLight pointLight);
+  SceneGraphEntity makePointLight(std::string name, glm::vec3 position, izz::ecs::PointLight pointLight);
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position);
+
+  /**
+   * Creates a spotlight specified using a lookat configuration, i.e. by specifying an eye, center and up vector.
+   * @warning  Make sure that a orthogonal basis can be formed with the three vectors.
+   * @param name    The readable name for this scene graph entity.
+   * @param eye     The position of the spotlight.
+   * @param center  Location the spotlight is targeted at. Note that the spotlight orientation is created once.
+   *                Transformations applied to the spotlight will not reorient the spotlight to the center.
+   * @param up      Up vector, pointing upwards, usually taken to be (0, 1, 0).
+   * @return a scene graph entity containing, among others, the SpotLight and Transform component.
+   */
+  SceneGraphEntity makeSpotLightFromLookAt(std::string name,
+                                           glm::vec3 eye = glm::vec3(.0F, .0F, 5.F),
+                                           glm::vec3 center = glm::vec3(.0F, .0F, .0F),
+                                           glm::vec3 up = glm::vec3(.0F, 1.F, .0F));
 
   /**
    * Creates a directional light source towards the specified direction
@@ -107,13 +121,13 @@ class SceneGraphHelper {
    */
   SceneGraphEntity makeDirectionalLight(std::string name, glm::vec3 direction = {0.10976F, 0.98787834F, 0.10976F});
 
-  SceneGraphEntity makeMesh(const lsw::geo::Mesh& mesh);
-  SceneGraphEntity makeEmptyMesh(const lsw::geo::Mesh& mesh);
+  SceneGraphEntity makeMesh(const izz::geo::Mesh& mesh);
+  SceneGraphEntity makeEmptyMesh(const izz::geo::Mesh& mesh);
   SceneGraphEntity makeCurve(std::string name);
 
   SceneGraphEntity makeRenderable(izz::gl::MeshBuffer&& mesh, MaterialId materialId);
   SceneGraphEntity makeRenderable(std::string name, const izz::gl::MeshBuffer& mesh, glm::mat4 transform, MaterialId materialId);
-  SceneGraphEntity makeRenderable(lsw::geo::Curve&& curve, MaterialId materialId);
+  SceneGraphEntity makeRenderable(izz::geo::Curve&& curve, MaterialId materialId);
 
   /**!
    * Loads a complete scene and adds it to the scene graph.
@@ -123,7 +137,7 @@ class SceneGraphHelper {
    * as well. By default everything is loaded.
    * @return
    */
-  SceneGraphEntity makeScene(const lsw::geo::Scene&, SceneLoaderFlags flags = SceneLoaderFlags{});
+  SceneGraphEntity makeScene(const izz::geo::Scene&, SceneLoaderFlags flags = SceneLoaderFlags{});
 
   SceneGraphEntity makeTexture();
   SceneGraphEntity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);
@@ -141,7 +155,8 @@ class SceneGraphHelper {
   std::shared_ptr<izz::gl::Material> m_defaultMaterial{nullptr};
   const SceneGraphEntity* m_activeCamera{nullptr};
 
-  void processChildren(const lsw::geo::Scene& scene, std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags, SceneGraphEntity* parent_p = nullptr);
+  void processChildren(const izz::geo::Scene& scene, std::shared_ptr<const izz::geo::SceneNode> node, SceneLoaderFlags flags,
+                       SceneGraphEntity* parent_p = nullptr);
 };
 
 //====================================

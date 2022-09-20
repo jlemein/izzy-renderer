@@ -78,7 +78,7 @@ struct Renderable {
   // TODO merge with Wireframe component, and/or use wireframe shader.
   bool isWireframe{false};
 
-  std::vector<lsw::ecs::Texture> textures;
+  std::vector<izz::ecs::Texture> textures;
 
 //  UnscopedUniforms unscopedUniforms;
 

@@ -4,7 +4,7 @@
 
 #pragma once
 
-namespace lsw {
+namespace izz {
 namespace geo {
 
 //class Light {

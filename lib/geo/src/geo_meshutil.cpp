@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <fmt/format.h>
 
-using namespace lsw::geo;
+using namespace izz::geo;
 using namespace glm;
 
 namespace {
