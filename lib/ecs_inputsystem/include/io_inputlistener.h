@@ -5,8 +5,7 @@
 #ifndef GLVIEWER_IO_INPUTLISTENER_H
 #define GLVIEWER_IO_INPUTLISTENER_H
 
-namespace lsw
-{
+namespace izz {
 namespace io
 {
 class InputSystem;

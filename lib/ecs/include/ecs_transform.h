@@ -8,7 +8,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 struct Transform {

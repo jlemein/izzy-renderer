@@ -3,15 +3,13 @@
 // hardcoded. Cannot add or change order, or change names
 layout (location = 0) out vec4 gbuffer_position;
 layout (location = 1) out vec4 gbuffer_normal;
-layout (location = 2) out vec4 gbuffer_tangent; // to be removed
-layout (location = 3) out vec4 gbuffer_albedospec;
+layout (location = 2) out vec4 gbuffer_albedospec;
 
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
 layout(location = 3) in vec3 in_tangent;
 
-//layout(binding = 1) uniform sampler2D texture_specular1;
 layout(binding = 2) uniform sampler2D normalMap;
 layout(binding = 3) uniform sampler2D albedoMap;
 
@@ -40,6 +38,4 @@ void main()
     vec4 material_color = texture(albedoMap, in_uv);
     material_color.w = 0.5;
     gbuffer_albedospec = material_color;
-
-    gbuffer_tangent = vec4(in_uv, 0.0, 0.0);
 }

@@ -7,7 +7,7 @@
 #include "ecs_transform.h"
 #include "ecs_transformutil.h"
 using namespace izz;
-using namespace lsw::ecs;
+using namespace izz::ecs;
 
 SceneGraphEntity::SceneGraphEntity(entt::registry& registry, entt::entity handle)
   : m_registry{registry}

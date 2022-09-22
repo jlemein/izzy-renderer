@@ -18,7 +18,7 @@
 #include <geo_mesh.h>
 #include <iostream>
 
-using namespace lsw;
+using namespace izz;
 
 namespace {
 const glm::vec3 kForwardVector = glm::vec3(0.0F, 0.0F, 1.0F);

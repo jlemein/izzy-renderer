@@ -3,7 +3,7 @@
 //
 #pragma once
 
-namespace lsw {
+namespace izz {
 
 class SceneCompositionSystem {
 

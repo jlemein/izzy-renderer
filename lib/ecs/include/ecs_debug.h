@@ -8,7 +8,7 @@
 #include <entt/entity/entity.hpp>
 #include <entt/entity/fwd.hpp>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 enum class DebugShape {
   kUndefined = -1, /// @brief Undefined, let the debug system choose appropriate.

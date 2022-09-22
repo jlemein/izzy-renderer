@@ -8,7 +8,7 @@
 #include <entt/fwd.hpp>
 #include <glm/glm.hpp>
 
-namespace lsw {
+namespace izz {
 namespace io {
 class InputSystem;
 }
@@ -20,7 +20,7 @@ namespace ecs {
  */
 class FirstPersonMovementSystem {
  public:
-  FirstPersonMovementSystem(entt::registry& registry, lsw::io::InputSystem* inputSystem);
+  FirstPersonMovementSystem(entt::registry& registry, izz::io::InputSystem* inputSystem);
 
   void init();
   void update(float dt);

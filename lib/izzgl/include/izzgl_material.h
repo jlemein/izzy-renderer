@@ -276,7 +276,7 @@ class Material {
 
   template <typename T>
   void setProperty(const T& data) {
-    setProperty(T::PARAM_NAME, data);
+    setProperty(T::BUFFER_NAME, data);
   }
 
   void setUniformFloat(std::string name, float value) {
@@ -379,7 +379,7 @@ class Material {
 
   template <typename T>
   T* getProperty() {
-    return reinterpret_cast<T*>(getProperty(T::PARAM_NAME));
+    return reinterpret_cast<T*>(getProperty(T::BUFFER_NAME));
   }
 };
 

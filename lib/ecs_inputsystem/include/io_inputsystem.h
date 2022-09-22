@@ -11,8 +11,7 @@
 #include <memory>
 #include <list>
 
-namespace lsw
-{
+namespace izz {
 namespace io
 {
 class Command;

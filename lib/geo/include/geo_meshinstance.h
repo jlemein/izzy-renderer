@@ -6,7 +6,7 @@
 #include <memory>
 #include <geo_transform.h>
 
-namespace lsw {
+namespace izz {
 namespace geo {
 
 struct Mesh;

@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_IO_COMMAND_H
 #define GLVIEWER_IO_COMMAND_H
 
-namespace lsw {
+namespace izz {
 namespace io {
 
 class Command {

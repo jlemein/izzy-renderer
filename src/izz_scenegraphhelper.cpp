@@ -22,8 +22,8 @@
 #include "izzgl_materialsystem.h"
 
 using namespace izz;
-using namespace lsw;
-using namespace lsw::ecs;
+using namespace izz;
+using namespace izz::ecs;
 
 SceneGraphHelper::SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory,
                                    std::shared_ptr<izz::gl::MaterialSystem> materialSystem, std::shared_ptr<izz::gl::MeshSystem> meshSystem)
@@ -36,9 +36,9 @@ void SceneGraphHelper::setDefaultMaterial(std::shared_ptr<izz::gl::Material> mat
   m_defaultMaterial = material;
 }
 
-SceneGraphEntity SceneGraphHelper::addGeometry(lsw::geo::Mesh mesh, int materialId) {
+SceneGraphEntity SceneGraphHelper::addGeometry(izz::geo::Mesh mesh, int materialId) {
   auto e = makeMoveableEntity(mesh.name);
-  e.add<lsw::geo::Mesh>(mesh);
+  e.add<izz::geo::Mesh>(mesh);
   auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
   m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId, meshBuffer.id);
 
@@ -92,7 +92,7 @@ SceneGraphEntity SceneGraphHelper::makeCamera(std::string name, float zDistance,
   return cameraEntity;
 }
 
-SceneGraphEntity SceneGraphHelper::makeCamera(const lsw::geo::Camera& geoCamera) {
+SceneGraphEntity SceneGraphHelper::makeCamera(const izz::geo::Camera& geoCamera) {
   auto cameraEntity = makeMoveableEntity(geoCamera.name);
   ecs::Camera camera{.fovx = geoCamera.fovx, .aspect = geoCamera.aspect, .zNear = geoCamera.near, .zFar = geoCamera.far};
   cameraEntity.add<ecs::Camera>(std::move(camera));
@@ -103,18 +103,18 @@ SceneGraphEntity SceneGraphHelper::makeCamera(const lsw::geo::Camera& geoCamera)
   return cameraEntity;
 }
 
-SceneGraphEntity SceneGraphHelper::makeLight(const lsw::geo::Light& light) {
+SceneGraphEntity SceneGraphHelper::makeLight(const izz::geo::Light& light) {
   auto lightEntity = makeMoveableEntity(light.name);
 
   auto& transform = lightEntity.get<Transform>();
   transform.localTransform[3] = glm::vec4(light.position, 1.0F);
 
-  if (light.type == lsw::geo::Light::Type::DIRECTIONAL_LIGHT) {
+  if (light.type == izz::geo::Light::Type::DIRECTIONAL_LIGHT) {
     transform.localTransform[3].w = 0.0F;
     lightEntity.add<ecs::DirectionalLight>({light.intensity, light.diffuseColor});
-  } else if (light.type == lsw::geo::Light::Type::AMBIENT_LIGHT) {
+  } else if (light.type == izz::geo::Light::Type::AMBIENT_LIGHT) {
     lightEntity.add<ecs::AmbientLight>({light.intensity, light.diffuseColor});
-  } else if (light.type == lsw::geo::Light::Type::POINT_LIGHT) {
+  } else if (light.type == izz::geo::Light::Type::POINT_LIGHT) {
     lightEntity.add<ecs::PointLight>({.intensity = light.intensity,
                                       .linearAttenuation = light.attenuationLinear,
                                       .quadraticAttenuation = light.attenuationQuadratic,
@@ -129,7 +129,7 @@ SceneGraphEntity SceneGraphHelper::makeLight(const lsw::geo::Light& light) {
 
 SceneGraphEntity SceneGraphHelper::makeAmbientLight(std::string name, glm::vec3 color, float intensity) {
   auto lightEntity = makeMoveableEntity(std::move(name));
-  lightEntity.add<ecs::AmbientLight>({.intensity = 1.0F, .color = color});
+  lightEntity.add<ecs::AmbientLight>({.intensity = intensity, .color = color});
   return lightEntity;
 }
 
@@ -160,11 +160,27 @@ SceneGraphEntity SceneGraphHelper::makeDirectionalLight(std::string name, glm::v
   return lightEntity;
 }
 
-SceneGraphEntity SceneGraphHelper::makeMesh(const lsw::geo::Mesh& mesh) {
+SceneGraphEntity SceneGraphHelper::makeSpotLightFromLookAt(std::string name, glm::vec3 eye, glm::vec3 center, glm::vec3 up) {
+  auto lightEntity = makeMoveableEntity(std::move(name));
+  auto& spotlight = lightEntity.add<ecs::SpotLight>();
+
+  // TODO: create local transform by direct matrix calculation. Inverse should not be needed
+  //  auto w = glm::normalize(center - eye);
+  //  auto v = glm::cross(w, up);
+  //  auto u = glm::cross(v, w);
+  //  transform.localTransform = glm::mat4(glm::vec4(u, 0), glm::vec4(v, 0), glm::vec4(w, 0), glm::vec4(eye, 1));
+
+  auto& transform = lightEntity.get<Transform>();
+  transform.localTransform = glm::inverse(glm::lookAt(eye, center, up));
+
+  return lightEntity;
+}
+
+SceneGraphEntity SceneGraphHelper::makeMesh(const izz::geo::Mesh& mesh) {
   auto meshEntity = makeMoveableEntity(mesh.name);
 
   auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
-  meshEntity.add<lsw::geo::Mesh>(mesh);
+  meshEntity.add<izz::geo::Mesh>(mesh);
 
   // Watch out here, izz::gl::Material is a value type so we can do this.
   // It is very tricky, because we ignore the resource itself here, possibly
@@ -186,11 +202,11 @@ SceneGraphEntity SceneGraphHelper::makeMesh(const lsw::geo::Mesh& mesh) {
   return meshEntity;
 }
 
-SceneGraphEntity SceneGraphHelper::makeEmptyMesh(const lsw::geo::Mesh& mesh) {
+SceneGraphEntity SceneGraphHelper::makeEmptyMesh(const izz::geo::Mesh& mesh) {
   auto sge = makeMoveableEntity(mesh.name);
   auto e = sge.handle();
 
-  m_registry.emplace<lsw::geo::Mesh>(e, mesh);
+  m_registry.emplace<izz::geo::Mesh>(e, mesh);
   const auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
   m_renderableComponentFactory->addRenderableComponent(m_registry, e, m_defaultMaterial->id, meshBuffer.id);
   return sge;
@@ -218,7 +234,7 @@ SceneGraphEntity SceneGraphHelper::makeEmptyMesh(const lsw::geo::Mesh& mesh) {
 SceneGraphEntity SceneGraphHelper::makeCurve(std::string name) {
   auto curve = makeMoveableEntity(std::move(name));
 
-  curve.add<lsw::geo::Curve>();
+  curve.add<izz::geo::Curve>();
   //  auto& s = curve.add<izz::gl::Material>({.name = "default curve material",
   //                                           .vertexShader = "assets/shaders/default_curve.vert.spv",
   //                                           .fragmentShader = "assets/shaders/default_curve.frag.spv"});
@@ -237,7 +253,7 @@ SceneGraphEntity SceneGraphHelper::makeCurve(std::string name) {
   return curve;
 }
 
-void SceneGraphHelper::processChildren(const lsw::geo::Scene& scene, std::shared_ptr<const lsw::geo::SceneNode> node, SceneLoaderFlags flags,
+void SceneGraphHelper::processChildren(const izz::geo::Scene& scene, std::shared_ptr<const izz::geo::SceneNode> node, SceneLoaderFlags flags,
                                        SceneGraphEntity* parent_p) {
   auto root = makeMoveableEntity(node->name);
   root.setTransform(node->transform);
@@ -287,7 +303,7 @@ void SceneGraphHelper::processChildren(const lsw::geo::Scene& scene, std::shared
   }
 }
 
-SceneGraphEntity SceneGraphHelper::makeScene(const lsw::geo::Scene& scene, SceneLoaderFlags flags) {
+SceneGraphEntity SceneGraphHelper::makeScene(const izz::geo::Scene& scene, SceneLoaderFlags flags) {
   spdlog::debug("{}: instantiating scene objects ({})", ID, scene.m_path.string());
 
   auto rootScene = makeMoveableEntity();
@@ -302,11 +318,9 @@ SceneGraphEntity SceneGraphHelper::makeRenderable(std::string name, const izz::g
   auto e = makeMoveableEntity(name);
   e.setTransform(std::move(transform));
 
-//  e.add<izz::gl::MeshBuffer>(meshBuffer);
+  //  e.add<izz::gl::MeshBuffer>(meshBuffer);
 
   m_renderableComponentFactory->addRenderableComponent(m_registry, e.handle(), materialId, meshBuffer.id);
-
-
 
   spdlog::info("(e: {}) Added mesh {} with material id: {}, mesh buffer id: {}", static_cast<int>(e.handle()), name,
                m_registry.get<gl::DeferredRenderable>(e).materialId, m_registry.get<gl::DeferredRenderable>(e).meshBufferId);
@@ -323,11 +337,11 @@ SceneGraphEntity SceneGraphHelper::makeRenderable(izz::gl::MeshBuffer&& meshBuff
   return SceneGraphEntity{m_registry, e};
 }
 
-SceneGraphEntity SceneGraphHelper::makeRenderable(lsw::geo::Curve&& curve, MaterialId materialId) {
+SceneGraphEntity SceneGraphHelper::makeRenderable(izz::geo::Curve&& curve, MaterialId materialId) {
   auto e = m_registry.create();
   m_registry.emplace<ecs::Transform>(e);
-  m_registry.emplace<lsw::geo::Curve>(e, std::move(curve));
-//  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId, meshBuffer.id);
+  m_registry.emplace<izz::geo::Curve>(e, std::move(curve));
+  //  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId, meshBuffer.id);
   throw std::runtime_error("No curves supported yet");
   //  return SceneGraphEntity{m_registry, e};
 }
@@ -338,14 +352,14 @@ SceneGraphEntity SceneGraphHelper::makePosteffect(const std::string name, int ma
   auto e = makeEntity(name);
   //  e.add<izz::gl::Material>(material);
   e.add<gl::Posteffect>();
-//  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
+  //  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId);
   throw std::runtime_error("Not supported yet");
-//  return e;
+  //  return e;
 }
 
 SceneGraphEntity SceneGraphHelper::makeRectangularGrid(float size, float spacing) {
   auto sge = makeCurve("RectangularGrid");
-  auto& curve = sge.get<lsw::geo::Curve>();
+  auto& curve = sge.get<izz::geo::Curve>();
 
   float z = 0.0F;
 

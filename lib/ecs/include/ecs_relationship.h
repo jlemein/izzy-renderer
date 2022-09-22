@@ -7,7 +7,7 @@
 #include <entt/entt.hpp>
 #include <vector>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 struct Relationship {

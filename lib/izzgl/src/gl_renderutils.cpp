@@ -18,7 +18,7 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
   return pAddress + offset;
 }
 
-void RenderUtils::FillBufferedMeshData(const lsw::geo::Curve& curve, MeshBuffer& md) {
+void RenderUtils::FillBufferedMeshData(const izz::geo::Curve& curve, MeshBuffer& md) {
   glGenBuffers(1, &md.vertex_buffer);
   glBindBuffer(GL_ARRAY_BUFFER, md.vertex_buffer);
   glBufferData(GL_ARRAY_BUFFER, curve.vertices.size() * sizeof(float), curve.vertices.data(), GL_STATIC_DRAW);

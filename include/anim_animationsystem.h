@@ -10,7 +10,7 @@ namespace izz {
 class SceneGraphHelper;
 }  // namespace izz
 
-namespace lsw {
+namespace izz {
 namespace anim {
 
 class AnimationSystem {  //: public ecs::IViewerExtension {

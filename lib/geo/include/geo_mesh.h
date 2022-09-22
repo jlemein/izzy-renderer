@@ -14,7 +14,7 @@
 #include <boost/functional/hash.hpp>
 #include "geo_materialtemplate.h"
 
-namespace lsw {
+namespace izz {
 namespace geo {
 
 enum class PolygonMode { kTriangles, kQuads };

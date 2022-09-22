@@ -6,7 +6,7 @@
 #include <ostream>
 #include <glm/glm.hpp>
 
-namespace lsw {
+namespace izz {
 namespace geo {
 struct BoundingBox {
   float xMin{.0F}, yMin{.0F}, zMin{.0F};

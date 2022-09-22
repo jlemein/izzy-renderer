@@ -15,8 +15,8 @@ void WindowInputListener::init() {
 
 }
 
-void WindowInputListener::update(const lsw::io::InputSystem *inputSystem) {
-  if (inputSystem->isKeyPressed(lsw::io::Key::kESCAPE)) {
+void WindowInputListener::update(const izz::io::InputSystem *inputSystem) {
+  if (inputSystem->isKeyPressed(izz::io::Key::kESCAPE)) {
     glfwSetWindowShouldClose(m_window, GLFW_TRUE);
   }
 }

@@ -3,7 +3,7 @@
 //
 #pragma once
 
-namespace lsw {
+namespace izz {
 namespace geo {
 
 struct Curve;

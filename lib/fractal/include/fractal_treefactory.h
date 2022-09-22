@@ -10,7 +10,7 @@
 #include <fractal_tree.h>
 #include <fractal_stochastictree.h>
 
-namespace lsw {
+namespace izz {
 namespace fractal {
 
 //class FractalTree;

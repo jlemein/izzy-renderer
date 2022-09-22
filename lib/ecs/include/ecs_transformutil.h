@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 struct Transform;

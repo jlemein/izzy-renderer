@@ -16,14 +16,12 @@ uniform ModelViewProjection {
 // hardcoded. Cannot add or change order, or change names
 layout (location = 0) out vec4 gbuffer_position;
 layout (location = 1) out vec4 gbuffer_normal;
-layout (location = 2) out vec4 gbuffer_tangent;
-layout (location = 3) out vec4 gbuffer_albedospec;
+layout (location = 2) out vec4 gbuffer_albedospec;
 
 layout(location = 0) in vec3 in_position;
 layout(location = 1) in vec3 in_normal;
 layout(location = 2) in vec2 in_uv;
 layout(location = 3) in vec3 in_tangent;
-//layout(location = 4) in mat3 in_TBN;
 
 void main()
 {

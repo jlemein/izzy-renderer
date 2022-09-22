@@ -11,7 +11,7 @@
 #include "izzgl_textureloader.h"
 #include "izzgl_texturesystem.h"
 
-using namespace lsw;
+using namespace izz;
 using namespace izz;
 
 ResourceManager::ResourceManager() {}

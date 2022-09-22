@@ -54,8 +54,10 @@ find_package(nlohmann_json REQUIRED)
 find_package(OpenEXR REQUIRED)
 
 target_link_libraries(izzy
+        PUBLIC
+        geo lsw-gl
         PRIVATE
-        geo ecs lsw-gl
+         ecs
         workspace
         spdlog::spdlog
         nlohmann_json::nlohmann_json
@@ -65,13 +67,13 @@ target_link_libraries(izzy
         openexr::openexr
         )
 
-#if (BUILD_TESTING)
-#    add_executable(georm_test src/georm_resourcemanager.t.cpp src/georm_sceneloader.t.cpp)
-#    target_link_libraries(geo_test PRIVATE georm CONAN_PKG::gtest)
-#    target_include_directories(geo_test PRIVATE include)
-#    #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)
-#    gtest_discover_tests(geo_test)
-#endif()
+if (BUILD_TESTING)
+    find_package(gtest REQUIRED)
+    add_executable(izzy_test src/izz_scenegraphhelper.t.cpp)
+    target_link_libraries(izzy_test PRIVATE izzy gtest::gtest)
+    #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)
+    gtest_discover_tests(izzy_test)
+endif()
 
 # drawback of this method is that it is always considered out-of-date, and therefore always recompiles.
 #add_custom_target(compile-shaders

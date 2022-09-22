@@ -32,12 +32,12 @@
 #include "ecs_camera.h"
 #include "gui_mainmenu.h"
 using namespace std;
-using namespace lsw;
 using namespace izz;
-using namespace lsw::geo;
+using namespace izz;
+using namespace izz::geo;
 using namespace glm;
-using lsw::core::Util;
-using lsw::wsp::Workspace;
+using izz::core::Util;
+using izz::wsp::Workspace;
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
@@ -125,7 +125,7 @@ void setupUserInterface() {
 }
 
 int main(int argc, char* argv[]) {
-  using namespace lsw::ecs;
+  using namespace izz::ecs;
 
   try {
     programArguments = parseProgramArguments(argc, argv);

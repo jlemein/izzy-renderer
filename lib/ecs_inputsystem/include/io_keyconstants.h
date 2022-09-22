@@ -5,8 +5,7 @@
 #ifndef GLVIEWER_IO_KEYCONSTANTS_H
 #define GLVIEWER_IO_KEYCONSTANTS_H
 
-namespace lsw
-{
+namespace izz {
 namespace io
 {
 

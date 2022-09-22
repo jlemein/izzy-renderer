@@ -17,7 +17,7 @@ ForwardRenderer::ForwardRenderer(RenderSystem& renderSystem)
 
 void ForwardRenderer::render(const entt::registry& registry) {
   // perform deferred rendering first
-  const auto view = registry.view</*const ForwardRenderable,*/const Renderable, const lsw::ecs::Transform>();
+  const auto view = registry.view</*const ForwardRenderable,*/const Renderable, const izz::ecs::Transform>();
   for (const auto& [e, renderable, transform] : view.each()) {
 //    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
@@ -33,7 +33,7 @@ void ForwardRenderer::render(const entt::registry& registry) {
 //    const auto& r = registry.get<const Renderable>(e);
 
     // TODO: disable in release
-    if (renderable.isWireframe || registry.any_of<lsw::ecs::Wireframe>(e)) {
+    if (renderable.isWireframe || registry.any_of<izz::ecs::Wireframe>(e)) {
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     } else {
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

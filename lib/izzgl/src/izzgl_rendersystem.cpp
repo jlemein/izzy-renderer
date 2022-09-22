@@ -496,7 +496,7 @@ void RenderSystem::update(float time, float dt) {
 // }
 
 void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
-  if (!m_registry.all_of<lsw::ecs::Camera>(cameraEntity)) {
+  if (!m_registry.all_of<izz::ecs::Camera>(cameraEntity)) {
     throw std::runtime_error("Only entities with a Camera component can be set as active camera");
   }
   m_activeCamera = cameraEntity;
@@ -510,8 +510,8 @@ void RenderSystem::updateCamera(Renderable& renderable) {
     throw std::runtime_error("No active camera in scene");
   }
 
-  auto& transform = m_registry.get<lsw::ecs::Transform>(m_activeCamera);
-  auto& activeCamera = m_registry.get<lsw::ecs::Camera>(m_activeCamera);
+  auto& transform = m_registry.get<izz::ecs::Transform>(m_activeCamera);
+  auto& activeCamera = m_registry.get<izz::ecs::Camera>(m_activeCamera);
 
   renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
   renderable.uniformBlock.proj = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);
@@ -659,7 +659,7 @@ void RenderSystem::checkError(entt::entity e) {
   // get error message
   GLenum err;
   if ((err = glGetError()) != GL_NO_ERROR) {
-    auto name = m_registry.all_of<lsw::ecs::Name>(e) ? m_registry.get<lsw::ecs::Name>(e).name : std::string{"Unnamed"};
+    auto name = m_registry.all_of<izz::ecs::Name>(e) ? m_registry.get<izz::ecs::Name>(e).name : std::string{"Unnamed"};
     std::cerr << " Render error occurred for " << name << ": " << err << std::endl;
   }
 }

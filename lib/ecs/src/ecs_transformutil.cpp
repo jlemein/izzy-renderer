@@ -3,7 +3,7 @@
 //
 #include <ecs_transform.h>
 #include <ecs_transformutil.h>
-using namespace lsw::ecs;
+using namespace izz::ecs;
 
 void TransformUtil::SetPosition(Transform &t, const glm::vec3 &e) {
   t.localTransform[3] = glm::vec4(e, 1.0f);

@@ -5,8 +5,7 @@
 
 #include <string>
 
-namespace lsw
-{
+namespace izz {
 namespace geo
 {
 struct Mesh;

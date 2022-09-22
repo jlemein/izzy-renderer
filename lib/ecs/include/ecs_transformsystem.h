@@ -7,7 +7,7 @@
 
 #include <entt/entt.hpp>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 class TransformSystem {

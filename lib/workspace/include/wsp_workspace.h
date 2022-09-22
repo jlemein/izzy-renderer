@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <memory>
 
-namespace lsw {
+namespace izz {
 namespace wsp {
 
 /**

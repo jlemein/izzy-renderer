@@ -6,7 +6,7 @@
 #define GLVIEWER_ECS_MOVEABLE_H
 
 #include <glm/vec3.hpp>
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 struct Moveable {

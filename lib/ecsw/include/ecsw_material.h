@@ -5,7 +5,7 @@
 #ifndef GLVIEWER_ECSW_MATERIAL_H
 #define GLVIEWER_ECSW_MATERIAL_H
 
-namespace lsw {
+namespace izz {
 namespace ecsw {
 
 class Material {

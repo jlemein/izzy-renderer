@@ -18,13 +18,13 @@ namespace gui {
 /**
  * Listens to generic key presses to close the window, and showing the GUI.
  */
-class WindowInputListener : public lsw::io::InputListener {
+class WindowInputListener : public izz::io::InputListener {
  public:
   WindowInputListener(GLFWwindow* window);
 
   void init() override;
 
-  void update(const lsw::io::InputSystem* inputSystem) override;
+  void update(const izz::io::InputSystem* inputSystem) override;
 
  private:
   GLFWwindow* m_window;

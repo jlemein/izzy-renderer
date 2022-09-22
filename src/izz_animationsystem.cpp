@@ -5,8 +5,8 @@
 #include "anim_localrotation.h"
 #include <ecs_transform.h>
 #include "izz_scenegraphhelper.h"
-using namespace lsw::anim;
-using namespace lsw::ecs;
+using namespace izz::anim;
+using namespace izz::ecs;
 
 AnimationSystem::AnimationSystem(entt::registry& registry)
 : m_registry{registry}

@@ -7,7 +7,7 @@
 
 #include <math.h>
 
-namespace lsw {
+namespace izz {
 namespace fractal {
 
 #include <fractal_tree.h>

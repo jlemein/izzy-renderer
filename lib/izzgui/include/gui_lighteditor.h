@@ -11,20 +11,6 @@ namespace izz {
 class ResourceManager;
 namespace gui {
 
-class ResourceInspector : public IGuiWindow {
- public:
-  ResourceInspector(std::shared_ptr<izz::ResourceManager> manager);
-
-  void init() override;
-
-  void render(float time, float dt) override;
-
- private:
-  std::shared_ptr<izz::ResourceManager> m_resourceManager{nullptr};
-};
-// Multiple GUI windows are needed
-// * Scene hierarchy view
-// * Resource inspector (i.e. textures, videos, sounds, images)
 class LightEditor : public IGuiWindow {
  public:
   LightEditor(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<izz::FontSystem> fontSystem);

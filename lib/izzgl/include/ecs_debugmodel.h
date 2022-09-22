@@ -8,7 +8,7 @@
 #include "ecs_name.h"
 #include "geo_mesh.h"
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 /**!

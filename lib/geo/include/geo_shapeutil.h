@@ -5,7 +5,7 @@
 
 #include "geo_boundingbox.h"
 
-namespace lsw {
+namespace izz {
 namespace geo {
 
 class ShapeUtil {

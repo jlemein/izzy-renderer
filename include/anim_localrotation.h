@@ -6,7 +6,7 @@
 #ifndef RENDERER_ANIM_LOCALROTATION_H
 #define RENDERER_ANIM_LOCALROTATION_H
 
-namespace lsw {
+namespace izz {
 namespace anim {
 
 struct LocalRotation {

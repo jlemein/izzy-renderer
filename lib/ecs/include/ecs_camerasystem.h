@@ -7,7 +7,7 @@
 
 #include <entt/fwd.hpp>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 class CameraSystem {

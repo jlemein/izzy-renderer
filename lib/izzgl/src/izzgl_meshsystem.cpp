@@ -15,7 +15,7 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
 }
 }
 
-MeshBuffer& MeshSystem::createMeshBuffer(const lsw::geo::Mesh& mesh) {
+MeshBuffer& MeshSystem::createMeshBuffer(const izz::geo::Mesh& mesh) {
   MeshBuffer meshBuffer;
   GLuint vertexSize = mesh.vertices.size() * sizeof(float);
   GLuint normalSize = mesh.normals.size() * sizeof(float);
