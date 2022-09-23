@@ -298,6 +298,8 @@
         }
       },
       "properties": {
+        "ModelViewProjection": {},
+        "ForwardLighting": {},
         "BlinnPhong": {
           "shininess": 32.0,
           "specular_color": [
@@ -314,12 +316,9 @@
       "vertex_shader": "shaders/diffuse.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/diffuse.frag",
-      "lighting": {
-        "ubo_struct": "ForwardLighting",
-        "blend_mode": "Add"
-      },
       "properties": {
-        "ModelViewProjection": {}
+        "ModelViewProjection": {},
+        "ForwardLighting": {}
       },
       "textures": {
         "albedoMap": {
@@ -365,7 +364,10 @@
       "name": "Wireframe",
       "vertex_shader": "shaders/wireframe.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/wireframe.frag"
+      "fragment_shader": "shaders/wireframe.frag",
+      "properties": {
+        "ModelViewProjection": {}
+      }
     }
   ],
   "effects": [

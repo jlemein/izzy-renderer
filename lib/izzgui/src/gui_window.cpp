@@ -13,7 +13,7 @@
 #include <io_inputsystem.h>
 #include <izz_resourcemanager.h>
 #include <izzgl_rendersystem.h>
-#include "izz_scenegraphhelper.h"
+#include "izz_entityfactory.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -126,7 +126,7 @@ int Window::run() {
 //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // update systems
-    m_animationSystem->update(time, dt);
+    m_animationSystem->update(dt, time);
     m_inputSystem->update();
 
     // if no gui system (then process),
@@ -134,10 +134,10 @@ int Window::run() {
     if (!m_guiSystem || !m_guiSystem->isProcessingInput()) {
       m_firstPersonSystem->update(dt);
     }
-    m_transformSystem->update(time, dt);
+    m_transformSystem->update(dt, time);
     m_cameraSystem->update(dt);
-    m_guiSystem->update(time, dt);
-    m_renderSystem->update(time, dt);
+    m_guiSystem->update(dt, time);
+    m_renderSystem->update(dt, time);
     m_guiSystem->beforeRender();
 
     m_renderSystem->render();
@@ -154,7 +154,7 @@ int Window::run() {
   return 0;
 }
 
-izz::SceneGraphHelper& Window::getSceneGraph() {
+izz::EntityFactory& Window::getSceneGraph() {
   return *m_sceneGraph;
 }
 
@@ -162,14 +162,10 @@ DisplayDetails Window::getDisplayDetails() {
   return m_displayDetails;
 }
 
-void Window::setActiveCamera(izz::SceneGraphEntity cameraEntity) {
-  m_renderSystem->setActiveCamera(cameraEntity.handle());
-}
-
 void Window::onWindowResize(int width, int height) {
   spdlog::info("Window is resized to: {} x {}", width, height);
   m_renderSystem->resize(width, height);
-  glViewport(0, 0, width, height);
+//  glViewport(0, 0, width, height);
 
   // indicate to input system
   m_inputSystem->setWindowSize(width, height);

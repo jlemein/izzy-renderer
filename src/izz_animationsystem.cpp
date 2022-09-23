@@ -1,10 +1,10 @@
 //
 // Created by jlemein on 09-08-21.
 //
+#include <ecs_transform.h>
 #include "anim_animationsystem.h"
 #include "anim_localrotation.h"
-#include <ecs_transform.h>
-#include "izz_scenegraphhelper.h"
+#include "izz_entityfactory.h"
 using namespace izz::anim;
 using namespace izz::ecs;
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include <izzgl_rendersystem.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <memory>
@@ -21,7 +22,7 @@ namespace ecs {
 struct Transform;
 struct PointLight;
 }  // namespace ecs
-}  // namespace lsw
+}  // namespace izz
 
 namespace izz {
 namespace gl {
@@ -46,23 +47,22 @@ struct SceneLoaderFlags {
 };
 
 /**!
- * SceneGraph is the central authority to deal with the scene hierarchy.
- * The scene graph deals with storing entities and their relationship.
+ * Entity factory creates entities.
  *
  */
-class SceneGraphHelper {
+class EntityFactory {
   static inline const char* ID = "SceneGraphHelper";
 
  public:
-  SceneGraphHelper(entt::registry& registry, std::unique_ptr<RenderableComponentFactory> renderableComponentFactory,
-                   std::shared_ptr<izz::gl::MaterialSystem> materialSystem, std::shared_ptr<izz::gl::MeshSystem> meshSystem);
+  EntityFactory(entt::registry& registry, std::shared_ptr<gl::RenderSystem> renderSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
+                std::shared_ptr<izz::gl::MeshSystem> meshSystem);
 
   void setDefaultMaterial(std::shared_ptr<izz::gl::Material> material);
 
   // TODO: represent the active camera in the scene graph,
   //  probably by flagging the entity with ActiveCamera component.
   //  or maybe a centralized registry.
-  void setActiveCamera(SceneGraphHelper camera);
+  void setActiveCamera(EntityFactory camera);
 
   entt::registry& getRegistry();
 
@@ -74,8 +74,8 @@ class SceneGraphHelper {
   //  this does not make it possible to share materials
   SceneGraphEntity addGeometry(izz::geo::Mesh mesh, int materialId);
   //  SceneGraphEntity addGeometry(lsw::geo::Mesh&& mesh, izz::gl::Material&& material);
-  SceneGraphEntity addGeometry(const izz::geo::Mesh& mesh);
-  SceneGraphEntity addGeometry(izz::geo::Mesh mesh, geo::cEffect effect);
+//  SceneGraphEntity addGeometry(const izz::geo::Mesh& mesh);
+//  SceneGraphEntity addGeometry(izz::geo::Mesh mesh, geo::cEffect effect);
 
   void setActiveCamera(const SceneGraphEntity* activeCamera);
 
@@ -107,9 +107,7 @@ class SceneGraphHelper {
    * @param up      Up vector, pointing upwards, usually taken to be (0, 1, 0).
    * @return a scene graph entity containing, among others, the SpotLight and Transform component.
    */
-  SceneGraphEntity makeSpotLightFromLookAt(std::string name,
-                                           glm::vec3 eye = glm::vec3(.0F, .0F, 5.F),
-                                           glm::vec3 center = glm::vec3(.0F, .0F, .0F),
+  SceneGraphEntity makeSpotLightFromLookAt(std::string name, glm::vec3 eye = glm::vec3(.0F, .0F, 5.F), glm::vec3 center = glm::vec3(.0F, .0F, .0F),
                                            glm::vec3 up = glm::vec3(.0F, 1.F, .0F));
 
   /**
@@ -125,9 +123,9 @@ class SceneGraphHelper {
   SceneGraphEntity makeEmptyMesh(const izz::geo::Mesh& mesh);
   SceneGraphEntity makeCurve(std::string name);
 
-  SceneGraphEntity makeRenderable(izz::gl::MeshBuffer&& mesh, MaterialId materialId);
-  SceneGraphEntity makeRenderable(std::string name, const izz::gl::MeshBuffer& mesh, glm::mat4 transform, MaterialId materialId);
-  SceneGraphEntity makeRenderable(izz::geo::Curve&& curve, MaterialId materialId);
+  SceneGraphEntity makeRenderable(izz::gl::MeshBuffer&& mesh, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeRenderable(std::string name, const izz::gl::MeshBuffer& mesh, glm::mat4 transform, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeRenderable(izz::geo::Curve&& curve, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
 
   /**!
    * Loads a complete scene and adds it to the scene graph.
@@ -137,7 +135,7 @@ class SceneGraphHelper {
    * as well. By default everything is loaded.
    * @return
    */
-  SceneGraphEntity makeScene(const izz::geo::Scene&, SceneLoaderFlags flags = SceneLoaderFlags{});
+  SceneGraphEntity makeScene(const izz::geo::Scene&, SceneLoaderFlags flags = SceneLoaderFlags{}, gl::RenderStrategy renderableType = gl::RenderStrategy::UNDEFINED);
 
   SceneGraphEntity makeTexture();
   SceneGraphEntity makeRectangularGrid(float size = 10.0F, float spacing = 1.0F);
@@ -145,25 +143,30 @@ class SceneGraphHelper {
 
   SceneGraphEntity makePosteffect(const std::string name, int materialId);
 
+  void setDefaultRenderStrategy(gl::RenderStrategy renderStrategy);
+
  private:
   /// Uses EnTT in the background for scene management
   entt::registry& m_registry;
-  std::unique_ptr<RenderableComponentFactory> m_renderableComponentFactory;
+  std::shared_ptr<gl::RenderSystem> m_renderSystem {nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
   std::shared_ptr<izz::gl::MeshSystem> m_meshSystem{nullptr};
+
+  /// Default render strategy to use if not specified.
+  gl::RenderStrategy m_defaultRenderStrategy = gl::RenderStrategy::UNDEFINED;
 
   std::shared_ptr<izz::gl::Material> m_defaultMaterial{nullptr};
   const SceneGraphEntity* m_activeCamera{nullptr};
 
   void processChildren(const izz::geo::Scene& scene, std::shared_ptr<const izz::geo::SceneNode> node, SceneLoaderFlags flags,
-                       SceneGraphEntity* parent_p = nullptr);
+                       SceneGraphEntity* parent_p = nullptr, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
 };
 
 //====================================
 // INLINE DEFINITIONS
 //====================================
 
-inline entt::registry& SceneGraphHelper::getRegistry() {
+inline entt::registry& EntityFactory::getRegistry() {
   return m_registry;
 }
 

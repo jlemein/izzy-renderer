@@ -1,58 +1,87 @@
 #pragma once
 
-#include "izzgl_material.h"
-#include "uniform_uniformblockmanager.h"
+#include <izzgl_scenedependentuniform.h>
+#include <izzgl_material.h>
+
 namespace izz {
 namespace ufm {
 
+/**
+ * CPU based uniform data that maps the uniform data with the GLSL shader.
+ */
 struct ModelViewProjection {
   glm::mat4 model;
   glm::mat4 view;
   glm::mat4 projection;
   glm::vec3 viewPos;
 
-  static inline const char* PARAM_NAME = "ModelViewProjection";
+  /// name of the uniform buffer in the shader object.
+  static inline const char* BUFFER_NAME = "ModelViewProjection";
 };
 
-class MvpManager : public UniformBlockManager {
+struct MvpShared {
+  glm::mat4 viewMatrix;
+  glm::mat4 projectionMatrix;
+};
+
+class MvpSharedUniformUpdater : public izz::gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override {
+  MvpSharedUniformUpdater(entt::registry& registry)
+    : m_registry{registry} {}
+
+  virtual ~MvpSharedUniformUpdater() = default;
+
+  virtual izz::gl::UniformBufferPtr allocate(size_t& t) override {
     t = sizeof(ModelViewProjection);
     return new ModelViewProjection;
   }
 
-  void printMatrix(std::string name, glm::mat4& data) {
-    auto str = fmt::format("{}\n\t{} {} {} {}\n\t{} {} {} {}\n\t{} {} {} {}\n\t{} {} {} {}\n",
-                name,
-                data[0][0], data[0][1], data[0][2], data[0][3],
-                data[1][0], data[1][1], data[1][2], data[1][3],
-                data[2][0], data[2][1], data[2][2], data[2][3],
-                data[3][0], data[3][1], data[3][2], data[3][3]);
-    std::cout << str << std::endl;
-  }
-
-  void DestroyUniformBlock(void* data) override {
+  virtual void destroy(izz::gl::UniformBufferPtr data) override {
     auto mvp = reinterpret_cast<ModelViewProjection*>(data);
     delete mvp;
   }
-  void UpdateUniform(void* data, const gl::Material& m) override {
+
+  virtual void onUpdate(void* data, const gl::Material& m, float dt, float time) override {
     // do nothing
-    auto p = reinterpret_cast<ModelViewProjection*>(data);
+  }
 
-//    printMatrix("model", p->model);
-//    printMatrix("view", p->view);
-//    printMatrix("projection", p->projection);
+  /**
+   * Precomputes the view-projection matrix of the model-view-projection matrix.
+   * This happens once per frame, since the projection and view is the same for all.
+   * @param dt delta time with previous frame (in seconds).
+   * @param time total time running (in seconds).
+   */
+  virtual void onFrameStart(float dt, float time) override {
+    auto cameraEntity = m_registry.view<ecs::Camera>()[0];
+    if (cameraEntity == entt::null) {
+      throw std::runtime_error("No camera specified. Cannot update MVP's.");
+    }
 
+    auto& cameraTransform = m_registry.get<izz::ecs::Transform>(cameraEntity);
+    m_mvpShared.viewMatrix = glm::inverse(cameraTransform.worldTransform);
 
-//    spdlog::info("view: \n[{} {} {} {}\n{} {} {} {}\n{} {} {} {}\n{} {} {} {}]", p->model[0][0], p->model[0][1], p->model[0][2], p->model[0][3],
-//                 p->view[1][0], p->view[1][1], p->view[1][2], p->view[1][3],
-//                 p->view[2][0], p->view[2][1], p->view[2][2], p->view[2][3],
-//                 p->view[3][0], p->view[3][1], p->view[3][2], p->view[3][3]);
-//    spdlog::info("Camera position: {} {} {}", p->viewPos[0], p->viewPos[1], p->viewPos[2]);
-;  }
+    auto& activeCamera = m_registry.get<izz::ecs::Camera>(cameraEntity);
+    m_mvpShared.projectionMatrix = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);
+  }
+
+  virtual void onEntityUpdate(entt::entity e, izz::gl::Material& material) override {
+    auto transform = m_registry.try_get<izz::ecs::Transform>(e);
+    auto model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
+
+    auto uniformBuffer = material.uniformBuffers.at(izz::ufm::ModelViewProjection::BUFFER_NAME);
+    ModelViewProjection* mvp = reinterpret_cast<ModelViewProjection*>(uniformBuffer.data);
+    mvp->model = model;
+    mvp->view = m_mvpShared.viewMatrix;
+    mvp->projection = m_mvpShared.projectionMatrix;
+
+    // camera position is stored in 4-th column of inverse view matrix.
+    mvp->viewPos = glm::inverse(m_mvpShared.viewMatrix)[3];
+  }
+
+ private:
+  entt::registry& m_registry;
+  MvpShared m_mvpShared;
 };
 
-
-
-}
-}  // namespace lsw
+}  // namespace ufm
+}  // namespace izz

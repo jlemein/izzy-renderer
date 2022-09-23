@@ -9,7 +9,7 @@
 
 namespace izz {
 class Izzy;
-class SceneGraphHelper;
+class EntityFactory;
 namespace gui {
 
 class MainMenu : public IGuiWindow {
@@ -20,7 +20,7 @@ class MainMenu : public IGuiWindow {
   void render(float time, float dt) override;
 
  private:
-  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
+  std::shared_ptr<izz::EntityFactory> m_sceneGraph;
 
   gui::MaterialEditor m_materialEditor;
 };

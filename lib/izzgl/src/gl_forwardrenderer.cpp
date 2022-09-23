@@ -7,77 +7,68 @@
 #include <gl_common.h>
 #include <gl_forwardrenderer.h>
 #include <gl_renderable.h>
-#include <gl_renderutils.h>
-#include <izzgl_rendersystem.h>
-#include <entt/entt.hpp>
+#include "ecs_camera.h"
+#include "ecs_name.h"
+#include <izzgl_meshsystem.h>
+#include <izzgl_materialsystem.h>
 using namespace izz::gl;
 
-ForwardRenderer::ForwardRenderer(RenderSystem& renderSystem)
-    : m_renderSystem {renderSystem} {}
+ForwardRenderer::ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
+  : m_materialSystem{materialSystem}
+  , m_meshSystem{meshSystem}
+  , m_registry{registry} {
+  m_registry.on_construct<gl::ForwardRenderable>().connect<&ForwardRenderer::onConstruct>(this);
+}
+
+void ForwardRenderer::onConstruct(entt::registry& registry, entt::entity e) {
+  // if deferred entity has no renderable component, then it will be added.
+  // we need the renderable for the common rendering functionalities (such as mvp updates).
+  if (!m_registry.all_of<gl::Renderable>(e)) {
+    auto name = m_registry.try_get<ecs::Name>(e);
+    spdlog::info("ForwardRenderable component added to entity '{}'. Adding Renderable.", name ? name->name : "");
+
+    auto forwardRenderable = m_registry.get<gl::ForwardRenderable>(e);
+    auto renderable = gl::Renderable{.materialId = forwardRenderable.materialId, .meshBufferId = forwardRenderable.meshBufferId};
+    m_registry.emplace<gl::Renderable>(e, renderable);
+  }
+}
+
+void ForwardRenderer::update(float dt, float time) {
+  // do nothing - in future the per frame
+}
 
 void ForwardRenderer::render(const entt::registry& registry) {
-  // perform deferred rendering first
-  const auto view = registry.view</*const ForwardRenderable,*/const Renderable, const izz::ecs::Transform>();
-  for (const auto& [e, renderable, transform] : view.each()) {
-//    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  // forward renderer uses depth testing and writes into the depth buffer.
+  // (other render strategies might have changed these settings).
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
 
-//    const auto& renderable = registry.get<const Renderable>(e);
+  // bind default framebuffer, and set draw buffers to 0 (in case somebody messed with it).
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glDrawBuffer(GL_BACK);
 
-    // for now assume a renderable has one material
-    //    auto effect = m_registry.get<izz::geo::Effect>();
+  const auto view = registry.view<const ForwardRenderable, const izz::ecs::Transform>();
 
-    glUseProgram(renderable.material->programId);
+  for (const auto& [e, forward, transform] : view.each()) {
+    auto& mat = m_materialSystem->getMaterialById(forward.materialId);
+    const auto& mesh = m_meshSystem->getMeshBuffer(forward.meshBufferId);
 
-//    RenderUtils::ActivateTextures(renderable.renderState);
+    m_materialSystem->updateUniformsForEntity(e, mat);
 
-//    const auto& r = registry.get<const Renderable>(e);
+    mat.useProgram();
+    mat.useTextures();
+    mat.pushUniforms();
+    m_meshSystem->bindBuffer(mesh);
 
-    // TODO: disable in release
-    if (renderable.isWireframe || registry.any_of<izz::ecs::Wireframe>(e)) {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    bool isWireframe = forward.isWireframe || registry.any_of<izz::ecs::Wireframe>(e);
+    glPolygonMode(GL_FRONT_AND_BACK, isWireframe ? GL_LINE : GL_FILL);
+
+    if (mesh.primitiveType == GL_TRIANGLES) {
+      glDrawElements(mesh.primitiveType, mesh.drawElementCount, GL_UNSIGNED_INT, 0);
     } else {
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      glDrawArrays(mesh.primitiveType, 0, mesh.drawElementCount);
     }
 
-//    m_meshSystem->
-    //TODO: renderable.meshBuffer.bindBuffer(); --> better is to decouple bindBuffer, and delegate to mesh system.
-//    RenderUtils::UseBufferedMeshData(renderable.renderState.meshData);
-//    // bind the vertex buffers
-//    glBindBuffer(GL_ARRAY_BUFFER, renderable.vertex_buffer);
-//    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, renderable.index_buffer);
-//    //    glBindVertexArray(renderable.vertex_array_object);
-//
-//    for (unsigned int i = 0U; i < renderable.vertexAttribCount; ++i) {
-//      const VertexAttribArray& attrib = renderable.vertexAttribArray[i];
-//      // todo: use VAOs
-//      glEnableVertexAttribArray(i);
-//      glVertexAttribPointer(i, attrib.size, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(attrib.buffer_offset));
-//    }
-
-    // TODO: check if shader is dirty
-    //  reason: if we push properties every frame (Except for MVP), we might
-    //  unnecessary spend time doing that while we can immediately just render.
-//    m_renderSystem.pushShaderProperties(renderable.renderState);
-//    if (renderable.renderState.isMvpSupported) {
-//      m_renderSystem.pushModelViewProjection(renderable.renderState);
-//    }
-
-    // TODO this one needs to change per glUseProgram, which is the case right
-    //  now. In future we might optimize changing of glUseProgram in that
-    //  case, this function should be called once per set of glUseProgram.
-//    if (renderable.renderState.isLightingSupported) {
-//      m_renderSystem.pushLightingData(renderable.renderState);
-//    }
-//    RenderUtils::PushUniformProperties(renderable.renderState);
-
-//    if (renderable.renderState.meshData.primitiveType == GL_TRIANGLES) {
-//      glDrawElements(renderable.renderState.meshData.primitiveType, renderable.renderState.meshData.drawElementCount, GL_UNSIGNED_INT, 0);
-//    } else {
-//      glDrawArrays(renderable.renderState.meshData.primitiveType, 0, renderable.renderState.meshData.drawElementCount);
-//    }
-
-//    // handle debug
-//    checkError(e);
-
+    izz::gl::checkError("Forward renderer");
   }
 }

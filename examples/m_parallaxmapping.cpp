@@ -1,20 +1,19 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include "izzgl_materialsystem.h"
-#include <spdlog/spdlog.h>
-#include <gui_window.h>
-#include <cxxopts.hpp>
-#include <memory>
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
-#include "izz_scenegraphhelper.h"
 #include <geo_primitivefactory.h>
-#include "izzgl_materialsystem.h"
+#include <gui_window.h>
 #include <izz_resourcemanager.h>
+#include <spdlog/spdlog.h>
 #include <wsp_workspace.h>
+#include <cxxopts.hpp>
+#include <memory>
+#include "izz_entityfactory.h"
+#include "izzgl_materialsystem.h"
 
 using namespace std;
 using namespace izz;
@@ -60,7 +59,7 @@ int main(int argc, char** argv) {
 
   try {
     auto resourceManager = make_shared<ResourceManager>();
-    auto sceneGraph = make_shared<izz::SceneGraphHelper>();
+    auto sceneGraph = make_shared<izz::EntityFactory>();
     auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
     materialSystem->loadMaterialsFromFile(workspace->materialsFile);
     resourceManager->setMaterialSystem(materialSystem);

@@ -4,21 +4,21 @@
 #pragma once
 
 #include <gui_guisystem.h>
+#include <izz_entityfactory.h>
+#include <izz_fontsystem.h>
 #include <izz_resourcemanager.h>
 #include <izzgl_deferredrenderablefactory.h>
 #include <izzgl_exrloader.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_meshsystem.h>
+#include <izzgl_sceneloader.h>
 #include <izzgl_stbtextureloader.h>
 #include <izzgl_texturesystem.h>
-#include <izzgl_sceneloader.h>
-#include <izz_scenegraphhelper.h>
-#include <izz_fontsystem.h>
+#include <entt/entt.hpp>
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <entt/entt.hpp>
 
 namespace izz {
 namespace geo {
@@ -43,8 +43,8 @@ class Izzy {
   std::shared_ptr<izz::gl::MeshSystem> meshSystem{nullptr};
   std::shared_ptr<izz::gl::RenderSystem> renderSystem{nullptr};
   std::shared_ptr<izz::gl::SceneLoader> sceneLoader{nullptr};
-  std::shared_ptr<izz::SceneGraphHelper> sceneGraph{nullptr};
-  std::shared_ptr<izz::FontSystem> fontSystem {nullptr}; // @todo make part of izz::gui
+  std::shared_ptr<izz::EntityFactory> entityFactory{nullptr};
+  std::shared_ptr<izz::FontSystem> fontSystem{nullptr};  // @todo make part of izz::gui
 
   static std::shared_ptr<Izzy> CreateSystems() {
     auto izz = std::make_shared<Izzy>();
@@ -62,8 +62,7 @@ class Izzy {
     izz->resourceManager->setMaterialSystem(izz->materialSystem);
     izz->renderSystem = std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->resourceManager, izz->materialSystem, izz->meshSystem);
 
-    izz->sceneGraph = std::make_shared<izz::SceneGraphHelper>(
-       izz->registry, std::make_unique<izz::gl::DeferredRenderableFactory>(*izz->renderSystem, *izz->materialSystem), izz->materialSystem, izz->meshSystem);
+    izz->entityFactory = std::make_shared<izz::EntityFactory>(izz->registry, izz->renderSystem, izz->materialSystem, izz->meshSystem);
 
     izz->sceneLoader = std::make_shared<izz::gl::SceneLoader>(izz->textureSystem, izz->materialSystem);
     izz->resourceManager->setSceneLoader(izz->sceneLoader);

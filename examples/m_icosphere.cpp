@@ -1,21 +1,27 @@
-#include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_wireframe.h>
-#include "izz_scenegraphhelper.h"
 #include <geo_primitivefactory.h>
-#include "izzgl_materialsystem.h"
-#include <izz_resourcemanager.h>
 #include <gui_window.h>
+#include <izz_izzy.h>
+#include <izz_resourcemanager.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <iostream>
+#include "izz_entityfactory.h"
+#include "izzgl_materialreader.h"
+#include "izzgl_materialsystem.h"
+#include <geo_primitivefactory.h>
+#include <geo_mesh.h>
 
 using namespace std;
 using namespace izz;
 using namespace geo;
-using izz::core::Util;
 using namespace glm;
+
+namespace {
+  std::shared_ptr<Izzy> izzy {nullptr};
+}
 
 std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char* argv[]) {
   const std::string PROGRAM_NAME = "parallax";
@@ -48,34 +54,38 @@ std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char* argv[]) {
 }
 
 int main(int argc, char* argv[]) {
-  cout << "Hello Icosphere" << endl;
-  auto workspace = parseProgramArguments(argc, argv);
+  auto programArguments = parseProgramArguments(argc, argv);
+  if (programArguments->debugMode) {
+    spdlog::set_level(spdlog::level::debug);
+  }
 
   try {
-    auto resourceManager = make_shared<ResourceManager>();
-    auto sceneGraph = make_shared<izz::SceneGraphHelper>();
-    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
-    materialSystem->loadMaterialsFromFile(workspace->materialsFile);
-    resourceManager->setMaterialSystem(materialSystem);
+    izzy = Izzy::CreateSystems();
 
-    auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
+    auto window = make_shared<gui::Window>(izzy->getRegistry(), izzy->renderSystem, izzy->guiSystem);  // guiSystem);
+    window->setWindowSize(1920, 1080);
+    window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
+    window->initialize();
+
+    // setup camera
+    auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
+    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
+
+    if (programArguments->materialsFile.empty()) {
+      spdlog::warn("No materials provided. Rendering results may be different than expected.");
+    } else {
+      izz::gl::MaterialReader reader(izzy->materialSystem);
+      reader.readMaterials(programArguments->materialsFile);
+    }
 
     //    auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeBox(), resourceManager->createMaterial("Wireframe"));
-    auto box = sceneGraph->addGeometry(PrimitiveFactory::MakeUVSphere("UvSphere"), *resourceManager->getMaterialSystem()->createMaterial("Wireframe"));
+    auto box = izzy->entityFactory->addGeometry(izz::geo::PrimitiveFactory::MakeUVSphere("UvSphere"), izzy->materialSystem->createMaterial("Wireframe").id);
     box.add<ecs::Wireframe>();
 
-    auto viewer = make_shared<izz::gui::Window>(sceneGraph, renderSystem /*, guiSystem*/);
+    izzy->renderSystem->init(window->getDisplayDetails().windowWidth, window->getDisplayDetails().windowHeight);
 
-    // ==== CAMERA SETUP ====================================================
-    auto camera = sceneGraph->makeCamera("DummyCamera", 4);
-    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-    viewer->setActiveCamera(camera);
+    window->run();
 
-    // ==== UI SETUP ========================================================
-    viewer->setWindowSize(1024, 768);
-    viewer->setTitle("Icosphere Wireframe");
-    viewer->initialize();
-    viewer->run();
   } catch (runtime_error& e) {
     spdlog::error(e.what());
     return EXIT_FAILURE;

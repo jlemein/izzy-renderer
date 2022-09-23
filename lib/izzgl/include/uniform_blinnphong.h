@@ -10,25 +10,30 @@ struct BlinnPhong {
   glm::vec4 specular;
   float shininess;
 
-  static inline const char* PARAM_NAME = "BlinnPhong";
+  static inline const char* BUFFER_NAME = "BlinnPhong";
 };
 
-class BlinnPhongManager : public UniformBlockManager {
+class BlinnPhongManager : public gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override {
+  virtual void* allocate(size_t& t) override {
     t = sizeof(BlinnPhong);
     return new BlinnPhong;
   }
 
-  void DestroyUniformBlock(void* data) override {
+  virtual void destroy(void* data) override {
     auto blinn = reinterpret_cast<BlinnPhong*>(data);
     delete blinn;
   }
-  void UpdateUniform(void* data, const gl::Material& m) override {
+
+  virtual void onInit() {}
+
+  virtual void onUpdate(void* data, const gl::Material& material, float dt, float time) override {
     auto blinn = reinterpret_cast<BlinnPhong*>(data);
-    blinn->shininess = m.getUniformFloat("shininess");
-    blinn->specular = m.getUniformVec4("specular_color");
+    blinn->shininess = material.getUniformFloat("shininess");
+    blinn->specular = material.getUniformVec4("specular_color");
   }
+  virtual void onFrameStart(float dt, float time) {};
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {}
 };
 
 

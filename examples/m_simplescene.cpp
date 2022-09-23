@@ -1,18 +1,18 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include "../lib/core/include/georm_materialsystem.h"
-#include <memory>
-#include <spdlog/spdlog.h>
-#include <gui_window.h>
-#include "../lib/core/include/anim_localrotation.h"
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
-#include "izz_scenegraphhelper.h"
 #include <geo_primitivefactory.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
+#include <gui_window.h>
+#include <spdlog/spdlog.h>
+#include <memory>
+#include "../lib/core/include/anim_localrotation.h"
+#include "../lib/core/include/georm_materialsystem.h"
+#include "izz_entityfactory.h"
 
 using namespace std;
 using namespace lsw;

@@ -25,6 +25,13 @@ class LightSystem;
 class ShaderCompiler;
 struct Texture;
 
+
+enum class RenderStrategy {
+  UNDEFINED = 0,
+  FORWARD,
+  DEFERRED
+};
+
 /**!
  * Render system that interacts with the GPU using OpenGL.
  */
@@ -47,21 +54,17 @@ class RenderSystem {
    * Traverses the scene graph and creates corresponding objects in the render system so that the entities can be rendered.
    */
   void init(int width, int height);
-  void update(float time, float dt);
+  void update(float dt, float time);
   void render();
 
-  MaterialSystem& getMaterialSystem();
-
-  MeshSystem& getMeshSystem();
-
   void resize(int width, int height);
+
+  void addRenderableComponent(SceneGraphEntity& e, RenderStrategy renderStrategy);
 
   /**
    * @returns the light system.
    */
   LightSystem& getLightSystem();
-
-  void setActiveCamera(entt::entity cameraEntity);
 
  private:
   ForwardRenderer m_forwardRenderer;
@@ -74,25 +77,12 @@ class RenderSystem {
   std::shared_ptr<izz::ResourceManager> m_resourceManager {nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem {nullptr};
   std::shared_ptr<izz::gl::MeshSystem> m_meshSystem {nullptr};
-//  std::shared_ptr<izz::gl::EffectSystem> m_effectSystem;
 //  lsw::ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;
-
-  entt::entity m_activeCamera{entt::null};
+  int m_viewportWidth = 0;
+  int m_viewportHeight = 0;
 
   GLuint m_quadVbo, m_quadVao;
-
-  /// makes sure the transformations applied to meshes and cameras are reflected
-  /// in the renderable component.
-  void synchMvpMatrices();
-
-  /**!
-   * @brief Updates the model matrix of the renderable object. After the call
-   * the renderable object reflects the current model transformation state.
-   * @param renderable
-   */
-  void updateModelMatrix(entt::entity e);
-  void updateCamera(Renderable& renderable);
 
   /**
    * @brief Sets up the render component (i.e. the handle to the render system)
@@ -123,14 +113,6 @@ class RenderSystem {
   void initPostprocessBuffers();
 //  void renderPosteffects();
 };
-
-//class IMaterialSystem {
-// public:
-//  virtual ~IMaterialSystem() = default;
-//  virtual void synchronizeTextures(RenderSystem& renderSystem) = 0;
-//
-//  virtual void update(float time, float dt) = 0;
-//};
 
 }  // namespace glrs
 }  // namespace lsw

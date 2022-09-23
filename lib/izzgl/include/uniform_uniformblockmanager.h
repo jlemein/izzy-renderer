@@ -6,17 +6,10 @@ struct Material;
 }
 namespace ufm {
 
-//enum class ValueSemantic {
-//  UNDEFINED = 0,
-//  POSITION,         /// @brief Value is a position
-//  VECTOR_NORMALIZED,  /// @brief The vector is normalized, meaning length must be 1. Good for direction vectors.
-//  COLOR_RGB,
-//  FLOAT,
-//  UNSIGNED_FLOAT,
-//  RANGE,
-//
-//};
-
+/**
+ * The parameters which are defined in the material need to be layed out in a structure that is passed to the shader.
+ * This class manages those implementations.
+ */
 class UniformBlockManager {
  public:
   virtual ~UniformBlockManager() = default;

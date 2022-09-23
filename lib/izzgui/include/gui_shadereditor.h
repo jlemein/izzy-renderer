@@ -11,13 +11,13 @@
 
 namespace izz {
 
-class SceneGraphHelper;
+class EntityFactory;
 
 namespace gui {
 
 class ShaderEditor : public IGuiWindow {
  public:
-  ShaderEditor(std::shared_ptr<izz::SceneGraphHelper> sceneGraph);
+  ShaderEditor(std::shared_ptr<izz::EntityFactory> sceneGraph);
 
   void init() override;
   void render(float time, float dt) override;
@@ -25,7 +25,7 @@ class ShaderEditor : public IGuiWindow {
   void openDialog(entt::entity entity);
 
  private:
-  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
+  std::shared_ptr<izz::EntityFactory> m_sceneGraph;
   std::unordered_map<entt::entity, bool> m_openDialogs;
 };
 

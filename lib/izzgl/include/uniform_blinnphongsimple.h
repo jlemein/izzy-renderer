@@ -1,7 +1,8 @@
 #pragma once
 
 #include "izzgl_material.h"
-#include "uniform_uniformblockmanager.h"
+#include <izzgl_scenedependentuniform.h>
+
 namespace izz {
 namespace ufm {
 
@@ -10,26 +11,32 @@ struct BlinnPhongSimple {
   glm::vec4 specular;
   float shininess;
 
-  static inline const char* PARAM_NAME = "BlinnPhongSimple";
+  static inline const char* BUFFER_NAME = "BlinnPhongSimple";
 };
 
-class BlinnPhongSimpleManager : public UniformBlockManager {
+class BlinnPhongSimpleManager : public gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override {
+  virtual void* allocate(size_t& t) override {
     t = sizeof(BlinnPhongSimple);
     return new BlinnPhongSimple;
   }
 
-  void DestroyUniformBlock(void* data) override {
+  virtual void destroy(void* data) override {
     auto blinn = reinterpret_cast<BlinnPhongSimple*>(data);
     delete blinn;
   }
-  void UpdateUniform(void* data, const gl::Material& m) override {
+
+  virtual void onInit() {}
+
+  virtual void onUpdate(void* data, const gl::Material& material, float dt, float time) override {
     auto blinn = reinterpret_cast<BlinnPhongSimple*>(data);
-    blinn->shininess = m.getUniformFloat("shininess");
-    blinn->albedo = m.getUniformVec4("albedo");
-    blinn->specular = m.getUniformVec4("specular");
+    blinn->shininess = material.getUniformFloat("shininess");
+    blinn->albedo = material.getUniformVec4("albedo");
+    blinn->specular = material.getUniformVec4("specular");
   }
+
+  virtual void onFrameStart(float dt, float time) {};
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {}
 };
 
 

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "izz_scenegraphhelper.h"
 #include <imgui.h>
 #include <izz_fontsystem.h>
 #include <entt/entt.hpp>
 #include <memory>
 #include "gui_iguiwindow.h"
+#include "izz_entityfactory.h"
 
 namespace izz {
 class ResourceManager;
@@ -13,7 +13,7 @@ namespace gui {
 
 class LightEditor : public IGuiWindow {
  public:
-  LightEditor(std::shared_ptr<izz::SceneGraphHelper> sceneGraph, std::shared_ptr<izz::FontSystem> fontSystem);
+  LightEditor(std::shared_ptr<izz::EntityFactory> sceneGraph, std::shared_ptr<izz::FontSystem> fontSystem);
 
   void init() override;
   void render(float dt, float totalTime) override;
@@ -21,7 +21,7 @@ class LightEditor : public IGuiWindow {
   static inline bool Show = false;
 
  private:
-  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
+  std::shared_ptr<izz::EntityFactory> m_sceneGraph;
   std::shared_ptr<izz::FontSystem> m_fontSystem;
 
   std::vector<ImFont*> m_fonts;

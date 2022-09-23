@@ -16,9 +16,9 @@
 #include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
 #include "gui_window.h"
+#include "izz_entityfactory.h"
 #include "izz_fontsystem.h"
 #include "izz_resourcemanager.h"
-#include "izz_scenegraphhelper.h"
 #include "izzgl_materialsystem.h"
 #include "wsp_workspace.h"
 
@@ -41,7 +41,7 @@ namespace {
 std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<MaterialSystem> materialSystem{nullptr};
-std::shared_ptr<izz::SceneGraphHelper> sceneGraph{nullptr};
+std::shared_ptr<izz::EntityFactory> sceneGraph{nullptr};
 std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
@@ -50,7 +50,7 @@ std::shared_ptr<gui::GuiSystem> guiSystem {nullptr};
 
 void setupSystems() {
   resourceManager = make_shared<ResourceManager>();
-  sceneGraph = make_shared<izz::SceneGraphHelper>();
+  sceneGraph = make_shared<izz::EntityFactory>();
 
   auto textureSystem = make_shared<TextureSystem>();
   textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));

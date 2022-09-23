@@ -3,98 +3,62 @@
 //
 
 #include "anim_localrotation.h"
-#include "core_util.h"
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
 #include "ecs_transformutil.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
-#include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
+#include "izz_entityfactory.h"
 #include "izz_fontsystem.h"
-#include "izz_resourcemanager.h"
-#include "izz_scenegraphhelper.h"
-#include "izzgl_exrloader.h"
-#include "izzgl_sceneloader.h"
-#include "izzgl_stbtextureloader.h"
-#include "izzgl_texturesystem.h"
 
 #include <izzgl_materialsystem.h>
-#include <izzgl_effectsystem.h>
 
 #include "gui_window.h"
 #include "wsp_workspace.h"
 
+#include <izz_izzy.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
+#include <ecs_transform.h>
 #include "geo_primitivefactory.h"
-#include "ecs_camera.h"
+#include <geo_mesh.h>
 #include "gui_mainmenu.h"
+#include "izzgl_materialreader.h"
 using namespace std;
-using namespace izz;
 using namespace izz;
 using namespace izz::geo;
 using namespace glm;
-using izz::core::Util;
 using izz::wsp::Workspace;
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
 namespace {
+std::shared_ptr<izz::Izzy> izzy {nullptr};
 std::shared_ptr<Workspace> programArguments{nullptr};
-std::shared_ptr<ResourceManager> resourceManager{nullptr};
-std::shared_ptr<gl::MaterialSystem> materialSystem{nullptr};
-std::shared_ptr<gl::EffectSystem> effectSystem{nullptr};
-std::shared_ptr<izz::SceneGraphHelper> sceneGraph{nullptr};
-std::shared_ptr<gl::RenderSystem> renderSystem{nullptr};
-std::shared_ptr<SceneLoader> sceneLoader{nullptr};
-std::shared_ptr<FontSystem> fontSystem {nullptr};
-std::shared_ptr<izz::gui::GuiSystem> guiSystem {nullptr};
 }  // namespace
-
-void setupSystems() {
-  resourceManager = make_shared<ResourceManager>();
-  sceneGraph = make_shared<izz::SceneGraphHelper>();
-
-  auto textureSystem = make_shared<TextureSystem>();
-  textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
-  textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
-  resourceManager->setTextureSystem(textureSystem);
-
-  materialSystem = make_shared<gl::MaterialSystem>(sceneGraph, resourceManager);
-  effectSystem = make_shared<gl::EffectSystem>(*sceneGraph, *materialSystem);
-  resourceManager->setMaterialSystem(materialSystem);
-
-  sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
-  resourceManager->setSceneLoader(sceneLoader);
-
-  renderSystem = make_shared<gl::RenderSystem>(sceneGraph, materialSystem, effectSystem);
-  fontSystem = make_shared<FontSystem>();
-  fontSystem->addFont("fonts/SegoeUi.ttf", 20);
-//  fontSystem->addFont("fonts/DroidSans.ttf", 20);
-  guiSystem = make_shared<gui::GuiSystem>(fontSystem);
-}
 
 void setupLights() {
   // Sun
-  sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+  izzy->entityFactory->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
 
   // Point light 1
-  auto ptLight1 = sceneGraph->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
+  auto ptLight1 = izzy->entityFactory->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
   auto& lightComp = ptLight1.get<ecs::PointLight>();
   lightComp.intensity = 1.0;
   lightComp.color = glm::vec3(1.0, 1.0, 1.0);
   ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
   // Point light 2
-  auto ptLight2 = sceneGraph->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
+  auto ptLight2 = izzy->entityFactory->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
   ptLight2.get<ecs::PointLight>().intensity = 1.4;
   ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 }
 
 void setupScene() {
-  auto scene = sceneLoader->loadScene(programArguments->sceneFile);
+
+  auto scene = izzy->sceneLoader->loadScene(programArguments->sceneFile);
 
   // post process meshes in scene file
   for (auto& mesh : scene->m_meshes) {
@@ -103,16 +67,26 @@ void setupScene() {
   }
 
   // add to scene graph
-  sceneGraph->makeScene(*scene, izz::SceneLoaderFlags::All());
+  auto e = izzy->entityFactory->makeScene(*scene, izz::SceneLoaderFlags::All(), gl::RenderStrategy::FORWARD);
+
+  {
+    auto box = izzy->entityFactory->makeMoveableEntity("Box");
+    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
+    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+    izz::ecs::TransformUtil::Translate(box.get<izz::ecs::Transform>(), glm::vec3(4.2, 0.0, 0.0));
+    auto& material = izzy->materialSystem->createMaterial("DeferredStandard_Color");
+    mesh.materialId = material.id;
+    box.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
+  }
 
   // adding a custom primitive to the scene
   auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
   MeshUtil::ScaleUvCoords(plane, 3, 3);
-  auto tableCloth = materialSystem->createMaterial("table_cloth");
-  auto effect = effectSystem->createEffect("table_cloth");
+  auto tableCloth = izzy->materialSystem->createMaterial("table_cloth");
+//  auto effect = izzy->effectSystem->createEffect("table_cloth");
 //  auto material = materialSystem->createMaterial("table_cloth");
 
-  sceneGraph->addGeometry(plane, effect);
+  izzy->entityFactory->addGeometry(plane, tableCloth.id);
 //  e.add<gl::DeferredRenderable>();
 
   //    sceneGraph->addGeometry(plane, tableCloth);
@@ -120,8 +94,8 @@ void setupScene() {
 }
 
 void setupUserInterface() {
-  guiSystem->addDialog(make_shared<gui::LightEditor>(sceneGraph, fontSystem));
-  guiSystem->addDialog(make_shared<gui::MainMenu>(sceneGraph));
+  izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->entityFactory, izzy->fontSystem));
+  izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(*izzy));
 }
 
 int main(int argc, char* argv[]) {
@@ -134,37 +108,40 @@ int main(int argc, char* argv[]) {
       spdlog::set_level(spdlog::level::debug);
     }
 
-    setupSystems();
+    izzy = Izzy::CreateSystems();
+
+    // window should be initialized before calling systems' functions
+    auto window = make_shared<gui::Window>(izzy->getRegistry(), izzy->renderSystem, izzy->guiSystem);  // guiSystem);
+    window->setWindowSize(1920, 1080);
+    window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
+    window->initialize();
+
+    // setup camera
+    auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
+    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
-      materialSystem->loadMaterialsFromFile(programArguments->materialsFile);
-      effectSystem->readEffectsFromFile(programArguments->materialsFile);
+      izz::gl::MaterialReader reader(izzy->materialSystem);
+      reader.readMaterials(programArguments->materialsFile);
     }
-
-    // visualize point lights using a custom material.
-    renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
     setupScene();
     setupLights();
+
+    // visualize point lights using a custom material.
+    izzy->renderSystem->getLightSystem().setDefaultPointLightMaterial(izzy->materialSystem->createMaterial("pointlight").id);
+    izzy->renderSystem->init(window->getDisplayDetails().windowWidth, window->getDisplayDetails().windowHeight);
+
     setupUserInterface();
 
-    // setup camera
-    auto camera = sceneGraph->makeCamera("DummyCamera", 4);
-    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 //    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
 //    auto vignette = materialSystem->createMaterial("VignettePostEffect");
 //    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
 //    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
 //    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
 
-    // setup window
-    auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
-    window->setActiveCamera(camera);
-    window->setWindowSize(1920, 1080);
-    window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
-    window->initialize();
     window->run();
 
   } catch (runtime_error& e) {
