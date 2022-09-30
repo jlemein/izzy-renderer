@@ -36,7 +36,7 @@ uniform ForwardLighting {
     SpotLight spotlight [MAX_SPOT_LIGHTS];
 };
 
-layout(binding = 1)
+layout(std140, binding = 1)
 uniform ModelViewProjection {
     mat4 model;
     mat4 view;

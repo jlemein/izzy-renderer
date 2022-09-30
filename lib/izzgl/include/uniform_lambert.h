@@ -9,23 +9,27 @@ namespace izz {
 namespace ufm {
 
 struct Lambert {
-  static inline const char* PARAM_NAME = "Lambert";
+  static inline const char* BUFFER_NAME = "Lambert";
 };
 
-class LambertUniformManager : public UniformBlockManager {
+//class LambertUniformManager : public UniformBlockManager {
+class LambertUniformManager : public izz::gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override {
+  void* allocate(size_t& t) override {
     t = sizeof(Lambert);
     return new Lambert;
   }
 
-  void DestroyUniformBlock(void* block) override {
+  void destroy(void* block) override {
     auto lambert = reinterpret_cast<Lambert*>(block);
     delete lambert;
   }
 
-  void UpdateUniform(void* block, const gl::Material& material) override {}
+  virtual void onInit() {}
 
+  virtual void onUpdate(void* block, const gl::Material& material, float dt, float time) override {}
+  virtual void onFrameStart(float dt, float time) {};
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {}
 
 };
 

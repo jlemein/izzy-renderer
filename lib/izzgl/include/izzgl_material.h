@@ -16,6 +16,8 @@
 #include <string>
 #include <variant>
 #include "geo_materialtemplate.h"
+#include <izzgl_scenedependentuniform.h>
+#include <vector>
 
 namespace izz {
 namespace gl {
@@ -202,6 +204,10 @@ class Material {
 
   void addUniformFloatArray(std::string paramName, const std::vector<float>& value);
 
+  inline void useProgram() const {
+    glUseProgram(programId);
+  }
+
   void useTextures() const;
 
   void pushUnscopedUniforms() const;
@@ -252,7 +258,8 @@ class Material {
   MaterialId id{-1};
   std::string name;
 
-  /// @brief Globally declared uniforms. It's not adviceable to use many global uniforms. Use uniform buffers instead.
+  /// @brief Globally declared uniforms. These are uniforms that are defined outside any interface block.
+  /// It's not recommended to use many global uniforms. Use uniform buffers instead.
   std::shared_ptr<UniformProperties> globalUniforms{nullptr};
   std::shared_ptr<UniformProperties> scopedUniforms{nullptr};
 
@@ -273,6 +280,7 @@ class Material {
   int programId{0};  /// @brief Program id as obtained via glCreateProgram()
   std::unordered_map<std::string, izz::gl::TextureBuffer> textures{};
   std::unordered_map<std::string, UniformBuffer> uniformBuffers{};
+//  std::unordered_map<std::string, izz::gl::IUniformBuffer*> perEntityUniforms{};
 
   template <typename T>
   void setProperty(const T& data) {

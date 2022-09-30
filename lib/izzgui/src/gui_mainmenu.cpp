@@ -9,8 +9,8 @@
 using namespace izz::gui;
 
 MainMenu::MainMenu(Izzy& izzy)
-  : m_sceneGraph{izzy.sceneGraph}
-  , m_materialEditor(izzy.materialSystem, izzy.sceneGraph) {}
+  : m_sceneGraph{izzy.entityFactory}
+  , m_materialEditor(izzy.materialSystem, izzy.entityFactory) {}
 
 void MainMenu::init() {
   m_materialEditor.init();
@@ -42,6 +42,6 @@ void MainMenu::render(float time, float dt) {
   }
   ImGui::EndMainMenuBar();
 
-  m_materialEditor.render(time, dt);
+  m_materialEditor.render(dt, time);
 
 }

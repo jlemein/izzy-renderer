@@ -7,50 +7,10 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include "ecs_light.h"
+#include <uniform_forwardlighting.h>
 
 namespace izz {
 namespace gl {
-
-struct UPointLight {
-  glm::vec4 position;
-  glm::vec4 color;
-  float intensity;
-  float linearAttenuation;
-  float quadraticAttenuation;
-  float __padding;
-};
-
-struct UDirectionalLight {
-  glm::vec3 direction;
-  float intensity;
-  glm::vec4 color;
-};
-
-struct USpotlight {
-  glm::vec3 position;
-  float intensity;
-  glm::vec4 color;
-  float attenuation;
-};
-
-// manually pad the C struct, because GPU adds padding for std140
-struct UAmbientLight {
-  glm::vec4 color;
-  float intensity;
-  float __padding[3];
-};
-
-struct ForwardLighting {
-  // number of lights in order: directional, ambient, point, spotlights.
-  glm::ivec4 numberOfLights;
-
-  UDirectionalLight directionalLight;
-  UAmbientLight ambientLight;
-  UPointLight pointLights[4];
-  USpotlight spotlights[2];
-
-  static inline const char* PARAM_NAME = "ForwardLighting";
-};
 
 class LightSystem {
  public:
@@ -83,7 +43,7 @@ class LightSystem {
 
  private:
   entt::registry& m_registry;
-  ForwardLighting m_forwardLighting;
+  izz::ufm::ForwardLighting m_forwardLighting;
 
   std::shared_ptr<MaterialSystem> m_materialSystem;
 

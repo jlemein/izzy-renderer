@@ -11,6 +11,7 @@
 #include <entt/entt.hpp>
 #include "izz_scenegraphentity.h"
 
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
 namespace izz {
@@ -36,7 +37,7 @@ class ResourceManager;
 namespace gl {
 class RenderSystem;
 }
-class SceneGraphHelper;
+class EntityFactory;
 
 namespace gui {
 class WindowInputListener;
@@ -66,7 +67,7 @@ class Window {
 
   ~Window();
 
-  izz::SceneGraphHelper& getSceneGraph();
+  izz::EntityFactory& getSceneGraph();
 
   DisplayDetails getDisplayDetails();
 
@@ -76,13 +77,11 @@ class Window {
   void setWindowSize(unsigned int width, unsigned int height);
   void setTitle(const std::string& title);
 
-  void setActiveCamera(izz::SceneGraphEntity cameraEntity);
-
   // callbacks
   void onWindowResize(int width, int height);
 
  private:
-  std::shared_ptr<izz::SceneGraphHelper> m_sceneGraph;
+  std::shared_ptr<izz::EntityFactory> m_sceneGraph;
   std::shared_ptr<izz::ResourceManager> m_resourceManager;
   std::shared_ptr<gui::GuiSystem> m_guiSystem{nullptr};
   std::shared_ptr<izz::anim::AnimationSystem> m_animationSystem;

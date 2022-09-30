@@ -1,8 +1,8 @@
 #version 460
 #extension GL_ARB_separate_shader_objects : enable
 
-layout(binding = 1)
-uniform UniformBufferBlock {
+layout(std140, binding = 1)
+uniform ModelViewProjection {
     mat4 model;
     mat4 view;
     mat4 proj;

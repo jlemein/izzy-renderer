@@ -4,8 +4,8 @@
 #include <izzgl_materialsystem.h>
 
 #include <izzgl_shadersystem.h>
+#include "izz_entityfactory.h"
 #include "izz_resourcemanager.h"
-#include "izz_scenegraphhelper.h"
 #include "izzgl_textureloader.h"
 #include "izzgl_texturesystem.h"
 #include "uniform_constant.h"
@@ -54,40 +54,47 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
   , m_resourceManager{resourceManager} {
   // for now register the uniform blocks
   // these are the registered uniform blocks that the shaders can make use of.
-  m_uniformBlockManagers[izz::ufm::Lambert::PARAM_NAME] = std::make_unique<izz::ufm::LambertUniformManager>();
-  m_uniformBlockManagers[izz::ufm::Parallax::PARAM_NAME] = std::make_unique<izz::ufm::ParallaxManager>();
-  m_uniformBlockManagers[izz::ufm::Uber::PARAM_NAME] = std::make_unique<izz::ufm::UberUniformManager>();
-  m_uniformBlockManagers[izz::ufm::ConstantLight::PARAM_NAME] = std::make_unique<izz::ufm::ConstantManager>();
-  m_uniformBlockManagers[izz::ufm::AlbedoSpecularity::PARAM_NAME] = std::make_unique<izz::ufm::AlbedoSpecularityManager>();
-  m_uniformBlockManagers[izz::ufm::BlinnPhong::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongManager>();
-  m_uniformBlockManagers[izz::ufm::BlinnPhongSimple::PARAM_NAME] = std::make_unique<izz::ufm::BlinnPhongSimpleManager>();
-  m_uniformBlockManagers[izz::ufm::ModelViewProjection::PARAM_NAME] = std::make_unique<izz::ufm::MvpManager>();
-  m_uniformBlockManagers[izz::ufm::DeferredLighting::BUFFER_NAME] = std::make_unique<izz::ufm::DeferredLightingManager>();
+  m_uniformBuffers[izz::ufm::Lambert::BUFFER_NAME] = std::make_unique<izz::ufm::LambertUniformManager>();
+  m_uniformBuffers[izz::ufm::Parallax::BUFFER_NAME] = std::make_unique<izz::ufm::ParallaxManager>();
+  m_uniformBuffers[izz::ufm::Uber::BUFFER_NAME] = std::make_unique<izz::ufm::UberUniformManager>();
+  m_uniformBuffers[izz::ufm::ConstantLight::BUFFER_NAME] = std::make_unique<izz::ufm::ConstantManager>();
+  m_uniformBuffers[izz::ufm::AlbedoSpecularity::BUFFER_NAME] = std::make_unique<izz::ufm::AlbedoSpecularityManager>();
+  m_uniformBuffers[izz::ufm::BlinnPhong::BUFFER_NAME] = std::make_unique<izz::ufm::BlinnPhongManager>();
+  m_uniformBuffers[izz::ufm::BlinnPhongSimple::BUFFER_NAME] = std::make_unique<izz::ufm::BlinnPhongSimpleManager>();
+  m_uniformBuffers[izz::ufm::ModelViewProjection::BUFFER_NAME] = std::make_unique<izz::ufm::MvpSharedUniformUpdater>(registry);
+  m_uniformBuffers[izz::ufm::DeferredLighting::BUFFER_NAME] = std::make_unique<izz::ufm::DeferredLightingUniform>(registry);
+  m_uniformBuffers[izz::ufm::ForwardLighting::BUFFER_NAME] = std::make_unique<izz::ufm::ForwardLightingUniform>(registry);
 }
 
 void MaterialSystem::addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate) {
   m_materialTemplates[materialTemplate.name] = materialTemplate;
 }
 
-UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& m) {
-  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, m.getName());
+UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& material) {
+  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, material.getName());
 
-  if (m_uniformBlockManagers.count(bufferDescription.name) == 0) {
-    throw std::runtime_error(fmt::format("No uniform buffer manager defined for uniform buffer '{}'", bufferDescription.name));
+  if (m_uniformBuffers.count(bufferDescription.name) == 0) {
+    throw std::runtime_error(
+        fmt::format("Material '{}' is defined with a property '{}', but there is no uniform buffer defined for this property in the material system.",
+                    material.name,
+                    bufferDescription.name));
   }
 
+  // mark the buffer as being in use. If it already exists, this function does not insert again.
+  m_uniformBuffersInUse.insert(bufferDescription.name);
+
   UniformBuffer ub{};
-  ub.data = m_uniformBlockManagers.at(bufferDescription.name)->CreateUniformBlock(ub.size);
+  ub.data = m_uniformBuffers.at(bufferDescription.name)->allocate(ub.size);
 
   glGenBuffers(1, &ub.bufferId);
   glBindBuffer(GL_UNIFORM_BUFFER, ub.bufferId);
 
-  glUseProgram(m.programId);  // might not be needed
-  ub.blockIndex = glGetUniformBlockIndex(m.programId, bufferDescription.name.c_str());
+  material.useProgram(); // might not be needed
+  ub.blockIndex = glGetUniformBlockIndex(material.programId, bufferDescription.name.c_str());
   if (ub.blockIndex == GL_INVALID_INDEX) {
     throw std::runtime_error(fmt::format("Could not find UBO with name {}", bufferDescription.name));
   }
-  glGetActiveUniformBlockiv(m.programId, ub.blockIndex, GL_UNIFORM_BLOCK_BINDING, &ub.blockBind);
+  glGetActiveUniformBlockiv(material.programId, ub.blockIndex, GL_UNIFORM_BLOCK_BINDING, &ub.blockBind);
 
   glBindBufferBase(GL_UNIFORM_BUFFER, ub.blockBind, ub.bufferId);
   glBufferData(GL_UNIFORM_BUFFER, ub.size, NULL, GL_DYNAMIC_DRAW);
@@ -96,7 +103,7 @@ UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferD
 }
 
 bool MaterialSystem::hasMaterialTemplate(const std::string& materialTemplateName) {
-  return m_materialMappings.count(materialTemplateName) > 0 || m_materialTemplates.count(materialTemplateName) > 0;
+  return m_materialMappings.contains(materialTemplateName) || m_materialTemplates.contains(materialTemplateName);
 }
 
 void MaterialSystem::setDefaultMaterial(const std::string& name) {
@@ -158,6 +165,8 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
   for (auto& [name, uboDescription] : materialTemplate.uniformBuffers) {
     spdlog::debug("MaterialSystem: allocating uniform buffer on GPU");
     material.uniformBuffers[name] = createUniformBuffer(uboDescription, material);
+
+    m_uniformBuffers.at(name)->onInit();
   }
 
   // INIT UNSCOPED UNIFORMS
@@ -284,7 +293,7 @@ Material& MaterialSystem::createMaterial(std::string meshMaterialName, std::stri
 
   // 4. Generate a unique material name (if no material name is specified).
   if (material.name.empty()) {
-    material.name = materialTemplate.name + "_" + std::to_string(shaderInfo.numberOfInstances-1);
+    material.name = materialTemplate.name + "_" + std::to_string(shaderInfo.numberOfInstances - 1);
   }
 
   // 5. Allocate unique buffers (i.e. texture buffers, uniform buffers, etc.).
@@ -312,6 +321,16 @@ const geo::MaterialTemplate& MaterialSystem::getMaterialTemplate(std::string mes
   return m_materialTemplates.at(templateName);
 }
 
+const geo::MaterialTemplate& MaterialSystem::getMaterialTemplateFromMaterial(int materialId) const {
+  try {
+    auto programId = m_createdMaterials.at(materialId).programId;
+    ShaderVariantInfo info = m_compiledShaderPrograms.at(programId);
+    return m_materialTemplates.at(info.materialTemplateName);
+  } catch (std::out_of_range e) {
+    throw std::runtime_error(fmt::format("Failed retrieving material template from specified material id {}", materialId));
+  }
+}
+
 izz::gl::Material& MaterialSystem::makeDefaultMaterial() {
   return createMaterial(m_defaultMaterialTemplateName);
 }
@@ -324,30 +343,33 @@ const ShaderVariantInfo& MaterialSystem::getShaderVariantInfo(const Material& ma
   return m_compiledShaderPrograms.at(material.programId);
 }
 
-const std::unordered_map<int, ShaderVariantInfo>& MaterialSystem::getShaderPrograms() const{
+const std::unordered_map<int, ShaderVariantInfo>& MaterialSystem::getShaderPrograms() const {
   return m_compiledShaderPrograms;
 }
 
-izz::gl::Material& MaterialSystem::getMaterialById(int id) {
+izz::gl::Material& MaterialSystem::getMaterialById(int materialId) {
   try {
-    return m_createdMaterials.at(id);
+    return m_createdMaterials.at(materialId);
   } catch (std::out_of_range&) {
-    throw std::runtime_error(fmt::format("Could not find material with id {}", id));
+    throw std::runtime_error(fmt::format("Could not find material with id {}", materialId));
   }
 }
 
-void MaterialSystem::update(float time, float dt) {
-  //  auto view = m_registry.view<izz::gl::Material, Renderable>();
+void MaterialSystem::update(float dt, float time) {
+  for (auto& bufferName : m_uniformBuffersInUse) {
+    m_uniformBuffers.at(bufferName)->onFrameStart(dt, time);
+  }
 
-  for (auto& m : m_createdMaterials) {
-    for (const auto& [name, uniformBlock] : m.second.uniformBuffers) {
-#ifndef NDEBUG
-      if (m_uniformBlockManagers.count(name) <= 0) {
-        throw std::runtime_error(fmt::format("Material system cannot find manager for ubo block '{}'", name));
-      }
-#endif  // NDEBUG
-
-      m_uniformBlockManagers.at(name)->UpdateUniform(uniformBlock.data, m.second);
+  for (auto& [id, material] : m_createdMaterials) {
+    for (const auto& [name, uniformBlock] : material.uniformBuffers) {
+      m_uniformBuffers.at(name)->onUpdate(uniformBlock.data, material, dt, time);
     }
+  }
+}
+
+void MaterialSystem::updateUniformsForEntity(entt::entity e, Material& material) {
+  for (auto uniformBuffer : material.uniformBuffers) {
+    const auto& bufferName = uniformBuffer.first;
+    m_uniformBuffers.at(bufferName)->onEntityUpdate(e, material);
   }
 }

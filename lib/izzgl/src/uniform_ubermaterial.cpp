@@ -6,17 +6,17 @@
 using namespace izz::ufm;
 using namespace izz::gl;
 
-void* UberUniformManager::CreateUniformBlock(size_t& t) {
+void* UberUniformManager::allocate(size_t& t) {
   t = sizeof(Uber);
   return new Uber;
 }
 
-void UberUniformManager::DestroyUniformBlock(void* block) {
+void UberUniformManager::destroy(void* block) {
   auto uber = reinterpret_cast<Uber*>(block);
   delete uber;
 }
 
-void UberUniformManager::UpdateUniform(void* data, const Material& material) {
+void UberUniformManager::onUpdate(void* data, const Material& material, float dt, float time) {
   auto uber = reinterpret_cast<Uber*>(data);
 
   const auto& ambientData = material.getUniformFloatArray("ambient_color");

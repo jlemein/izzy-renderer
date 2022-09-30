@@ -2,34 +2,37 @@
 
 #include "izzgl_material.h"
 #include "uniform_uniformblockmanager.h"
+
 namespace izz {
 namespace ufm {
 
 struct Parallax {
   float height_scale;
 
-  static inline const char* PARAM_NAME = "Parallax";
+  static inline const char* BUFFER_NAME = "Parallax";
 };
 
-class ParallaxManager : public UniformBlockManager {
+class ParallaxManager : public izz::gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override {
+  void* allocate(size_t& t) override {
     t = sizeof(Parallax);
     return new Parallax;
   }
 
-  void DestroyUniformBlock(void* data) override {
+  void destroy(void* data) override {
     auto parallax = reinterpret_cast<Parallax*>(data);
     delete parallax;
   }
-  void UpdateUniform(void* data, const gl::Material& m) override {
+
+  virtual void onInit() {}
+
+  void onUpdate(void* data, const gl::Material& material, float dt, float time) override {
     auto parallax = reinterpret_cast<Parallax*>(data);
-    parallax->height_scale = m.getUniformFloat("height_scale");
+    parallax->height_scale = material.getUniformFloat("height_scale");
   }
 
-//  ValueSemantic GetSemantic(const char* name) override {
-//    return ValueSemantic::COLOR_RGB
-//  }
+  virtual void onFrameStart(float dt, float time) {};
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {}
 };
 
 

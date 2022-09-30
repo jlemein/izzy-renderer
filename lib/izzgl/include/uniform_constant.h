@@ -10,26 +10,32 @@ struct ConstantLight {
   float intensity;
   float radius;
 
-  static inline const char* PARAM_NAME = "ConstantLight";
+  static inline const char* BUFFER_NAME = "ConstantLight";
 };
 
-class ConstantManager : public UniformBlockManager {
+class ConstantManager : public gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override {
+  void* allocate(size_t& t) override {
     t = sizeof(ConstantLight);
     return new ConstantLight;
   }
 
-  void DestroyUniformBlock(void* data) override {
+  void destroy(void* data) override {
     auto constant = reinterpret_cast<ConstantLight*>(data);
     delete constant;
   }
-  void UpdateUniform(void* data, const izz::gl::Material& m) override {
+
+  virtual void onInit() {}
+
+  void onUpdate(void* data, const izz::gl::Material& m, float dt, float time) override {
     auto constant = reinterpret_cast<ConstantLight*>(data);
     constant->radius = m.getUniformFloat("ConstantLight.radius");
     constant->intensity = m.getUniformFloat("ConstantLight.intensity");
     constant->color = m.getUniformVec4("ConstantLight.color");
   }
+
+  virtual void onFrameStart(float dt, float time) {};
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {}
 };
 
 

@@ -8,27 +8,24 @@
 #include <entt/entt.hpp>
 #include <memory>
 #include "gl_renderutils.h"
+#include "izz_scenegraphentity.h"
 
 namespace izz {
 namespace gl {
 
-class RenderSystem;
+class MaterialSystem;
+class MeshSystem;
 
 struct DeferredRenderable {
-  //  BufferedMeshData meshData;
   MaterialId materialId{-1};
-  MeshBufferId meshBufferId {-1};
-
-  //  UniformBufferMapping mvp;
-  //  UniformBufferMapping lights;
-//  entt::entity meshEntity{entt::null};
+  MeshBufferId meshBufferId{-1};
 };
 
 class DeferredRenderer {
   static constexpr inline const char* ID = "DeferredRenderer";
 
  public:
-  DeferredRenderer(RenderSystem& renderSystem, entt::registry& registry);
+  DeferredRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry);
 
   /// @brief Called when an gl::DeferredRenderable component is added to an entity.
   /// Used to initialize the underlying data structures.
@@ -51,7 +48,14 @@ class DeferredRenderer {
    */
   void createScreenSpaceRect();
 
-  void update();
+  /**
+   * Updates the materials with new uniform data. This is mainly to sync the MVP matrix that might have been changes
+   * because of camera movement.
+   *
+   * @param dt      Delta time with previous frame (in seconds).
+   * @param time    Total time since application start (in seconds).
+   */
+  void update(float dt, float time);
 
   void render(const entt::registry& registry);
 
@@ -62,15 +66,21 @@ class DeferredRenderer {
    */
   void resize(int width, int height);
 
-  inline void setActiveCamera(entt::entity cameraEntity) {
-    m_activeCamera = cameraEntity;
+  /**
+   * Gets called whenever an entity is created via the render system.
+   * @param e scene graph entity, that already contains a generic Renderable component.
+   */
+  inline void onEntityCreate(SceneGraphEntity& e) {
+    const auto& renderable = e.get<gl::Renderable>();
+    e.add(DeferredRenderable{.materialId = renderable.materialId, .meshBufferId = renderable.meshBufferId});
   }
 
  private:
-  void updateUniformLightingParams();
+  void renderGeometryPass(const entt::registry& registry);
+  void renderLightingPass();
 
-  int m_fbo{0};
-  RenderSystem& m_renderSystem;
+  std::shared_ptr<MaterialSystem> m_materialSystem;
+  std::shared_ptr<MeshSystem> m_meshSystem;
   entt::registry& m_registry;
 
   GLuint m_gBufferFbo, m_lightingPassFbo;
@@ -80,12 +90,13 @@ class DeferredRenderer {
   GLuint m_depthBuffer;
 
   /// Uniform locations in shader (obtained via glGetUniformLocation).
-  GLint m_gPositionLoc = -1, m_gNormalLoc = -1, m_gTangentLoc = -1, m_gAlbedoSpecLoc = -1;
+  GLint m_gPositionLoc = -1, m_gNormalLoc = -1, m_gAlbedoSpecLoc = -1;
   entt::entity m_activeCamera = entt::null;
 
-  int m_screenWidth = 10, m_screenHeight = 10;
+  int m_screenWidth;
+  int m_screenHeight;
 
-  MeshBufferId m_screenSpaceMeshBufferId {-1};
+  MeshBufferId m_screenSpaceMeshBufferId{-1};
   MaterialId m_lightPassMaterialId{-1};
 };
 

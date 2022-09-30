@@ -11,27 +11,33 @@ namespace ufm {
 struct AlbedoSpecularity {
   glm::vec4 albedo_specularity;
 
-  static inline const char* PARAM_NAME = "AlbedoSpecularity";
+  static inline const char* BUFFER_NAME = "AlbedoSpecularity";
 };
 
-class AlbedoSpecularityManager : public UniformBlockManager {
+class AlbedoSpecularityManager : public gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override {
+  virtual void* allocate(size_t& t) override {
     t = sizeof(AlbedoSpecularity);
     return new AlbedoSpecularity;
   }
 
-  void DestroyUniformBlock(void* data) override {
+  virtual void destroy(void* data) override {
     auto constant = reinterpret_cast<AlbedoSpecularity*>(data);
     delete constant;
   }
-  void UpdateUniform(void* data, const izz::gl::Material& m) override {
+
+  virtual void onInit() {}
+
+  virtual void onUpdate(void* data, const izz::gl::Material& material, float dt, float time) override {
     auto uniform = reinterpret_cast<AlbedoSpecularity*>(data);
-    glm::vec4 albedo = m.getUniformVec4("albedo");
-    float specularity = m.getUniformFloat("specularity");
+    glm::vec4 albedo = material.getUniformVec4("albedo");
+    float specularity = material.getUniformFloat("specularity");
     uniform->albedo_specularity = glm::vec4(albedo.x, albedo.y, albedo.z, specularity);
   }
+
+  virtual void onFrameStart(float dt, float time){};
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {}
 };
 
-}
-}  // namespace lsw
+}  // namespace ufm
+}  // namespace izz

@@ -19,12 +19,12 @@
 namespace izz {
 namespace gl {
 
-struct ModelViewProjection {
-  glm::mat4 model;
-  glm::mat4 view;
-  glm::mat4 proj;
-  glm::vec3 viewPos;
-};
+//struct ModelViewProjection {
+//  glm::mat4 model;
+//  glm::mat4 view;
+//  glm::mat4 proj;
+//  glm::vec3 viewPos;
+//};
 
 struct ColorBlock {
   glm::vec4 color;
@@ -55,35 +55,40 @@ struct Posteffect {
   GLuint vertex_array_object;
 };
 
-struct Renderable {
-  // storage of user defined shader properties
-  //  unsigned int materialId;
-  std::shared_ptr<izz::gl::Material> material;
-//  std::shared_ptr<izz::geo::Effect> effect {nullptr};
-
-  // 0 - forward rendered
-  // 1 - deferred rendered
-  int category {0};
-
-  //  std::string name{"Unnamed"};
-//  RenderState renderState;
-
-  // unscoped uniforms
-
-  // this is done to make sure different light structs are supported.
-  const void* pUboLightStruct{nullptr};  // address of light struct - maintained by light system
-  unsigned int pUboLightStructSize{0U};  // size of the struct
-
-  // TODO: check if we can only include this property in debug mode (for performance reasons)
-  // TODO merge with Wireframe component, and/or use wireframe shader.
-  bool isWireframe{false};
-
-  std::vector<izz::ecs::Texture> textures;
-
-//  UnscopedUniforms unscopedUniforms;
-
-  ModelViewProjection uniformBlock{glm::mat4(1.0F), glm::mat4(1.0F), glm::mat4(1.0F), glm::vec4(0.0)};
+struct Renderable{
+  MaterialId materialId{-1};
+  MeshBufferId meshBufferId {-1};
 };
+//
+//struct Renderable {
+//  // storage of user defined shader properties
+//  //  unsigned int materialId;
+//  std::shared_ptr<izz::gl::Material> material;
+////  std::shared_ptr<izz::geo::Effect> effect {nullptr};
+//
+//  // 0 - forward rendered
+//  // 1 - deferred rendered
+//  int category {0};
+//
+//  //  std::string name{"Unnamed"};
+////  RenderState renderState;
+//
+//  // unscoped uniforms
+//
+//  // this is done to make sure different light structs are supported.
+//  const void* pUboLightStruct{nullptr};  // address of light struct - maintained by light system
+//  unsigned int pUboLightStructSize{0U};  // size of the struct
+//
+//  // TODO: check if we can only include this property in debug mode (for performance reasons)
+//  // TODO merge with Wireframe component, and/or use wireframe shader.
+//  bool isWireframe{false};
+//
+//  std::vector<izz::ecs::Texture> textures;
+//
+////  UnscopedUniforms unscopedUniforms;
+//
+//  ModelViewProjection uniformBlock{glm::mat4(1.0F), glm::mat4(1.0F), glm::mat4(1.0F), glm::vec4(0.0)};
+//};
 
 }  // namespace glrs
 }  // namespace lsw

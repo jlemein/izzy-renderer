@@ -2,9 +2,9 @@
 // Created by jlemein on 07-03-21.
 //
 
-#ifndef RENDERER_UNIFORM_UBERMATERIAL_H
-#define RENDERER_UNIFORM_UBERMATERIAL_H
+#pragma once
 
+#include <izzgl_scenedependentuniform.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
@@ -20,17 +20,20 @@ struct Uber {
   glm::vec4 ambient;
   bool hasDiffuseTex{false};
 
-  static inline const char* PARAM_NAME = "UberMaterial";
+  static inline const char* BUFFER_NAME = "UberMaterial";
 };
 
-class UberUniformManager : public UniformBlockManager {
+class UberUniformManager : public izz::gl::IUniformBuffer {
  public:
-  void* CreateUniformBlock(size_t& t) override;
-  void DestroyUniformBlock(void* block) override;
-  void UpdateUniform(void* data, const gl::Material& material) override;
+  void* allocate(size_t& t) override;
+  void destroy(void* block) override;
+
+  virtual void onInit() override {}
+  virtual void onUpdate(void* data, const gl::Material& material, float dt, float time) override;
+  virtual void onFrameStart(float dt, float time) override {};
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) override {}
+
 };
 
 }  // namespace ufm
-}  // namespace lsw
-
-#endif  // RENDERER_UNIFORM_UBERMATERIAL_H
+}  // namespace izz

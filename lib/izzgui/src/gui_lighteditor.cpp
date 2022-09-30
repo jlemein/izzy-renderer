@@ -3,7 +3,7 @@
 #include <ecs_transform.h>
 #include <gui_lighteditor.h>
 #include <izz_resourcemanager.h>
-#include "izz_scenegraphhelper.h"
+#include "izz_entityfactory.h"
 #include "izzgl_material.h"
 #include "izzgl_texturesystem.h"
 
@@ -15,7 +15,7 @@ using namespace izz::gui;
 using namespace izz;
 using namespace std;
 
-LightEditor::LightEditor(shared_ptr<izz::SceneGraphHelper> sceneGraph, shared_ptr<izz::FontSystem> fontSystem)
+LightEditor::LightEditor(shared_ptr<izz::EntityFactory> sceneGraph, shared_ptr<izz::FontSystem> fontSystem)
   : m_sceneGraph{sceneGraph}
   , m_fontSystem(fontSystem)
   , m_registry(sceneGraph->getRegistry()) {}

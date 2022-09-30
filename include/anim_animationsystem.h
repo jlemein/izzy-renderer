@@ -7,7 +7,7 @@
 #include <entt/entity/registry.hpp>
 
 namespace izz {
-class SceneGraphHelper;
+class EntityFactory;
 }  // namespace izz
 
 namespace izz {

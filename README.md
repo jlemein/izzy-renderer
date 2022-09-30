@@ -82,7 +82,7 @@ namespace {
 std::shared_ptr<Workspace> programArguments{nullptr};
 std::shared_ptr<ResourceManager> resourceManager{nullptr};
 std::shared_ptr<MaterialSystem> materialSystem{nullptr};
-std::shared_ptr<ecsg::SceneGraph> sceneGraph{nullptr};
+std::shared_ptr<ecsg::SceneGraph> entityFactory{nullptr};
 std::shared_ptr<glrs::RenderSystem> renderSystem{nullptr};
 std::shared_ptr<SceneLoader> sceneLoader{nullptr};
 std::shared_ptr<FontSystem> fontSystem {nullptr};
@@ -91,20 +91,20 @@ std::shared_ptr<gui::GuiSystem> guiSystem {nullptr};
 
 void setupSystems() {
   resourceManager = make_shared<ResourceManager>();
-  sceneGraph = make_shared<ecsg::SceneGraph>();
+  entityFactory = make_shared<ecsg::SceneGraph>();
 
   auto textureSystem = make_shared<TextureSystem>();
   textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
   textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
   resourceManager->setTextureSystem(textureSystem);
 
-  materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
+  materialSystem = make_shared<MaterialSystem>(entityFactory, resourceManager);
   resourceManager->setMaterialSystem(materialSystem);
 
   sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
   resourceManager->setSceneLoader(sceneLoader);
 
-  renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, materialSystem);
+  renderSystem = make_shared<glrs::RenderSystem>(entityFactory, materialSystem);
   fontSystem = make_shared<FontSystem>();
   guiSystem = make_shared<gui::GuiSystem>();
 }
@@ -114,7 +114,7 @@ void setupSystems() {
 
 ```shell
 auto scene = sceneLoader->loadScene("models/mymodel.fbx");
-sceneGraph->makeScene(*scene);
+entityFactory->makeScene(*scene);
 ```
 
 The `makeScene` method has a second optional argument `ecsg::SceneLoaderFlags` that describes which components of the
@@ -143,13 +143,13 @@ for (auto& mesh : scene->m_meshes) {
 Adding a directional light source, named "Sun" from direction (0, 1, 1).
 
 ```cpp
-sceneGraph->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+entityFactory->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
 ```
 
 Adding a point light:
 
 ```cpp
-auto ptLight = sceneGraph->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
+auto ptLight = entityFactory->makePointLight("PointLight", glm::vec3(1.F, 1.0F, -1.0F));
 ptLight.get<ecs::PointLight>().intensity = 4.0F;
 ```
 
@@ -165,7 +165,7 @@ Generating a plane:
 ```cpp
 auto plane = PrimitiveFactory::MakePlane("Plane", 15.0, 15.0); // plane with dimensions 15 x 15
 auto blinnPhong = materialSystem->createMaterial("BlinnPhong");
-sceneGraph->addGeometry(plane, blinnPhong);
+entityFactory->addGeometry(plane, blinnPhong);
 ```
 
 #### Visualizing a light source
@@ -232,9 +232,9 @@ the same as standard materials, except for the fact they have different uniform 
 
 ```cpp
 // setup camera
-auto camera = sceneGraph->makeCamera("DummyCamera", 4);
-auto grayscale = sceneGraph->makePosteffect("GrayScale", *materialSystem->createMaterial("GrayScalePostEffect"));
-auto vignette = sceneGraph->makePosteffect("Vignette", *materialSystem->createMaterial("VignettePostEffect"));
+auto camera = entityFactory->makeCamera("DummyCamera", 4);
+auto grayscale = entityFactory->makePosteffect("GrayScale", *materialSystem->createMaterial("GrayScalePostEffect"));
+auto vignette = entityFactory->makePosteffect("Vignette", *materialSystem->createMaterial("VignettePostEffect"));
 
 // add post-processing effects. 
 // i.e. multipass: first pass grayscale; second pass vignette.

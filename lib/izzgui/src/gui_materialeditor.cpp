@@ -9,7 +9,7 @@
 #include "ecs_name.h"
 #include "gl_deferredrenderer.h"
 #include "gl_renderable.h"
-#include "izz_scenegraphhelper.h"
+#include "izz_entityfactory.h"
 #include "izzgl_material.h"
 using namespace izz::gui;
 
@@ -18,7 +18,7 @@ static bool p_open{false};
 static int activeTab = 0;
 static std::array<std::string, 2> tabs{"Materials", "Shaders"};
 
-MaterialEditor::MaterialEditor(std::shared_ptr<gl::MaterialSystem> materialSystem, std::shared_ptr<izz::SceneGraphHelper> sceneGraph)
+MaterialEditor::MaterialEditor(std::shared_ptr<gl::MaterialSystem> materialSystem, std::shared_ptr<izz::EntityFactory> sceneGraph)
   : m_materialSystem{materialSystem}
   , m_sceneGraph{sceneGraph}
   , m_shaderEditor{sceneGraph} {}
@@ -71,7 +71,7 @@ void MaterialEditor::render(float time, float dt) {
     ImGui::End();  // "Material Editor"
   }
 
-  m_shaderEditor.render(time, dt);
+  m_shaderEditor.render(dt, time);
 }
 
 void MaterialEditor::drawMaterialTable() {

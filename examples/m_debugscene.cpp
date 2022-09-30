@@ -19,7 +19,7 @@
 #include "../lib/lsw-gl/include/izzgl_texturesystem.h"
 #include "geo_scene.h"
 #include "gui_iguiwindow.h"
-#include "izz_scenegraphhelper.h"
+#include "izz_entityfactory.h"
 #include "izzgl_materialsystem.h"
 
 #include <geo_primitivefactory.h>
@@ -45,7 +45,7 @@ int main(int argc, char* argv[]) {
   try {
     auto resourceManager = make_shared<ResourceManager>();
     auto fontSystem = make_shared<FontSystem>();
-    auto sceneGraph = make_shared<izz::SceneGraphHelper>();
+    auto sceneGraph = make_shared<izz::EntityFactory>();
     auto textureSystem = make_shared<TextureSystem>();
     textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
     textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));

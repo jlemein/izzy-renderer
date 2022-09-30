@@ -5,33 +5,36 @@
 #include <ecs_camera.h>
 #include <ecs_name.h>
 #include <ecs_transform.h>
-#include <geo_curve.h>
 #include <geo_mesh.h>
 #include <gl_deferredrenderer.h>
 #include <gl_renderutils.h>
 #include <izz_util.h>
 #include <izzgl_rendersystem.h>
-#include <entt/entt.hpp>
 #include "geo_primitivefactory.h"
-#include "uniform_deferredlighting.h"
+#include "izzgl_error.h"
 using namespace izz::gl;
 
-DeferredRenderer::DeferredRenderer(izz::gl::RenderSystem& renderSystem, entt::registry& registry)
-  : m_renderSystem{renderSystem}
+DeferredRenderer::DeferredRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
+  : m_materialSystem{materialSystem}
+  , m_meshSystem{meshSystem}
   , m_registry{registry} {
-  //  m_registry.on_construct<gl::DeferredRenderable>().connect<&DeferredRenderer::onConstruct>(this);
+  m_registry.on_construct<gl::DeferredRenderable>().connect<&DeferredRenderer::onConstruct>(this);
 }
 
-void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {}
+void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
+  // if deferred entity has no renderable component, then it will be added.
+  // we need the renderable for the common rendering functionalities (such as mvp updates).
+  if (!m_registry.all_of<gl::Renderable>(e)) {
+    auto name = m_registry.try_get<ecs::Name>(e);
+    spdlog::info("DeferredRenderable component added to entity '{}'. Adding Renderable.", name ? name->name : "");
 
-namespace {
-void checkError(const char* name) {
-  GLenum err;
-  if ((err = glGetError()) != GL_NO_ERROR) {
-    std::cerr << "OpenGL error occurred for " << name << ": " << err << std::endl;
+    auto deferred = m_registry.get<gl::DeferredRenderable>(e);
+    auto renderable = gl::Renderable{.materialId = deferred.materialId, .meshBufferId = deferred.meshBufferId};
+    m_registry.emplace<gl::Renderable>(e, renderable);
   }
 }
-}  // namespace
+
+namespace {}  // namespace
 void DeferredRenderer::createGBuffer(int width, int height) {
   // Create a framebuffer for the gbuffer (geometry pass).
   glGenFramebuffers(1, &m_gBufferFbo);
@@ -52,14 +55,6 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, m_gNormal, 0);
-
-  // GBuffer: tangent texture
-//  glGenTextures(1, &m_gTangent);
-//  glBindTexture(GL_TEXTURE_2D, m_gTangent);  // so that all subsequent calls will affect normal texture.
-//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, m_gTangent, 0);
 
   // GBuffer: albedoTexture
   glGenTextures(1, &m_gAlbedoSpec);
@@ -86,19 +81,13 @@ void DeferredRenderer::resize(int width, int height) {
   m_screenWidth = width;
   m_screenHeight = height;
 
-  glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
+  glBindTexture(GL_TEXTURE_2D, m_gPosition);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
-  // GBuffer: normal texture
-  glBindTexture(GL_TEXTURE_2D, m_gNormal);  // so that all subsequent calls will affect normal texture.
+  glBindTexture(GL_TEXTURE_2D, m_gNormal);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 
-  // GBuffer: tangent texture
-//  glBindTexture(GL_TEXTURE_2D, m_gTangent);  // so that all subsequent calls will affect normal texture.
-//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-
-  // GBuffer: albedoTexture
-  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);  // so that all subsequent calls will affect albedoSpec texture.
+  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
   //
   //  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
@@ -110,21 +99,19 @@ void DeferredRenderer::resize(int width, int height) {
 
 void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = izz::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
-  const auto& meshBuffer = m_renderSystem.getMeshSystem().createMeshBuffer(rectangle);
+  const auto& meshBuffer = m_meshSystem->createMeshBuffer(rectangle);
 
   // DeferredLightingPass UBO is required.
-  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("DeferredLightingPass");
+  const auto& material = m_materialSystem->createMaterial("DeferredLightingPass");
   if (material.uniformBuffers.count("DeferredLighting") == 0) {
     throw std::runtime_error(fmt::format("{}: material '{}' misses required uniform buffer '{}'", ID, material.name, "DeferredLighting"));
   }
 
-  //  const auto& material = m_renderSystem.getMaterialSystem().createMaterial("VisualizeGBuffer");
   m_lightPassMaterialId = material.getId();
   m_screenSpaceMeshBufferId = meshBuffer.id;
 
   m_gPositionLoc = glGetUniformLocation(material.programId, "gbuffer_position");
   m_gNormalLoc = glGetUniformLocation(material.programId, "gbuffer_normal");
-//  m_gTangentLoc = glGetUniformLocation(material.programId, "gbuffer_tangent");
   m_gAlbedoSpecLoc = glGetUniformLocation(material.programId, "gbuffer_albedospec");
 }
 
@@ -161,112 +148,7 @@ void DeferredRenderer::init(int width, int height) {
   spdlog::info("=== Deferred Renderer Initialization Complete ===");
 }
 
-namespace {
-std::once_flag flag1;
-float colors[75];
-}  // namespace
-
-void DeferredRenderer::update() {
-  // Updates the Render system updates the model view projection matrix for each of the
-  if (m_activeCamera == entt::null) {
-    throw std::runtime_error("No active camera in scene");
-  }
-
-  auto& cameraTransform = m_registry.get<izz::ecs::Transform>(m_activeCamera);
-  glm::mat4 view = glm::inverse(cameraTransform.worldTransform);
-
-  auto& activeCamera = m_registry.get<izz::ecs::Camera>(m_activeCamera);
-  glm::mat4 proj = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);
-
-  for (auto [e, r] : m_registry.view<DeferredRenderable>().each()) {
-    auto transform = m_registry.try_get<izz::ecs::Transform>(e);
-    auto model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
-
-    try {
-      auto& material = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId);
-      ModelViewProjection* mvp = reinterpret_cast<ModelViewProjection*>(material.uniformBuffers.at("ModelViewProjection").data);
-      mvp->model = model;
-      mvp->view = view;
-      mvp->proj = proj;
-
-      // camera position is stored in 4-th column of inverse view matrix.
-      mvp->viewPos = glm::inverse(view)[3];
-
-    } catch (std::out_of_range&) {
-      auto materialName = m_renderSystem.getMaterialSystem().getMaterialById(r.materialId).getName();
-      auto nameComponent = m_registry.try_get<izz::ecs::Name>(e);
-      auto name = (nameComponent != nullptr) ? nameComponent->name : "<unnamed>";
-      throw std::runtime_error(
-          fmt::format("{}: e:{} ({}): cannot access ModelViewProjection matrix for material '{}'. Does shader have 'ModelViewProjection' uniform buffer?",
-                      ID, e, name, materialName));
-    } catch (std::runtime_error error) {
-      auto nameComponent = m_registry.try_get<izz::ecs::Name>(e);
-      auto name = (nameComponent != nullptr) ? nameComponent->name : "<unnamed>";
-      throw std::runtime_error(fmt::format("{}: e:{} ({}): {}", ID, e, name, error.what()));
-    }
-  }
-
-  // TODO: if lights are not so dynamic, we don't have to do this each frame.
-  // update the uniform buffer data for the lighting pass
-  auto& lightPassMaterial = m_renderSystem.getMaterialSystem().getMaterialById(m_lightPassMaterialId);
-  auto deferredLightingUniformBuffer = lightPassMaterial.uniformBuffers.at(izz::ufm::DeferredLighting::BUFFER_NAME);
-  izz::ufm::DeferredLighting* deferred = reinterpret_cast<izz::ufm::DeferredLighting*>(deferredLightingUniformBuffer.data);
-
-  // process light information from the light system
-  auto pointLights = m_registry.view<izz::ecs::Transform, izz::ecs::PointLight>();
-  auto directionalLights = m_registry.view<izz::ecs::Transform, izz::ecs::DirectionalLight>();
-  auto spotLights = m_registry.view<izz::ecs::Transform, izz::ecs::SpotLight>();
-  auto ambientLights = m_registry.view<izz::ecs::AmbientLight>();
-
-  deferred->viewPos = view[3];
-
-  deferred->ambient = glm::vec4(0.0F);
-  for (auto [e, light] : ambientLights.each()) {
-    deferred->ambient += glm::vec4(light.intensity * light.color, 0.0F);
-  }
-
-  int i = 0;
-  for (auto [e, transform, light] : spotLights.each()) {
-    deferred->spotLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
-    deferred->spotLights[i].direction = transform.worldTransform * glm::vec4(0, 0, -1, 0);
-    deferred->spotLights[i].umbra = cos(light.umbra);
-    deferred->spotLights[i].penumbra = cos(light.penumbra);
-    deferred->spotLights[i].position = transform.worldTransform[3];
-
-    // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
-    if (++i >= izz::ufm::DeferredLighting::MAX_SPOT_LIGHTS) {
-      break;
-    }
-  }
-  deferred->numberOfSpotLights = i;
-
-  i = 0;
-  for (auto [e, transform, light] : pointLights.each()) {
-    deferred->pointLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
-    deferred->pointLights[i].radius = light.radius;
-    deferred->pointLights[i].intensity = light.intensity;
-    deferred->pointLights[i].position = transform.worldTransform[3];
-
-    // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
-    if (++i >= izz::ufm::DeferredLighting::MAX_POINT_LIGHTS) {
-      break;
-    }
-  }
-  deferred->numberOfPointLights = i;
-
-  i = 0;
-  for (auto [e, transform, light] : directionalLights.each()) {
-    deferred->directionalLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
-    deferred->directionalLights[i].position = transform.worldTransform[3];
-
-    // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
-    if (++i >= izz::ufm::DeferredLighting::MAX_DIRECTIONAL_LIGHTS) {
-      break;
-    }
-  }
-
-  // because we iterated the point lights, now we exactly know the number of lights.
-  deferred->numberOfDirectionalLights = i;
+void DeferredRenderer::update(float dt, float time) {
 }
 
 void DeferredRenderer::render(const entt::registry& registry) {
@@ -276,25 +158,42 @@ void DeferredRenderer::render(const entt::registry& registry) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
   glDrawBuffers(attachmentCount, colorAttachments);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // reset to filled mode (to prevent wireframe rendering)
+
+  renderGeometryPass(registry);
+
+  // blit the depth buffer from the gbuffer into the default framebuffer's depth buffer.
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_gBufferFbo);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBlitFramebuffer(0, 0, m_screenWidth, m_screenHeight, 0, 0, m_screenWidth, m_screenHeight, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+  renderLightingPass();
+
+  izz::gl::checkError("Deferred Renderer: lighting step");
+}
+
+void DeferredRenderer::renderGeometryPass(const entt::registry& registry) {
+  // enable writing to depth buffer, and also depth testing.
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
 
   auto view = registry.view<const DeferredRenderable, const izz::ecs::Transform>();
 
   for (entt::entity e : view) {
     try {
       auto deferred = view.get<const DeferredRenderable>(e);
-      const auto& mat = m_renderSystem.getMaterialSystem().getMaterialById(deferred.materialId);
+      auto& mat = m_materialSystem->getMaterialById(deferred.materialId);
 
       auto meshBufferId = deferred.meshBufferId;
-      const auto& mesh = m_renderSystem.getMeshSystem().getMeshBuffer(meshBufferId);
+      const auto& mesh = m_meshSystem->getMeshBuffer(meshBufferId);
 
-      glUseProgram(mat.programId);
+      m_materialSystem->updateUniformsForEntity(e, mat);
 
+      // materials are up-to-date. Synchronize them with the GPU
+      mat.useProgram();
       mat.useTextures();
       mat.pushUniforms();
-      m_renderSystem.getMeshSystem().bindBuffer(mesh);
-      // TODO: check if shader is dirty
-      //  reason: if we push properties every frame (Except for MVP), we might
-      //  unnecessary spend time doing that while we can immediately just render.
+      m_meshSystem->bindBuffer(mesh);
 
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -316,20 +215,19 @@ void DeferredRenderer::render(const entt::registry& registry) {
       throw std::runtime_error(msg);
     }
   }
-  //
-  // --- GBUFFER pass is finished. GBuffer is what we have -----
-  //
-  /* We are going to blit into the window (default framebuffer)                     */
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  glDrawBuffer(GL_BACK); /* Use backbuffer as color dst.         */
+}
 
-  glClearColor(0.0, 0.0, 0.0, 0.0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+void DeferredRenderer::renderLightingPass() {
+  // lighting pass does not need to check depth mask
+  glDepthMask(GL_FALSE);
+  glDisable(GL_DEPTH_TEST);
 
-  auto& material = m_renderSystem.getMaterialSystem().getMaterialById(m_lightPassMaterialId);
+  auto& lightPassMaterial = m_materialSystem->getMaterialById(m_lightPassMaterialId);
 
-  glUseProgram(material.programId);
+  lightPassMaterial.useProgram();
+  lightPassMaterial.pushUniforms();
 
+  // bind the gbuffer textures to their appropriate texture binding points.
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_gPosition);
   glUniform1i(m_gPositionLoc, 0);
@@ -339,21 +237,12 @@ void DeferredRenderer::render(const entt::registry& registry) {
   glUniform1i(m_gNormalLoc, 1);
 
   glActiveTexture(GL_TEXTURE0 + 2);
-  glBindTexture(GL_TEXTURE_2D, m_gTangent);
-  glUniform1i(m_gTangentLoc, 2);
-
-  glActiveTexture(GL_TEXTURE0 + 3);
   glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
-  glUniform1i(m_gAlbedoSpecLoc, 3);
+  glUniform1i(m_gAlbedoSpecLoc, 2);
 
-  auto& meshBuffer = m_renderSystem.getMeshSystem().getMeshBuffer(m_screenSpaceMeshBufferId);
-  m_renderSystem.getMeshSystem().bindBuffer(meshBuffer);
-  material.pushUniforms();
-  //    RenderUtils::PushUniformProperties(rs);
+  auto& meshBuffer = m_meshSystem->getMeshBuffer(m_screenSpaceMeshBufferId);
+  m_meshSystem->bindBuffer(meshBuffer);
+
+  glDrawBuffer(GL_BACK);
   glDrawElements(meshBuffer.primitiveType, meshBuffer.drawElementCount, GL_UNSIGNED_INT, 0);
-
-  //  /* Copy the color and depth buffer from your FBO to the default framebuffer       */
-  //    glBlitFramebuffer(0, 0, m_screenWidth, m_screenHeight, 0, 0, m_screenWidth, m_screenHeight, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 }
-
-void DeferredRenderer::updateUniformLightingParams() {}

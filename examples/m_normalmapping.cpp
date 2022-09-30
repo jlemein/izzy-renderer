@@ -2,23 +2,23 @@
 // Created by jlemein on 11-03-21.
 //
 
+#include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
-#include "izz_scenegraphhelper.h"
 #include <geo_primitivefactory.h>
-#include <anim_localrotation.h>
-#include <izz_fontsystem.h>
-#include "izzgl_materialsystem.h"
-#include <izz_resourcemanager.h>
 #include <gui_lighteditor.h>
-#include <spdlog/spdlog.h>
 #include <gui_window.h>
+#include <izz_fontsystem.h>
+#include <izz_resourcemanager.h>
+#include <spdlog/spdlog.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <memory>
 #include "gui_iguiwindow.h"
+#include "izz_entityfactory.h"
+#include "izzgl_materialsystem.h"
 
 using namespace std;
 using namespace izz;
@@ -57,7 +57,7 @@ int main(int argc, char* argv[]) {
   try {
     auto resourceManager = make_shared<ResourceManager>();
     auto fontSystem = make_shared<FontSystem>();
-    auto sceneGraph = make_shared<izz::SceneGraphHelper>();
+    auto sceneGraph = make_shared<izz::EntityFactory>();
     auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
 
 //    materialSystem->loadMaterialsFromFile(wsp::R("materials.json"));

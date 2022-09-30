@@ -34,9 +34,9 @@ add_library(izzy STATIC
         src/izz_resourcemanager.t.cpp
         src/izz_animationsystem.cpp
         src/izz_fontsystem.cpp
-        include/izz_scenegraphhelper.h
+        include/izz_entityfactory.h
         include/izz_scenegraphentity.h
-        src/izz_scenegraphhelper.cpp
+        src/izz_entityfactory.cpp
         src/izz_scenegraphentity.cpp
         include/izz_scenecompositionsystem.h
         include/izz_renderablecomponentfactory.h)

@@ -20,14 +20,17 @@
 #include <izzgl_materialsystem.h>
 #include <izzgl_shadersystem.h>
 #include <spdlog/spdlog.h>
+#include <uniform_deferredlighting.h>
+#include <uniform_forwardlighting.h>
 #include <cstring>
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
+#include "ecs_camerasystem.h"
+#include "izz_entityfactory.h"
 #include "izzgl_material.h"
+#include "izzgl_mvp.h"
 #include "izzgl_texturesystem.h"
 #include "uniform_ubermaterial.h"
-
-#include "izz_scenegraphhelper.h"
 using namespace izz;
 using namespace izz::gl;
 
@@ -266,17 +269,23 @@ LightSystem& RenderSystem::getLightSystem() {
 //  }
 //}
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem,
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager,
+                           std::shared_ptr<MaterialSystem> materialSystem,
                            std::shared_ptr<izz::gl::MeshSystem> meshSystem)
   : m_registry{registry}  //  , m_debugSystem(registry)
   , m_resourceManager{resourceManager}
   , m_materialSystem(materialSystem)
-  //  , m_effectSystem{effectSystem}
   , m_meshSystem{meshSystem}
   , m_shaderSystem(std::make_shared<ShaderCompiler>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
-  , m_forwardRenderer(*this)
-  , m_deferredRenderer(*this, registry) {}
+  , m_forwardRenderer(materialSystem, meshSystem, registry)
+  , m_deferredRenderer(materialSystem, meshSystem, registry) {
+
+  // adding scene dependent uniforms
+//  m_materialSystem->addSceneDependentUniform(ufm::ModelViewProjection::BUFFER_NAME, std::make_unique<ufm::MvpSharedUniformUpdater>(m_registry));
+//  m_materialSystem->addSceneDependentUniform(ufm::ForwardLighting::BUFFER_NAME, std::make_unique<ufm::ForwardLightingUniform>(m_registry));
+//  m_materialSystem->addSceneDependentUniform(ufm::DeferredLighting::BUFFER_NAME, std::make_unique<ufm::DeferredLightingUniform>(m_registry));
+}
 
 void RenderSystem::initPostprocessBuffers() {
   // prepare quad for collecting
@@ -379,13 +388,14 @@ void RenderSystem::init(int width, int height) {
   // setup postprocessing screen quad
   initPostprocessBuffers();
 
+//  m_forwardRenderer.init(width, height);
   m_deferredRenderer.init(width, height);
 
   auto numMaterials = m_registry.view<Material>().size();
   auto numLights = m_lightSystem->getActiveLightCount();
 
   auto numDeferredRenderables = m_registry.view<gl::DeferredRenderable>().size();
-  auto numForwardRenderables = m_registry.view<gl::Renderable>().size();
+  auto numForwardRenderables = m_registry.view<gl::ForwardRenderable>().size();
   spdlog::info("Forward renderables: {}, Deferred renderables: {}", numForwardRenderables, numDeferredRenderables);
 
   // small summary
@@ -457,66 +467,36 @@ void RenderSystem::init(int width, int height) {
   //  auto postprocessEffects = m_registry.view<ecs::Camera, ecs::Posteffect, geo::Material>();
 }
 
-void RenderSystem::update(float time, float dt) {
-  // synchronizes the transformation for the entity into the renderable
-  // component.
-  //  synchMvpMatrices();
-
-  m_deferredRenderer.update();
-  m_lightSystem->updateLightProperties();
-  m_materialSystem->update(time, dt);
-
-  //  m_materialSystem->update(time, dt); --> not needed I think
-}
-
-// void RenderSystem::synchMvpMatrices() {
-//   // Updates the
-//   // Render system updates the model view projection matrix for each of the
-//   // The camera
-//   auto view = m_registry.view<Renderable>();
-//   for (auto entity : view) {
-//     auto& renderable = m_registry.get<Renderable>(entity);
-//
-//     if (renderable.isMvpSupported) {
-//       updateModelMatrix(entity);
-//       updateCamera(renderable);
-//     }
-//   }
-// }
-
-// void RenderSystem::updateModelMatrix(entt::entity e) {
-//   auto& renderable = m_registry.get<Renderable>(e);
-//
-//   // if the transformation matrix exists, apply it, otherwise take identity
-//   // matrix.
-//   // TODO: enforce that all entities do have a transform.
-//   auto transform = m_registry.try_get<ecs::Transform>(e);
-//
-//   renderable.uniformBlock.model = transform != nullptr ? transform->worldTransform : glm::mat4(1.0F);
-// }
-
-void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
-  if (!m_registry.all_of<izz::ecs::Camera>(cameraEntity)) {
-    throw std::runtime_error("Only entities with a Camera component can be set as active camera");
-  }
-  m_activeCamera = cameraEntity;
-
-  m_forwardRenderer.setActiveCamera(cameraEntity);
-  m_deferredRenderer.setActiveCamera(cameraEntity);
-}
-
-void RenderSystem::updateCamera(Renderable& renderable) {
-  if (m_activeCamera == entt::null) {
-    throw std::runtime_error("No active camera in scene");
+void RenderSystem::addRenderableComponent(izz::SceneGraphEntity& e, izz::gl::RenderStrategy renderStrategy) {
+  if (renderStrategy == RenderStrategy::UNDEFINED || renderStrategy == RenderStrategy::FORWARD) {
+    m_forwardRenderer.onEntityCreate(e);
+    return;
   }
 
-  auto& transform = m_registry.get<izz::ecs::Transform>(m_activeCamera);
-  auto& activeCamera = m_registry.get<izz::ecs::Camera>(m_activeCamera);
+  if (renderStrategy == RenderStrategy::DEFERRED) {
+    m_deferredRenderer.onEntityCreate(e);
+    return;
+  }
 
-  renderable.uniformBlock.view = glm::inverse(transform.worldTransform);
-  renderable.uniformBlock.proj = glm::perspective(activeCamera.fovx, activeCamera.aspect, activeCamera.zNear, activeCamera.zFar);
-  renderable.uniformBlock.viewPos = glm::vec3(transform.worldTransform[3]);
+  spdlog::error("Specified render strategy '{}' is not supported", renderStrategy);
 }
+
+void RenderSystem::update(float dt, float time) {
+  m_forwardRenderer.update(dt, time);
+  m_deferredRenderer.update(dt, time);
+//  m_lightSystem->updateLightProperties();
+
+  // updates the materials per frame (once)
+  // then updates all materials individually (is this needed)?
+  m_materialSystem->update(dt, time);
+}
+
+//void RenderSystem::setActiveCamera(entt::entity cameraEntity) {
+//  if (!m_registry.all_of<izz::ecs::Camera>(cameraEntity)) {
+//    throw std::runtime_error("Only entities with a Camera component can be set as active camera");
+//  }
+//  m_activeCamera = cameraEntity;
+//}
 
 void RenderSystem::render() {
   //  // 1. Select buffer to render into
@@ -524,8 +504,10 @@ void RenderSystem::render() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//  m_forwardRenderer.render(m_registry);
   m_deferredRenderer.render(m_registry);
+
+  // forward renderer should be after deferred render, because forwary may render transparency.
+  m_forwardRenderer.render(m_registry);
 
   //  renderPosteffects();
 
@@ -643,16 +625,12 @@ void RenderSystem::render() {
 // }
 
 void RenderSystem::resize(int width, int height) {
+  m_viewportWidth = width;
+  m_viewportHeight = height;
+  glViewport(0, 0, m_viewportWidth, m_viewportHeight);
+
 //  m_forwardRenderer.resize(width, height);
   m_deferredRenderer.resize(width, height);
-}
-
-MaterialSystem& RenderSystem::getMaterialSystem() {
-  return *m_materialSystem;
-}
-
-MeshSystem& RenderSystem::getMeshSystem() {
-  return *m_meshSystem;
 }
 
 void RenderSystem::checkError(entt::entity e) {
