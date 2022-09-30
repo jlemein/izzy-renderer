@@ -28,13 +28,14 @@
 #include "wsp_workspace.h"
 
 #include <ecs_transformutil.h>
+#include <izz_izzy.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
 #include "ecs_camera.h"
 #include "geo_primitivefactory.h"
 #include "gui_mainmenu.h"
-#include <izz_izzy.h>
+#include <izzgui_stats.h>
 using namespace std;
 using namespace izz;
 using namespace izz;
@@ -121,6 +122,7 @@ void setupScene() {
 void setupUserInterface() {
   izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->entityFactory, izzy->fontSystem));
   izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(*izzy));
+  izzy->guiSystem->addDialog(make_shared<gui::StatsDialog>());
 }
 
 int main(int argc, char* argv[]) {

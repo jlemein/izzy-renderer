@@ -68,6 +68,8 @@ void GuiSystem::update(float time, float dt) {
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
+  // handle input
+
   for (const auto& dialog : m_dialogs) {
     dialog->render(dt, time);
   }

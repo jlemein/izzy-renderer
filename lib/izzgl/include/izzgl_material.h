@@ -18,6 +18,7 @@
 #include "geo_materialtemplate.h"
 #include <izzgl_scenedependentuniform.h>
 #include <vector>
+#include <izz_statcounter.h>
 
 namespace izz {
 namespace gl {
@@ -205,6 +206,7 @@ class Material {
   void addUniformFloatArray(std::string paramName, const std::vector<float>& value);
 
   inline void useProgram() const {
+    IZZ_STAT_COUNT(useProgram)
     glUseProgram(programId);
   }
 

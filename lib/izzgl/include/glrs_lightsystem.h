@@ -48,7 +48,6 @@ class LightSystem {
   std::shared_ptr<MaterialSystem> m_materialSystem;
 
   /// default material that is assigned for entities with Mesh and PointLight.
-//  std::shared_ptr<izz::gl::Material> m_lightMaterial{nullptr};
   int m_lightMaterial {-1};
 };
 

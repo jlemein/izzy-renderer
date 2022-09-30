@@ -19,18 +19,12 @@
 namespace izz {
 class ResourceManager;
 namespace gl {
-class EffectSystem;
 class MaterialSystem;
 class LightSystem;
 class ShaderCompiler;
 struct Texture;
 
-
-enum class RenderStrategy {
-  UNDEFINED = 0,
-  FORWARD,
-  DEFERRED
-};
+enum class RenderStrategy { UNDEFINED = 0, FORWARD, DEFERRED };
 
 /**!
  * Render system that interacts with the GPU using OpenGL.
@@ -45,9 +39,7 @@ class RenderSystem {
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
    * @param [in] meshSystem      Mesh system to allocate vertex and index buffers for mesh data.
    */
-  RenderSystem(entt::registry& registry,
-               std::shared_ptr<izz::ResourceManager> resourceManager,
-               std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
+  RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
                std::shared_ptr<izz::gl::MeshSystem> meshSystem);
 
   /**
@@ -74,10 +66,10 @@ class RenderSystem {
 
   entt::registry& m_registry;
   std::shared_ptr<ShaderCompiler> m_shaderSystem;
-  std::shared_ptr<izz::ResourceManager> m_resourceManager {nullptr};
-  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem {nullptr};
-  std::shared_ptr<izz::gl::MeshSystem> m_meshSystem {nullptr};
-//  lsw::ecs::DebugSystem m_debugSystem;
+  std::shared_ptr<izz::ResourceManager> m_resourceManager{nullptr};
+  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
+  std::shared_ptr<izz::gl::MeshSystem> m_meshSystem{nullptr};
+  //  lsw::ecs::DebugSystem m_debugSystem;
   std::shared_ptr<LightSystem> m_lightSystem;
   int m_viewportWidth = 0;
   int m_viewportHeight = 0;
@@ -106,13 +98,13 @@ class RenderSystem {
    * @param renderable  Renderable component
    * @param material    Material containing the unscoped shader properties.
    */
-//  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const Material& material);
+  //  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const Material& material);
 
   void checkError(entt::entity e);
 
   void initPostprocessBuffers();
-//  void renderPosteffects();
+  //  void renderPosteffects();
 };
 
-}  // namespace glrs
-}  // namespace lsw
+}  // namespace gl
+}  // namespace izz
