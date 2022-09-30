@@ -17,15 +17,16 @@
 #include "gui_window.h"
 #include "wsp_workspace.h"
 
+#include <ecs_transform.h>
+#include <geo_mesh.h>
 #include <izz_izzy.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
-#include <ecs_transform.h>
 #include "geo_primitivefactory.h"
-#include <geo_mesh.h>
 #include "gui_mainmenu.h"
 #include "izzgl_materialreader.h"
+#include "izzgui_stats.h"
 using namespace std;
 using namespace izz;
 using namespace izz::geo;
@@ -96,6 +97,7 @@ void setupScene() {
 void setupUserInterface() {
   izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->entityFactory, izzy->fontSystem));
   izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(*izzy));
+  izzy->guiSystem->addDialog(make_shared<izz::gui::StatsDialog>());
 }
 
 int main(int argc, char* argv[]) {

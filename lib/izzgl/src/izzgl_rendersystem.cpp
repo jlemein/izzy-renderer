@@ -31,6 +31,7 @@
 #include "izzgl_mvp.h"
 #include "izzgl_texturesystem.h"
 #include "uniform_ubermaterial.h"
+#include <izz_statcounter.h>
 using namespace izz;
 using namespace izz::gl;
 
@@ -48,13 +49,13 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
   uint8_t* pAddress = 0;
   return pAddress + offset;
 }
+}  // namespace
 
 LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager,
-                           std::shared_ptr<MaterialSystem> materialSystem,
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem,
                            std::shared_ptr<izz::gl::MeshSystem> meshSystem)
   : m_registry{registry}  //  , m_debugSystem(registry)
   , m_resourceManager{resourceManager}
@@ -63,8 +64,7 @@ RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::Resour
   , m_shaderSystem(std::make_shared<ShaderCompiler>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(materialSystem, meshSystem, registry)
-  , m_deferredRenderer(materialSystem, meshSystem, registry) {
-}
+  , m_deferredRenderer(materialSystem, meshSystem, registry) {}
 
 void RenderSystem::initPostprocessBuffers() {
   // prepare quad for collecting
@@ -106,7 +106,7 @@ void RenderSystem::init(int width, int height) {
   // setup postprocessing screen quad
   initPostprocessBuffers();
 
-//  m_forwardRenderer.init(width, height);
+  //  m_forwardRenderer.init(width, height);
   m_deferredRenderer.init(width, height);
 
   auto numMaterials = m_registry.view<Material>().size();
@@ -149,6 +149,8 @@ void RenderSystem::update(float dt, float time) {
 }
 
 void RenderSystem::render() {
+  IZZ_STAT_NEXTFRAME()
+
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -163,7 +165,7 @@ void RenderSystem::resize(int width, int height) {
   m_viewportHeight = height;
   glViewport(0, 0, m_viewportWidth, m_viewportHeight);
 
-//  m_forwardRenderer.resize(width, height);
+  //  m_forwardRenderer.resize(width, height);
   m_deferredRenderer.resize(width, height);
 }
 

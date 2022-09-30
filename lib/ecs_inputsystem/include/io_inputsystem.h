@@ -8,8 +8,9 @@
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
 
-#include <memory>
+#include <functional>
 #include <list>
+#include <memory>
 
 namespace izz {
 namespace io
@@ -31,6 +32,7 @@ class InputSystem
 
   bool isKeyPressed(char c) const;
   bool isKeyPressed(Key key) const;
+
   bool isMouseButtonPressed(MouseButton button) const;
 
   void getRelativeMouseMovement(double* dx, double* dy) const;

@@ -84,6 +84,7 @@ void Window::initialize() {
   m_firstPersonSystem = std::make_shared<ecs::FirstPersonMovementSystem>(m_registry, m_inputSystem.get());
 
   glfwMakeContextCurrent(window);
+  glfwSwapInterval(0); //disable vsync
   if (glewInit() != GLEW_OK) {
     throw std::runtime_error("Failed initializing GLEW");
   }

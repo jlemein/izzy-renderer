@@ -6,6 +6,7 @@
 #include <imgui.h>
 #include <spdlog/spdlog.h>
 #include "izz_izzy.h"
+#include "izzgui_stats.h"
 using namespace izz::gui;
 
 MainMenu::MainMenu(Izzy& izzy)
@@ -40,6 +41,12 @@ void MainMenu::render(float time, float dt) {
 
     ImGui::EndMenu();
   }
+  if (ImGui::BeginMenu("View")) {
+    if (ImGui::MenuItem("Toggle Statistics..", "K", &izz::gui::StatsDialog::Show)) { /* Do stuff */
+    }
+    ImGui::EndMenu();
+  }
+
   ImGui::EndMainMenuBar();
 
   m_materialEditor.render(dt, time);
