@@ -32,7 +32,7 @@ struct TransformUtil {
   /// to the user of the function to make sure the operation keeps the transform
   /// in a consistent state.
   static void Translate(Transform &transform, const glm::vec3& t);
-
+  static void Translate(glm::mat4 &transform, const glm::vec3& t);
 
   static void SetWorldPosition(Transform &transform, const glm::vec3 &position);
 };

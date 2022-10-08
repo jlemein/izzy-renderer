@@ -5,7 +5,7 @@
 #include <gui_shadereditor.h>
 #include <imgui.h>
 #include <spdlog/spdlog.h>
-#include "izz_entityfactory.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_material.h"
 using namespace izz::gui;
 

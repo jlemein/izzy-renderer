@@ -28,9 +28,8 @@ GLuint allocateTextureBuffer(const Texture& texture) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   if (!texture.data.empty()) {
-    GLint texChannel = texture.channels == 3 ? GL_RGB : GL_RGBA;
-
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, texChannel, GL_UNSIGNED_BYTE, texture.data.data());
+    GLint colorFormat = texture.channels == 3 ? GL_RGB : GL_RGBA;
+    glTexImage2D(GL_TEXTURE_2D, 0, colorFormat, texture.width, texture.height, 0, colorFormat, GL_UNSIGNED_BYTE, texture.data.data());
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
     spdlog::error("Failed to create texture buffer for texture '{}'. Data is empty.", texture.path);

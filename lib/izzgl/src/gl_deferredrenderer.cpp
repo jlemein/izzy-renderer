@@ -152,6 +152,7 @@ void DeferredRenderer::update(float dt, float time) {
 }
 
 void DeferredRenderer::render(const entt::registry& registry) {
+  izz::gl::checkError("Deferred Renderer: begin render step");
   static GLenum colorAttachments[] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
   static int attachmentCount = sizeof(colorAttachments) / sizeof(GLenum);
 
@@ -169,13 +170,15 @@ void DeferredRenderer::render(const entt::registry& registry) {
 
   renderLightingPass();
 
-  izz::gl::checkError("Deferred Renderer: lighting step");
+  izz::gl::checkError("Deferred Renderer: finish render step");
 }
 
 void DeferredRenderer::renderGeometryPass(const entt::registry& registry) {
   // enable writing to depth buffer, and also depth testing.
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
+  glCullFace(GL_BACK);
+  glEnable(GL_CULL_FACE);
 
   auto view = registry.view<const DeferredRenderable, const izz::ecs::Transform>();
 
@@ -245,4 +248,8 @@ void DeferredRenderer::renderLightingPass() {
 
   glDrawBuffer(GL_BACK);
   glDrawElements(meshBuffer.primitiveType, meshBuffer.drawElementCount, GL_UNSIGNED_INT, 0);
+}
+
+void DeferredRenderer::setClearColor(const glm::vec4 color) {
+  m_clearColor = color;
 }

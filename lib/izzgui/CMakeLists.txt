@@ -35,7 +35,7 @@ target_link_libraries(izz-gui
         PRIVATE
         izzy
         ecs
-        lsw-gl
+        izzgl
         glfw::glfw
         OpenGL::GL
         GLEW::GLEW

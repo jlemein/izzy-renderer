@@ -2,6 +2,7 @@
 // Created by jlemein on 11-03-21.
 //
 
+#include "../lib/izzgl/include/izz_resourcemanager.h"
 #include "../lib/lsw-gl/include/izzgl_exrloader.h"
 #include "../lib/lsw-gl/include/izzgl_sceneloader.h"
 #include "../lib/lsw-gl/include/izzgl_stbtextureloader.h"
@@ -16,9 +17,8 @@
 #include "gui_iguiwindow.h"
 #include "gui_lighteditor.h"
 #include "gui_window.h"
-#include "izz_entityfactory.h"
 #include "izz_fontsystem.h"
-#include "izz_resourcemanager.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
 #include "wsp_workspace.h"
 

@@ -29,7 +29,7 @@ enum class RenderStrategy { UNDEFINED = 0, FORWARD, DEFERRED };
 /**!
  * Render system that interacts with the GPU using OpenGL.
  */
-class RenderSystem {
+class RenderSystem : public IRenderCapabilitySelector {
  public:
   static inline const char* ID = "RenderSystem";
 
@@ -58,9 +58,15 @@ class RenderSystem {
    */
   LightSystem& getLightSystem();
 
+  ~RenderSystem() override = default;
+
+  /// @inherit
+  RenderCapabilities selectRenderCapabilities(const geo::MaterialTemplate& materialTemplate) const override;
+
  private:
   ForwardRenderer m_forwardRenderer;
   DeferredRenderer m_deferredRenderer;
+  glm::vec4 m_clearColor;
 
   std::unordered_map<TextureId, GLuint> m_allocatedTextures;
 
@@ -75,32 +81,6 @@ class RenderSystem {
   int m_viewportHeight = 0;
 
   GLuint m_quadVbo, m_quadVao;
-
-  /**
-   * @brief Sets up the render component (i.e. the handle to the render system)
-   * with the assigned material properties for this entity. Every material has a
-   * uniform properties attribute that gets filled based on ....
-   *
-   * @details
-   * The material component (@see geo::Material) contains a set of attributes,
-   * easily editable in the code. Eventually the attributes gets mapped to a
-   * uniform property attribute.
-   *
-   * @param renderable The render component
-   * @param properties The material properties.
-   */
-  void initShaderProperties(entt::entity entity, Renderable& renderable, const Material& material);
-
-  /**
-   * Unscoped shader properties are global uniform variables in the material. They are not placed in an
-   * interface block. Therefore, each of them are queried the location and stored in an efficient
-   * data structure as part of the Renderable component.
-   * @param renderable  Renderable component
-   * @param material    Material containing the unscoped shader properties.
-   */
-  //  void initUnscopedShaderProperties(entt::entity entity, Renderable& renderable, const Material& material);
-
-  void checkError(entt::entity e);
 
   void initPostprocessBuffers();
   //  void renderPosteffects();

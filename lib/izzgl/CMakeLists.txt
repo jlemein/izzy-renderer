@@ -1,7 +1,6 @@
-add_library(lsw-gl STATIC
+add_library(izzgl STATIC
         include/ecs_debugmodel.h
         include/gl_common.h
-        include/izzgl_deferredrenderablefactory.h
         include/gl_deferredrenderer.h
         include/gl_forwardrenderer.h
         include/gl_hdrframebuffer.h
@@ -10,6 +9,9 @@ add_library(lsw-gl STATIC
         include/gl_renderable.h
         include/gl_renderutils.h
         include/glrs_lightsystem.h
+        include/izz_resourcemanager.h
+        include/izzgl_deferredrenderablefactory.h
+        include/izzgl_depthpeeling.h
         include/izzgl_exrloader.h
         include/izzgl_material.h
         include/izzgl_materialreader.h
@@ -33,7 +35,6 @@ add_library(lsw-gl STATIC
         include/uniform_ubermaterial.h
         include/uniform_uniformblockmanager.h
         src/gl_common.cpp
-        src/izzgl_deferredrenderablefactory.cpp
         src/gl_deferredrenderer.cpp
         src/gl_forwardrenderer.cpp
         src/gl_hdrframebuffer.cpp
@@ -41,6 +42,10 @@ add_library(lsw-gl STATIC
         src/gl_renderutils.cpp
         src/glrs_lightsystem.cpp
         src/glrs_shadersystem.t.cpp
+        src/izz_resourcemanager.cpp
+        src/izzgl_deferredrenderablefactory.cpp
+        src/izzgl_depthpeeling.cpp
+        src/izzgl_entityfactory.cpp
         src/izzgl_exrloader.cpp
         src/izzgl_material.cpp
         src/izzgl_materialreader.cpp
@@ -65,14 +70,15 @@ add_library(lsw-gl STATIC
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
-target_include_directories(lsw-gl PUBLIC include PRIVATE src)
-target_link_libraries(lsw-gl PUBLIC izzy workspace ecs geo EnTT::EnTT spdlog::spdlog)
+target_include_directories(izzgl PUBLIC include PRIVATE src)
+target_link_libraries(izzgl PUBLIC izzy workspace ecs geo EnTT::EnTT spdlog::spdlog)
 
 
 find_package(GTest REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-add_executable(lsw-gl-test
+add_executable(izzgl-test
 #        test/deferredrendersystem.t.cpp
+        test/izzgl_rendercapabilities.t.cpp
         test/izzgl_material.t.cpp)
-target_link_libraries(lsw-gl-test PUBLIC gtest::gtest lsw-gl geo OpenGL::GL GLEW::GLEW)
+target_link_libraries(izzgl-test PUBLIC gtest::gtest izzgl geo OpenGL::GL GLEW::GLEW)

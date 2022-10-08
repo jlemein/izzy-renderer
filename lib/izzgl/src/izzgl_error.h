@@ -4,21 +4,21 @@
 #pragma once
 
 #include <GL/glew.h>
+#include <fmt/format.h>
 #include <iostream>
 #include <unordered_map>
 
 namespace izz::gl {
 
 inline void checkError(const char* name) {
-  static std::unordered_map<int, std::string> errorMap{{GL_INVALID_ENUM, "Invalid enum"}, {GL_INVALID_OPERATION, "Invalid operation"}};
+  static std::unordered_map<int, std::string> errorMap{
+      {GL_INVALID_ENUM, "Invalid enum"}, {GL_INVALID_OPERATION, "Invalid operation"}, {GL_INVALID_FRAMEBUFFER_OPERATION, "Invalid framebuffer operation"}};
 
   GLenum err;
   if ((err = glGetError()) != GL_NO_ERROR) {
-    std::cerr << "OpenGL error " << err;
-    if (errorMap.contains(err)) {
-      std::cerr << ": " << errorMap.at(err);
-    }
-    std::cerr << " [" << name << "]\n";
+    auto msg = fmt::format("OpenGL error {} ({}): {}", err, errorMap.contains(err) ? errorMap.at(err) : "Unknown", name);
+    std::cerr << msg << std::endl;
+    throw std::runtime_error(msg);
   }
 }
 

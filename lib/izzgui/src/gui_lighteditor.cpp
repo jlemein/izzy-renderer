@@ -2,8 +2,8 @@
 #include <ecs_name.h>
 #include <ecs_transform.h>
 #include <gui_lighteditor.h>
-#include <izz_resourcemanager.h>
-#include "izz_entityfactory.h"
+#include "../../izzgl/include/izz_resourcemanager.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_material.h"
 #include "izzgl_texturesystem.h"
 

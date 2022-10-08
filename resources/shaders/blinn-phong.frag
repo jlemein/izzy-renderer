@@ -3,6 +3,7 @@
 
 #define MAX_POINT_LIGHTS 4
 #define MAX_SPOT_LIGHTS 2
+#define EPSILON 0.00001
 
 struct PointLight {
     vec4 position;
@@ -61,8 +62,20 @@ layout(location = 7) in vec4 in_TangentPtLightPosition[MAX_POINT_LIGHTS];
 
 layout(location = 0) out vec4 outColor;
 
-layout(binding = 0) uniform sampler2D albedoMap;
-layout(binding = 1) uniform sampler2D normalMap;
+#ifdef DEPTHPEELING
+layout(std140, binding = 4)
+uniform DepthPeeling {
+    bool isPeelingPass;
+    ivec2 screenSize;
+};
+
+layout(binding = 0) uniform sampler2D depthMap0; // opaque objects' depth map.
+layout(binding = 1) uniform sampler2D depthMap1; // transparent objects' depth map (peeled depth).
+layout(binding = 2) uniform sampler2D colorMap;  // combined transparent objects' color contribution.
+#endif// DEPTHPEELING
+
+layout(binding = 2) uniform sampler2D albedoMap;
+layout(binding = 3) uniform sampler2D normalMap;
 
 // Computes attenuation for a pointlight at a certain distance using
 // a nonphysics based attenuation formula.
@@ -108,6 +121,18 @@ vec4 computePointLight(vec3 surf_normal, vec3 light_position, vec3 view_directio
 }
 
 void main() {
+#ifdef DEPTHPEELING
+    vec2 uv = gl_FragCoord.xy / screenSize;
+
+    if (isPeelingPass) {
+        float depth0 = texture(depthMap0, uv).r;
+        float depth1 = texture(depthMap1, uv).r;
+
+        if (gl_FragCoord.z < depth1 + EPSILON || gl_FragCoord.z > depth0) {
+            discard;
+        }
+    }
+#endif
     vec4 material_color = texture(albedoMap, in_uv);
     vec3 surf_normal = normalize(texture(normalMap, in_uv).rgb*2.0-1.0);// surface normal
     vec3 geom_normal = normalize(in_normal.xyz);// geometric normal
@@ -124,4 +149,17 @@ void main() {
         vec3 light_vector = in_TangentPtLightPosition[i].xyz - in_TangentFragPosition;
         outColor += computePointLight(surf_normal, light_vector, view_direction, pointLights[i]);
     }
+
+    outColor.a = 1.0;//material_color.a;
+
+#ifdef DEPTHPEELING
+    if (isPeelingPass) {
+        vec4 color_d = texture(colorMap, uv);
+
+        // blend under-operator, from Real-Time Rendering 4th edition (p.153)
+        // I believe there is an error in the book and this one should be correct.
+        outColor.rgb = /*color_d.a * */ color_d.rgb + (1.0 - color_d.a) * outColor.a * outColor.rgb;
+        outColor.a = outColor.a * (1-color_d.a) + color_d.a;
+    }
+#endif
 }

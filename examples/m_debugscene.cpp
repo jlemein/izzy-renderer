@@ -11,15 +11,15 @@
 #include <gui_lighteditor.h>
 #include <gui_window.h>
 #include <izz_fontsystem.h>
-#include <izz_resourcemanager.h>
 #include <wsp_workspace.h>
-#include "../lib/lsw-gl/include/izzgl_exrloader.h"
-#include "../lib/lsw-gl/include/izzgl_sceneloader.h"
-#include "../lib/lsw-gl/include/izzgl_stbtextureloader.h"
-#include "../lib/lsw-gl/include/izzgl_texturesystem.h"
+#include "izzgl/izz_resourcemanager.h"
+#include <izzgl/izzgl_exrloader.h>
+#include <izzgl/izzgl_sceneloader.h>
+#include <izzgl/izzgl_stbtextureloader.h>
+#include <izzgl/izzgl_texturesystem.h>
 #include "geo_scene.h"
 #include "gui_iguiwindow.h"
-#include "izz_entityfactory.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
 
 #include <geo_primitivefactory.h>

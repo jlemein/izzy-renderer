@@ -16,11 +16,11 @@ target_link_libraries(common INTERFACE
 target_include_directories(common INTERFACE .)
 
 add_executable(izzyrender m_izzyrender.cpp)
-target_link_libraries(izzyrender PRIVATE izzy lsw-gl izz-gui common cxxopts::cxxopts)
+target_link_libraries(izzyrender PRIVATE izzy izzgl izz-gui common cxxopts::cxxopts)
 target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
 
 add_executable(deferredrender m_deferredrender.cpp)
-target_link_libraries(deferredrender PUBLIC izzy lsw-gl izz-gui common cxxopts::cxxopts)
+target_link_libraries(deferredrender PUBLIC izzy izzgl izz-gui common cxxopts::cxxopts)
 target_compile_definitions(deferredrender PRIVATE -DVERSION_STR="1.0.0")
 
 add_executable(bloom m_bloom.cpp m_deferredrender.cpp)
@@ -31,6 +31,11 @@ install(TARGETS izzyrender
         COMPONENT izzyrender
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib)
+
+# Executable: plane <materialtemplate_name> <width> <height>
+add_executable(plane m_plane.cpp)
+target_link_libraries(plane PRIVATE izzy izz-gui common cxxopts::cxxopts)
+target_compile_definitions(plane PRIVATE -DVERSION_STR="0.1.0")
 
 add_executable(normalmap m_normalmapping.cpp)
 target_link_libraries(normalmap PRIVATE izzy izz-gui common cxxopts::cxxopts)

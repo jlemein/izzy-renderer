@@ -16,8 +16,12 @@ StatCounter *StatCounter::instance() {
 
 void StatCounter::count(std::string key, int increment) {
   if (m_counters.contains(key)) {
-    m_counters[key].current += increment;
+    m_counters[key].t0 += increment;
   } else {
-    m_counters[key].current = 0;
+    m_counters[key].t0 = 0;
   }
+}
+
+void StatCounter::resetCount(std::string key) {
+  m_counters[key].t0 = 0;
 }

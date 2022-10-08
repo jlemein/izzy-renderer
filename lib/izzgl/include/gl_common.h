@@ -12,7 +12,5 @@ namespace gl {
 
 constexpr void* BUFFER_OFFSET(unsigned int offset);
 
-void checkError(const char* name);
-
 }  // namespace gl
 }  // namespace izz

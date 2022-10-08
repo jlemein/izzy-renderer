@@ -1,4 +1,4 @@
-#include "izz_entityfactory.h"
+#include "../include/izzgl_entityfactory.h"
 #include "izz_scenegraphentity.h"
 
 #include "ecs_camera.h"
@@ -78,10 +78,12 @@ SceneGraphEntity EntityFactory::makeEntity(std::string name) {
   return SceneGraphEntity{m_registry, e};
 }
 
-SceneGraphEntity EntityFactory::makeMoveableEntity(std::string name) {
+SceneGraphEntity EntityFactory::makeMoveableEntity(std::string name, glm::vec3 position) {
   auto e{m_registry.create()};
   m_registry.emplace<Name>(e, name);
-  m_registry.emplace<Transform>(e);
+  Transform t;
+  t.localTransform[3] = glm::vec4(position, 1.0F);
+  m_registry.emplace<Transform>(e, t);
   m_registry.emplace<ecs::Relationship>(e);
   return SceneGraphEntity{m_registry, e};
 }
@@ -306,7 +308,7 @@ void EntityFactory::processChildren(const izz::geo::Scene& scene, std::shared_pt
   }
 
   for (auto& child : node->children) {
-    processChildren(scene, child, flags, &root);
+    processChildren(scene, child, flags, &root, renderStrategy);
   }
 }
 

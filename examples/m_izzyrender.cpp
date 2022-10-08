@@ -9,8 +9,8 @@
 #include "geo_meshutil.h"
 #include "geo_scene.h"
 #include "gui_lighteditor.h"
-#include "izz_entityfactory.h"
 #include "izz_fontsystem.h"
+#include "izzgl_entityfactory.h"
 
 #include <izzgl_materialsystem.h>
 
@@ -27,6 +27,7 @@
 #include "gui_mainmenu.h"
 #include "izzgl_materialreader.h"
 #include "izzgui_stats.h"
+#include "uniform_blinnphongsimple.h"
 using namespace std;
 using namespace izz;
 using namespace izz::geo;
@@ -36,29 +37,28 @@ using izz::wsp::Workspace;
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
 namespace {
-std::shared_ptr<izz::Izzy> izzy {nullptr};
+std::shared_ptr<izz::Izzy> izzy{nullptr};
 std::shared_ptr<Workspace> programArguments{nullptr};
 }  // namespace
 
 void setupLights() {
   // Sun
-  izzy->entityFactory->makeDirectionalLight("Sun", glm::vec3(0.F, 1.0F, 1.0F));
+  izzy->entityFactory->makeDirectionalLight("Sun", glm::vec3(2.F, 0.7F, 1.0F));
 
-  // Point light 1
-  auto ptLight1 = izzy->entityFactory->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
-  auto& lightComp = ptLight1.get<ecs::PointLight>();
-  lightComp.intensity = 1.0;
-  lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
-
-  // Point light 2
-  auto ptLight2 = izzy->entityFactory->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
-  ptLight2.get<ecs::PointLight>().intensity = 1.4;
-  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  //  // Point light 1
+  //  auto ptLight1 = izzy->entityFactory->makePointLight("PointLight 1", glm::vec3(1.F, 1.0F, -1.0F));
+  //  auto& lightComp = ptLight1.get<ecs::PointLight>();
+  //  lightComp.intensity = 1.0;
+  //  lightComp.color = glm::vec3(1.0, 1.0, 1.0);
+  //  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  //
+  //  // Point light 2
+  //  auto ptLight2 = izzy->entityFactory->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
+  //  ptLight2.get<ecs::PointLight>().intensity = 1.4;
+  //  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 }
 
 void setupScene() {
-
   auto scene = izzy->sceneLoader->loadScene(programArguments->sceneFile);
 
   // post process meshes in scene file
@@ -68,30 +68,85 @@ void setupScene() {
   }
 
   // add to scene graph
-  auto e = izzy->entityFactory->makeScene(*scene, izz::SceneLoaderFlags::All(), gl::RenderStrategy::FORWARD);
+  izzy->entityFactory->makeScene(*scene, izz::SceneLoaderFlags::All(), gl::RenderStrategy::FORWARD);
+
+  //  {
+  //    auto box = izzy->entityFactory->makeMoveableEntity("Box1", {0.0F, 0.5F, .0F});
+  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox1", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
+  //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(1.0, 0.0, 0.0, 0.1));
+  //    mesh.materialId = material.id;
+  //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
+  //  }
+  //  {
+  //    auto box = izzy->entityFactory->makeMoveableEntity("Box2", glm::vec3(1.5, 0.5, -1.5));
+  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox2", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  //    box.get<izz::ecs::Transform>().localTransform *= izz::ecs::TransformUtil::RotateEulerDegrees(glm::vec3(.0F, 1.0F, 0.0F), 45.0F);
+  //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
+  //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(1.0, 1.0, 0.0, 0.1));
+  //    mesh.materialId = material.id;
+  //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
+  //  }
+  //  {
+  //    auto box = izzy->entityFactory->makeMoveableEntity("Box3", glm::vec3(.0, 0.5, -3.0));
+  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox3", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  //    box.get<izz::ecs::Transform>().localTransform *= izz::ecs::TransformUtil::RotateEulerDegrees(glm::vec3(.0F, 1.0F, 0.0F), 45.0F);
+  //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
+  //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(0.0, 1.0, 0.0, 0.1));
+  //    mesh.materialId = material.id;
+  //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
+  //  }
+  //  {
+  //    auto box = izzy->entityFactory->makeMoveableEntity("Box4", glm::vec3(2.0, 0.5, 1.0));
+  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox4", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  ////    box.get<izz::ecs::Transform>().localTransform *= izz::ecs::TransformUtil::RotateEulerDegrees(glm::vec3(.0F, 1.0F, 0.0F), 45.0F);
+  //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
+  //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(0.3, .3, 1.0, 0.1));
+  //    mesh.materialId = material.id;
+  //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
+  //  }
+  //  {
+  //      // adding a custom primitive to the scene
+  //      auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
+  //      MeshUtil::ScaleUvCoords(plane, 3, 3);
+  //      auto tableCloth = izzy->materialSystem->createMaterial("BlinnPhongSimple");
+  //      tableCloth.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(0.9, 0.9, 0.9, 1.0));
+  //    //  auto effect = izzy->effectSystem->createEffect("table_cloth");
+  //    //  auto material = materialSystem->createMaterial("table_cloth");
+  //      auto planeGeometry = izzy->entityFactory->addGeometry(plane, tableCloth.id);
+  //      ecs::TransformUtil::Translate(planeGeometry.get<ecs::Transform>(), glm::vec3(0.0, -0.1, 0.0));
+  //      planeGeometry.get<gl::ForwardRenderable>().blendMode=gl::BlendMode::OPAQUE;
+  //      //  e.add<gl::DeferredRenderable>();
+  //  }
 
   {
-    auto box = izzy->entityFactory->makeMoveableEntity("Box");
-    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
+    // adding a custom primitive to the scene
+    auto plane = izzy->entityFactory->makeMoveableEntity("Plane");
+    auto planePrimitive = PrimitiveFactory::MakePlane("MyPlane", 15, 15);
+    ecs::TransformUtil::Translate(plane.getTransform(), glm::vec3(0.0, -1.0, 0.0));
+    auto& mesh = plane.add<Mesh>(planePrimitive);
     auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
-    izz::ecs::TransformUtil::Translate(box.get<izz::ecs::Transform>(), glm::vec3(4.2, 0.0, 0.0));
-    auto& material = izzy->materialSystem->createMaterial("DeferredStandard_Color");
+    auto& material = izzy->materialSystem->createMaterial("table_cloth");
     mesh.materialId = material.id;
-    box.add<gl::DeferredRenderable>({material.id, meshBuffer.id});
+    auto& dr = plane.add<gl::ForwardRenderable>({material.id, meshBuffer.id, false, BlendMode::OPAQUE});
   }
 
   // adding a custom primitive to the scene
-  auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
-  MeshUtil::ScaleUvCoords(plane, 3, 3);
-  auto tableCloth = izzy->materialSystem->createMaterial("table_cloth");
-//  auto effect = izzy->effectSystem->createEffect("table_cloth");
-//  auto material = materialSystem->createMaterial("table_cloth");
-
-  izzy->entityFactory->addGeometry(plane, tableCloth.id);
-//  e.add<gl::DeferredRenderable>();
+  //    auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
+  //    MeshUtil::ScaleUvCoords(plane, 3, 3);
+  //    auto tableCloth = izzy->materialSystem->createMaterial("table_cloth");
+  //  //  auto effect = izzy->effectSystem->createEffect("table_cloth");
+  //  //  auto material = materialSystem->createMaterial("table_cloth");
+  //
+  //    izzy->entityFactory->setDefaultRenderStrategy(gl::RenderStrategy::DEFERRED);
+  //    izzy->entityFactory->addGeometry(plane, tableCloth.id);
+  //    e.add<gl::DeferredRenderable>();
 
   //    sceneGraph->addGeometry(plane, tableCloth);
-
 }
 
 void setupUserInterface() {
@@ -138,11 +193,11 @@ int main(int argc, char* argv[]) {
 
     setupUserInterface();
 
-//    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
-//    auto vignette = materialSystem->createMaterial("VignettePostEffect");
-//    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
-//    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
-//    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
+    //    auto grayscale = materialSystem->createMaterial("GrayScalePostEffect");
+    //    auto vignette = materialSystem->createMaterial("VignettePostEffect");
+    //    auto pe1 = sceneGraph->makePosteffect("GrayScale", *grayscale);
+    //    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
+    //    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
 
     window->run();
 

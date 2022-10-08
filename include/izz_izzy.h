@@ -4,10 +4,9 @@
 #pragma once
 
 #include <gui_guisystem.h>
-#include <izz_entityfactory.h>
 #include <izz_fontsystem.h>
-#include <izz_resourcemanager.h>
 #include <izzgl_deferredrenderablefactory.h>
+#include <izzgl_entityfactory.h>
 #include <izzgl_exrloader.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_meshsystem.h>
@@ -19,6 +18,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include "../lib/izzgl/include/izz_resourcemanager.h"
 
 namespace izz {
 namespace geo {

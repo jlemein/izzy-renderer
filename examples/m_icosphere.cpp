@@ -1,18 +1,17 @@
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_wireframe.h>
+#include <geo_mesh.h>
 #include <geo_primitivefactory.h>
 #include <gui_window.h>
 #include <izz_izzy.h>
-#include <izz_resourcemanager.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <iostream>
-#include "izz_entityfactory.h"
+#include "../lib/izzgl/include/izz_resourcemanager.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_materialreader.h"
 #include "izzgl_materialsystem.h"
-#include <geo_primitivefactory.h>
-#include <geo_mesh.h>
 
 using namespace std;
 using namespace izz;

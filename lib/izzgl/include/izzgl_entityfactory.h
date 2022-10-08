@@ -83,11 +83,11 @@ class EntityFactory {
 
   /// @brief Creates a simple barebone entity containing minimum components
   /// Minum components are: Transform, Name, Relationship
-  SceneGraphEntity makeMoveableEntity(std::string name = "");
+  SceneGraphEntity makeMoveableEntity(std::string name = "", glm::vec3 position = glm::vec3(0.0F));
 
   /// @brief Creates a camera at a Z distance of 5 meter from the origin,
   /// looking at the origin
-  SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F, float fovx = 120.0F, float aspect = 1.0F, float zNear = 0.1F, float zFar = 1000.0F);
+  SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F, float fovx = 120.0F, float aspect = 1.0F, float zNear = 0.5F, float zFar = 50.0F);
 
   SceneGraphEntity makeCamera(const izz::geo::Camera& geoCamera);
 

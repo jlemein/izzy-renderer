@@ -3,12 +3,13 @@
 //
 #pragma once
 
-#include <izz_resourcemanager.h>
 #include <entt/entt.hpp>
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <vector>
+#include "izz_resourcemanager.h"
 #include "izz_scenegraphentity.h"
+#include "izzgl_irendercapabilityselector.h"
 #include "izzgl_material.h"
 #include "izzgl_mvp.h"
 #include "izzgl_rendersystem.h"
@@ -116,6 +117,8 @@ class MaterialSystem {
 
   const std::unordered_map<int, Material>& getCreatedMaterials();
 
+  void setCapabilitySelector(const IRenderCapabilitySelector* selector);
+
   /**
    * @brief returns information about the shader variant corresponding to the specified material.
    * @param material [in]   Material to request shader variant info.
@@ -137,10 +140,12 @@ class MaterialSystem {
 
   void updateUniformsForEntity(entt::entity e, Material& material);
 
+
  private:
   /**
    * Compiles the shaders referred to by the description, and fills the material with the program id.
-   * @param materialTemplate     [in]  Description of the material, containing the paths to the shader files.
+   * @param materialTemplate       [in]  Description of the material, containing the paths to the shader files.
+   *
    * @throws std::runtime_error     If shader compilation fails.
    */
   ShaderVariantInfo compileShader(const izz::geo::MaterialTemplate& materialTemplate);
@@ -160,6 +165,7 @@ class MaterialSystem {
   entt::registry& m_registry;
   std::shared_ptr<izz::ResourceManager> m_resourceManager;
   std::string m_defaultMaterialTemplateName{""};
+  const IRenderCapabilitySelector* m_capabilitySelector {nullptr};
 
   /// the registered uniform buffers
   std::unordered_map<std::string, std::unique_ptr<IUniformBuffer>> m_uniformBuffers;

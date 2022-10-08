@@ -15,7 +15,7 @@
 #include <geo_mesh.h>
 #include <gl_renderutils.h>
 #include <glrs_lightsystem.h>
-#include <izz_resourcemanager.h>
+#include <izz_statcounter.h>
 #include <izzgl_effectsystem.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_shadersystem.h>
@@ -26,12 +26,12 @@
 #include <fstream>
 #include <glm/gtc/matrix_transform.hpp>
 #include "ecs_camerasystem.h"
-#include "izz_entityfactory.h"
+#include "izz_resourcemanager.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_material.h"
 #include "izzgl_mvp.h"
 #include "izzgl_texturesystem.h"
 #include "uniform_ubermaterial.h"
-#include <izz_statcounter.h>
 using namespace izz;
 using namespace izz::gl;
 
@@ -64,7 +64,9 @@ RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::Resour
   , m_shaderSystem(std::make_shared<ShaderCompiler>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(materialSystem, meshSystem, registry)
-  , m_deferredRenderer(materialSystem, meshSystem, registry) {}
+  , m_deferredRenderer(materialSystem, meshSystem, registry) {
+  m_materialSystem->setCapabilitySelector(this);
+}
 
 void RenderSystem::initPostprocessBuffers() {
   // prepare quad for collecting
@@ -94,7 +96,9 @@ void RenderSystem::init(int width, int height) {
   glEnable(GL_CULL_FACE);
   glCullFace(GL_BACK);
   glFrontFace(GL_CCW);
-  glClearColor(0.15F, 0.15F, 0.25F, 0.0F);
+
+  m_clearColor = glm::vec4(0.15F, 0.15F, 0.25F, 1.0F);
+  glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
 
   GLuint m_gPosition;
   glGenTextures(1, &m_gPosition);
@@ -106,7 +110,9 @@ void RenderSystem::init(int width, int height) {
   // setup postprocessing screen quad
   initPostprocessBuffers();
 
-  //  m_forwardRenderer.init(width, height);
+  m_forwardRenderer.setClearColor(m_clearColor);
+  m_deferredRenderer.setClearColor(m_clearColor);
+  m_forwardRenderer.init(width, height);
   m_deferredRenderer.init(width, height);
 
   auto numMaterials = m_registry.view<Material>().size();
@@ -140,7 +146,7 @@ void RenderSystem::addRenderableComponent(izz::SceneGraphEntity& e, izz::gl::Ren
 }
 
 void RenderSystem::update(float dt, float time) {
-  m_forwardRenderer.update(dt, time);
+//  m_forwardRenderer.update(dt, time);
   m_deferredRenderer.update(dt, time);
 
   // updates the materials per frame (once)
@@ -149,8 +155,6 @@ void RenderSystem::update(float dt, float time) {
 }
 
 void RenderSystem::render() {
-  IZZ_STAT_NEXTFRAME()
-
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -165,15 +169,16 @@ void RenderSystem::resize(int width, int height) {
   m_viewportHeight = height;
   glViewport(0, 0, m_viewportWidth, m_viewportHeight);
 
-  //  m_forwardRenderer.resize(width, height);
+//  m_forwardRenderer.resize(width, height);
   m_deferredRenderer.resize(width, height);
 }
 
-void RenderSystem::checkError(entt::entity e) {
-  // get error message
-  GLenum err;
-  if ((err = glGetError()) != GL_NO_ERROR) {
-    auto name = m_registry.all_of<izz::ecs::Name>(e) ? m_registry.get<izz::ecs::Name>(e).name : std::string{"Unnamed"};
-    std::cerr << " Render error occurred for " << name << ": " << err << std::endl;
+RenderCapabilities RenderSystem::selectRenderCapabilities(const geo::MaterialTemplate& materialTemplate) const {
+  RenderCapabilities capabilities;
+
+  if (materialTemplate.blendMode == geo::BlendMode::ALPHA_BLEND) {
+    capabilities.flags.insert("DEPTHPEELING");
   }
+
+  return capabilities;
 }

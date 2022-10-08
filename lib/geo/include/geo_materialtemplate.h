@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include "geo_capabilities.h"
 
 namespace izz {
 namespace geo {
@@ -24,6 +25,7 @@ enum class PropertyType {
   FLOAT,
   FLOAT4,
   FLOAT3,
+  INT_ARRAY,
   INT,
   BOOL,  // needed?
   UNIFORM_BUFFER_OBJECT
@@ -44,13 +46,18 @@ struct TextureDescription {
   TextureHint hint{TextureHint::NO_HINT};  /// @brief (Optional) Use-case hint for the texture.
 };
 
-using PropertyValue = std::variant<bool, int, float, std::string, std::vector<float>>;
+using PropertyValue = std::variant<bool, int, float, std::string, std::vector<float>, std::vector<int32_t>>;
 
 struct UniformDescription {
   std::string name;
   PropertyType type;
   PropertyValue value;
   int length {1};
+};
+
+enum class BlendMode {
+  OPAQUE = 0, // no blending.
+  ALPHA_BLEND // use alpha channel to blend.
 };
 
 /**
@@ -76,7 +83,11 @@ struct MaterialTemplate {
   glm::vec4 specularColor;
   glm::vec4 ambientColor;
 
+  BlendMode blendMode {BlendMode::OPAQUE};
+
   std::unordered_map<std::string, TextureDescription> textures;
+
+  Capabilities compileConstants;
 
   //  std::unordered_map<std::string, PropertyType> uniforms;
 
