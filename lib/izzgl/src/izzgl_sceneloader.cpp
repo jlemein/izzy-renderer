@@ -62,6 +62,11 @@ std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const i
 
 void SceneLoader::readTextures(const izz::geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::geo::MaterialTemplate& material) {
   std::array<aiTextureType, 4> textureTypes{aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_SPECULAR, aiTextureType_DIFFUSE_ROUGHNESS};
+
+  aiString textureFile;
+  aiMaterial_p->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureFile);
+  spdlog::warn("texture file: {}", textureFile.C_Str());
+
   for (auto aiTextureType : textureTypes) {
     if (auto pTextureDescriptions = readAiTexture(scene, aiTextureType, aiMaterial_p)) {
       material.textures[pTextureDescriptions->name] = *pTextureDescriptions;
@@ -124,10 +129,12 @@ void SceneLoader::readMeshes(const aiScene* scene_p, izz::geo::Scene& scene) {
       mesh->vertices.push_back(pVertex.y);
       mesh->vertices.push_back(pVertex.z);
 
-      auto pNormal = mesh_p->mNormals[i];
-      mesh->normals.push_back(pNormal.x);
-      mesh->normals.push_back(pNormal.y);
-      mesh->normals.push_back(pNormal.z);
+      if (mesh_p->HasNormals()) {
+        auto pNormal = mesh_p->mNormals[i];
+        mesh->normals.push_back(pNormal.x);
+        mesh->normals.push_back(pNormal.y);
+        mesh->normals.push_back(pNormal.z);
+      }
 
       aiVector3D ZERO3D = {0, 0, 0};
       auto uv = mesh_p->HasTextureCoords(0) ? mesh_p->mTextureCoords[0][i] : ZERO3D;
@@ -321,7 +328,6 @@ std::unique_ptr<izz::geo::Scene> SceneLoader::loadScene(std::filesystem::path pa
   if (!aiScene_p) {
     throw std::runtime_error(fmt::format("Failed to load scene file: {}", path.string()));
   }
-
   readMaterials(aiScene_p, scene);
   //  readEmbeddedTextures(aiScene_p, scene);
 

@@ -4,14 +4,15 @@
 #include <izzgl_materialsystem.h>
 
 #include <izzgl_shadersystem.h>
-#include "izz_entityfactory.h"
 #include "izz_resourcemanager.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_textureloader.h"
 #include "izzgl_texturesystem.h"
 #include "uniform_constant.h"
 #include "uniform_lambert.h"
 #include "uniform_parallax.h"
 #include "uniform_ubermaterial.h"
+#include <uniform_depthpeeling.h>
 
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
@@ -24,6 +25,7 @@
 #include "uniform_blinnphongsimple.h"
 #include "uniform_deferredlighting.h"
 #include "uniform_mvp.h"
+#include <geo_capabilities.h>
 
 using json = nlohmann::json;
 
@@ -64,6 +66,7 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
   m_uniformBuffers[izz::ufm::ModelViewProjection::BUFFER_NAME] = std::make_unique<izz::ufm::MvpSharedUniformUpdater>(registry);
   m_uniformBuffers[izz::ufm::DeferredLighting::BUFFER_NAME] = std::make_unique<izz::ufm::DeferredLightingUniform>(registry);
   m_uniformBuffers[izz::ufm::ForwardLighting::BUFFER_NAME] = std::make_unique<izz::ufm::ForwardLightingUniform>(registry);
+  m_uniformBuffers[izz::ufm::DepthPeeling::BUFFER_NAME] = std::make_unique<izz::ufm::DepthPeelingUniformBuffer>();
 }
 
 void MaterialSystem::addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate) {
@@ -118,13 +121,20 @@ ShaderVariantInfo MaterialSystem::compileShader(const izz::geo::MaterialTemplate
   ShaderVariantInfo info;
   ShaderCompiler shaderCompiler;
 
+  // before shader is compiled. set the render capabilities.
+  // Capabilities are coming from two sources:
+  //   * defined by the user, i.e. compile time constants set in the materials.json file.
+  //   * defined by the render capabilities (in practice usually decided by the render system).
+  for (auto& flag : materialTemplate.compileConstants.flags) {
+    shaderCompiler.enableCompileConstant(flag);
+  }
+
   if (materialTemplate.isBinaryShader) {
     info.programId = shaderCompiler.compileSpirvShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
   } else {
     info.programId = shaderCompiler.compileShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
   }
-  spdlog::debug("\tProgram id: {}\n\tShader program compiled successfully (vs: {} fs: {})", info.programId, materialTemplate.vertexShader,
-                materialTemplate.fragmentShader);
+  spdlog::debug("Compilation shader '{}' success.", materialTemplate.name);
 
   info.materialTemplateName = materialTemplate.name;
   return info;
@@ -157,6 +167,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
       {izz::geo::PropertyType::BOOL, sizeof(GLint)},         {izz::geo::PropertyType::INT, sizeof(GLint)},
       {izz::geo::PropertyType::FLOAT, sizeof(GLfloat)},      {izz::geo::PropertyType::FLOAT4, 4 * sizeof(GLfloat)},
       {izz::geo::PropertyType::FLOAT3, 3 * sizeof(GLfloat)}, {izz::geo::PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
+      {izz::geo::PropertyType::INT_ARRAY, sizeof(GLint)}
   };
 
   // allocate texture buffers based on texture descriptions.
@@ -164,9 +175,11 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
 
   for (auto& [name, uboDescription] : materialTemplate.uniformBuffers) {
     spdlog::debug("MaterialSystem: allocating uniform buffer on GPU");
-    material.uniformBuffers[name] = createUniformBuffer(uboDescription, material);
+    if (m_uniformBuffers.contains(uboDescription.name)) {
+      material.uniformBuffers[name] = createUniformBuffer(uboDescription, material);
 
-    m_uniformBuffers.at(name)->onInit();
+      m_uniformBuffers.at(name)->onInit();
+    }
   }
 
   // INIT UNSCOPED UNIFORMS
@@ -178,8 +191,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
 
   for (const auto& [name, uniform] : materialTemplate.uniforms) {
     if (PropertyTypeSize.count(uniform.type) == 0) {
-      spdlog::warn("Property {} ignored", uniform.name);
-      continue;
+      throw std::runtime_error(fmt::format("Data type of uniform property '{}' is unknown. Will result in memory corruption.", uniform.name));
     }
 
     bool isGlobalUniform = (name.find(".") == std::string::npos);
@@ -223,7 +235,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         if (!isGlobalUniform) {
           material.m_allUniforms[name.substr(dotPosition + 1)] = prop;
         }
-        spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<int>(p.value));
+        spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<bool>(p.value));
         break;
 
       case geo::PropertyType::INT:
@@ -253,6 +265,15 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         break;
       }
 
+      case geo::PropertyType::INT_ARRAY: {
+        prop = uniforms->addIntArray(name, std::get<std::vector<int32_t>>(p.value), location);
+        material.m_allUniforms[name] = prop;
+        if (!isGlobalUniform) {
+          material.m_allUniforms[name.substr(dotPosition + 1)] = prop;
+        }
+        break;
+      }
+
       default:
         spdlog::warn("{}: could not set uniform property '{}'. Data type not supported.", ID, p.name);
         break;
@@ -265,41 +286,50 @@ Material& MaterialSystem::createMaterial(const izz::geo::MaterialTemplate& mater
 }
 
 Material& MaterialSystem::createMaterial(std::string meshMaterialName, std::string instanceName) {
-  const auto& materialTemplate = getMaterialTemplate(meshMaterialName);
+  // copy material template, because compile constants may differ
+  auto materialTemplate = getMaterialTemplate(meshMaterialName);
 
   // 1. Check material name for collisions.
   if (!instanceName.empty() && m_createdMaterialNames.count(instanceName) > 0) {
     throw std::runtime_error("Cannot create material with name that already exists.");
   }
 
-  // 2. If shader is not compiled, then compile it.
-  if (!m_compiledMaterialTemplates.contains(materialTemplate.name)) {
+  // 2. Append render capabilities to material template
+  auto renderCapabilities = m_capabilitySelector->selectRenderCapabilities(materialTemplate);
+  materialTemplate.compileConstants += renderCapabilities;
+
+  // 3. If shader variant is not compiled, then compile it.
+  // Shader variant included compile time constants.
+  auto shaderIdentifier = fmt::format("{}_{}", materialTemplate.name, std::hash<RenderCapabilities>{}(materialTemplate.compileConstants));
+
+  if (!m_compiledMaterialTemplates.contains(shaderIdentifier)) {
     ShaderVariantInfo info = compileShader(materialTemplate);
     m_compiledShaderPrograms[info.programId] = info;
-    m_compiledMaterialTemplates[materialTemplate.name] = info.programId;
+    m_compiledMaterialTemplates[shaderIdentifier] = info.programId;
 
-    spdlog::debug("Compiled new program id {} from template {}", info.programId, materialTemplate.name);
+    spdlog::debug("Compiled new program id {} from template {}", info.programId, shaderIdentifier);
   }
 
-  // 3. Get a reference to the compiled shader info object.
-  auto& shaderInfo = m_compiledShaderPrograms.at(m_compiledMaterialTemplates.at(materialTemplate.name));
+  // 4. Get a reference to the compiled shader info object.
+  auto& shaderInfo = m_compiledShaderPrograms.at(m_compiledMaterialTemplates.at(shaderIdentifier));
   shaderInfo.numberOfInstances++;
 
-  // 3. Create material and assign the material name.
+  // 5. Create material and assign the material name.
   Material material;
   material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
   material.programId = shaderInfo.programId;
   material.name = instanceName;
+  material.blendMode = materialTemplate.blendMode;
 
-  // 4. Generate a unique material name (if no material name is specified).
+  // 6. Generate a unique material name (if no material name is specified).
   if (material.name.empty()) {
     material.name = materialTemplate.name + "_" + std::to_string(shaderInfo.numberOfInstances - 1);
   }
 
-  // 5. Allocate unique buffers (i.e. texture buffers, uniform buffers, etc.).
+  // 7. Allocate unique buffers (i.e. texture buffers, uniform buffers, etc.).
   allocateBuffers(material, materialTemplate);
 
-  // 6. Bookkeeping: register the material's id and material's name.
+  // 8. Bookkeeping: register the material's id and material's name.
   m_createdMaterials[material.id] = material;
   m_createdMaterialNames[material.name] = material.id;
 
@@ -337,6 +367,10 @@ izz::gl::Material& MaterialSystem::makeDefaultMaterial() {
 
 const std::unordered_map<int, Material>& MaterialSystem::getCreatedMaterials() {
   return m_createdMaterials;
+}
+
+void MaterialSystem::setCapabilitySelector(const IRenderCapabilitySelector* selector) {
+  m_capabilitySelector = selector;
 }
 
 const ShaderVariantInfo& MaterialSystem::getShaderVariantInfo(const Material& material) const {

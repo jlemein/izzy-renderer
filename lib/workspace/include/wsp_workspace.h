@@ -18,6 +18,8 @@ struct Workspace {
   /// @brief Materials file as specified by command line arguments.
   std::filesystem::path materialsFile{""};
 
+  std::string material{""};
+
   bool debugMode{true};
 
   bool isStrictMode{false};

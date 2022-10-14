@@ -11,9 +11,9 @@
 #include <gui_window.h>
 #include <gui_windowinputlistener.h>
 #include <io_inputsystem.h>
-#include <izz_resourcemanager.h>
 #include <izzgl_rendersystem.h>
-#include "izz_entityfactory.h"
+#include "../../izzgl/include/izz_resourcemanager.h"
+#include "izzgl_entityfactory.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -109,6 +109,9 @@ int Window::run() {
 
   float prevTime = 0.0F;
   while (!glfwWindowShouldClose(window)) {
+    IZZ_STAT_NEXTFRAME()
+    IZZ_STAT_STARTTIME(total_render_frame)
+
     float ratio;
     int width, height;
     float time = static_cast<float>(glfwGetTime());
@@ -140,11 +143,10 @@ int Window::run() {
     m_guiSystem->update(dt, time);
     m_renderSystem->update(dt, time);
     m_guiSystem->beforeRender();
-
     m_renderSystem->render();
-
     m_guiSystem->afterRender();
 
+    IZZ_STAT_ENDTIME(total_render_frame);
     glfwSwapBuffers(window);
     glfwPollEvents();
   }

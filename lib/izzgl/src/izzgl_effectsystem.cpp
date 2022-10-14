@@ -2,8 +2,8 @@
 // Created by jeffrey on 17-12-21.
 //
 #include <geo_effect.h>
-#include <izz_entityfactory.h>
 #include <izzgl_effectsystem.h>
+#include <izzgl_entityfactory.h>
 #include <izzgl_materialsystem.h>
 #include <fstream>
 #include <nlohmann/json.hpp>

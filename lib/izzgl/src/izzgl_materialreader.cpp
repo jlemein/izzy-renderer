@@ -15,6 +15,11 @@ template <typename T>
 bool isFloatArray(const T& array) {
   return std::all_of(array.begin(), array.end(), [](const nlohmann::json& el) { return el.is_number_float(); });
 }
+
+template <typename T>
+bool isIntArray(const T& array) {
+  return std::all_of(array.begin(), array.end(), [](const nlohmann::json& el) { return el.is_number_integer(); });
+}
 }  // namespace
 
 MaterialReader::MaterialReader(std::shared_ptr<MaterialSystem> materialSystem)
@@ -46,10 +51,16 @@ static void readUniformDescription(std::string key, const nlohmann::json& value,
     materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::FLOAT, .value = value.get<float>()};
   } else if (value.is_number_integer()) {
     materialDescription.uniforms[key] = izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::INT, .value = value.get<int>()};
-  } else if (value.is_array() && isFloatArray<>(value)) {
-    auto v = value.get<std::vector<float>>();
-    materialDescription.uniforms[key] =
-        izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::FLOAT_ARRAY, .value = v, .length = static_cast<int>(v.size())};
+  } else if (value.is_array()) {
+    if (isFloatArray<>(value)) {
+      auto v = value.get<std::vector<float>>();
+      materialDescription.uniforms[key] =
+          izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::FLOAT_ARRAY, .value = v, .length = static_cast<int>(v.size())};
+    } else if (isIntArray<>(value)) {
+      auto v = value.get<std::vector<int32_t>>();
+      materialDescription.uniforms[key] =
+          izz::geo::UniformDescription{.name = key, .type = izz::geo::PropertyType::INT_ARRAY, .value = v, .length = static_cast<int>(v.size())};
+    }
   } else if (value.is_object()) {
     // scoped uniform (i.e. using interface block)
 
@@ -77,29 +88,33 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
   // - First fetch the shader file names and info.
   // - Then read texture information
   // - Then uniform properties.
-  for (const auto& material : j["materials"]) {
-    izz::geo::MaterialTemplate materialDescription;
-    materialDescription.name = material["name"].get<std::string>();
-    spdlog::debug("MaterialReader: reading material description \"{}\"...", materialDescription.name);
+  for (const auto& materialJson : j["materials"]) {
+    izz::geo::MaterialTemplate materialTemplate;
+    materialTemplate.name = materialJson["name"].get<std::string>();
+    spdlog::debug("MaterialReader: reading material description \"{}\"...", materialTemplate.name);
 
     // pass shader info
     try {
-      materialDescription.isBinaryShader = material.contains("is_binary_shader") ? material["is_binary_shader"].get<bool>() : false;
-      materialDescription.vertexShader = parent_path / material["vertex_shader"].get<std::string>();
-      materialDescription.geometryShader = parent_path / material["geometry_shader"].get<std::string>();
-      materialDescription.fragmentShader = parent_path / material["fragment_shader"].get<std::string>();
+      materialTemplate.isBinaryShader = materialJson.contains("is_binary_shader") ? materialJson["is_binary_shader"].get<bool>() : false;
+      materialTemplate.vertexShader = parent_path / materialJson["vertex_shader"].get<std::string>();
+      materialTemplate.geometryShader = parent_path / materialJson["geometry_shader"].get<std::string>();
+      materialTemplate.fragmentShader = parent_path / materialJson["fragment_shader"].get<std::string>();
 
-      spdlog::debug("\tvertex shader: {}", materialDescription.vertexShader);
-      spdlog::debug("\tgeometry shader: {}", materialDescription.geometryShader);
-      spdlog::debug("\tfragment shader: {}", materialDescription.fragmentShader);
+      spdlog::debug("\tvertex shader: {}", materialTemplate.vertexShader);
+      spdlog::debug("\tgeometry shader: {}", materialTemplate.geometryShader);
+      spdlog::debug("\tfragment shader: {}", materialTemplate.fragmentShader);
     } catch (nlohmann::detail::exception e) {
       throw std::runtime_error(fmt::format("Failed parsing shader names: {}", e.what()));
     }
 
-    if (material.contains("textures")) {
-      for (const auto& [name, value] : material["textures"].items()) {
+    readCompileConstants(materialTemplate, materialJson);
+
+    readBlendState(materialTemplate, materialJson);
+
+    if (materialJson.contains("textures")) {
+      for (const auto& [name, value] : materialJson["textures"].items()) {
         if (!value.contains("type")) {
-          spdlog::warn("Material '{}': texture misses required attributes 'type'. Property will be ignored.", materialDescription.name);
+          spdlog::warn("Material '{}': texture misses required attributes 'type'. Property will be ignored.", materialTemplate.name);
           continue;
         }
 
@@ -118,31 +133,57 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
         } else {
           spdlog::warn("\tno texture type specified for material {}. Assuming texture is a TEXTURE2D", name);
         }
-        materialDescription.textures[name] = textureDescription;
+        materialTemplate.textures[name] = textureDescription;
       }
     }
 
     try {
-      if (material.contains("properties")) {
+      if (materialJson.contains("properties")) {
         // dealing with uniform props not in an interface block
-        for (const auto& [key, value] : material["properties"].items()) {
-          readUniformDescription(key, value, materialDescription);
+        for (const auto& [key, value] : materialJson["properties"].items()) {
+          readUniformDescription(key, value, materialTemplate);
         }
       }
     } catch (std::runtime_error& e) {
-      throw std::runtime_error(fmt::format("Failed to parse material properties for material {}, details: {}", materialDescription.name, e.what()));
+      throw std::runtime_error(fmt::format("Failed to parse material properties for material {}, details: {}", materialTemplate.name, e.what()));
     }
 
-    m_materialSystem->addMaterialTemplate(materialDescription);
+    m_materialSystem->addMaterialTemplate(materialTemplate);
   }
 
   spdlog::debug("READING MATERIALS [DONE]");
 }
 
+void MaterialReader::readCompileConstants(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json) {
+  if (json.contains(KEY_COMPILE_CONSTANTS)) {
+    if (!json.is_object()) {
+      auto msg = fmt::format("Invalid compile time constants defined for material template '{}'", materialTemplate.name);
+      throw std::runtime_error(msg);
+    }
+    for (const auto& [key, value] : json[KEY_COMPILE_CONSTANTS].items()) {
+      if (value) {
+        materialTemplate.compileConstants.flags.insert(key);
+        spdlog::debug("Added flag '{}' to material template '{}'.", key, materialTemplate.name);
+      }
+    }
+  }
+}
+
+void MaterialReader::readBlendState(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json) {
+  if (json.contains("blendMode")) {
+    std::string blendMode = json["blendMode"].get<std::string>();
+    if (blendMode == "ALPHA_BLEND") {
+      materialTemplate.blendMode = izz::geo::BlendMode::ALPHA_BLEND;
+    } else if (blendMode == "OPAQUE") {
+      materialTemplate.blendMode = izz::geo::BlendMode::OPAQUE;
+    }
+  }
+}
+
 void MaterialReader::readMaterialInstances(nlohmann::json& j) {
-  for (auto instance : j["material_instances"]) {
-    auto instanceName = instance["name"].get<std::string>();
-    auto materialTemplateName = instance["material_definition"].get<std::string>();
+  for (auto materialInstanceJson : j["material_instances"]) {
+    auto instanceName = materialInstanceJson["name"].get<std::string>();
+    auto materialTemplateName = materialInstanceJson["material_definition"].get<std::string>();
 
     if (instanceName.empty() || materialTemplateName.empty()) {
       throw std::runtime_error("Failed to read material instance");
@@ -158,8 +199,12 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
     materialInstance.name = instanceName;
     m_materialSystem->addMaterialTemplate(materialInstance);
 
-    if (instance.contains("textures")) {
-      for (const auto& [key, value] : instance["textures"].items()) {
+    readCompileConstants(materialInstance, materialInstanceJson);
+
+    readBlendState(materialInstance, materialInstanceJson);
+
+    if (materialInstanceJson.contains("textures")) {
+      for (const auto& [key, value] : materialInstanceJson["textures"].items()) {
         try {
           auto& texture = materialInstance.textures.at(key);
           texture.path = value.get<std::string>();
@@ -169,8 +214,8 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
         }
       }
     }
-    if (instance.contains("properties")) {
-      for (const auto& [key, value] : instance["properties"].items()) {
+    if (materialInstanceJson.contains("properties")) {
+      for (const auto& [key, value] : materialInstanceJson["properties"].items()) {
         try {
           if (materialInstance.textures.count(key) > 0) {
             auto& texture = materialInstance.textures.at(key);

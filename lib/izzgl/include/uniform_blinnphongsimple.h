@@ -10,6 +10,9 @@ struct BlinnPhongSimple {
   glm::vec4 albedo;
   glm::vec4 specular;
   float shininess;
+  int isDepthPeeling;
+//  float _padding[2];
+  glm::ivec2 screenSize;
 
   static inline const char* BUFFER_NAME = "BlinnPhongSimple";
 };
@@ -33,10 +36,17 @@ class BlinnPhongSimpleManager : public gl::IUniformBuffer {
     blinn->shininess = material.getUniformFloat("shininess");
     blinn->albedo = material.getUniformVec4("albedo");
     blinn->specular = material.getUniformVec4("specular");
+//    blinn->isDepthPeeling = material.getUniformBool("BlinnPhongSimple.is_depthpeeling");
+//    std::cout << "Is depth peeling: " << blinn->isDepthPeeling << std::endl;
   }
 
   virtual void onFrameStart(float dt, float time) {};
-  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {}
+  virtual void onEntityUpdate(entt::entity e, gl::Material& material) {
+    auto blinn = reinterpret_cast<BlinnPhongSimple*>(material.uniformBuffers.at(BlinnPhongSimple::BUFFER_NAME).data);
+    blinn->shininess = material.getUniformFloat("shininess");
+    blinn->albedo = material.getUniformVec4("albedo");
+    blinn->specular = material.getUniformVec4("specular");
+  }
 };
 
 

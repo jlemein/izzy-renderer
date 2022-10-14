@@ -11,13 +11,13 @@
 #include <gui_lighteditor.h>
 #include <gui_window.h>
 #include <izz_fontsystem.h>
-#include <izz_resourcemanager.h>
 #include <spdlog/spdlog.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <memory>
+#include "../lib/izzgl/include/izz_resourcemanager.h"
 #include "gui_iguiwindow.h"
-#include "izz_entityfactory.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
 
 using namespace std;

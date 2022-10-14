@@ -7,12 +7,12 @@
 #include <ecs_transformutil.h>
 #include <geo_primitivefactory.h>
 #include <gui_window.h>
-#include <izz_resourcemanager.h>
 #include <spdlog/spdlog.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <memory>
-#include "izz_entityfactory.h"
+#include "../lib/izzgl/include/izz_resourcemanager.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
 
 using namespace std;

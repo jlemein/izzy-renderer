@@ -75,6 +75,8 @@ class DeferredRenderer {
     e.add(DeferredRenderable{.materialId = renderable.materialId, .meshBufferId = renderable.meshBufferId});
   }
 
+  void setClearColor(const glm::vec4 color);
+
  private:
   void renderGeometryPass(const entt::registry& registry);
   void renderLightingPass();
@@ -83,6 +85,7 @@ class DeferredRenderer {
   std::shared_ptr<MeshSystem> m_meshSystem;
   entt::registry& m_registry;
 
+  glm::vec4 m_clearColor;
   GLuint m_gBufferFbo, m_lightingPassFbo;
 
   /// Texture id's (obtained via glGenTextures)

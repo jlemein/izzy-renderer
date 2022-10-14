@@ -1,8 +1,8 @@
 #include <GL/glew.h>
+#include <izzgl_shaderlogprettifier.h>
 #include <izzgl_shadersystem.h>
 #include <fstream>
 #include "izzgl_material.h"
-#include <izzgl_shaderlogprettifier.h>
 using namespace izz::gl;
 
 namespace {
@@ -70,6 +70,11 @@ void printLinkingLog(GLint program) {
   std::string log(buffer.begin(), buffer.end());
   spdlog::error("Program log: {}", log);
 }
+
+// trim from start (in place)
+static inline void ltrim(std::string& s) {
+  s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+}
 }  // namespace
 
 ShaderCompiler::ShaderCompiler() {
@@ -83,12 +88,39 @@ bool ShaderCompiler::hasBinaryShaderSupport() {
   return m_hasBinaryShaderSupport;
 }
 
+void ShaderCompiler::setCompileConstant(std::string key, std::string value) {
+  m_compileConstants.settings[key] = value;
+}
+
+void ShaderCompiler::enableCompileConstant(std::string key) {
+  m_compileConstants.flags.insert(key);
+}
+
+void ShaderCompiler::addCompileConstants(std::vector<std::string>& lines) {
+  // find location to add defines
+  auto insertIt = lines.begin();
+  int offset = 0;
+  for (; insertIt != lines.end(); ++offset, ++insertIt) {
+    ltrim(*insertIt);
+    if (!insertIt->starts_with("#")) {
+      break;
+    }
+  }
+
+  for (const auto& flag : m_compileConstants.flags) {
+    lines.insert(lines.begin() + offset, fmt::format("#define {}\n", flag));
+  }
+  lines.insert(lines.begin() + offset, "// Compile constants inserted by Izzy renderer\n");
+}
+
 ShaderCompiler::Program ShaderCompiler::compileShader(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
   std::vector<const char*> vertexShaderSource{}, fragmentShaderSource{};
   std::vector<GLint> vertexShaderSourceLengths{}, fragmentShaderSourceLengths{};
 
   // Read vertex shader line by line
   auto vertexShaderLines = readFile(vertexShaderPath);
+  addCompileConstants(vertexShaderLines);
+
   for (const auto& s : vertexShaderLines) {
     vertexShaderSource.emplace_back(s.c_str());
     vertexShaderSourceLengths.emplace_back(s.size());
@@ -96,6 +128,8 @@ ShaderCompiler::Program ShaderCompiler::compileShader(const std::string& vertexS
 
   // Read fragment shader line by line
   auto fragmentShaderLines = readFile(fragmentShaderPath);
+  addCompileConstants(fragmentShaderLines);
+
   for (const auto& s : fragmentShaderLines) {
     fragmentShaderSource.emplace_back(s.c_str());
     fragmentShaderSourceLengths.emplace_back(s.size());

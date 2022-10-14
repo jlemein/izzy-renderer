@@ -7,10 +7,6 @@
 #include <entt/entity/registry.hpp>
 
 namespace izz {
-class EntityFactory;
-}  // namespace izz
-
-namespace izz {
 namespace anim {
 
 class AnimationSystem {  //: public ecs::IViewerExtension {

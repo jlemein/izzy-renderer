@@ -8,6 +8,10 @@
 #include <filesystem>
 
 namespace izz {
+namespace geo {
+class MaterialTemplate;
+}
+
 namespace gl {
 
 class MaterialSystem;
@@ -32,6 +36,11 @@ class MaterialReader {
  private:
   void readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json& json);
   void readMaterialInstances(nlohmann::json& json);
+
+  void readCompileConstants(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json);
+  void readBlendState(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json);
+
+  static inline const std::string KEY_COMPILE_CONSTANTS = "compileConstants";
 
   std::shared_ptr<MaterialSystem> m_materialSystem {nullptr};
 };

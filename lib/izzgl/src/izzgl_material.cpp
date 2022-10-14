@@ -3,6 +3,7 @@
 //
 #include <GL/glew.h>
 #include <izzgl_material.h>
+#include <uniform_blinnphongsimple.h>
 using namespace izz::gl;
 
 //namespace {
@@ -38,6 +39,7 @@ void Material::pushUniforms() const {
     glUniformBlockBinding(programId, mapping.blockIndex, mapping.blockBind);
 
     void* buff_ptr = glMapBuffer(GL_UNIFORM_BUFFER, GL_WRITE_ONLY);
+
     std::memcpy(buff_ptr, mapping.data, mapping.size);
     glUnmapBuffer(GL_UNIFORM_BUFFER);
   }
@@ -52,6 +54,10 @@ void Material::pushUnscopedUniforms() const {
 
   for (const auto& value : globalUniforms->intValues) {
     glUniform1i(value.second->m_location, *reinterpret_cast<int*>(value.second->m_data));
+  }
+
+  for (const auto& value : globalUniforms->intArrayValues) {
+    glUniform1iv(value.second->m_location, value.second->m_length, reinterpret_cast<GLint*>(value.second->m_data));
   }
 
   for (const auto& value : globalUniforms->floatValues) {

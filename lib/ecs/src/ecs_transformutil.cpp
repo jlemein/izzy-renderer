@@ -49,6 +49,10 @@ void TransformUtil::Translate(Transform &transform, const glm::vec3& translate) 
   transform.localTransform[3] += glm::vec4(translate, 0.0f);
 }
 
+void TransformUtil::Translate(glm::mat4 &transform, const glm::vec3& translate) {
+  transform[3] += glm::vec4(translate, 0.0f);
+}
+
 void TransformUtil::SetWorldPosition(Transform &transform, const glm::vec3 &position) {
   transform.localTransform[3] += glm::vec4(position, 0.0f);
 }

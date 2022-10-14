@@ -7,6 +7,8 @@
 #include <fmt/format.h>
 #include <gl_renderable.h>
 #include <izz.h>
+#include <izz_statcounter.h>
+#include <izzgl_scenedependentuniform.h>
 #include <izzgl_texture.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
@@ -15,10 +17,8 @@
 #include <memory>
 #include <string>
 #include <variant>
-#include "geo_materialtemplate.h"
-#include <izzgl_scenedependentuniform.h>
 #include <vector>
-#include <izz_statcounter.h>
+#include "geo_materialtemplate.h"
 
 namespace izz {
 namespace gl {
@@ -46,7 +46,9 @@ class UniformProperties {
   uint32_t m_numProperties = 0;
 
  public:
-  UniformProperties() {}
+  UniformProperties() {
+    std::cout << "Size of m_data is " << m_data.capacity() << " bytes\n";
+  }
 
   UniformProperties(std::size_t size, int numProperties) {
     m_properties = new UniformProperty[numProperties];
@@ -120,12 +122,31 @@ class UniformProperties {
     return p;
   }
 
-  UniformProperty* addFloatArray(std::string name, std::vector<float> values, int location) {
-    GLfloat* data = reinterpret_cast<GLfloat*>(m_data.data() + m_usedBytes);
-    memcpy(reinterpret_cast<GLfloat*>(data), values.data(), sizeof(float) * values.size());
+  UniformProperty* addIntArray(std::string name, std::vector<int32_t> values, int location) {
+    GLint* data = reinterpret_cast<GLint*>(m_data.data() + m_usedBytes);
+    memcpy(data, values.data(), sizeof(GLint) * values.size());
 
     if (location != GL_INVALID_INDEX) {
-      glUniform1fv(location, values.size(), reinterpret_cast<GLfloat*>(data));
+      glUniform1iv(location, values.size(), data);
+    }
+
+    UniformProperty* p = &m_properties[m_numProperties++];
+    p->m_data = data;
+    p->m_location = location;
+    p->m_length = static_cast<int>(values.size());
+
+    intArrayValues[name] = p;
+    m_usedBytes += sizeof(GLint) * values.size();
+
+    return p;
+  }
+
+  UniformProperty* addFloatArray(std::string name, std::vector<float> values, int location) {
+    GLfloat* data = reinterpret_cast<GLfloat*>(m_data.data() + m_usedBytes);
+    memcpy(data, values.data(), sizeof(GLfloat) * values.size());
+
+    if (location != GL_INVALID_INDEX) {
+      glUniform1fv(location, values.size(), data);
     }
 
     UniformProperty* p = &m_properties[m_numProperties++];
@@ -143,6 +164,8 @@ class UniformProperties {
   std::unordered_map<std::string, UniformProperty*> floatValues;
   /// @brief maps the name of a uniform property to a integer property in the m_properties vector.
   std::unordered_map<std::string, UniformProperty*> intValues;
+  /// @brief maps the name of a uniform property to an integer (32 bit) array property in the m_properties vector.
+  std::unordered_map<std::string, UniformProperty*> intArrayValues;
   /// @brief maps the name of a uniform property to a float array property in the m_properties vector.
   std::unordered_map<std::string, UniformProperty*> floatArrayValues;
   /// @brief maps the name of a uniform property to a boolean property in the m_properties vector.
@@ -184,6 +207,8 @@ class FramebufferConfiguration {
   FramebufferFormat outColorBuffers[4] = {FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED};
 };
 
+
+
 struct TextureBuffer {
   GLuint textureId{0};  // as obtained via glGenTextures(, &id)
   GLint location{-1};   // as obtained via glGetUniformLocation
@@ -192,18 +217,6 @@ struct TextureBuffer {
 class Material {
  public:
   static inline const char* ID = "Material";
-
-  //  MaterialProperty& operator[](const std::string& name) {
-  //    return textures[name];
-  //  }
-
-  void addUniformBool(std::string paramName, bool value);
-
-  void addUniformInt(std::string paramName, int value);
-
-  void addUniformFloat(std::string paramName, float value);
-
-  void addUniformFloatArray(std::string paramName, const std::vector<float>& value);
 
   inline void useProgram() const {
     IZZ_STAT_COUNT(useProgram)
@@ -245,6 +258,17 @@ class Material {
     return name;
   }
 
+  /**
+   * Convenient method to get a handle to the GPU data block of the uniform buffer block.
+   * @tparam T Uniform buffer type. This type should have a static BUFFER_NAME attribute.
+   * @return a raw pointer to uniform buffer data, corresponding to type T*.
+   */
+  template<typename T>
+  inline T* getUniformBuffer() {
+    return reinterpret_cast<T*>(uniformBuffers.at(T::BUFFER_NAME).data);
+  }
+
+
   LightingInfo lighting;
 
   std::string shaderLayout{""};
@@ -259,6 +283,7 @@ class Material {
   // ==== PART OF MATERIAL DEFINITION ======================
   MaterialId id{-1};
   std::string name;
+  izz::geo::BlendMode blendMode { izz::geo::BlendMode::OPAQUE };
 
   /// @brief Globally declared uniforms. These are uniforms that are defined outside any interface block.
   /// It's not recommended to use many global uniforms. Use uniform buffers instead.
@@ -267,6 +292,7 @@ class Material {
 
   /// @brief collection of uniform name to uniform property. This map contains both scoped as well as unscoped uniforms.
   std::unordered_map<std::string, UniformProperty*> m_allUniforms;  // Refers to all the uniform properties (unscoped and scoped).
+  std::unordered_map<std::string, UniformBuffer> uniformBuffers{};
 
   // contains map from name to property type
   std::unordered_map<std::string, izz::geo::PropertyType> propertyTypes;
@@ -281,7 +307,7 @@ class Material {
   // ==== PROPERTIES BELOW ARE PART OF GPU ================================
   int programId{0};  /// @brief Program id as obtained via glCreateProgram()
   std::unordered_map<std::string, izz::gl::TextureBuffer> textures{};
-  std::unordered_map<std::string, UniformBuffer> uniformBuffers{};
+
 //  std::unordered_map<std::string, izz::gl::IUniformBuffer*> perEntityUniforms{};
 
   template <typename T>
@@ -294,6 +320,20 @@ class Material {
     if (m_allUniforms.count(name) > 0) {
       auto pValue = reinterpret_cast<GLfloat*>(m_allUniforms.at(name)->m_data);
       *pValue = value;
+    }
+  }
+
+  void setUniformVec2(std::string name, const glm::vec2& value) {
+    // dangerous cast here
+    if (m_allUniforms.count(name) > 0) {
+      memcpy(m_allUniforms.at(name)->m_data, glm::value_ptr(value), sizeof(GLfloat) * 2);
+    }
+  }
+
+  void setUniformVec2i(std::string name, const glm::ivec2& value) {
+    // dangerous cast here
+    if (m_allUniforms.count(name) > 0) {
+      memcpy(m_allUniforms.at(name)->m_data, glm::value_ptr(value), sizeof(GLint) * 2);
     }
   }
 
@@ -318,7 +358,9 @@ class Material {
       auto pValue = reinterpret_cast<GLint*>(m_allUniforms.at(name)->m_data);
       *pValue = static_cast<GLint>(value);
     } else {
-      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
+      auto msg = fmt::format("Cannot find uniform property {} in material {}", name, getName());
+      spdlog::error(msg);
+//          throw std::runtime_error();
     }
   }
 
@@ -327,6 +369,27 @@ class Material {
       // dangerous cast here
       memcpy(m_allUniforms.at(name)->m_data, value.data(), sizeof(GLfloat) * value.size());
     } else {
+//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
+    }
+  }
+
+  glm::ivec2 getUniformVec2i(std::string name) const {
+    if (m_allUniforms.count(name) > 0) {
+      auto pArr = reinterpret_cast<int32_t*>(m_allUniforms.at(name)->m_data);
+      return glm::ivec2(pArr[0], pArr[1]);
+    } else {
+//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
+    }
+  }
+
+  glm::vec2 getUniformVec2(std::string name) const {
+    if (m_allUniforms.count(name) > 0) {
+      auto pArr = reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
+      return glm::vec4(pArr[0], pArr[1], pArr[2], pArr[3]);
+    } else {
+//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -336,14 +399,30 @@ class Material {
       auto pArr = reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
       return glm::vec4(pArr[0], pArr[1], pArr[2], pArr[3]);
     } else {
+//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
+
+  int getUniformInt(std::string name) const {
+    if (m_allUniforms.count(name) > 0) {
+      return *reinterpret_cast<int*>(m_allUniforms.at(name)->m_data);
+    } else {
+//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
+      throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
+    }
+  }
+
+  bool getUniformBool(std::string name) const {
+    return static_cast<bool>(getUniformInt(name));
+  }
+
 
   float& getUniformFloat(std::string name) const {
     if (m_allUniforms.count(name) > 0) {
       return *reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
     } else {
+//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -354,6 +433,7 @@ class Material {
       float* pStart = reinterpret_cast<float*>(prop->m_data);
       return std::vector<float>{pStart, pStart + prop->m_length};
     } else {
+//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }

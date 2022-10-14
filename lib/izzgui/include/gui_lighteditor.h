@@ -5,7 +5,7 @@
 #include <entt/entt.hpp>
 #include <memory>
 #include "gui_iguiwindow.h"
-#include "izz_entityfactory.h"
+#include <izzgl_entityfactory.h>
 
 namespace izz {
 class ResourceManager;

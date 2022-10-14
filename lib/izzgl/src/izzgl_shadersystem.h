@@ -9,6 +9,8 @@
 namespace izz {
 namespace gl {
 
+using CompileConstants = izz::geo::Capabilities;
+
 class ShaderCompiler {
 public:
     using Program = GLint;
@@ -38,8 +40,17 @@ public:
      */
     bool hasBinaryShaderSupport();
 
+    void setCompileConstant(std::string key, std::string value);
+    void enableCompileConstant(std::string key);
+
 private:
     bool m_hasBinaryShaderSupport {false};
+
+    CompileConstants m_compileConstants;
+
+    void addCompileConstants(std::vector<std::string>& lines);
+
+
 };
 
 } // ecs

@@ -1,6 +1,23 @@
 {
-  "default_material": "DeferredStandard",
+  "default_material": "BlinnPhongSimple",
   "material_instances": [
+    {
+      "name": "asphalt_001",
+      "material_definition": "BlinnPhongDeferred",
+      "properties": {
+        "BlinnPhong.shininess": 32.0,
+        "BlinnPhong.specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
+      },
+      "textures": {
+        "albedoMap": "textures/Road006_4K-JPG/Road006_4K_Color.jpg",
+        "normalMap": "textures/Road006_4K-JPG/Road006_4K_NormalGL.jpg"
+      }
+    },
     {
       "name": "tea_set_01",
       "material_definition": "BlinnPhongDeferred",
@@ -222,6 +239,12 @@
       }
     },
     {
+      "name": "RenderTexture",
+      "vertex_shader": "shaders/passthrough.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/render_texture.frag"
+    },
+    {
       "name": "DebugUv",
       "vertex_shader": "shaders/uv.vert",
       "geometry_shader": "",
@@ -253,21 +276,26 @@
     },
     {
       "name": "BlinnPhongSimple",
-      "vertex_shader": "shaders/blinn-phong-simple.vert",
+      "vertex_shader": "shaders/blinn-phong.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/blinn-phong-simple.frag",
+      "blendMode": "ALPHA_BLEND",
       "lighting": {
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
       },
+      "compileConstants": {},
       "properties": {
+        "ModelViewProjection": {},
+        "ForwardLighting": {},
+        "DepthPeeling": {},
         "BlinnPhongSimple": {
           "shininess": 32.0,
           "albedo": [
             1.0,
+            0.0,
             1.0,
-            1.0,
-            0.0
+            0.5
           ],
           "specular": [
             0.1,

@@ -4,7 +4,6 @@
 #include <ecs_transform.h>
 #include "anim_animationsystem.h"
 #include "anim_localrotation.h"
-#include "izz_entityfactory.h"
 using namespace izz::anim;
 using namespace izz::ecs;
 

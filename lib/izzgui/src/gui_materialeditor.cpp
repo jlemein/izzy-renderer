@@ -5,11 +5,9 @@
 #include <imgui.h>
 #include <izzgl_materialsystem.h>
 #include <spdlog/spdlog.h>
-#include <entt/entt.hpp>
 #include "ecs_name.h"
-#include "gl_deferredrenderer.h"
 #include "gl_renderable.h"
-#include "izz_entityfactory.h"
+#include "izzgl_entityfactory.h"
 #include "izzgl_material.h"
 using namespace izz::gui;
 

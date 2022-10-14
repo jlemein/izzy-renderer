@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "../../lsw-gl/include/izzgl_material.h"
-using namespace lsw;
+#include <izzgl_material.h>
+using namespace izz::gl;
 
 class MaterialTest : public testing::Test {
 public:

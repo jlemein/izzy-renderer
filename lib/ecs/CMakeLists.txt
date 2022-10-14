@@ -8,7 +8,6 @@ set (HEADERS
         include/ecs_wireframe.h include/ecs_postprocess.h)
 
 add_library(ecs STATIC include/ecs_camera.h
-        include/izz.h
         include/ecs_firstpersoncontrol.h
         include/ecs_moveable.h
         include/ecs_relationship.h

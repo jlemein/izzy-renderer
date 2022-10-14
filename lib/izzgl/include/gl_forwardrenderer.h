@@ -4,22 +4,24 @@
 
 #pragma once
 
+#include <izzgl_material.h>
 #include <entt/fwd.hpp>
 #include "gl_renderable.h"
 #include "izz.h"
 #include "izz_scenegraphentity.h"
+#include <izzgl_depthpeeling.h>
 
 namespace izz {
 namespace gl {
 
-class Material;
 class MaterialSystem;
 class MeshSystem;
 
 struct ForwardRenderable {
-  bool isWireframe{false};
   MaterialId materialId{-1};
   MeshBufferId meshBufferId{-1};
+  bool isWireframe{false};
+  izz::geo::BlendMode blendMode { izz::geo::BlendMode::OPAQUE };
 };
 
 class ForwardRenderer {
@@ -29,6 +31,10 @@ class ForwardRenderer {
   std::shared_ptr<MaterialSystem> m_materialSystem{nullptr};
   std::shared_ptr<MeshSystem> m_meshSystem{nullptr};
   entt::registry& m_registry;
+  DepthPeeling m_depthPeeling;
+  bool m_isAlphaBlendingEnabled = true;
+  int m_width, m_height;
+
 
  public:
   ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry);
@@ -39,6 +45,13 @@ class ForwardRenderer {
    */
   void onConstruct(entt::registry& r, entt::entity e);
 
+  /**
+   * Initializes the forward renderer with buffers and materials it needs (such as frame buffers).
+   * @param width   Width of the frame buffer.
+   * @param height  Height of the frame buffer.
+   */
+  void init(int width, int height);
+
   void render(const entt::registry& registry);
 
   void update(float dt, float time);
@@ -47,10 +60,14 @@ class ForwardRenderer {
    * Gets called whenever an entity is created via the render system.
    * @param e scene graph entity, that already contains a generic Renderable component.
    */
-  inline void onEntityCreate(SceneGraphEntity& e) {
-    auto& renderable = e.get<gl::Renderable>();
-    e.add(ForwardRenderable{.materialId = renderable.materialId, .meshBufferId = renderable.materialId});
-  }
+  void onEntityCreate(SceneGraphEntity& e);
+
+  void setClearColor(const glm::vec4& color);
+
+ private:
+  void renderOpaqueObjects(const entt::registry& registry);
+
+  glm::vec4 m_clearColor;
 };
 
 }  // namespace gl
