@@ -55,7 +55,9 @@ LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<MaterialSystem> materialSystem,
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager,
+                           std::shared_ptr<MaterialSystem> materialSystem,
+                           std::shared_ptr<TextureSystem> textureSystem,
                            std::shared_ptr<izz::gl::MeshSystem> meshSystem)
   : m_registry{registry}  //  , m_debugSystem(registry)
   , m_resourceManager{resourceManager}
@@ -63,7 +65,7 @@ RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::Resour
   , m_meshSystem{meshSystem}
   , m_shaderSystem(std::make_shared<ShaderCompiler>())
   , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
-  , m_forwardRenderer(materialSystem, meshSystem, registry)
+  , m_forwardRenderer(materialSystem, textureSystem, meshSystem, registry)
   , m_deferredRenderer(materialSystem, meshSystem, registry) {
   m_materialSystem->setCapabilitySelector(this);
 }

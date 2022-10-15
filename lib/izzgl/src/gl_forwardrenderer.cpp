@@ -12,15 +12,15 @@
 #include "ecs_camera.h"
 #include "ecs_name.h"
 #include "geo_mesh.h"
-#include "geo_primitivefactory.h"
-#include "uniform_depthpeeling.h"
 using namespace izz::gl;
 
-ForwardRenderer::ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
+ForwardRenderer::ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem,
+                                 std::shared_ptr<TextureSystem> textureSystem,
+                                 std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
   : m_materialSystem{materialSystem}
   , m_meshSystem{meshSystem}
   , m_registry{registry}
-  , m_depthPeeling{materialSystem, meshSystem, registry} {
+  , m_depthPeeling{materialSystem, textureSystem, meshSystem, registry} {
   m_registry.on_construct<gl::ForwardRenderable>().connect<&ForwardRenderer::onConstruct>(this);
 }
 

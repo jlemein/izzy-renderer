@@ -54,6 +54,23 @@ Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
   return texture;
 }
 
+Texture StbTextureLoader::loadTextureFromMemory(unsigned char* pData, int size) {
+  int desiredChannels = 4;
+  int width, height, channels;
+
+  stbi_set_flip_vertically_on_load_thread(m_flipVertical);
+  unsigned char* imageData = stbi_load_from_memory(pData, size, &width, &height, &channels, desiredChannels);
+
+  Texture texture {.path = "", .width = width, .height = height, .channels = desiredChannels};
+
+  // number of pixels * channels * 8 bit
+  uint64_t sizeImageData = width * height * desiredChannels;
+  texture.data = std::vector<uint8_t>(imageData, imageData + sizeImageData);
+  stbi_image_free(imageData);
+
+  return texture;
+}
+
 ExtensionList StbTextureLoader::getSupportedExtensions() const {
   return SUPPORTED_EXTENSIONS;
 }

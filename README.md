@@ -49,7 +49,15 @@ rendering, since the model itself is a smooth barrel.
 Take a look at `examples/m_izzyrender.cpp`. Most of the code will look intuitive enough to start exploring izzy
 renderer.
 
-For more detailed explanations, continue reading.
+For more detailed explanations:
+1. Materials
+2. [The material system](docs/materials.md)
+   3. The materials file.
+   4. Writing custom shaders.
+3. The texture system
+   4. Loading textures from file.
+   5. Allocating textures and depth buffers.
+3. 
 
 ### Introduction
 
@@ -306,6 +314,50 @@ When creating a material using the same shader file names, the engine will try t
 | `MaterialTemplate`         | Describes the complete material on CPU side. Used to instantiate the real GPU specific materials.                                                                                                         | CPU      |
 | `MaterialInstanceDescription` | Inherits from `MaterialTemplate` and differs only in specified attributes. This makes it possible to define multiple materials in a mesh object, but still using the same Material program in the end. | CPU      |
 | `Material`                    | Material program (accompanied with program id and allocated texture and uniform buffers.                                                                                                                  | GPU      |
+
+## Texture system
+
+The texture system owns the textures in the application. This makes it possible to facilitate
+reuse of textures used by different components in the application. Also it makes it possible to track
+memory usage. It facades the interface to the lower level rendering system (OpenGL).
+
+A texture can be created via the texture system using any of the following calls:
+* `createImageTexture(path)` loads a texture from disk located by the specified path.
+* `createTexture(width, height)` allocates a texture without data. Used for GPU side rendering (shadow maps).
+* `createDepthTexture(width, height)`
+
+You will retrieve a pointer to the texture. If you created a texture you are expected to perform 
+a call to the delete variant to signal memory can be freed.
+
+Textures can be given names by calling `setName(name)`. This makes them more visible if an error
+occurs or if the debugging tools are used.
+
+To retrieve already allocated textures from the texture system, use one of the following calls.
+* `getTextureById(id)`
+* `getTextureByName(name)`
+
+### Accessing texture data.
+
+The texture data resides on the GPU. It is possible to fetch this data with a call to `fetchData()`. After this call
+the texture data is accessible from the CPU. This is a costly operation, so use it wisely.
+
+If texture data needs to be manipulated, you can fetch the texture data from the GPU. Then perform
+your modifications and push the data back to the GPU. 
+If you want to replace the existing data without modification, you can also set the data and push the data.
+
+```
+Texture* pTexture = m_textureSystem->createImageTexture("mytexture.png");
+pTexture.fetchData();
+pTexture.data = newData;
+pTexture.pushData(); 
+```
+
+### Textures in shaders.
+
+*To be added*
+
+
+
 
 # Project overview
 

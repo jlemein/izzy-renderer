@@ -207,11 +207,9 @@ class FramebufferConfiguration {
   FramebufferFormat outColorBuffers[4] = {FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED};
 };
 
-
-
 struct TextureBuffer {
   GLuint textureId{0};  // as obtained via glGenTextures(, &id)
-  GLint location{-1};   // as obtained via glGetUniformLocation
+  GLint location{-1};   // as obtained via glGetUniformLocation()
 };
 
 class Material {

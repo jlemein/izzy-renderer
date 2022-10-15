@@ -39,6 +39,7 @@ class MaterialReader {
 
   void readCompileConstants(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json);
   void readBlendState(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json);
+  void readTextures(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& j);
 
   static inline const std::string KEY_COMPILE_CONSTANTS = "compileConstants";
 

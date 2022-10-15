@@ -15,6 +15,7 @@ namespace izz {
 namespace gl {
 
 class MaterialSystem;
+class TextureSystem;
 class MeshSystem;
 
 struct ForwardRenderable {
@@ -37,7 +38,9 @@ class ForwardRenderer {
 
 
  public:
-  ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry);
+  ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem,
+                  std::shared_ptr<TextureSystem> textureSystem,
+                  std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry);
 
   /**
    * @brief Called when an gl::DeferredRenderable component is added to the entity.

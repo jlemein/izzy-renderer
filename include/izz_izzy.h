@@ -60,7 +60,8 @@ class Izzy {
     izz->materialSystem = std::make_shared<izz::gl::MaterialSystem>(izz->registry, izz->resourceManager);
     izz->meshSystem = std::make_shared<izz::gl::MeshSystem>();
     izz->resourceManager->setMaterialSystem(izz->materialSystem);
-    izz->renderSystem = std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->resourceManager, izz->materialSystem, izz->meshSystem);
+    izz->renderSystem =
+        std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->resourceManager, izz->materialSystem, izz->textureSystem, izz->meshSystem);
 
     izz->entityFactory = std::make_shared<izz::EntityFactory>(izz->registry, izz->renderSystem, izz->materialSystem, izz->meshSystem);
 

@@ -1,5 +1,5 @@
 {
-  "default_material": "BlinnPhongSimple",
+  "default_material": "BlinnPhong",
   "material_instances": [
     {
       "name": "asphalt_001",
@@ -31,8 +31,16 @@
         ]
       },
       "textures": {
-        "albedoMap": "models/textures/tea_set_01_diff_4k.jpg",
-        "normalMap": "models/textures/tea_set_01_nor_gl_4k.exr"
+        "albedoMap": {
+          "type": "TEXTURE_2D",
+          "hint": "DIFFUSE",
+          "file": "models/textures/tea_set_01_diff_4k.jpg"
+        },
+        "normalMap": {
+          "type": "TEXTURE_2D",
+          "hint": "NORMAL",
+          "file": "models/textures/tea_set_01_nor_gl_4k.exr"
+        }
       }
     },
     {
@@ -128,12 +136,14 @@
       },
       "textures": {
         "normalMap": {
-          "type": "texture",
-          "default_value": "models/textures/tea_set_01_nor_gl_4k.exr"
+          "type": "TEXTURE_2D",
+          "hint": "NORMAL",
+          "path": "models/textures/tea_set_01_nor_gl_4k.exr"
         },
         "albedoMap": {
           "type": "texture",
-          "default_value": "models/textures/tea_set_01_diff_4k.jpg"
+          "hint": "DIFFUSE",
+          "path": "models/textures/tea_set_01_diff_4k.jpg"
         }
       }
     },
@@ -156,13 +166,13 @@
       },
       "textures": {
         "gbuffer_position": {
-          "type": "texture"
+          "type": "TEXTURE_2D"
         },
         "gbuffer_normal": {
-          "type": "texture"
+          "type": "TEXTURE_2D"
         },
         "gbuffer_albedospec": {
-          "type": "texture"
+          "type": "TEXTURE_2D"
         }
       }
     },
@@ -173,13 +183,13 @@
       "fragment_shader": "shaders/experimental/deferred_visualize_gbuffer.frag",
       "textures": {
         "gbuffer_position": {
-          "type": "texture"
+          "type": "TEXTURE_2D"
         },
         "gbuffer_normal": {
-          "type": "texture"
+          "type": "TEXTURE_2D"
         },
         "gbuffer_albedo_spec": {
-          "type": "texture"
+          "type": "TEXTURE_2D"
         }
       }
     },
@@ -269,8 +279,8 @@
       "fragment_shader": "shaders/texture.frag",
       "textures": {
         "textureMap": {
-          "type": "texture",
-          "default_value": "textures/castle_albedo.jpg"
+          "type": "TEXTURE_2D",
+          "path": "textures/castle_albedo.jpg"
         }
       }
     },
@@ -317,12 +327,14 @@
       },
       "textures": {
         "albedoMap": {
-          "type": "texture",
-          "default_value": "models/textures/tea_set_01_diff_4k.jpg"
+          "type": "TEXTURE_2D",
+          "hint": "DIFFUSE",
+          "path": "models/textures/tea_set_01_diff_4k.jpg"
         },
         "normalMap": {
-          "type": "texture",
-          "default_value": "models/textures/tea_set_01_nor_gl_4k.exr"
+          "type": "TEXTURE_2D",
+          "hint": "NORMAL",
+          "path": "models/textures/tea_set_01_nor_gl_4k.exr"
         }
       },
       "properties": {
@@ -350,12 +362,14 @@
       },
       "textures": {
         "albedoMap": {
-          "type": "texture",
-          "default_value": "textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"
+          "type": "TEXTURE_2D",
+          "hint": "DIFFUSE",
+          "path": "textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"
         },
         "normalMap": {
-          "type": "texture",
-          "default_value": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
+          "type": "TEXTURE_2D",
+          "hint": "NORMAL",
+          "path": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
         }
       }
     },
@@ -375,16 +389,19 @@
       },
       "textures": {
         "albedoMap": {
-          "type": "texture",
-          "default_value": "textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
+          "type": "TEXTURE_2D",
+          "hint": "DIFFUSE",
+          "path": "textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
         },
         "normalMap": {
-          "type": "texture",
-          "default_value": "textures/cobble_stone/StreetCobblestone3_1K_normal.png"
+          "type": "TEXTURE_2D",
+          "hint": "NORMAL",
+          "path": "textures/cobble_stone/StreetCobblestone3_1K_normal.png"
         },
         "heightMap": {
-          "type": "texture",
-          "default_value": "textures/cobble_stone/StreetCobblestone3_1K_height.png"
+          "type": "TEXTURE_2D",
+          "hint": "HEIGHT",
+          "path": "textures/cobble_stone/StreetCobblestone3_1K_height.png"
         }
       }
     },

@@ -18,7 +18,12 @@ class ExrLoader : public TextureLoader {
   ExrLoader(bool flipVertical = false);
 
   virtual ~ExrLoader() = default;
+
+  /// @inherit
   Texture loadTexture(const std::filesystem::path& path) override;
+
+  /// @inherit
+  Texture loadTextureFromMemory(unsigned char* pData, int size) override;
 
   ExtensionList getSupportedExtensions() const override;
 

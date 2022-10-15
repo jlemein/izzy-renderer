@@ -56,7 +56,6 @@ add_library(izzgl STATIC
         src/izzgl_shadersystem.cpp
         src/izzgl_shadersystem.h
         src/izzgl_stbtextureloader.cpp
-        src/izzgl_textureloader.cpp
         src/izzgl_texturesystem.cpp
         src/uniform_ubermaterial.cpp
 #        include/ecs_debugshapefactory.h

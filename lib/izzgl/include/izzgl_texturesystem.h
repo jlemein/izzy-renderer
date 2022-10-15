@@ -35,6 +35,28 @@ class TextureSystem {
   Texture* loadTexture(const std::filesystem::path& path);
 
   /**
+   * Creates a texture from raw image data, usually used to load embedded textures.
+   * @param path Path name to the embedded texture. Sometimes embedded textures still have an internal name.
+   *             This name will then not point to an actual file.
+   * @param data Pointer to raw data containing image data. Image data may be compressed and uncompressed.
+   * @param size Size of the image data (in bytes).
+   * @param extensionHint (Optional) hint to find the appropriate file loader.
+   * @return
+   */
+  Texture* loadEmbeddedTexture(const std::filesystem::path& path, unsigned char* data, int size,
+                                 std::string extensionHint = "");
+
+  /**
+   * Allocates a texture on the GPU with the specified width and height.
+   * @param width Width in pixels.
+   * @param height Height in pixels.
+   * @return A pointer to the created texture.
+   */
+  Texture* allocateTexture(int width, int height);
+
+  Texture* allocateDepthTexture(int width, int height);
+
+  /**
    * Sets a texture loader for the specified extension(s).
    * There can only be one texture loader per extension.
    * @param extension Extension that the texture loader can read.

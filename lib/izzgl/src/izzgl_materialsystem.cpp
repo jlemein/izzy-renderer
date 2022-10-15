@@ -281,8 +281,56 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
   }
 }
 
-Material& MaterialSystem::createMaterial(const izz::geo::MaterialTemplate& materialTemplate) {
-  return createMaterial(materialTemplate.name);
+Material& MaterialSystem::createMaterial(izz::geo::MaterialTemplate materialTemplate, std::string name) {
+//  return createMaterial(materialTemplate.name);
+  // copy material template, because compile constants may differ
+//  auto materialTemplate = getMaterialTemplate(meshMaterialName);
+
+  // 1. Check material name for collisions.
+  if (!name.empty() && m_createdMaterialNames.count(name) > 0) {
+    throw std::runtime_error("Cannot create material with name that already exists.");
+  }
+
+  // 2. Append render capabilities to material template
+  auto renderCapabilities = m_capabilitySelector->selectRenderCapabilities(materialTemplate);
+  materialTemplate.compileConstants += renderCapabilities;
+
+  // 3. If shader variant is not compiled, then compile it.
+  // Shader variant included compile time constants.
+  auto shaderIdentifier = fmt::format("{}_{}", materialTemplate.name, std::hash<RenderCapabilities>{}(materialTemplate.compileConstants));
+
+  if (!m_compiledMaterialTemplates.contains(shaderIdentifier)) {
+    ShaderVariantInfo info = compileShader(materialTemplate);
+    m_compiledShaderPrograms[info.programId] = info;
+    m_compiledMaterialTemplates[shaderIdentifier] = info.programId;
+
+    spdlog::debug("Compiled new program id {} from template {}", info.programId, shaderIdentifier);
+  }
+
+  // 4. Get a reference to the compiled shader info object.
+  auto& shaderInfo = m_compiledShaderPrograms.at(m_compiledMaterialTemplates.at(shaderIdentifier));
+  shaderInfo.numberOfInstances++;
+
+  // 5. Create material and assign the material name.
+  Material material;
+  material.id = static_cast<MaterialId>(m_createdMaterials.size() + 1);
+  material.programId = shaderInfo.programId;
+  material.name = name;
+  material.blendMode = materialTemplate.blendMode;
+
+  // 6. Generate a unique material name (if no material name is specified).
+  if (material.name.empty()) {
+    material.name = materialTemplate.name + "_" + std::to_string(shaderInfo.numberOfInstances - 1);
+  }
+
+  // 7. Allocate unique buffers (i.e. texture buffers, uniform buffers, etc.).
+  allocateBuffers(material, materialTemplate);
+
+  // 8. Bookkeeping: register the material's id and material's name.
+  m_createdMaterials[material.id] = material;
+  m_createdMaterialNames[material.name] = material.id;
+
+  return m_createdMaterials.at(material.id);
 }
 
 Material& MaterialSystem::createMaterial(std::string meshMaterialName, std::string instanceName) {

@@ -64,17 +64,17 @@ class MaterialSystem {
 
   /**
    * Creates a new material specified by the material template.
-   * @param materialTemplate The material template.
+   * @param materialTemplate    The material template.
+   * @param name                Name of the created material. Useful for visualization and debug/error messages.
    * @return a reference to a newly created material.
    */
-  Material& createMaterial(const izz::geo::MaterialTemplate& materialTemplate);
+  Material& createMaterial(izz::geo::MaterialTemplate materialTemplate, std::string name = "");
 
   /**
    * Creates a new material with it's own set of data.
    *
-   * @param meshMaterialName    [in] Name of the material.
-   * @param instanceName        [in] Optional. If specified and not empty, then the name should not collide with any material created before.
-   *                            Otherwise it throws an std::runtime_error.
+   * @param meshMaterialName    [in] Name of the material template.
+   * @param instanceName        [in] Optional. Name of the material, useful for debugging and finding the material later on.
    * @return a reference to the created material.
    */
   Material& createMaterial(std::string meshMaterialName, std::string instanceName = "");

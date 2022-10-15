@@ -294,7 +294,6 @@ void EntityFactory::processChildren(const izz::geo::Scene& scene, std::shared_pt
     for (auto& instance : node->meshInstances) {
       auto& materialDescription = scene.m_materials[instance->materialId];
       auto& material = m_materialSystem->createMaterial(materialDescription);
-
       auto meshBuffer = m_meshSystem->createMeshBuffer(*instance->mesh);
 
       // TODO: make mesh instance instead of copy mesh

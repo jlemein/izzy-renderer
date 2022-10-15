@@ -19,8 +19,8 @@ struct UniformBufferDescription {
 };
 
 enum class PropertyType {
-  TEXTURE2D,
-  CUBEMAP,
+  TEXTURE_2D,
+  CUBE_MAP,
   FLOAT_ARRAY,
   FLOAT,
   FLOAT4,
@@ -36,7 +36,7 @@ enum class PropertyType {
  * Rather than treating it as one of the textures, a hint can be provided so that the renderer can map them
  * automatically to the right texture slot.
  */
-enum class TextureHint { NO_HINT = 0, DIFFUSE_TEXTURE, NORMAL_TEXTURE, SPECULAR_TEXTURE, ROUGHNESS_TEXTURE };
+enum class TextureHint { NO_HINT = 0, DIFFUSE_MAP, NORMAL_MAP, SPECULAR_MAP, ROUGHNESS_MAP, HEIGHT_MAP };
 
 struct TextureDescription {
   PropertyType type;           /// @brief type of texture. Intended to be set to any value of TEXTURE_*.
@@ -52,13 +52,28 @@ struct UniformDescription {
   std::string name;
   PropertyType type;
   PropertyValue value;
-  int length {1};
+  int length{1};
 };
 
 enum class BlendMode {
-  OPAQUE = 0, // no blending.
-  ALPHA_BLEND // use alpha channel to blend.
+  OPAQUE = 0,   // no blending.
+  ALPHA_BLEND,  // use alpha channel to blend.
+  ALPHA_CUTOUT  // binary test alpha testing.
 };
+
+// enum class TextureType {
+//   TEXTURE_2D = 0, // default 2d texture
+//   CUBEMAP         // texture used for cube map.
+// };
+//
+// enum class TextureMetaTag { NO_META_TAG = 0,
+//   DIFFUSE,
+//   NORMAL,
+//   ALBEDO,
+//   SPECULAR,
+//   ROUGHNESS,
+//   HEIGHTMAP
+// };
 
 /**
  * A material template represents the definition, description or blueprint of a shader object.
@@ -72,7 +87,7 @@ enum class BlendMode {
  * It is very similar to how classes and objects work. The template is the class, the material is the object.
  */
 struct MaterialTemplate {
-  std::string name {"<unnamed>"};
+  std::string name{"<unnamed>"};
   bool isBinaryShader{false};      /// @brief Are the shader files in binary format (e.g. pre-compiled SPIRV format)?
   std::string vertexShader{""};    /// @brief Path to the vertex GLSL shader file.
   std::string geometryShader{""};  /// @brief Path to the vertex GLSL shader file.
@@ -83,7 +98,7 @@ struct MaterialTemplate {
   glm::vec4 specularColor;
   glm::vec4 ambientColor;
 
-  BlendMode blendMode {BlendMode::OPAQUE};
+  BlendMode blendMode{BlendMode::OPAQUE};
 
   std::unordered_map<std::string, TextureDescription> textures;
 
@@ -99,7 +114,6 @@ struct MaterialTemplate {
   /// @brief This map contains information about the named uniform buffer objects in the shader (such as the size and data pointers).
   std::unordered_map<std::string, UniformBufferDescription> uniformBuffers;
 };
-
 
 }  // namespace geo
 }  // namespace izz

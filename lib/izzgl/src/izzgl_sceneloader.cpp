@@ -12,8 +12,6 @@
 #include "geo_mesh.h"
 #include "geo_meshinstance.h"
 #include "geo_scene.h"
-#include "geo_transform.h"
-#include "izz_resourcemanager.h"
 #include "izzgl_materialsystem.h"
 #include "izzgl_texturesystem.h"
 
@@ -26,50 +24,89 @@ SceneLoader::SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, 
   : m_textureSystem{textureSystem}
   , m_materialSystem{materialSystem} {}
 
-std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial_p) const {
+std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial_p,
+                                                                         const std::unordered_map<std::string, aiTexture*>& embeddedTextures) const {
   std::unique_ptr<izz::geo::TextureDescription> td = nullptr;
 
   if (aiMaterial_p->GetTextureCount(ttype) > 0) {
     td = std::make_unique<izz::geo::TextureDescription>();
-    td->type = izz::geo::PropertyType::TEXTURE2D;
+    td->type = izz::geo::PropertyType::TEXTURE_2D;
 
     aiString aiPath;
     aiTextureMapping textureMapping;
     aiMaterial_p->GetTexture(ttype, 0, &aiPath, &textureMapping);
-    td->path = scene.m_dir / aiPath.C_Str();
-    td->name = aiPath.C_Str();
+
+    if (embeddedTextures.contains(aiPath.C_Str())) {
+      auto texture_p = embeddedTextures.at(aiPath.C_Str());
+
+      unsigned char* imageData = reinterpret_cast<unsigned char*>(texture_p->pcData);
+      auto size = texture_p->mHeight != 0 ? texture_p->mWidth * texture_p->mHeight : texture_p->mWidth;
+
+      Texture* embedded = m_textureSystem->loadEmbeddedTexture(aiPath.C_Str(), imageData, size, std::string(".") + texture_p->achFormatHint);
+      td->path = embedded->path;
+    } else {
+      // some models are exported with OS specific path separators.
+      // Replace these separators with preferred path separator.
+      std::string path = aiPath.C_Str();
+      std::replace(path.begin(), path.end(), '\\', std::filesystem::path::preferred_separator);
+      td->path = scene.m_dir / path;
+    }
+
+    td->name = "";
 
     switch (ttype) {
       case aiTextureType::aiTextureType_DIFFUSE_ROUGHNESS:
-        td->hint = izz::geo::TextureHint::ROUGHNESS_TEXTURE;
+        td->hint = izz::geo::TextureHint::ROUGHNESS_MAP;
+        td->name = "roughnessMap";
         break;
       case aiTextureType::aiTextureType_NORMALS:
-        td->hint = izz::geo::TextureHint::NORMAL_TEXTURE;
+        td->hint = izz::geo::TextureHint::NORMAL_MAP;
+        td->name = "normalMap";
         break;
       case aiTextureType::aiTextureType_SPECULAR:
-        td->hint = izz::geo::TextureHint::SPECULAR_TEXTURE;
+        td->hint = izz::geo::TextureHint::SPECULAR_MAP;
+        td->name = "specularMap";
         break;
       case aiTextureType::aiTextureType_DIFFUSE:
-        td->hint = izz::geo::TextureHint::DIFFUSE_TEXTURE;
+        td->hint = izz::geo::TextureHint::DIFFUSE_MAP;
+        td->name = "diffuseMap";
+        break;
+      case aiTextureType::aiTextureType_HEIGHT:
+        td->hint = izz::geo::TextureHint::HEIGHT_MAP;
+        td->name = "heightMap";
+        break;
+      default:
+        spdlog::debug("Could not map texture type to Izzy render's texture type (model: '{}')", scene.m_path.string());
         break;
     }
-
-    spdlog::info("SceneLoader: material description identified roughness texture {}", td->path.string());
   }
 
   return td;
 }
 
-void SceneLoader::readTextures(const izz::geo::Scene& scene, const aiMaterial* aiMaterial_p, izz::geo::MaterialTemplate& material) {
+void SceneLoader::readTextures(const izz::geo::Scene& scene, const aiScene* aiScene_p, const aiMaterial* aiMaterial_p, izz::geo::MaterialTemplate& material) {
   std::array<aiTextureType, 4> textureTypes{aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_SPECULAR, aiTextureType_DIFFUSE_ROUGHNESS};
 
   aiString textureFile;
   aiMaterial_p->Get(AI_MATKEY_TEXTURE(aiTextureType_DIFFUSE, 0), textureFile);
   spdlog::warn("texture file: {}", textureFile.C_Str());
 
+  std::unordered_map<std::string, aiTexture*> embeddedTextures = {};
+  for (int i=0; i<aiScene_p->mNumTextures; ++i) {
+    auto filename = aiScene_p->mTextures[i]->mFilename.C_Str();
+    embeddedTextures[filename] = aiScene_p->mTextures[i];
+  }
+
   for (auto aiTextureType : textureTypes) {
-    if (auto pTextureDescriptions = readAiTexture(scene, aiTextureType, aiMaterial_p)) {
-      material.textures[pTextureDescriptions->name] = *pTextureDescriptions;
+    if (auto pTextureDescription = readAiTexture(scene, aiTextureType, aiMaterial_p, embeddedTextures)) {
+
+      // overwrite the stored texture if the texture inside the scene file matches the same hint
+      for (auto& [name, storedTexture] : material.textures) {
+        if (pTextureDescription->hint == storedTexture.hint) {
+          pTextureDescription->name = name;
+          material.textures[name] = *pTextureDescription;
+        }
+      }
     }
   }
 }
@@ -83,7 +120,11 @@ void SceneLoader::readMaterials(const aiScene* scene_p, izz::geo::Scene& scene) 
 
     spdlog::debug("Read material {} -- (vertex shader: {})", name, materialDescription.vertexShader);
 
-    readTextures(scene, aiMaterial, materialDescription);
+    spdlog::debug("Number of embedded textures: {}", scene_p->mNumTextures);
+    for (int j=0; j<scene_p->mNumTextures; ++j) {
+      spdlog::debug("Embedded texture: {}, {} x {} -- {}", scene_p->mTextures[0]->mFilename.C_Str(), scene_p->mTextures[0]->mWidth, scene_p->mTextures[0]->mHeight, std::string(scene_p->mTextures[0]->achFormatHint));
+    }
+    readTextures(scene, scene_p, aiMaterial, materialDescription);
 
     // overwrite settings with scene file properties
     aiColor3D color(0.f, 0.f, 0.f);
@@ -116,10 +157,7 @@ void SceneLoader::readMeshes(const aiScene* scene_p, izz::geo::Scene& scene) {
 
     mesh->name = mesh_p->mName.C_Str();
     mesh->polygonMode = izz::geo::PolygonMode::kTriangles;
-
-//    mesh->materialId = scene.m_materials[mesh_p->mMaterialIndex];
     mesh->materialId = mesh_p->mMaterialIndex; // refers to local material descriptions
-//    auto& material = m_materialSystem->getMaterialById(mesh->materialId);
     const auto& materialDescription = scene.m_materials.at(mesh->materialId);
     spdlog::debug("Reading mesh {}: has material {} - {}", n, mesh_p->mName.C_Str(), materialDescription.vertexShader);
 

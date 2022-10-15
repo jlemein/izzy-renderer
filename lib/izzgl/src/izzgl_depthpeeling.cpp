@@ -10,13 +10,15 @@
 #include <izzgl_error.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_meshsystem.h>
+#include <izzgl_texturesystem.h>
 #include <spdlog/spdlog.h>
 #include <uniform_depthpeeling.h>
 using namespace izz::gl;
 
-DepthPeeling::DepthPeeling(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, const entt::registry& registry,
-                           int numPeelPasses)
+DepthPeeling::DepthPeeling(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<TextureSystem> textureSystem,
+                           std::shared_ptr<MeshSystem> meshSystem, const entt::registry& registry, int numPeelPasses)
   : m_materialSystem{materialSystem}
+  , m_textureSystem{textureSystem}
   , m_meshSystem{meshSystem}
   , m_registry{registry}
   , m_numPeelPasses{numPeelPasses} {}
@@ -66,18 +68,20 @@ void DepthPeeling::init(int width, int height) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_opaqueFbo);
 
   // Color texture
-  glGenTextures(1, &m_opaqueTexture);
-  glBindTexture(GL_TEXTURE_2D, m_opaqueTexture);  // so that all subsequent calls will affect position texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_opaqueTexture, 0);
-  glGenTextures(1, &m_depthTexture);
-  glBindTexture(GL_TEXTURE_2D, m_depthTexture);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture, 0);
+  m_opaqueTexture = m_textureSystem->allocateTexture(width, height);
+  m_depthTexture = m_textureSystem->allocateDepthTexture(width, height);
+//  m_materialSystem->glGenTextures(1, &m_opaqueTexture);
+//  glBindTexture(GL_TEXTURE_2D, m_opaqueTexture);  // so that all subsequent calls will affect position texture.
+//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_opaqueTexture->bufferId, 0);
+//  glGenTextures(1, &m_depthTexture);
+//  glBindTexture(GL_TEXTURE_2D, m_depthTexture);
+//  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->bufferId, 0);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
     spdlog::info("Successfully created opaque framebuffer (depth peeling)");
@@ -117,7 +121,7 @@ void DepthPeeling::render() {
     // color buffer accumulates contributions over multiple passes.
     glClear(GL_DEPTH_BUFFER_BIT);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, m_depthTexture);
+    glBindTexture(GL_TEXTURE_2D, m_depthTexture->bufferId);
     glActiveTexture(GL_TEXTURE0 + 1);
     glBindTexture(GL_TEXTURE_2D, m_peelPrevDepth);
     glActiveTexture(GL_TEXTURE0 + 2);
@@ -137,7 +141,7 @@ void DepthPeeling::render() {
   glEnable(GL_BLEND);
   glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_opaqueTexture);
+  glBindTexture(GL_TEXTURE_2D, m_opaqueTexture->bufferId);
   glDrawElements(meshBuffer.primitiveType, meshBuffer.drawElementCount, GL_UNSIGNED_INT, 0);
   glDisable(GL_BLEND);
 

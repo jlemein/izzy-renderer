@@ -20,6 +20,7 @@ namespace izz {
 class ResourceManager;
 namespace gl {
 class MaterialSystem;
+class TextureSystem;
 class LightSystem;
 class ShaderCompiler;
 struct Texture;
@@ -40,6 +41,7 @@ class RenderSystem : public IRenderCapabilitySelector {
    * @param [in] meshSystem      Mesh system to allocate vertex and index buffers for mesh data.
    */
   RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
+               std::shared_ptr<TextureSystem> textureSystem,
                std::shared_ptr<izz::gl::MeshSystem> meshSystem);
 
   /**

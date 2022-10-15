@@ -20,6 +20,18 @@ template <typename T>
 bool isIntArray(const T& array) {
   return std::all_of(array.begin(), array.end(), [](const nlohmann::json& el) { return el.is_number_integer(); });
 }
+
+izz::geo::TextureHint GetTextureHintFromString(std::string s) {
+  static std::unordered_map<std::string, izz::geo::TextureHint> hintMap = {
+    {"DIFFUSE", izz::geo::TextureHint::DIFFUSE_MAP},
+    {"NORMAL", izz::geo::TextureHint::NORMAL_MAP},
+    {"ROUGHNESS", izz::geo::TextureHint::ROUGHNESS_MAP},
+    {"HEIGHT", izz::geo::TextureHint::HEIGHT_MAP},
+    {"SPECULAR", izz::geo::TextureHint::SPECULAR_MAP}
+  };
+  return hintMap.at(s);
+}
+
 }  // namespace
 
 MaterialReader::MaterialReader(std::shared_ptr<MaterialSystem> materialSystem)
@@ -111,31 +123,7 @@ void MaterialReader::readMaterialDefinitions(const std::filesystem::path& parent
 
     readBlendState(materialTemplate, materialJson);
 
-    if (materialJson.contains("textures")) {
-      for (const auto& [name, value] : materialJson["textures"].items()) {
-        if (!value.contains("type")) {
-          spdlog::warn("Material '{}': texture misses required attributes 'type'. Property will be ignored.", materialTemplate.name);
-          continue;
-        }
-
-        izz::geo::TextureDescription textureDescription;
-        textureDescription.name = name;
-        textureDescription.path = value.contains("default_value") ? value["default_value"].get<std::string>() : "";
-        textureDescription.type = izz::geo::PropertyType::TEXTURE2D;
-
-        if (value.contains("type")) {
-          if (value["type"] == "texture") {
-            textureDescription.type = izz::geo::PropertyType::TEXTURE2D;
-            spdlog::debug("\t{} = {}", name, textureDescription.path.c_str());
-          } else {
-            spdlog::warn("\tUnsupported property {} of type {}. Property will be ignored.", name, value["type"]);
-          }
-        } else {
-          spdlog::warn("\tno texture type specified for material {}. Assuming texture is a TEXTURE2D", name);
-        }
-        materialTemplate.textures[name] = textureDescription;
-      }
-    }
+    readTextures(materialTemplate, materialJson);
 
     try {
       if (materialJson.contains("properties")) {
@@ -180,6 +168,47 @@ void MaterialReader::readBlendState(izz::geo::MaterialTemplate& materialTemplate
   }
 }
 
+void MaterialReader::readTextures(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& j) {
+  // there are two ways of representing textures
+  // 1. short way: "property_name": "file_name.png"
+  // 2. explicit representation
+  if (j.contains("textures")) {
+    for (const auto& [key, value] : j["textures"].items()) {
+      izz::geo::TextureDescription textureDescription;
+      textureDescription.name = key;
+      textureDescription.hint = izz::geo::TextureHint::NO_HINT;
+      textureDescription.type = izz::geo::PropertyType::TEXTURE_2D;
+      textureDescription.path = "";
+
+      try {
+        if (value.is_object()) {
+          // explicit representation
+          if (value.contains("type") && value["type"].get<std::string>() == "CUBE_MAP") {
+            textureDescription.type = izz::geo::PropertyType::CUBE_MAP;
+          }
+          if (value.contains("hint")) {
+            textureDescription.hint = GetTextureHintFromString(value["hint"].get<std::string>());
+          }
+          if (value.contains("path")) {
+            textureDescription.path = value["path"].get<std::string>();
+          }
+        } else {
+          // concise representation
+          //        try {
+          textureDescription.path = value.get<std::string>();
+          //        } catch (std::out_of_range&) {
+          //          throw std::runtime_error(
+          //              fmt::format("Material instance '{}': texture '{}' is not part of material definition '{}'.", instanceName, key, materialTemplateName));
+          //        }
+        }
+      } catch(std::runtime_error& e) {
+        throw std::runtime_error(fmt::format("Failed to read texture '{}' for material '{}'", key, materialTemplate.name));
+      }
+      materialTemplate.textures[key] = textureDescription;
+    }
+  }
+}
+
 void MaterialReader::readMaterialInstances(nlohmann::json& j) {
   for (auto materialInstanceJson : j["material_instances"]) {
     auto instanceName = materialInstanceJson["name"].get<std::string>();
@@ -203,17 +232,8 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
 
     readBlendState(materialInstance, materialInstanceJson);
 
-    if (materialInstanceJson.contains("textures")) {
-      for (const auto& [key, value] : materialInstanceJson["textures"].items()) {
-        try {
-          auto& texture = materialInstance.textures.at(key);
-          texture.path = value.get<std::string>();
-        } catch (std::out_of_range&) {
-          throw std::runtime_error(
-              fmt::format("Material instance '{}': texture '{}' is not part of material definition '{}'.", instanceName, key, materialTemplateName));
-        }
-      }
-    }
+    readTextures(materialInstance, materialInstanceJson);
+
     if (materialInstanceJson.contains("properties")) {
       for (const auto& [key, value] : materialInstanceJson["properties"].items()) {
         try {
@@ -223,7 +243,7 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
           } else {
             auto uniform = materialInstance.uniforms.at(key);
             switch (uniform.type) {
-              case izz::geo::PropertyType::TEXTURE2D:
+              case izz::geo::PropertyType::TEXTURE_2D:
                 uniform.value = value.get<std::string>();
                 break;
 

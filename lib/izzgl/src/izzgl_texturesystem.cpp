@@ -60,6 +60,55 @@ Texture* TextureSystem::loadTexture(const std::filesystem::path& path) {
   return pTexture;
 }
 
+Texture* TextureSystem::loadEmbeddedTexture(const std::filesystem::path& path, unsigned char* data, int size,
+                               std::string extensionHint) {
+  auto extension = extensionHint;
+  if (extensionHint.empty()) {
+    extension = path.extension().string();
+  }
+  boost::to_lower(extension);
+
+  if (m_textureLoaders.count(extension) == 0) {
+    spdlog::warn("Texture system cannot load texture '{}'. Unrecognized extension {}.", path.string(), extension);
+    return nullptr;
+  }
+
+  spdlog::info("TextureSystem: loading embedded texture '{}'", path.string());
+  m_cachedTextures[path] = m_textureLoaders.at(extension)->loadTextureFromMemory(data, size);
+
+  auto pTexture = &m_cachedTextures[path];
+  pTexture->path = path;
+  pTexture->bufferId = allocateTextureBuffer(*pTexture);
+  return pTexture;
+}
+
+Texture* TextureSystem::allocateTexture(int width, int height) {
+  Texture texture;
+  glGenTextures(1, &texture.bufferId);
+  glBindTexture(GL_TEXTURE_2D, texture.bufferId);  // so that all subsequent calls will affect position texture.
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+  texture.id = m_textures.size() + 1;
+  m_textures[texture.id] = texture;
+  return &m_textures[texture.id];
+}
+
+Texture* TextureSystem::allocateDepthTexture(int width, int height) {
+  Texture texture;
+  glGenTextures(1, &texture.bufferId);
+  glBindTexture(GL_TEXTURE_2D, texture.bufferId);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  //  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture, 0);
+
+  texture.id = m_textures.size() + 1;
+  m_textures[texture.id] = texture;
+  return &m_textures[texture.id];
+}
+
 void TextureSystem::setTextureLoader(const std::string& extension, std::shared_ptr<TextureLoader> textureLoader) {
   if (extension.empty()) {
     throw std::runtime_error("Cannot set texture loader for empty extension.");

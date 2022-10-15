@@ -15,7 +15,7 @@ namespace izz {
 namespace geo {
 struct Scene;
 }  // namespace geo
-}  // namespace lsw
+}  // namespace izz
 
 namespace izz {
 namespace geo {
@@ -89,12 +89,12 @@ class SceneLoader {
    * @param aiMaterial
    * @param material
    */
-  void readTextures(const izz::geo::Scene& scene, const aiMaterial* aiMaterial, izz::geo::MaterialTemplate& material);
+  void readTextures(const izz::geo::Scene& scene, const aiScene* aiScene_p, const aiMaterial* aiMaterial, izz::geo::MaterialTemplate& material);
 
-  std::unique_ptr<izz::geo::TextureDescription> readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial) const;
+  std::unique_ptr<izz::geo::TextureDescription> readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial,
+                                                              const std::unordered_map<std::string, aiTexture*>& embeddedTextures) const;
 
  private:
-
   std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
 };

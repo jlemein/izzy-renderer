@@ -12,6 +12,7 @@ namespace gl {
 
 struct ForwardRenderable;
 class MaterialSystem;
+class TextureSystem;
 class MeshSystem;
 
 /**
@@ -27,8 +28,8 @@ class DepthPeeling {
    * @param numPeelPasses Number of peeling passes to use. Larger values negatively impact performance.
    *                  An amount of 3 means, you can see through 3 layers of transparent surfaces.
    */
-  DepthPeeling(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, const entt::registry& registry,
-               int numPeelPasses = 3);
+  DepthPeeling(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<MeshSystem> meshSystem,
+               const entt::registry& registry, int numPeelPasses = 3);
 
   /**
    * Intialize the framebuffers and textures used for depth peeling to the specified width. Subsequent framebuffer size changes
@@ -56,6 +57,7 @@ class DepthPeeling {
 
  public:
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
+  std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};
   std::shared_ptr<izz::gl::MeshSystem> m_meshSystem{nullptr};
   const entt::registry& m_registry;
   int m_numPeelPasses;
@@ -65,8 +67,8 @@ class DepthPeeling {
   int m_width;                             /// Width of the framebuffer (and accompanying texture buffers).
   int m_height;                            /// Height of the framebuffer (and accompanying texture buffers).
   GLuint m_opaqueFbo;                      /// Framebuffer object to render opaque render result into.
-  GLuint m_opaqueTexture;                  /// Color map of opaque objects.
-  GLuint m_depthTexture;                   /// Depth map of opaque objects.
+  Texture* m_opaqueTexture;                /// Color map of opaque objects.
+  Texture* m_depthTexture;                 /// Depth map of opaque objects.
   GLuint m_peelFbo;                        /// Framebuffer Object where peeled render results are rendered to.
   GLuint m_peelColor;                      /// Color map of transparent objects.
   GLuint m_peelDepth;                      /// Depth map for the peel render pass.

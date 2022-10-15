@@ -63,6 +63,10 @@ Texture ExrLoader::loadTexture(const std::filesystem::path& path) {
   return texture;
 }
 
+Texture ExrLoader::loadTextureFromMemory(unsigned char* pData, int size) {
+  throw std::runtime_error("Loading embedded textures is unsupported for EXR image format.");
+}
+
 ExtensionList ExrLoader::getSupportedExtensions() const {
   return ExtensionList{"exr"};
 }
