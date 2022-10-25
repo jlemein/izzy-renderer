@@ -95,8 +95,8 @@ vec3 GetDirectionalLightContribution(DirectionalLight light, vec3 n, vec3 v, vec
 
 vec3 GetPointLightContribution(PointLight light, vec3 p, vec3 n, vec3 v, vec3 albedo, float specularity) {
     vec3 l = light.worldPosition.xyz - p;
-    l = normalize(l);
     float dist = length(l);
+    l = normalize(l);
 
     float lambertian = max(0.0, dot(n, l));
     vec3 diffuse = albedo.rgb * light.color.rgb * lambertian;
@@ -113,8 +113,8 @@ vec3 GetPointLightContribution(PointLight light, vec3 p, vec3 n, vec3 v, vec3 al
 
 vec3 GetSpotLightContribution(SpotLight light, vec3 p, vec3 n, vec3 v, vec3 albedo, float specularity) {
     vec3 l = light.position_umbra.xyz - p;// dir to light
-    l = normalize(l);
     float dist = length(l);
+    l = normalize(l);
 
     float cos_s = dot(-l, normalize(light.direction_penumbra.xyz));
     float cos_u = light.position_umbra.w;
@@ -122,22 +122,21 @@ vec3 GetSpotLightContribution(SpotLight light, vec3 p, vec3 n, vec3 v, vec3 albe
     float t = clamp((cos_s - cos_u)/(cos_p - cos_u), 0.0, 1.0);
 
     float lambertian = max(0.0, dot(n, l));
-    vec3 diffuse = albedo * lambertian * light.color.rgb / (dist*dist);
+    vec3 diffuse = albedo * lambertian * light.color.rgb;
 
     // compute specular intensity using half angle
     vec3 h = normalize(l + v);
     float ndoth = clamp(dot(n, h), 0.0, 1.0);
     float specular_intensity = specularity * pow(ndoth, SHININESS);
-    vec3 specular = specular_intensity * light.color.rgb / (dist*dist);
+    vec3 specular = specular_intensity * light.color.rgb;
 
-    return t*t*(diffuse + specular);
+    return t*t*(diffuse + specular) / (dist*dist);
 }
 
 void main()
 {
     #ifdef DEBUG
     out_color = debugview();
-
     #else// DEBUG
 
     // fetch normal and tangent from gBuffer.
@@ -150,7 +149,7 @@ void main()
     vec3 view_position = viewPosition;
     vec3 v = normalize(view_position.xyz - p.xyz);
 
-    out_color = vec4(0.0);
+    out_color = vec4(ambient.rgb * albedo, 0.0);
 
     for (int i=0; i<numberOfDirectionalLights; i++) {
         DirectionalLight light = directionalLights[i];
@@ -166,8 +165,6 @@ void main()
         SpotLight light = spotLights[i];
         out_color.rgb += GetSpotLightContribution(light, p, n, v, albedo, specularity);
     }
-
-    out_color += ambient;
 
     #endif// DEBUG
 }

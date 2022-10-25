@@ -1,21 +1,19 @@
 //
 // Created by jlemein on 30-11-20.
 //
-
-#ifndef ARTIFAX_ECS_DEBUG_H
-#define ARTIFAX_ECS_DEBUG_H
+#pragma once
 
 #include <entt/entity/entity.hpp>
 #include <entt/entity/fwd.hpp>
 
 namespace izz {
-namespace ecs {
+
 enum class DebugShape {
-  kUndefined = -1, /// @brief Undefined, let the debug system choose appropriate.
-  kBox = 0,  /// @brief Box shape.
-  kEulerArrow, /// @brief Euler arrow visualization
-  kSphere,   /// @brief Spherical debug shape.
-  kCamera,   /// @brief Simple camera look-a-like box representation
+  kUndefined = -1,  /// @brief Undefined, let the debug system choose appropriate.
+  kBox = 0,         /// @brief Box shape.
+  kEulerArrow,      /// @brief Euler arrow visualization
+  kSphere,          /// @brief Spherical debug shape.
+  kCamera,          /// @brief Simple camera look-a-like box representation
 };
 
 /**
@@ -26,12 +24,12 @@ struct Debug {
   /// Shape for the debug representation.
   DebugShape shape{DebugShape::kBox};
 
-//  std::function<DebugShape()> shapeFn;
+  //  std::function<DebugShape()> shapeFn;
 
   /// Increases size of shape when size < 0.25.
   double minShapeSize{0.10};
 
-  // Hides the debugged entity
+  /// Whether the target is hidden. For example, to only rneder the wireframe outline.
   bool hideTarget{true};
 
   bool isEulerArrowVisible{true};
@@ -39,7 +37,4 @@ struct Debug {
   // Renderable data
 };
 
-} // namespace ecs
-} // namespace lsw
-
-#endif // ARTIFAX_ECS_DEBUG_H
+}  // namespace izz

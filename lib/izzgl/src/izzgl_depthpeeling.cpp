@@ -92,7 +92,7 @@ void DepthPeeling::init(int width, int height) {
 
 void DepthPeeling::createScreenSpaceRect() {
   auto rectangle = izz::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
-  const auto& meshBuffer = m_meshSystem->createMeshBuffer(rectangle);
+  const auto& meshBuffer = m_meshSystem->createVertexBuffer(rectangle);
 
   // DeferredLightingPass UBO is required.
   const auto& material = m_materialSystem->createMaterial("RenderTexture");
@@ -160,7 +160,7 @@ void DepthPeeling::renderTransparentObjects(bool isDepthPeeling) {
     if (forward.blendMode == izz::geo::BlendMode::ALPHA_BLEND) {
       IZZ_STAT_COUNT(TRANSPARENT_OBJECTS)
       auto& mat = m_materialSystem->getMaterialById(forward.materialId);
-      const auto& mesh = m_meshSystem->getMeshBuffer(forward.meshBufferId);
+      const auto& mesh = m_meshSystem->getMeshBuffer(forward.vertexBufferId);
 
       auto depthPeeling = mat.getUniformBuffer<izz::ufm::DepthPeeling>();
       depthPeeling->isPeelingPass = static_cast<GLint>(isDepthPeeling);

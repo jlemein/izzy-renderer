@@ -27,6 +27,7 @@
 #include "gui_mainmenu.h"
 #include "izzgl_materialreader.h"
 #include "izzgui_stats.h"
+#include <izz_izzy.h>
 using namespace std;
 using namespace izz;
 using namespace izz::geo;
@@ -49,19 +50,20 @@ void setupLights() {
   auto& lightComp = ptLight1.get<ecs::PointLight>();
   lightComp.intensity = 1.0;
   lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  ptLight1.add<Debug>();
+//  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
   // Point light 2
   auto ptLight2 = izzy->entityFactory->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
   ptLight2.get<ecs::PointLight>().intensity = 1.4;
-  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+//  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 }
 
 void setupScene() {
   {
-    auto box = izzy->entityFactory->makeMoveableEntity("PlaneEntity");
+    auto box = izzy->entityFactory->makeMovableEntity("PlaneEntity");
     auto& mesh = box.add<Mesh>(PrimitiveFactory::MakePlane("Plane", 10.0, 10.0));
-    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
     izz::ecs::TransformUtil::Translate(box.get<izz::ecs::Transform>(), glm::vec3(4.2, 0.0, 0.0));
     auto& material = izzy->materialSystem->createMaterial(programArguments->material);
     mesh.materialId = material.id;
@@ -101,10 +103,10 @@ int main(int argc, char* argv[]) {
     izzy = Izzy::CreateSystems();
 
     // window should be initialized before calling systems' functions
-    auto window = make_shared<gui::Window>(izzy->getRegistry(), izzy->renderSystem, izzy->guiSystem);  // guiSystem);
+    auto window = make_shared<gui::Window>(*izzy);
     window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
-    window->initialize();
+    window->initializeContext();
 
     // setup camera
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
@@ -126,6 +128,7 @@ int main(int argc, char* argv[]) {
 
     setupUserInterface();
 
+    window->initialize();
     window->run();
 
   } catch (runtime_error& e) {

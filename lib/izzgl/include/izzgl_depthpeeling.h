@@ -63,7 +63,7 @@ class DepthPeeling {
   int m_numPeelPasses;
 
   MaterialId m_renderTextureMaterialId;    /// Material id for rendering onto screen space quad.
-  MeshBufferId m_screenSpaceMeshBufferId;  /// Vertex buffer defining the screen space quad.
+  VertexBufferId m_screenSpaceMeshBufferId;  /// Vertex buffer defining the screen space quad.
   int m_width;                             /// Width of the framebuffer (and accompanying texture buffers).
   int m_height;                            /// Height of the framebuffer (and accompanying texture buffers).
   GLuint m_opaqueFbo;                      /// Framebuffer object to render opaque render result into.

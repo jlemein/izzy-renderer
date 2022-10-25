@@ -25,7 +25,7 @@
 //
 ////        ecs::MeshInstance meshInstance;
 ////
-////        auto e = makeMoveableEntity();
+////        auto e = makeMovableEntity();
 ////        MeshLoader::(e, mesh);
 //      }
 //

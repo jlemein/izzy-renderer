@@ -1,15 +1,11 @@
 //
 // Created by jlemein on 02-01-21.
 //
-
-#ifndef GLVIEWER_ECS_RELATIONSHIPUTIL_H
-#define GLVIEWER_ECS_RELATIONSHIPUTIL_H
-
+#pragma once
 #include <entt/fwd.hpp>
 #include <vector>
 
 namespace izz {
-namespace ecs {
 
 /**!
  * @brief Utility methods to set data on a @see Relationship component.
@@ -17,7 +13,7 @@ namespace ecs {
  * relationship component in a valid state.
  */
 struct RelationshipUtil {
-public:
+ public:
   static void MakeChild(entt::registry& registry, entt::entity parent, entt::entity child);
   static void MakeChildren(entt::registry& registry, entt::entity parent, const std::vector<entt::entity>& children);
 
@@ -31,10 +27,7 @@ public:
    * Whenever a child is re-attached to the new parent node, the local transform of the 'to be removed' entity is applied to the children.
    * THis makes sure that the hierarchy doesn't change a transform.
    */
-//  static void DetachEntity();
+  //  static void DetachEntity();
 };
 
-} // end of package
-} // end of enterprise
-
-#endif // GLVIEWER_ECS_RELATIONSHIPUTIL_H
+}  // namespace izz

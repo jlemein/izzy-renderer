@@ -38,6 +38,17 @@ enum class PropertyType {
  */
 enum class TextureHint { NO_HINT = 0, DIFFUSE_MAP, NORMAL_MAP, SPECULAR_MAP, ROUGHNESS_MAP, HEIGHT_MAP };
 
+/**
+ * @brief Map of the default shader parameter names corresponding to the specific texture types.
+ */
+static inline const std::unordered_map<TextureHint, const char*> TEXTURE_MAP_NAMES{{TextureHint::DIFFUSE_MAP, "diffuseMap"},
+                                                                                   {TextureHint::NORMAL_MAP, "normalMap"},
+                                                                                   {TextureHint::SPECULAR_MAP, "specularMap"},
+                                                                                   {TextureHint::ROUGHNESS_MAP, "roughnessMap"},
+                                                                                   {TextureHint::HEIGHT_MAP, "heightMap"}
+
+};
+
 struct TextureDescription {
   PropertyType type;           /// @brief type of texture. Intended to be set to any value of TEXTURE_*.
   std::string name;            /// @brief name of uniform attribute in shader (the texture sampler).
@@ -60,20 +71,6 @@ enum class BlendMode {
   ALPHA_BLEND,  // use alpha channel to blend.
   ALPHA_CUTOUT  // binary test alpha testing.
 };
-
-// enum class TextureType {
-//   TEXTURE_2D = 0, // default 2d texture
-//   CUBEMAP         // texture used for cube map.
-// };
-//
-// enum class TextureMetaTag { NO_META_TAG = 0,
-//   DIFFUSE,
-//   NORMAL,
-//   ALBEDO,
-//   SPECULAR,
-//   ROUGHNESS,
-//   HEIGHTMAP
-// };
 
 /**
  * A material template represents the definition, description or blueprint of a shader object.

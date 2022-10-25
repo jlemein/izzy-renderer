@@ -20,7 +20,7 @@ class MeshSystem;
 
 struct ForwardRenderable {
   MaterialId materialId{-1};
-  MeshBufferId meshBufferId{-1};
+  VertexBufferId vertexBufferId{-1};
   bool isWireframe{false};
   izz::geo::BlendMode blendMode { izz::geo::BlendMode::OPAQUE };
 };

@@ -16,7 +16,6 @@ namespace izz {
 namespace gl {
 
 struct MeshBuffer;
-struct RenderState;
 struct UniformBuffer;
 struct Material;
 

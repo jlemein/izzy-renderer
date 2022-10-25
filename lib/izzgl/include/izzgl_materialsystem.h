@@ -7,13 +7,12 @@
 #include <memory>
 #include <nlohmann/json.hpp>
 #include <vector>
-#include "izz_resourcemanager.h"
-#include "izz_scenegraphentity.h"
-#include "izzgl_irendercapabilityselector.h"
-#include "izzgl_material.h"
-#include "izzgl_mvp.h"
-#include "izzgl_rendersystem.h"
-#include "uniform_uniformblockmanager.h"
+#include <izz_resourcemanager.h>
+#include <izz_scenegraphentity.h>
+#include <izzgl_irendercapabilityselector.h>
+#include <izzgl_material.h>
+#include <izzgl_rendersystem.h>
+#include <uniform_uniformblockmanager.h>
 
 namespace izz {
 class ResourceManager;

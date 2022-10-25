@@ -1,6 +1,7 @@
 #pragma once
 
-#include <izzgl_rendersystem.h>
+
+#include <izzgl_renderstrategy.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <memory>
@@ -27,6 +28,8 @@ struct PointLight;
 namespace izz {
 namespace gl {
 class MaterialSystem;
+class MeshSystem;
+class RenderSystem;
 }
 class SceneGraphEntity;
 
@@ -54,15 +57,12 @@ class EntityFactory {
   static inline const char* ID = "SceneGraphHelper";
 
  public:
-  EntityFactory(entt::registry& registry, std::shared_ptr<gl::RenderSystem> renderSystem, std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
-                std::shared_ptr<izz::gl::MeshSystem> meshSystem);
+  EntityFactory(entt::registry& registry,
+                gl::RenderSystem& renderSystem,
+                izz::gl::MaterialSystem& materialSystem,
+                izz::gl::MeshSystem& meshSystem);
 
   void setDefaultMaterial(std::shared_ptr<izz::gl::Material> material);
-
-  // TODO: represent the active camera in the scene graph,
-  //  probably by flagging the entity with ActiveCamera component.
-  //  or maybe a centralized registry.
-  void setActiveCamera(EntityFactory camera);
 
   entt::registry& getRegistry();
 
@@ -81,19 +81,26 @@ class EntityFactory {
 
   SceneGraphEntity makeEntity(std::string name = "");
 
-  /// @brief Creates a simple barebone entity containing minimum components
-  /// Minum components are: Transform, Name, Relationship
-  SceneGraphEntity makeMoveableEntity(std::string name = "", glm::vec3 position = glm::vec3(0.0F));
+  /// @brief Creates a movable entity containing the components: Name, Transform, Relationship.
+  SceneGraphEntity makeMovableEntity(std::string name = "", glm::vec3 position = glm::vec3(0.0F));
 
   /// @brief Creates a camera at a Z distance of 5 meter from the origin,
   /// looking at the origin
-  SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F, float fovx = 120.0F, float aspect = 1.0F, float zNear = 0.5F, float zFar = 1000.0F);
+  SceneGraphEntity makeCamera(std::string name, float zDistance = 5.0F, float fovx = 120.0F, float aspect = 1.0F, float zNear = 0.1F, float zFar = 1000.0F);
 
   SceneGraphEntity makeCamera(const izz::geo::Camera& geoCamera);
 
   SceneGraphEntity makeLight(const izz::geo::Light& light);
 
   SceneGraphEntity makeAmbientLight(std::string name, glm::vec3 color = {.1F, .1F, .1F}, float intensity = 1.0F);
+
+  /**
+   * Makes a point light, which contains the components: PointLight, Name, Transform, Relationship.
+   * @param name
+   * @param position
+   * @param pointLight
+   * @return
+   */
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position, izz::ecs::PointLight pointLight);
   SceneGraphEntity makePointLight(std::string name, glm::vec3 position);
 
@@ -123,8 +130,10 @@ class EntityFactory {
   SceneGraphEntity makeEmptyMesh(const izz::geo::Mesh& mesh);
   SceneGraphEntity makeCurve(std::string name);
 
-  SceneGraphEntity makeRenderable(izz::gl::MeshBuffer&& mesh, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
-  SceneGraphEntity makeRenderable(std::string name, const izz::gl::MeshBuffer& mesh, glm::mat4 transform, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeGeometry(std::string name, izz::Geometry geometry, gl::RenderStrategy strategy = izz::gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeGeometry(izz::Geometry geometry, gl::RenderStrategy strategy = izz::gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeRenderable(izz::VertexBufferId vertexBufferId, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeRenderable(std::string name, VertexBufferId vertexBuffer, MaterialId materialId, glm::mat4 transform, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
   SceneGraphEntity makeRenderable(izz::geo::Curve&& curve, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
 
   /**!
@@ -148,12 +157,12 @@ class EntityFactory {
  private:
   /// Uses EnTT in the background for scene management
   entt::registry& m_registry;
-  std::shared_ptr<gl::RenderSystem> m_renderSystem {nullptr};
-  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
-  std::shared_ptr<izz::gl::MeshSystem> m_meshSystem{nullptr};
+  gl::RenderSystem& m_renderSystem;
+  izz::gl::MaterialSystem& m_materialSystem;
+  izz::gl::MeshSystem& m_meshSystem;
 
   /// Default render strategy to use if not specified.
-  gl::RenderStrategy m_defaultRenderStrategy = gl::RenderStrategy::UNDEFINED;
+  izz::gl::RenderStrategy m_defaultRenderStrategy = gl::RenderStrategy::UNDEFINED;
 
   std::shared_ptr<izz::gl::Material> m_defaultMaterial{nullptr};
   const SceneGraphEntity* m_activeCamera{nullptr};

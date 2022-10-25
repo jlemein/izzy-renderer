@@ -3,7 +3,6 @@
 //
 #include <GL/glew.h>
 #include <ecs_camera.h>
-#include <ecs_name.h>
 #include <ecs_transform.h>
 #include <geo_mesh.h>
 #include <gl_deferredrenderer.h>
@@ -24,13 +23,13 @@ DeferredRenderer::DeferredRenderer(std::shared_ptr<MaterialSystem> materialSyste
 void DeferredRenderer::onConstruct(entt::registry& registry, entt::entity e) {
   // if deferred entity has no renderable component, then it will be added.
   // we need the renderable for the common rendering functionalities (such as mvp updates).
-  if (!m_registry.all_of<gl::Renderable>(e)) {
-    auto name = m_registry.try_get<ecs::Name>(e);
+  if (!m_registry.all_of<izz::Geometry>(e)) {
+    auto name = m_registry.try_get<izz::Name>(e);
     spdlog::info("DeferredRenderable component added to entity '{}'. Adding Renderable.", name ? name->name : "");
 
     auto deferred = m_registry.get<gl::DeferredRenderable>(e);
-    auto renderable = gl::Renderable{.materialId = deferred.materialId, .meshBufferId = deferred.meshBufferId};
-    m_registry.emplace<gl::Renderable>(e, renderable);
+    auto renderable = izz::Geometry{.materialId = deferred.materialId, .vertexBufferId = deferred.vertexBufferId};
+    m_registry.emplace<izz::Geometry>(e, renderable);
   }
 }
 
@@ -99,7 +98,7 @@ void DeferredRenderer::resize(int width, int height) {
 
 void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = izz::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
-  const auto& meshBuffer = m_meshSystem->createMeshBuffer(rectangle);
+  const auto& meshBuffer = m_meshSystem->createVertexBuffer(rectangle);
 
   // DeferredLightingPass UBO is required.
   const auto& material = m_materialSystem->createMaterial("DeferredLightingPass");
@@ -127,7 +126,7 @@ void DeferredRenderer::init(int width, int height) {
   //    try {
   //      RenderUtils::FillBufferedMeshData(curve, m_renderSystem.getRenderState(r.renderStateId).meshData);
   //    } catch (std::exception& e) {
-  //      auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+  //      auto name = m_registry.all_of<lsw::izz::Name>(entity) ? m_registry.get<lsw::izz::Name>(entity).name : "Unnamed";
   //      throw std::runtime_error(fmt::format("Failed initializing curve '{}': {}", name, e.what()));
   //    }
   //  }
@@ -158,6 +157,7 @@ void DeferredRenderer::render(const entt::registry& registry) {
 
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
   glDrawBuffers(attachmentCount, colorAttachments);
+  glClearColor(1.0, m_clearColor.g, m_clearColor.b, m_clearColor.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // reset to filled mode (to prevent wireframe rendering)
 
@@ -187,7 +187,7 @@ void DeferredRenderer::renderGeometryPass(const entt::registry& registry) {
       auto deferred = view.get<const DeferredRenderable>(e);
       auto& mat = m_materialSystem->getMaterialById(deferred.materialId);
 
-      auto meshBufferId = deferred.meshBufferId;
+      auto meshBufferId = deferred.vertexBufferId;
       const auto& mesh = m_meshSystem->getMeshBuffer(meshBufferId);
 
       m_materialSystem->updateUniformsForEntity(e, mat);
@@ -209,8 +209,8 @@ void DeferredRenderer::renderGeometryPass(const entt::registry& registry) {
     } catch (std::exception& exc) {
       std::string msg = "";
 
-      if (registry.all_of<izz::ecs::Name>(e)) {
-        auto& name = registry.get<izz::ecs::Name>(e);
+      if (registry.all_of<izz::Name>(e)) {
+        auto& name = registry.get<izz::Name>(e);
         msg = fmt::format("(e: {}) Rendering entity: {} - {}", static_cast<int>(e), name.name, exc.what());
       } else {
         msg = exc.what();

@@ -8,12 +8,11 @@
 #include <vector>
 
 namespace izz {
-namespace ecs {
 
 struct Relationship {
-  entt::entity parent {entt::null};
-  std::vector<entt::entity> children {};
-  int depth {0}; // assume root
+  entt::entity parent{entt::null};
+  std::vector<entt::entity> children{};
+  int depth{0};  // assume root
 
   inline bool hasParent() const {
     return parent != entt::null;
@@ -24,5 +23,4 @@ struct Relationship {
   }
 };
 
-} // enf of package
-} // end of enterprise
+}  // namespace izz

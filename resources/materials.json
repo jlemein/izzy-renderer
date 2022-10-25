@@ -118,6 +118,15 @@
       }
     },
     {
+      "name": "DebugWireframe",
+      "vertex_shader": "shaders/debug.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/debug.frag",
+      "properties":{
+        "ModelViewProjection": {}
+      }
+    },
+    {
       "name": "BlinnPhongDeferred",
       "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
@@ -236,12 +245,13 @@
       "geometry_shader": "",
       "fragment_shader": "shaders/constantlight.frag",
       "properties": {
+        "ModelViewProjection": {},
         "ConstantLight": {
           "color": [
             1.0,
             1.0,
             1.0,
-            0.0
+            1.0
           ],
           "intensity": 1.0,
           "radius": 0.1
@@ -317,8 +327,22 @@
       }
     },
     {
+      "name": "Debug",
+      "vertex_shader": "shaders/debug.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/debug.frag",
+      "lighting": {},
+      "textures": {},
+      "properties": {
+        "ModelViewProjection": {},
+        "DebugProperties": {
+          "color": [0.9, 0.9, 1.0, 1.0]
+        }
+      }
+    },
+    {
       "name": "BlinnPhong",
-      "vertex_shader": "shaders/blinn-phong.vert",
+      "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/blinn-phong.frag",
       "lighting": {
@@ -353,7 +377,7 @@
     },
     {
       "name": "Diffuse",
-      "vertex_shader": "shaders/diffuse.vert",
+      "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/diffuse.frag",
       "properties": {

@@ -10,7 +10,6 @@ set (HEADERS
 add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrol.h
         include/ecs_moveable.h
-        include/ecs_relationship.h
         include/ecs_texture.h
         include/ecs_transform.h
         include/ecs_transformutil.h
@@ -24,17 +23,15 @@ add_library(ecs STATIC include/ecs_camera.h
 
         include/ecs_firstpersoncontrolsystem.h
         src/ecs_transformutil.cpp
-        include/ecs_debug.h
-#        include/ecs_debugsystem.h
-        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h
+        include/ecs_dirty.h
         include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp
-        include/ecs_name.h include/ecs_light.h
+        include/ecs_light.h
         ${HEADERS})
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(ecs PUBLIC include PRIVATE src)
-target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog)
+target_link_libraries(ecs PUBLIC izzy geo EnTT::EnTT spdlog::spdlog)
 
 find_package(GTest REQUIRED)
 add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)

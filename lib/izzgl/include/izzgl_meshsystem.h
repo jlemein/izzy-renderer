@@ -17,17 +17,17 @@ namespace gl {
 
 class MeshSystem {
  public:
-  MeshBuffer& createMeshBuffer(const izz::geo::Mesh& mesh);
+  MeshBuffer& createVertexBuffer(const izz::geo::Mesh& mesh);
 
-  inline MeshBuffer& getMeshBuffer(MeshBufferId id) {
+  inline MeshBuffer& getMeshBuffer(VertexBufferId id) {
     return m_allocatedBuffers.at(id);
   }
 
   void bindBuffer(const MeshBuffer& meshBuffer);
-  void bindBuffer(izz::MeshBufferId meshBufferId);
+  void bindBuffer(izz::VertexBufferId meshBufferId);
 
  private:
-  std::unordered_map<MeshBufferId, MeshBuffer> m_allocatedBuffers;
+  std::unordered_map<VertexBufferId, MeshBuffer> m_allocatedBuffers;
 };
 
 }  // namespace gl

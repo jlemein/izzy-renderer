@@ -1,6 +1,7 @@
 #pragma once
 
 #include <izzgl_scenedependentuniform.h>
+#include "ecs_camera.h"
 #include "izzgl_material.h"
 
 namespace izz {
@@ -11,8 +12,8 @@ namespace ufm {
  * This buffer maps with the GLSL shader structure, hence the padding to align these structs.
  */
 struct DeferredLighting {
-  static constexpr int MAX_POINT_LIGHTS = 32;
   static constexpr int MAX_DIRECTIONAL_LIGHTS = 2;
+  static constexpr int MAX_POINT_LIGHTS = 32;
   static constexpr int MAX_SPOT_LIGHTS = 4;
 
   glm::vec3 viewPos;
@@ -47,22 +48,6 @@ struct DeferredLighting {
   static inline const char* BUFFER_NAME = "DeferredLighting";
 };
 
-// class DeferredLightingManager : public UniformBlockManager {
-//  public:
-//   void* CreateUniformBlock(size_t& t) override {
-//     t = sizeof(DeferredLighting);
-//     return new DeferredLighting;
-//   }
-//
-//   void DestroyUniformBlock(void* data) override {
-//     auto deferredlighting = reinterpret_cast<DeferredLighting*>(data);
-//     delete deferredlighting;
-//   }
-//   void UpdateUniform(void* data, const gl::Material& m) override {
-//     // intentionally left empty. There is no material data that needs to be passed in this structure.
-//   }
-// };
-
 class DeferredLightingUniform : public izz::gl::IUniformBuffer {
  public:
   DeferredLightingUniform(entt::registry& registry)
@@ -76,41 +61,32 @@ class DeferredLightingUniform : public izz::gl::IUniformBuffer {
   }
 
   void destroy(void* data) override {
-    auto deferredlighting = reinterpret_cast<DeferredLighting*>(data);
-    delete deferredlighting;
+    auto deferredLighting = reinterpret_cast<DeferredLighting*>(data);
+    delete deferredLighting;
   }
 
   void onFrameStart(float ft, float time) override {
-    // process light information from the light system
-    auto pointLights = m_registry.view<izz::ecs::Transform, izz::ecs::PointLight>();
     auto directionalLights = m_registry.view<izz::ecs::Transform, izz::ecs::DirectionalLight>();
+    auto pointLights = m_registry.view<izz::ecs::Transform, izz::ecs::PointLight>();
     auto spotLights = m_registry.view<izz::ecs::Transform, izz::ecs::SpotLight>();
     auto ambientLights = m_registry.view<izz::ecs::AmbientLight>();
 
     ufm::DeferredLighting* deferred = &m_deferredLightingData;
-    auto cameraEntity = m_registry.view<ecs::Camera>()[0];
+    auto cameraEntity = m_registry.view<izz::ecs::Camera>()[0];
     auto& cameraTransform = m_registry.get<izz::ecs::Transform>(cameraEntity);
     deferred->viewPos = glm::inverse(cameraTransform.worldTransform)[3];
 
-    deferred->ambient = glm::vec4(0.0F);
-    for (auto [e, light] : ambientLights.each()) {
-      deferred->ambient += glm::vec4(light.intensity * light.color, 0.0F);
-    }
-
     int i = 0;
-    for (auto [e, transform, light] : spotLights.each()) {
-      deferred->spotLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
-      deferred->spotLights[i].direction = transform.worldTransform * glm::vec4(0, 0, -1, 0);
-      deferred->spotLights[i].umbra = cos(light.umbra);
-      deferred->spotLights[i].penumbra = cos(light.penumbra);
-      deferred->spotLights[i].position = transform.worldTransform[3];
+    for (auto [e, transform, light] : directionalLights.each()) {
+      deferred->directionalLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
+      deferred->directionalLights[i].position = transform.worldTransform[3];
 
       // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
-      if (++i >= izz::ufm::DeferredLighting::MAX_SPOT_LIGHTS) {
+      if (++i >= izz::ufm::DeferredLighting::MAX_DIRECTIONAL_LIGHTS) {
         break;
       }
     }
-    deferred->numberOfSpotLights = i;
+    deferred->numberOfDirectionalLights = i;
 
     i = 0;
     for (auto [e, transform, light] : pointLights.each()) {
@@ -127,18 +103,24 @@ class DeferredLightingUniform : public izz::gl::IUniformBuffer {
     deferred->numberOfPointLights = i;
 
     i = 0;
-    for (auto [e, transform, light] : directionalLights.each()) {
-      deferred->directionalLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
-      deferred->directionalLights[i].position = transform.worldTransform[3];
+    for (auto [e, transform, light] : spotLights.each()) {
+      deferred->spotLights[i].color = light.intensity * glm::vec4(light.color, 0.0F);
+      deferred->spotLights[i].direction = transform.worldTransform * glm::vec4(0, 0, -1, 0);
+      deferred->spotLights[i].umbra = cos(light.umbra);
+      deferred->spotLights[i].penumbra = cos(light.penumbra);
+      deferred->spotLights[i].position = transform.worldTransform[3];
 
       // check if the count is exceeding the max point lights (needed because entt only gives us a size_hint).
-      if (++i >= izz::ufm::DeferredLighting::MAX_DIRECTIONAL_LIGHTS) {
+      if (++i >= izz::ufm::DeferredLighting::MAX_SPOT_LIGHTS) {
         break;
       }
     }
+    deferred->numberOfSpotLights = i;
 
-    // because we iterated the point lights, now we exactly know the number of lights.
-    deferred->numberOfDirectionalLights = i;
+    deferred->ambient = glm::vec4(0.0F);
+    for (auto [e, light] : ambientLights.each()) {
+      deferred->ambient += glm::vec4(light.intensity * light.color, 0.0F);
+    }
   }
 
   void onUpdate(izz::gl::UniformBufferPtr data, const gl::Material& material, float dt, float time) override {

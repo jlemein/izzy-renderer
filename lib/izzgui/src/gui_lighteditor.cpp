@@ -1,5 +1,4 @@
 #include <ecs_light.h>
-#include <ecs_name.h>
 #include <ecs_transform.h>
 #include <gui_lighteditor.h>
 #include "../../izzgl/include/izz_resourcemanager.h"
@@ -45,7 +44,7 @@ void RenderDirectionalLightWindow(ecs::DirectionalLight& light, const char* name
     ImGui::Begin(fmt::format("{} (Directional Light)", name).c_str(), &showWindow.at(name));
     ImGui::DragFloat("Intensity", &light.intensity, 0.01F, 0.0F, 5.0F);
     ImGui::ColorEdit3("Color", glm::value_ptr(light.color));
-    ImGui::DragFloat3("Direction", glm::value_ptr(transform.localTransform[3]));
+    ImGui::DragFloat3("Direction", glm::value_ptr(transform.localTransform[3]), 0.01F, -1.0, 1.0);
     ImGui::End();
   }
 }
@@ -72,7 +71,7 @@ void RenderSpotLightWindow(ecs::SpotLight& light, const char* name, ecs::Transfo
     showWindow[name] = true;
 
     ImGui::Begin(fmt::format("{} (Point Light)", name).c_str(), &showWindow.at(name));
-    ImGui::DragFloat("Intensity", &light.intensity, .01F, 0.0F, 5.0F);
+    ImGui::DragFloat("Intensity", &light.intensity, .01F, 0.0F, 100.0F);
     ImGui::ColorEdit3("Color", glm::value_ptr(light.color));
     ImGui::SliderAngle("Inner cone", &light.penumbra, .0F, 90.F);
     ImGui::SliderAngle("Outer cone", &light.umbra, .0F, 90.F);
@@ -113,21 +112,21 @@ void LightEditor::render(float dt, float totalTime) {
     // == LIGHTS ========================================================
     ImGui::TextColored(ImVec4(1, 1, 0, 1), "Lights in the scene");
 
-    auto dirLights = m_registry.view<ecs::DirectionalLight, ecs::Name, ecs::Transform>();
+    auto dirLights = m_registry.view<ecs::DirectionalLight, izz::Name, ecs::Transform>();
     for (auto [e, light, name, transform] : dirLights.each()) {
       RenderDirectionalLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
     }
 
-    auto ambientLights = m_registry.view<ecs::AmbientLight, ecs::Name>();
+    auto ambientLights = m_registry.view<ecs::AmbientLight, izz::Name>();
     for (auto [e, light, name] : ambientLights.each()) {
       RenderAmbientLightWindow(light, name.name.c_str(), ImGui::Button(name.name.c_str()));
     }
-    auto pointLights = m_registry.view<ecs::PointLight, ecs::Name, ecs::Transform>();
+    auto pointLights = m_registry.view<ecs::PointLight, izz::Name, ecs::Transform>();
     for (auto [e, light, name, transform] : pointLights.each()) {
       RenderPointLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
     }
 
-    auto spotLights = m_registry.view<ecs::SpotLight, ecs::Name, ecs::Transform>();
+    auto spotLights = m_registry.view<ecs::SpotLight, izz::Name, ecs::Transform>();
     for (auto [e, light, name, transform] : spotLights.each()) {
       RenderSpotLightWindow(light, name.name.c_str(), transform, ImGui::Button(name.name.c_str()));
     }

@@ -2,36 +2,19 @@
 // Created by jlemein on 07-11-20.
 //
 #include <izzgl_rendersystem.h>
-#include "gl_common.cpp"
+#include <izzgl_common.cpp>
 
 #include <ecs_camera.h>
 #include <ecs_light.h>
-#include <ecs_name.h>
-#include <ecs_relationship.h>
-#include <ecs_transform.h>
-#include <ecs_wireframe.h>
-#include <geo_curve.h>
-#include <geo_effect.h>
 #include <geo_mesh.h>
-#include <gl_renderutils.h>
 #include <glrs_lightsystem.h>
-#include <izz_statcounter.h>
-#include <izzgl_effectsystem.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_shadersystem.h>
 #include <spdlog/spdlog.h>
-#include <uniform_deferredlighting.h>
-#include <uniform_forwardlighting.h>
 #include <cstring>
-#include <fstream>
-#include <glm/gtc/matrix_transform.hpp>
-#include "ecs_camerasystem.h"
-#include "izz_resourcemanager.h"
-#include "izzgl_entityfactory.h"
-#include "izzgl_material.h"
-#include "izzgl_mvp.h"
-#include "izzgl_texturesystem.h"
-#include "uniform_ubermaterial.h"
+#include <izz_resourcemanager.h>
+#include <izzgl_material.h>
+#include <izzgl_texturesystem.h>
 using namespace izz;
 using namespace izz::gl;
 
@@ -58,13 +41,14 @@ LightSystem& RenderSystem::getLightSystem() {
 RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager,
                            std::shared_ptr<MaterialSystem> materialSystem,
                            std::shared_ptr<TextureSystem> textureSystem,
-                           std::shared_ptr<izz::gl::MeshSystem> meshSystem)
+                           std::shared_ptr<izz::gl::MeshSystem> meshSystem,
+                           std::shared_ptr<izz::gl::LightSystem> lightSystem)
   : m_registry{registry}  //  , m_debugSystem(registry)
   , m_resourceManager{resourceManager}
   , m_materialSystem(materialSystem)
   , m_meshSystem{meshSystem}
   , m_shaderSystem(std::make_shared<ShaderCompiler>())
-  , m_lightSystem{std::make_shared<LightSystem>(m_registry, materialSystem)}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
+  , m_lightSystem{lightSystem}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(materialSystem, textureSystem, meshSystem, registry)
   , m_deferredRenderer(materialSystem, meshSystem, registry) {
   m_materialSystem->setCapabilitySelector(this);
@@ -148,6 +132,9 @@ void RenderSystem::addRenderableComponent(izz::SceneGraphEntity& e, izz::gl::Ren
 }
 
 void RenderSystem::update(float dt, float time) {
+  // update light visualizations, recompute hierarchies for efficient rendering.
+  m_lightSystem->updateLightProperties();
+
 //  m_forwardRenderer.update(dt, time);
   m_deferredRenderer.update(dt, time);
 

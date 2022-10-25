@@ -1,31 +1,29 @@
-#include "../include/izzgl_entityfactory.h"
-#include "izz_scenegraphentity.h"
+#include <izz_scenegraphentity.h>
+#include <izzgl_entityfactory.h>
 
-#include "ecs_camera.h"
-#include "ecs_light.h"
-#include "ecs_name.h"
-#include "ecs_relationship.h"
-#include "ecs_texture.h"
-#include "ecs_transform.h"
+#include <ecs_camera.h>
+#include <ecs_light.h>
+#include <ecs_texture.h>
+#include <ecs_transform.h>
+#include "izz_relationship.h"
 
-#include "gl_renderable.h"
-
+#include <geo_camera.h>
+#include <geo_curve.h>
+#include <geo_light.h>
+#include <geo_mesh.h>
+#include <geo_meshinstance.h>
+#include <geo_scene.h>
+#include <izzgl_material.h>
+#include <izzgl_materialsystem.h>
 #include <spdlog/spdlog.h>
-#include "geo_camera.h"
-#include "geo_curve.h"
-#include "geo_light.h"
-#include "geo_mesh.h"
-#include "geo_meshinstance.h"
-#include "geo_scene.h"
-#include "izzgl_material.h"
-#include "izzgl_materialsystem.h"
+#include <izzgl_rendersystem.h>
 
 using namespace izz;
 using namespace izz;
 using namespace izz::ecs;
 
-EntityFactory::EntityFactory(entt::registry& registry, std::shared_ptr<gl::RenderSystem> renderSystem,
-                             std::shared_ptr<izz::gl::MaterialSystem> materialSystem, std::shared_ptr<izz::gl::MeshSystem> meshSystem)
+EntityFactory::EntityFactory(entt::registry& registry, gl::RenderSystem& renderSystem,
+                             izz::gl::MaterialSystem& materialSystem, izz::gl::MeshSystem& meshSystem)
   : m_registry{registry}
   , m_renderSystem{renderSystem}
   , m_materialSystem{materialSystem}
@@ -36,12 +34,12 @@ void EntityFactory::setDefaultMaterial(std::shared_ptr<izz::gl::Material> materi
 }
 
 SceneGraphEntity EntityFactory::addGeometry(izz::geo::Mesh mesh, int materialId) {
-  auto e = makeMoveableEntity(mesh.name);
+  auto e = makeMovableEntity(mesh.name);
   e.add<izz::geo::Mesh>(mesh);
-  auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
+  auto& meshBuffer = m_meshSystem.createVertexBuffer(mesh);
 
-  e.add(gl::Renderable{.materialId = materialId, .meshBufferId = meshBuffer.id});
-  m_renderSystem->addRenderableComponent(e, m_defaultRenderStrategy);
+  e.add(izz::Geometry{.materialId = materialId, .vertexBufferId = meshBuffer.id});
+  m_renderSystem.addRenderableComponent(e, m_defaultRenderStrategy);
 
   //  m_renderableComponentFactory->addRenderableComponent(m_registry, e, materialId, meshBuffer.id);
 
@@ -78,18 +76,18 @@ SceneGraphEntity EntityFactory::makeEntity(std::string name) {
   return SceneGraphEntity{m_registry, e};
 }
 
-SceneGraphEntity EntityFactory::makeMoveableEntity(std::string name, glm::vec3 position) {
+SceneGraphEntity EntityFactory::makeMovableEntity(std::string name, glm::vec3 position) {
   auto e{m_registry.create()};
   m_registry.emplace<Name>(e, name);
   Transform t;
   t.localTransform[3] = glm::vec4(position, 1.0F);
   m_registry.emplace<Transform>(e, t);
-  m_registry.emplace<ecs::Relationship>(e);
+  m_registry.emplace<izz::Relationship>(e);
   return SceneGraphEntity{m_registry, e};
 }
 
 SceneGraphEntity EntityFactory::makeCamera(std::string name, float zDistance, float fovx, float aspect, float zNear, float zFar) {
-  auto cameraEntity = makeMoveableEntity(std::move(name));
+  auto cameraEntity = makeMovableEntity(std::move(name));
   ecs::Camera camera{.fovx = fovx, .aspect = aspect, .zNear = zNear, .zFar = zFar};
   cameraEntity.add<ecs::Camera>(std::move(camera));
   cameraEntity.get<ecs::Transform>().localTransform[3] = glm::vec4(0.0F, 0.0F, zDistance, 1.0F);
@@ -98,7 +96,7 @@ SceneGraphEntity EntityFactory::makeCamera(std::string name, float zDistance, fl
 }
 
 SceneGraphEntity EntityFactory::makeCamera(const izz::geo::Camera& geoCamera) {
-  auto cameraEntity = makeMoveableEntity(geoCamera.name);
+  auto cameraEntity = makeMovableEntity(geoCamera.name);
   ecs::Camera camera{.fovx = geoCamera.fovx, .aspect = geoCamera.aspect, .zNear = geoCamera.near, .zFar = geoCamera.far};
   cameraEntity.add<ecs::Camera>(std::move(camera));
 
@@ -109,7 +107,7 @@ SceneGraphEntity EntityFactory::makeCamera(const izz::geo::Camera& geoCamera) {
 }
 
 SceneGraphEntity EntityFactory::makeLight(const izz::geo::Light& light) {
-  auto lightEntity = makeMoveableEntity(light.name);
+  auto lightEntity = makeMovableEntity(light.name);
 
   auto& transform = lightEntity.get<Transform>();
   transform.localTransform[3] = glm::vec4(light.position, 1.0F);
@@ -133,13 +131,13 @@ SceneGraphEntity EntityFactory::makeLight(const izz::geo::Light& light) {
 }
 
 SceneGraphEntity EntityFactory::makeAmbientLight(std::string name, glm::vec3 color, float intensity) {
-  auto lightEntity = makeMoveableEntity(std::move(name));
+  auto lightEntity = makeMovableEntity(std::move(name));
   lightEntity.add<ecs::AmbientLight>({.intensity = intensity, .color = color});
   return lightEntity;
 }
 
 SceneGraphEntity EntityFactory::makePointLight(std::string name, glm::vec3 position) {
-  auto lightEntity = makeMoveableEntity(std::move(name));
+  auto lightEntity = makeMovableEntity(std::move(name));
   lightEntity.add<ecs::PointLight>();
 
   // different between point and directional light is in the w component.
@@ -148,7 +146,7 @@ SceneGraphEntity EntityFactory::makePointLight(std::string name, glm::vec3 posit
 }
 
 SceneGraphEntity EntityFactory::makePointLight(std::string name, glm::vec3 position, ecs::PointLight pointLight) {
-  auto lightEntity = makeMoveableEntity(std::move(name));
+  auto lightEntity = makeMovableEntity(std::move(name));
   lightEntity.add<ecs::PointLight>(std::move(pointLight));
 
   // different between point and directional light is in the w component.
@@ -157,7 +155,7 @@ SceneGraphEntity EntityFactory::makePointLight(std::string name, glm::vec3 posit
 }
 
 SceneGraphEntity EntityFactory::makeDirectionalLight(std::string name, glm::vec3 direction) {
-  auto lightEntity = makeMoveableEntity(std::move(name));
+  auto lightEntity = makeMovableEntity(std::move(name));
   lightEntity.add<ecs::DirectionalLight>();
 
   // different between point and directional light is in the w component.
@@ -166,7 +164,7 @@ SceneGraphEntity EntityFactory::makeDirectionalLight(std::string name, glm::vec3
 }
 
 SceneGraphEntity EntityFactory::makeSpotLightFromLookAt(std::string name, glm::vec3 eye, glm::vec3 center, glm::vec3 up) {
-  auto lightEntity = makeMoveableEntity(std::move(name));
+  auto lightEntity = makeMovableEntity(std::move(name));
   auto& spotlight = lightEntity.add<ecs::SpotLight>();
 
   // TODO: create local transform by direct matrix calculation. Inverse should not be needed
@@ -182,9 +180,9 @@ SceneGraphEntity EntityFactory::makeSpotLightFromLookAt(std::string name, glm::v
 }
 
 SceneGraphEntity EntityFactory::makeMesh(const izz::geo::Mesh& mesh) {
-  auto meshEntity = makeMoveableEntity(mesh.name);
+  auto meshEntity = makeMovableEntity(mesh.name);
 
-  auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
+  auto& meshBuffer = m_meshSystem.createVertexBuffer(mesh);
   meshEntity.add<izz::geo::Mesh>(mesh);
 
   // Watch out here, izz::gl::Material is a value type so we can do this.
@@ -195,8 +193,8 @@ SceneGraphEntity EntityFactory::makeMesh(const izz::geo::Mesh& mesh) {
   }
   //  meshEntity.add<izz::gl::Material>(*m_defaultMaterial);
 
-  meshEntity.add(gl::Renderable{.materialId = m_defaultMaterial->id, .meshBufferId = meshBuffer.id});
-  m_renderSystem->addRenderableComponent(meshEntity, m_defaultRenderStrategy);
+  meshEntity.add(izz::Geometry{.materialId = m_defaultMaterial->id, .vertexBufferId = meshBuffer.id});
+  m_renderSystem.addRenderableComponent(meshEntity, m_defaultRenderStrategy);
 
   //  m_renderableComponentFactory->addRenderableComponent(m_registry, meshEntity, m_defaultMaterial->id, meshBuffer.id);
 
@@ -211,12 +209,12 @@ SceneGraphEntity EntityFactory::makeMesh(const izz::geo::Mesh& mesh) {
 }
 
 SceneGraphEntity EntityFactory::makeEmptyMesh(const izz::geo::Mesh& mesh) {
-  auto entity = makeMoveableEntity(mesh.name);
+  auto entity = makeMovableEntity(mesh.name);
   entity.add(mesh);
-  const auto& meshBuffer = m_meshSystem->createMeshBuffer(mesh);
+  const auto& meshBuffer = m_meshSystem.createVertexBuffer(mesh);
 
-  entity.add(gl::Renderable{.materialId = m_defaultMaterial->id, .meshBufferId = meshBuffer.id});
-  m_renderSystem->addRenderableComponent(entity, m_defaultRenderStrategy);
+  entity.add(izz::Geometry{.materialId = m_defaultMaterial->id, .vertexBufferId = meshBuffer.id});
+  m_renderSystem.addRenderableComponent(entity, m_defaultRenderStrategy);
 
   return entity;
 }
@@ -241,7 +239,7 @@ SceneGraphEntity EntityFactory::makeEmptyMesh(const izz::geo::Mesh& mesh) {
 //}
 
 SceneGraphEntity EntityFactory::makeCurve(std::string name) {
-  auto curve = makeMoveableEntity(std::move(name));
+  auto curve = makeMovableEntity(std::move(name));
 
   curve.add<izz::geo::Curve>();
   //  auto& s = curve.add<izz::gl::Material>({.name = "default curve material",
@@ -256,7 +254,7 @@ SceneGraphEntity EntityFactory::makeCurve(std::string name) {
   //  OR whenever you look for ColorBlock manager and you cannot find one, then ignore.
   //  s.registerUniformBlock("ColorBlock", block, sizeof(ecs::ColorBlock));
 
-  //  auto& meshBuffer = m_meshSystem->createMeshBuffer();
+  //  auto& meshBuffer = m_meshSystem.createMeshBuffer();
   //  m_renderableComponentFactory->addRenderableComponent(m_registry, curve, m_defaultMaterial->id, meshBuffer.id);
 
   return curve;
@@ -264,7 +262,7 @@ SceneGraphEntity EntityFactory::makeCurve(std::string name) {
 
 void EntityFactory::processChildren(const izz::geo::Scene& scene, std::shared_ptr<const izz::geo::SceneNode> node, SceneLoaderFlags flags,
                                     SceneGraphEntity* parent_p, gl::RenderStrategy renderStrategy) {
-  auto root = makeMoveableEntity(node->name);
+  auto root = makeMovableEntity(node->name);
   root.setTransform(node->transform);
 
   // if current processed scene node is not a root node.
@@ -293,14 +291,14 @@ void EntityFactory::processChildren(const izz::geo::Scene& scene, std::shared_pt
     // add mesh instances for this root
     for (auto& instance : node->meshInstances) {
       auto& materialDescription = scene.m_materials[instance->materialId];
-      auto& material = m_materialSystem->createMaterial(materialDescription);
-      auto meshBuffer = m_meshSystem->createMeshBuffer(*instance->mesh);
+      auto& material = m_materialSystem.createMaterial(materialDescription);
+      auto vertexBuffer = m_meshSystem.createVertexBuffer(*instance->mesh);
 
       // TODO: make mesh instance instead of copy mesh
       //    auto e = makeRenderable(*instance->mesh, instance->transform,
       //    **material);
 
-      auto e = makeRenderable(instance->name, meshBuffer, instance->transform, material.id, renderStrategy);
+      auto e = makeRenderable(instance->name, vertexBuffer.id, material.id, instance->transform, renderStrategy);
 
       root.addChild(e);
     }
@@ -314,7 +312,7 @@ void EntityFactory::processChildren(const izz::geo::Scene& scene, std::shared_pt
 SceneGraphEntity EntityFactory::makeScene(const izz::geo::Scene& scene, SceneLoaderFlags flags, gl::RenderStrategy renderStrategy) {
   spdlog::debug("{}: instantiating scene objects ({})", ID, scene.m_path.string());
 
-  auto rootScene = makeMoveableEntity();
+  auto rootScene = makeMovableEntity();
 
   // for geometry and mesh data
   processChildren(scene, scene.rootNode(), flags, &rootScene, renderStrategy);
@@ -322,36 +320,34 @@ SceneGraphEntity EntityFactory::makeScene(const izz::geo::Scene& scene, SceneLoa
   return rootScene;
 }
 
-SceneGraphEntity EntityFactory::makeRenderable(std::string name, const izz::gl::MeshBuffer& meshBuffer, glm::mat4 transform, MaterialId materialId,
+SceneGraphEntity EntityFactory::makeRenderable(std::string name, izz::VertexBufferId vertexBufferId, MaterialId materialId, glm::mat4 transform,
                                                gl::RenderStrategy strategy) {
-  auto e = makeMoveableEntity(name);
+  auto e = makeMovableEntity(name);
   e.setTransform(std::move(transform));
-
-  //  e.add<izz::gl::MeshBuffer>(meshBuffer);
 
   if (strategy == gl::RenderStrategy::UNDEFINED) {
     strategy = m_defaultRenderStrategy;
   }
 
   // todo: remove next line
-  e.add(gl::Renderable{.materialId = materialId, .meshBufferId = meshBuffer.id});
-  m_renderSystem->addRenderableComponent(e, strategy);
+  e.add(izz::Geometry{.materialId = materialId, .vertexBufferId = vertexBufferId});
+  m_renderSystem.addRenderableComponent(e, strategy);
 
   spdlog::info("(e: {}) Added mesh {} with material id: {}, mesh buffer id: {}", static_cast<int>(e.handle()), name,
-               m_registry.get<gl::Renderable>(e.handle()).materialId, m_registry.get<gl::Renderable>(e.handle()).meshBufferId);
+               m_registry.get<izz::Geometry>(e.handle()).materialId, m_registry.get<izz::Geometry>(e.handle()).vertexBufferId);
   return e;
 }
 
-SceneGraphEntity EntityFactory::makeRenderable(izz::gl::MeshBuffer&& meshBuffer, MaterialId materialId, gl::RenderStrategy strategy) {
-  return makeRenderable("<unnamed>", meshBuffer, glm::mat4(1.0), materialId, strategy);
-  //  auto e = m_registry.create();
-  //  m_registry.emplace<ecs::Transform>(e);
-  //  //  m_registry.emplace<izz::gl::MeshBuffer>(e, std::move(mesh));
-  //  //  m_registry.emplace<izz::gl::Material>(e, material);
-  //  e.add(gl::Renderable{.materialId = materialId, .meshBufferId = meshBuffer.id});
-  //  m_renderSystem->createComponent(e, strategy);
-  //
-  //  return SceneGraphEntity{m_registry, e};
+SceneGraphEntity EntityFactory::makeGeometry(std::string name, izz::Geometry geometry, gl::RenderStrategy strategy) {
+  return makeRenderable(name, geometry.vertexBufferId, geometry.materialId, geometry.transform, strategy);
+}
+
+SceneGraphEntity EntityFactory::makeGeometry(izz::Geometry geometry, gl::RenderStrategy strategy) {
+  return makeRenderable("<unnamed>", geometry.vertexBufferId, geometry.materialId, geometry.transform, strategy);
+}
+
+SceneGraphEntity EntityFactory::makeRenderable(VertexBufferId vertexBufferId, MaterialId materialId, gl::RenderStrategy strategy) {
+  return makeRenderable("<unnamed>", vertexBufferId, materialId, glm::mat4(1.0), strategy);
 }
 
 SceneGraphEntity EntityFactory::makeRenderable(izz::geo::Curve&& curve, MaterialId materialId, gl::RenderStrategy strategy) {

@@ -18,7 +18,7 @@ class MeshSystem;
 
 struct DeferredRenderable {
   MaterialId materialId{-1};
-  MeshBufferId meshBufferId{-1};
+  VertexBufferId vertexBufferId{-1};
 };
 
 class DeferredRenderer {
@@ -71,8 +71,8 @@ class DeferredRenderer {
    * @param e scene graph entity, that already contains a generic Renderable component.
    */
   inline void onEntityCreate(SceneGraphEntity& e) {
-    const auto& renderable = e.get<gl::Renderable>();
-    e.add(DeferredRenderable{.materialId = renderable.materialId, .meshBufferId = renderable.meshBufferId});
+    const auto& renderable = e.get<izz::Geometry>();
+    e.add(DeferredRenderable{.materialId = renderable.materialId, .vertexBufferId = renderable.vertexBufferId});
   }
 
   void setClearColor(const glm::vec4 color);
@@ -99,7 +99,7 @@ class DeferredRenderer {
   int m_screenWidth;
   int m_screenHeight;
 
-  MeshBufferId m_screenSpaceMeshBufferId{-1};
+  VertexBufferId m_screenSpaceMeshBufferId{-1};
   MaterialId m_lightPassMaterialId{-1};
 };
 

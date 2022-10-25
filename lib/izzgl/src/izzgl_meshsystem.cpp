@@ -15,7 +15,7 @@ constexpr void* BUFFER_OFFSET(unsigned int offset) {
 }
 }
 
-MeshBuffer& MeshSystem::createMeshBuffer(const izz::geo::Mesh& mesh) {
+MeshBuffer& MeshSystem::createVertexBuffer(const izz::geo::Mesh& mesh) {
   MeshBuffer meshBuffer;
   GLuint vertexSize = mesh.vertices.size() * sizeof(float);
   GLuint normalSize = mesh.normals.size() * sizeof(float);
@@ -88,7 +88,7 @@ MeshBuffer& MeshSystem::createMeshBuffer(const izz::geo::Mesh& mesh) {
   glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, 0, BUFFER_OFFSET(vertexSize + normalSize + uvSize + tangentSize));
   glBindVertexArray(0);
 
-  meshBuffer.id = static_cast<MeshBufferId>(m_allocatedBuffers.size()+1);
+  meshBuffer.id = static_cast<VertexBufferId>(m_allocatedBuffers.size()+1);
   m_allocatedBuffers[meshBuffer.id] = meshBuffer;
   return m_allocatedBuffers.at(meshBuffer.id);
 }
@@ -107,6 +107,6 @@ void MeshSystem::bindBuffer(const MeshBuffer& meshBuffer) {
   }
 }
 
-void MeshSystem::bindBuffer(MeshBufferId meshBufferId) {
+void MeshSystem::bindBuffer(VertexBufferId meshBufferId) {
   bindBuffer(m_allocatedBuffers.at(meshBufferId));
 }

@@ -29,13 +29,16 @@
 
 #include <ecs_transformutil.h>
 #include <izz_izzy.h>
+#include <izzgui_stats.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
 #include "ecs_camera.h"
 #include "geo_primitivefactory.h"
 #include "gui_mainmenu.h"
-#include <izzgui_stats.h>
+#include "izz_behavior.h"
+#include "izz_relationshiputil.h"
+#include "uniform_constant.h"
 using namespace std;
 using namespace izz;
 using namespace izz;
@@ -46,7 +49,7 @@ using izz::wsp::Workspace;
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
 namespace {
-std::shared_ptr<izz::Izzy> izzy {nullptr};
+std::shared_ptr<izz::Izzy> izzy{nullptr};
 std::shared_ptr<Workspace> programArguments{nullptr};
 }  // namespace
 
@@ -57,9 +60,9 @@ void setupLights() {
 
   // Ambient light
   auto ambientLight1 = izzy->entityFactory->makeAmbientLight("Ambient", glm::vec3(0.1F, 0.0F, 0.2F));
-  ambientLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  //  ambientLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
-//
+  //
   // Spot light 1
   auto spotLight1 = izzy->entityFactory->makeSpotLightFromLookAt("SpotLight", glm::vec3(0.1F, 2.0F, 0.0F));
   auto& spot = spotLight1.get<ecs::SpotLight>();
@@ -72,12 +75,24 @@ void setupLights() {
   auto& lightComp = ptLight1.get<ecs::PointLight>();
   lightComp.intensity = 1.0;
   lightComp.color = glm::vec3(1.0, 1.0, 1.0);
-  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+  //  ptLight1.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+
+  auto geometry = izz::Geometry{.materialId = izzy->materialSystem->createMaterial("pointlight").id,
+                                .vertexBufferId = izzy->meshSystem->createVertexBuffer(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1)).id};
+  auto ptLight1Visualization = izzy->entityFactory->makeGeometry(geometry, izz::gl::RenderStrategy::FORWARD);
+  izz::RelationshipUtil::MakeChild(izzy->getRegistry(), ptLight1, ptLight1Visualization);
+  ptLight1Visualization.add<izz::ecs::PointLightTracker>();
 
   // Point light 2
   auto ptLight2 = izzy->entityFactory->makePointLight("PointLight 2", glm::vec3(-10.F, 1.0F, -1.0F));
   ptLight2.get<ecs::PointLight>().intensity = 1.4;
-  ptLight2.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+
+  izz::Geometry geometry2;
+  geometry2.vertexBufferId = izzy->meshSystem->createVertexBuffer(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1)).id;
+  geometry2.materialId = izzy->materialSystem->createMaterial("pointlight").id;
+  auto child = izzy->entityFactory->makeGeometry(geometry2, izz::gl::RenderStrategy::FORWARD);
+  izz::RelationshipUtil::MakeChild(izzy->getRegistry(), ptLight2, child);
+  child.add<izz::ecs::PointLightTracker>();
 }
 
 void setupScene() {
@@ -95,17 +110,20 @@ void setupScene() {
 
   {
     // adding a custom primitive to the scene
-    auto plane = izzy->entityFactory->makeMoveableEntity("Plane");
+    auto plane = izzy->entityFactory->makeMovableEntity("Plane");
     auto& mesh = plane.add<Mesh>(PrimitiveFactory::MakePlane("MyPlane", 15, 15));
-    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
-    auto& material = izzy->materialSystem->createMaterial("table_cloth");
+    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
+    //    auto& material = izzy->materialSystem->createMaterial("table_cloth");
+    auto& material = izzy->materialSystem->createMaterial("Diffuse");
+    material.setTexture(TextureHint::DIFFUSE_MAP, izzy->textureSystem->loadTexture("textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"));
+    material.setTexture(TextureHint::NORMAL_MAP, izzy->textureSystem->loadTexture("textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"));
     mesh.materialId = material.id;
     auto& dr = plane.add<gl::ForwardRenderable>({material.id, meshBuffer.id});
   }
   {
-    auto box = izzy->entityFactory->makeMoveableEntity("Box");
+    auto box = izzy->entityFactory->makeMovableEntity("Box");
     auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox", .5, .5));
-    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
     izz::ecs::TransformUtil::Translate(box.get<izz::ecs::Transform>(), glm::vec3(0.2, 0.0, 0.0));
     auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
     mesh.materialId = material.id;
@@ -137,10 +155,10 @@ int main(int argc, char* argv[]) {
     // creates and initializes all resource systems
     izzy = Izzy::CreateSystems();
 
-    auto window = make_shared<gui::Window>(izzy->getRegistry(), izzy->renderSystem, izzy->guiSystem);  // guiSystem);
+    auto window = make_shared<gui::Window>(*izzy);
     window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
-    window->initialize();
+    window->initializeContext();
 
     // setup camera
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
@@ -153,11 +171,12 @@ int main(int argc, char* argv[]) {
       reader.readMaterials(programArguments->materialsFile);
     }
 
+    izzy->renderSystem->getLightSystem().setDefaultPointLightMaterial(izzy->materialSystem->createMaterial("pointlight").id);
+
     setupScene();
     setupLights();
 
     // visualize point lights using a custom material.
-    izzy->renderSystem->getLightSystem().setDefaultPointLightMaterial(izzy->materialSystem->createMaterial("pointlight").id);
     izzy->renderSystem->init(window->getDisplayDetails().windowWidth, window->getDisplayDetails().windowHeight);
 
     setupUserInterface();
@@ -168,6 +187,7 @@ int main(int argc, char* argv[]) {
     //    auto pe2 = sceneGraph->makePosteffect("Vignette", *vignette);
     //    camera.add<PosteffectCollection>({.posteffects = {pe1, pe2}});
 
+    window->initialize();
     window->run();
 
   } catch (runtime_error& e) {

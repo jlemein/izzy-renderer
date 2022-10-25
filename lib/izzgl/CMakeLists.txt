@@ -1,5 +1,4 @@
 add_library(izzgl STATIC
-        include/ecs_debugmodel.h
         include/gl_common.h
         include/gl_deferredrenderer.h
         include/gl_forwardrenderer.h
@@ -34,7 +33,7 @@ add_library(izzgl STATIC
         include/uniform_parallax.h
         include/uniform_ubermaterial.h
         include/uniform_uniformblockmanager.h
-        src/gl_common.cpp
+        src/izzgl_common.cpp
         src/gl_deferredrenderer.cpp
         src/gl_forwardrenderer.cpp
         src/gl_hdrframebuffer.cpp
@@ -61,7 +60,6 @@ add_library(izzgl STATIC
 #        include/ecs_debugshapefactory.h
 #        include/izzgl_effectsystem.h
 #        src/ecs_debugshapefactory.cpp
-#        src/ecs_debugsystem.cpp
 #        src/ecs_lightsystem.t.cpp
 #        src/izzgl_effectsystem.cpp
         )

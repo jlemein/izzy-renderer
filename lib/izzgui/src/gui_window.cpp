@@ -6,14 +6,12 @@
 #include <anim_animationsystem.h>
 #include <ecs_camerasystem.h>
 #include <ecs_transformsystem.h>
-#include <gui_iguiwindow.h>
-#include <gui_iwindowextension.h>
 #include <gui_window.h>
 #include <gui_windowinputlistener.h>
 #include <io_inputsystem.h>
-#include <izzgl_rendersystem.h>
-#include "../../izzgl/include/izz_resourcemanager.h"
 #include "izzgl_entityfactory.h"
+#include <izz_debugsystem.h>
+#include <izz_izzy.h>
 
 #include <iostream>
 #include <spdlog/spdlog.h>
@@ -29,15 +27,14 @@ static void error_callback(int error, const char* description) {
 }
 }  // namespace
 
-Window::Window(entt::registry& registry, std::shared_ptr<gl::RenderSystem> renderSystem,
-               std::shared_ptr<gui::GuiSystem> guiSystem)
-  : m_guiSystem(guiSystem)
-  , m_registry(registry)
-  , m_animationSystem{make_shared<anim::AnimationSystem>(registry)}
-  , m_renderSystem{renderSystem}
-  , m_cameraSystem{make_shared<ecs::CameraSystem>(m_registry)}
-//  , m_debugSystem{make_shared<ecs::DebugSystem>(m_registry)}
-  , m_transformSystem{make_shared<ecs::TransformSystem>(m_registry)} {}
+Window::Window(izz::Izzy& izzy)
+  : m_guiSystem(izzy.guiSystem)
+  , m_registry(izzy.getRegistry())
+  , m_animationSystem{make_shared<anim::AnimationSystem>(izzy.getRegistry())}
+  , m_renderSystem{izzy.renderSystem}
+  , m_cameraSystem{make_shared<ecs::CameraSystem>(izzy.getRegistry())}
+  , m_debugSystem{make_shared<izz::DebugSystem>(izzy, izzy.getRegistry())}
+  , m_transformSystem{make_shared<ecs::TransformSystem>(izzy.getRegistry())} {}
 
 Window::~Window() {}
 
@@ -52,7 +49,7 @@ void Window::setTitle(const std::string& title) {
   m_title = title;
 }
 
-void Window::initialize() {
+void Window::initializeContext() {
   glfwSetErrorCallback(error_callback);
 
   if (!glfwInit()) exit(EXIT_FAILURE);
@@ -78,11 +75,6 @@ void Window::initialize() {
   m_displayDetails.shadingLanguage = "glsl";
   m_displayDetails.shadingLanguageVersion = "#version 130";
 
-  m_inputSystem = std::make_shared<izz::io::InputSystem>(window, m_displayDetails.windowWidth, m_displayDetails.windowHeight);
-  m_genericInputListener = std::make_shared<WindowInputListener>(window);
-  m_inputSystem->registerInputListener(m_genericInputListener);
-  m_firstPersonSystem = std::make_shared<ecs::FirstPersonMovementSystem>(m_registry, m_inputSystem.get());
-
   glfwMakeContextCurrent(window);
   glfwSwapInterval(0); //disable vsync
   if (glewInit() != GLEW_OK) {
@@ -90,9 +82,17 @@ void Window::initialize() {
   }
 
   glfwSwapInterval(1);
+}
+
+void Window::initialize() {
+  GLFWwindow* window = reinterpret_cast<GLFWwindow*>(m_displayDetails.window);
+  m_inputSystem = std::make_shared<izz::io::InputSystem>(window, m_displayDetails.windowWidth, m_displayDetails.windowHeight);
+  m_genericInputListener = std::make_shared<WindowInputListener>(window);
+  m_inputSystem->registerInputListener(m_genericInputListener);
+  m_firstPersonSystem = std::make_shared<ecs::FirstPersonMovementSystem>(m_registry, m_inputSystem.get());
 
   m_cameraSystem->init();
-//  m_debugSystem->init();      // for debug visualizations
+  m_debugSystem->init();      // for debug visualizations
   m_animationSystem->init();  // possible bone initialization
 
   // should be called before render system.
@@ -105,6 +105,8 @@ void Window::initialize() {
 }
 
 int Window::run() {
+  m_debugSystem->init();
+
   GLFWwindow* window = reinterpret_cast<GLFWwindow*>(m_displayDetails.window);
 
   float prevTime = 0.0F;

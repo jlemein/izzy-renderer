@@ -239,6 +239,15 @@ class Material {
     }
   }
 
+  void setTexture(izz::geo::TextureHint map, Texture* texture) {
+    try {
+      auto parameterName = izz::geo::TEXTURE_MAP_NAMES.at(map);
+      setTexture(parameterName, texture);
+    } catch (std::out_of_range e) {
+      throw std::runtime_error("Failed to set texture using provided texture hint. Could not find a mapped parameter name.");
+    }
+  }
+
   GLint getTextureBuffer(const std::string& key) const {
     if (textures.count(key) > 0) {
       return textures.at(key).textureId;
@@ -313,7 +322,7 @@ class Material {
     setProperty(T::BUFFER_NAME, data);
   }
 
-  void setUniformFloat(std::string name, float value) {
+  void setFloat(std::string name, float value) {
     // dangerous cast here
     if (m_allUniforms.count(name) > 0) {
       auto pValue = reinterpret_cast<GLfloat*>(m_allUniforms.at(name)->m_data);
@@ -335,7 +344,7 @@ class Material {
     }
   }
 
-  void setUniformVec4(std::string name, const glm::vec4& value) {
+  void setVec4(std::string name, const glm::vec4& value) {
     // dangerous cast here
     if (m_allUniforms.count(name) > 0) {
       memcpy(m_allUniforms.at(name)->m_data, glm::value_ptr(value), sizeof(GLfloat) * 4);
@@ -357,17 +366,14 @@ class Material {
       *pValue = static_cast<GLint>(value);
     } else {
       auto msg = fmt::format("Cannot find uniform property {} in material {}", name, getName());
-      spdlog::error(msg);
-//          throw std::runtime_error();
+      throw std::runtime_error(msg);
     }
   }
 
   void setUniformFloatArray(std::string name, const std::vector<float>& value) {
     if (m_allUniforms.count(name) > 0) {
-      // dangerous cast here
       memcpy(m_allUniforms.at(name)->m_data, value.data(), sizeof(GLfloat) * value.size());
     } else {
-//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -377,7 +383,6 @@ class Material {
       auto pArr = reinterpret_cast<int32_t*>(m_allUniforms.at(name)->m_data);
       return glm::ivec2(pArr[0], pArr[1]);
     } else {
-//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -387,7 +392,6 @@ class Material {
       auto pArr = reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
       return glm::vec4(pArr[0], pArr[1], pArr[2], pArr[3]);
     } else {
-//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -397,7 +401,6 @@ class Material {
       auto pArr = reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
       return glm::vec4(pArr[0], pArr[1], pArr[2], pArr[3]);
     } else {
-//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -406,7 +409,6 @@ class Material {
     if (m_allUniforms.count(name) > 0) {
       return *reinterpret_cast<int*>(m_allUniforms.at(name)->m_data);
     } else {
-//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -420,7 +422,6 @@ class Material {
     if (m_allUniforms.count(name) > 0) {
       return *reinterpret_cast<float*>(m_allUniforms.at(name)->m_data);
     } else {
-//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }
@@ -431,7 +432,6 @@ class Material {
       float* pStart = reinterpret_cast<float*>(prop->m_data);
       return std::vector<float>{pStart, pStart + prop->m_length};
     } else {
-//      spdlog::error("Cannot find uniform property {} in material {}", name, getName());
       throw std::runtime_error(fmt::format("Cannot find uniform property {} in material {}", name, getName()));
     }
   }

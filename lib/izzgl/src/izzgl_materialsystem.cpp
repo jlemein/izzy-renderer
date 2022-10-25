@@ -4,15 +4,16 @@
 #include <izzgl_materialsystem.h>
 
 #include <izzgl_shadersystem.h>
-#include "izz_resourcemanager.h"
-#include "izzgl_entityfactory.h"
-#include "izzgl_textureloader.h"
-#include "izzgl_texturesystem.h"
-#include "uniform_constant.h"
-#include "uniform_lambert.h"
-#include "uniform_parallax.h"
-#include "uniform_ubermaterial.h"
+#include <izz_resourcemanager.h>
+#include <izzgl_entityfactory.h>
+#include <izzgl_textureloader.h>
+#include <izzgl_texturesystem.h>
+#include <uniform_constant.h>
+#include <uniform_lambert.h>
+#include <uniform_parallax.h>
+#include <uniform_ubermaterial.h>
 #include <uniform_depthpeeling.h>
+#include <uniform_debugproperties.h>
 
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
@@ -67,6 +68,7 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
   m_uniformBuffers[izz::ufm::DeferredLighting::BUFFER_NAME] = std::make_unique<izz::ufm::DeferredLightingUniform>(registry);
   m_uniformBuffers[izz::ufm::ForwardLighting::BUFFER_NAME] = std::make_unique<izz::ufm::ForwardLightingUniform>(registry);
   m_uniformBuffers[izz::ufm::DepthPeeling::BUFFER_NAME] = std::make_unique<izz::ufm::DepthPeelingUniformBuffer>();
+  m_uniformBuffers[izz::ufm::DebugProperties::BUFFER_NAME] = std::make_unique<izz::ufm::DebugPropertiesUniform>();
 }
 
 void MaterialSystem::addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate) {
@@ -393,6 +395,7 @@ const geo::MaterialTemplate& MaterialSystem::getMaterialTemplate(std::string mes
       throw std::runtime_error(fmt::format("Failed to create material '{}': no such material is defined.", templateName));
     }
 
+    spdlog::warn("Material with name '{}' is not defined. The default material '{}' is used.", meshMaterialName, m_defaultMaterialTemplateName);
     templateName = m_defaultMaterialTemplateName;
   }
 

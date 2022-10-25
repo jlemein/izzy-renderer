@@ -17,7 +17,7 @@ struct VertexAttribArray {
 
 /// @brief Represents the buffered mesh data, stored on the GPU
 struct MeshBuffer {
-  MeshBufferId id;
+  VertexBufferId id;
   GLuint vertex_buffer{0U}, index_buffer{0U};
   GLuint vertex_array_object;
 

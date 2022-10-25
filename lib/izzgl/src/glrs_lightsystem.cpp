@@ -1,26 +1,28 @@
 #include <ecs_light.h>
-#include <ecs_name.h>
 #include <ecs_transform.h>
-#include <geo_materialutil.h>
-#include <geo_mesh.h>
-#include <gl_renderable.h>
 #include <glrs_lightsystem.h>
-#include <spdlog/spdlog.h>
-#include "izzgl_material.h"
-#include "izzgl_materialsystem.h"
+#include <izz_behavior.h>
+#include <izz_izzy.h>
+#include <izz_relationship.h>
+#include <izzgl_entityfactory.h>
+#include <izzgl_material.h>
+#include <izzgl_materialsystem.h>
+#include <memory>
 using namespace izz;
 using namespace izz::gl;
 
-namespace {
-void updatePointLightVisualization(Material& material, izz::ecs::PointLight light) {
-//  material.setUniformVec4("color", glm::vec4(light.color, 0.0));
-//  material.setUniformFloat("radius", light.radius);
-  material.setUniformFloat("intensity", light.intensity);
-}
+LightSystem::LightSystem(entt::registry& registry, MaterialSystem& materialSystem, MeshSystem& meshSystem)
+  : m_registry{registry}
+  , m_materialSystem{materialSystem}
+  , m_meshSystem{meshSystem} {
+  m_registry.on_construct<ecs::PointLightTracker>().connect<&LightSystem::onPointLightTrackerAdded>(this);
+  m_registry.on_construct<ecs::SpotLightTracker>().connect<&LightSystem::onSpotLightTrackerAdded>(this);
+  m_registry.on_construct<ecs::DirectionalLightTracker>().connect<&LightSystem::onDirectionalLightTrackerAdded>(this);
 }
 
-LightSystem::LightSystem(entt::registry& registry, std::shared_ptr<MaterialSystem> materialSystem)
-  : m_registry{registry}, m_materialSystem{materialSystem} {}
+void LightSystem::setRenderSystem(izz::gl::RenderSystem& renderSystem) {
+  m_entityFactory = std::make_unique<EntityFactory>(m_registry, renderSystem, m_materialSystem, m_meshSystem);
+}
 
 int LightSystem::getActiveLightCount() const {
   auto pointLights = m_registry.view<izz::ecs::Transform, izz::ecs::PointLight>();
@@ -34,132 +36,57 @@ void LightSystem::setDefaultPointLightMaterial(int materialId) {
   m_lightMaterial = materialId;
 }
 
-void LightSystem::initialize() {
-  spdlog::debug("Initializing light system");
-  for (auto&& [e, light, mesh] : m_registry.view<izz::ecs::PointLight, izz::geo::Mesh>().each()) {
-    if (!m_registry.all_of<izz::gl::Material>(e)) {
-      if (m_lightMaterial == -1) {
-        auto name = m_registry.get<izz::ecs::Name>(e).name;
-        spdlog::error("Cannot add a material for point light '{}'. No light material set", name);
-      }
-      else {
-//        m_registry.emplace<Renderable>(e);
-
-//        auto& material = m_registry.emplace<izz::gl::Material>(e, izz::gl::MaterialUtil::CloneMaterial(*m_lightMaterial));
-        updatePointLightVisualization(m_materialSystem->getMaterialById(m_lightMaterial), light);
-      }
-    }
+void LightSystem::onPointLightTrackerAdded(entt::registry& r, entt::entity e) {
+  auto& tracker = r.get<izz::ecs::PointLightTracker>(e);
+  if (tracker.light == entt::null) {
+    tracker.light = r.all_of<ecs::PointLight>(e) ? e : r.get<Relationship>(e).parent;
   }
 }
 
-//void LightSystem::initLightingUbo(RenderState& renderable, const izz::gl::Material& material) {
-//  auto uboStructName = material.lighting.ubo_struct_name;
-//
-//  // check if a light ubo struct name is defined.
-//  if (uboStructName.empty()) {
-//    return;
-//  }
-//
-//  renderable.uboLightingIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
-//  if (renderable.uboLightingIndex == GL_INVALID_INDEX) {
-//    // we don't expect this. The material has defined a light struct name, but not found. Error.
-//    spdlog::error("Material {}: Lighting disabled, cannot find ubo block index with name '{}'", material.name, uboStructName);
-//    return;
-//  }
-//
-//  renderable.isLightingSupported = true;
-//
-//  // now of all the supported light systems, find the one the shader needs and store the size and address of it.
-//  if (uboStructName == ForwardLighting::PARAM_NAME) {
-//    renderable.pUboLightStruct = &m_forwardLighting;
-//    renderable.pUboLightStructSize = sizeof(ForwardLighting);
-//  } else {
-//    throw std::runtime_error(fmt::format("Material {} makes use of unsupported uniform light structure '{}'", material.name, uboStructName));
-//  }
-//
-//  glGenBuffers(1, &renderable.uboLightingId);
-//  glBindBuffer(GL_UNIFORM_BUFFER, renderable.uboLightingId);
-//  GLint blockIndex = glGetUniformBlockIndex(renderable.program, uboStructName.c_str());
-//
-//  glGetActiveUniformBlockiv(renderable.program, blockIndex, GL_UNIFORM_BLOCK_BINDING, &renderable.uboLightingBinding);
-//
-//  glBindBufferBase(GL_UNIFORM_BUFFER, renderable.uboLightingBinding, renderable.uboLightingId);
-//  glBufferData(GL_UNIFORM_BUFFER, renderable.pUboLightStructSize, nullptr, GL_DYNAMIC_DRAW);
-//}
+void LightSystem::onSpotLightTrackerAdded(entt::registry& r, entt::entity e) {
+  auto& tracker = r.get<izz::ecs::SpotLightTracker>(e);
+  if (tracker.light == entt::null) {
+    tracker.light = r.all_of<ecs::SpotLight>(e) ? e : r.get<Relationship>(e).parent;
+  }
+}
+
+void LightSystem::onDirectionalLightTrackerAdded(entt::registry& r, entt::entity e) {
+  auto& tracker = r.get<izz::ecs::DirectionalLightTracker>(e);
+  if (tracker.light == entt::null) {
+    tracker.light = r.all_of<ecs::DirectionalLight>(e) ? e : r.get<Relationship>(e).parent;
+  }
+}
+
+void LightSystem::initialize() {}
 
 void LightSystem::updateLightProperties() {
-  //
-  auto pointLights = m_registry.view<izz::ecs::Transform, izz::ecs::PointLight>();
-  auto dirLights = m_registry.view<izz::ecs::Transform, izz::ecs::DirectionalLight>();
-  auto ambientLights = m_registry.view<izz::ecs::AmbientLight>();
-  auto numLights = pointLights.size_hint() + dirLights.size_hint() + ambientLights.size();
-
-  int numberOfPointLights = std::clamp(static_cast<unsigned int>(pointLights.size_hint()), 0U, 4U);
-  int numberOfSpotLights = 0U;
-  int numberOfDirectionalLights = std::clamp(static_cast<unsigned int>(dirLights.size_hint()), 0U, 1U);
-  int numberOfAmbientLights = std::clamp(static_cast<unsigned int>(ambientLights.size()), 0U, 1U);
-
-  m_forwardLighting.numberOfLights = glm::ivec4(numberOfDirectionalLights, numberOfAmbientLights, numberOfPointLights, numberOfSpotLights);
-
-  // -- Directional lights ------------------------------
-  auto i = 0U;
-  for (auto e : dirLights) {
-    if (i++ > numberOfDirectionalLights) {
-      break;
-    }
-    const auto& light = dirLights.get<izz::ecs::DirectionalLight>(e);
-    const auto& transform = dirLights.get<izz::ecs::Transform>(e);
-
-    m_forwardLighting.directionalLight.direction = transform.worldTransform[3];
-    m_forwardLighting.directionalLight.color = glm::vec4(light.color, 0.0F);
-    m_forwardLighting.directionalLight.intensity = light.intensity;
+  auto pointLightTrackers = m_registry.view<izz::ecs::PointLightTracker>();
+  for (auto [e, tracker] : pointLightTrackers.each()) {
+    auto& pointLight = m_registry.get<izz::ecs::PointLight>(tracker.light);
+    auto& geometry = m_registry.get<izz::Geometry>(e);
+    auto& material = m_materialSystem.getMaterialById(geometry.materialId);
+    material.setVec4(tracker.color, glm::vec4(pointLight.color, 1.0));
+    material.setFloat(tracker.intensity, pointLight.intensity);
+    material.setFloat(tracker.radius, pointLight.radius);
   }
 
-  // -- Ambient lights ------------------------------
-  i = 0U;
-  for (auto e : ambientLights) {
-    if (i++ > numberOfAmbientLights) {
-      break;
-    }
-    auto& light = ambientLights.get<izz::ecs::AmbientLight>(e);
-    m_forwardLighting.ambientLight.color = glm::vec4(light.color, 0.0F);
-    m_forwardLighting.ambientLight.intensity = light.intensity;
+  auto spotLightTrackers = m_registry.view<izz::ecs::SpotLightTracker>();
+  for (auto [e, tracker] : spotLightTrackers.each()) {
+    auto& spotLight = m_registry.get<izz::ecs::SpotLight>(tracker.light);
+    auto& geometry = m_registry.get<izz::Geometry>(e);
+    auto& material = m_materialSystem.getMaterialById(geometry.materialId);
+    material.setVec4(tracker.color, glm::vec4(spotLight.color, 1.0));
+    material.setFloat(tracker.intensity, spotLight.intensity);
+    //    material.setFloat(tracker.radius, spotLight.radius);
   }
 
-  // -- Point lights ------------------------------
-  i = 0;
-  for (auto e : pointLights) {
-    if (i > numberOfPointLights) {
-      break;
-    }
-    const auto& light = pointLights.get<izz::ecs::PointLight>(e);
-    const auto& transform = pointLights.get<izz::ecs::Transform>(e);
-
-    auto& ubo = m_forwardLighting.pointLights[i++];
-    ubo.linearAttenuation = light.linearAttenuation;
-    ubo.quadraticAttenuation = light.quadraticAttenuation;
-    ubo.color = glm::vec4(light.color, 0.0F);
-    ubo.intensity = light.intensity;
-    ubo.position = transform.worldTransform[3];
-
-    // if the point light has a point light visualization
-    if (m_registry.all_of<izz::gl::Material>(e)) {
-      auto& material = m_registry.get<izz::gl::Material>(e);
-      updatePointLightVisualization(material, light);
-    }
+  auto directionalLightTrackers = m_registry.view<izz::ecs::DirectionalLightTracker>();
+  for (auto [e, tracker] : directionalLightTrackers.each()) {
+    auto& directionalLight = m_registry.get<izz::ecs::DirectionalLight>(tracker.light);
+    auto& geometry = m_registry.get<izz::Geometry>(e);
+    auto& material = m_materialSystem.getMaterialById(geometry.materialId);
+    material.setVec4(tracker.color, glm::vec4(directionalLight.color, 1.0));
+    material.setFloat(tracker.intensity, directionalLight.intensity);
+    //    material.setFloat(tracker.radius, directionalLight.radius);
   }
-
-  // -- spotlights - not supported yet -----------------------------
-  //  int i = 0;
-  //  for (auto e : spotlights) {
-  //    if (i > numberOfPointLights) {
-  //      break;
-  //    }
-  //    auto ptLight = pointLights.get<PointLight>(e);
-  //    auto& m = m_lighting.pointLights[i++];
-  //    m.attenuation = ptLight.attenuation;
-  //    m.color = ptLight.color;
-  //    m.intensity = ptLight.intensity;
-  //    m.position = ptLight.position;
-  //  }
 }

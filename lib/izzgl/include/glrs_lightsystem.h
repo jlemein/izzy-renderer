@@ -3,18 +3,45 @@
 #include <gl_renderable.h>
 #include <izzgl_material.h>
 #include <izzgl_materialsystem.h>
+#include <uniform_forwardlighting.h>
 #include <entt/entity/registry.hpp>
 #include <glm/glm.hpp>
 #include <memory>
 #include "ecs_light.h"
-#include <uniform_forwardlighting.h>
+#include "izzgl_entityfactory.h"
 
 namespace izz {
+class Izzy;
+
 namespace gl {
+
+class MeshSystem;
+class MaterialSystem;
 
 class LightSystem {
  public:
-  LightSystem(entt::registry& registry, std::shared_ptr<MaterialSystem> materialSystem);
+  LightSystem(entt::registry& registry, MaterialSystem& materialSystem, MeshSystem& meshSystem);
+
+  /**
+   * Called by entt, when a \see PointLightTracker is added.
+   * @param r The entt registry.
+   * @param e The entity.
+   */
+  void onPointLightTrackerAdded(entt::registry& r, entt::entity e);
+
+  /**
+   * Called by entt, when a \see DirectionalLightTracker is added.
+   * @param r The entt registry.
+   * @param e The entity.
+   */
+  void onDirectionalLightTrackerAdded(entt::registry& r, entt::entity e);
+
+  /**
+   * Called by entt, when a \see SpotLightTracker is added.
+   * @param r The entt registry.
+   * @param e The entity.
+   */
+  void onSpotLightTrackerAdded(entt::registry& r, entt::entity e);
 
   /**
    * Initialization method called after the scene is defined, but before the simulation loop is started.
@@ -23,7 +50,9 @@ class LightSystem {
    */
   void initialize();
 
-  void initLightingUbo(RenderState& r, const Material& material);
+  void setRenderSystem(izz::gl::RenderSystem& renderSystem);
+
+//  void initLightingUbo(RenderState& r, const Material& material);
   void updateLightProperties();
 
   /**
@@ -41,14 +70,20 @@ class LightSystem {
    */
   int getActiveLightCount() const;
 
+  MaterialId getLightMaterial() {
+    return m_lightMaterial;
+  }
+
  private:
   entt::registry& m_registry;
-  izz::ufm::ForwardLighting m_forwardLighting;
-
-  std::shared_ptr<MaterialSystem> m_materialSystem;
+  izz::gl::MaterialSystem& m_materialSystem;
+  izz::gl::MeshSystem& m_meshSystem;
+  std::unique_ptr<izz::EntityFactory> m_entityFactory {nullptr};
 
   /// default material that is assigned for entities with Mesh and PointLight.
-  int m_lightMaterial {-1};
+  MaterialId m_lightMaterial{MATERIAL_UNDEFINED};
+
+  void updatePointLightVisualization(MaterialId material, const izz::ecs::PointLight& pointLight);
 };
 
 }  // namespace gl

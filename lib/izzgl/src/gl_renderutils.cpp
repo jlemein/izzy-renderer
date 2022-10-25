@@ -10,7 +10,7 @@ using namespace izz;
 using namespace izz::gl;
 
 namespace {
-void loadUnscopedUniformParameters(const Material& material, RenderState& rs);
+//void loadUnscopedUniformParameters(const Material& material, RenderState& rs);
 int getUniformLocation(GLint program, const char* name, const std::string& materialName);
 }  // namespace
 constexpr void* BUFFER_OFFSET(unsigned int offset) {
@@ -448,7 +448,7 @@ void RenderUtils::FillBufferedMeshData(const izz::geo::Curve& curve, MeshBuffer&
 //      pUniform++;
 //    }
 //  } catch (std::exception& e) {
-//    //    auto name = m_registry.all_of<lsw::ecs::Name>(entity) ? m_registry.get<lsw::ecs::Name>(entity).name : "Unnamed";
+//    //    auto name = m_registry.all_of<lsw::izz::Name>(entity) ? m_registry.get<lsw::izz::Name>(entity).name : "Unnamed";
 //    throw std::runtime_error(fmt::format("Failed loading material: {}", e.what()));
 //  }
 //}

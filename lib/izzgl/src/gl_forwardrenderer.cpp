@@ -9,9 +9,8 @@
 #include <izzgl_error.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_meshsystem.h>
-#include "ecs_camera.h"
-#include "ecs_name.h"
-#include "geo_mesh.h"
+#include <ecs_camera.h>
+#include <geo_mesh.h>
 using namespace izz::gl;
 
 ForwardRenderer::ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem,
@@ -25,22 +24,22 @@ ForwardRenderer::ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem,
 }
 
 void ForwardRenderer::onEntityCreate(SceneGraphEntity& e) {
-  auto& renderable = e.get<gl::Renderable>();
+  auto& renderable = e.get<izz::Geometry>();
 
   const auto& material = m_materialSystem->getMaterialById(renderable.materialId);
-  e.add(ForwardRenderable{.materialId = renderable.materialId, .meshBufferId = renderable.meshBufferId, .blendMode = material.blendMode});
+  e.add(ForwardRenderable{.materialId = renderable.materialId, .vertexBufferId = renderable.vertexBufferId, .blendMode = material.blendMode});
 }
 
 void ForwardRenderer::onConstruct(entt::registry& registry, entt::entity e) {
   // if forward renderable entity has no renderable component, then it will be added.
   // we need the renderable for the common rendering functionalities (such as mvp updates).
-  if (!m_registry.all_of<gl::Renderable>(e)) {
-    auto name = m_registry.try_get<ecs::Name>(e);
+  if (!m_registry.all_of<izz::Geometry>(e)) {
+    auto name = m_registry.try_get<izz::Name>(e);
     spdlog::info("ForwardRenderable component added to entity '{}'. Adding Renderable.", name ? name->name : "");
 
     auto forwardRenderable = m_registry.get<gl::ForwardRenderable>(e);
-    auto renderable = gl::Renderable{.materialId = forwardRenderable.materialId, .meshBufferId = forwardRenderable.meshBufferId};
-    m_registry.emplace<gl::Renderable>(e, renderable);
+    auto renderable = izz::Geometry{.materialId = forwardRenderable.materialId, .vertexBufferId = forwardRenderable.vertexBufferId};
+    m_registry.emplace<izz::Geometry>(e, renderable);
   }
 }
 
@@ -84,7 +83,7 @@ void ForwardRenderer::renderOpaqueObjects(const entt::registry& registry) {
       IZZ_STAT_COUNT(OPAQUE_OBJECTS)
 
       auto& mat = m_materialSystem->getMaterialById(forward.materialId);
-      const auto& mesh = m_meshSystem->getMeshBuffer(forward.meshBufferId);
+      const auto& mesh = m_meshSystem->getMeshBuffer(forward.vertexBufferId);
 
       m_materialSystem->updateUniformsForEntity(e, mat);
 

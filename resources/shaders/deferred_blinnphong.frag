@@ -36,6 +36,6 @@ void main()
     gbuffer_normal = vec4(TBN * normal, 0);
 
     vec4 material_color = texture(albedoMap, in_uv);
-    material_color.w = 0.0;
+    material_color.w = 1.0; // material_color.w
     gbuffer_albedospec = material_color;
 }

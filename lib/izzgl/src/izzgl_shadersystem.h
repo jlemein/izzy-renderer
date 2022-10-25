@@ -11,6 +11,10 @@ namespace gl {
 
 using CompileConstants = izz::geo::Capabilities;
 
+struct ShaderContext {
+  std::unordered_map<std::string, std::vector<std::string>> m_includes;
+};
+
 class ShaderCompiler {
 public:
     using Program = GLint;

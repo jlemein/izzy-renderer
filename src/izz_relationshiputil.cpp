@@ -1,6 +1,6 @@
-#include <ecs_relationshiputil.h>
-#include <ecs_relationship.h>
-using namespace izz::ecs;
+#include <izz_relationshiputil.h>
+#include <izz_relationship.h>
+using namespace izz;
 
 void RelationshipUtil::MakeChild(entt::registry& registry, entt::entity parent, entt::entity child) {
   if (!registry.all_of<Relationship>(parent)) {

@@ -5,10 +5,8 @@
 #include <imgui.h>
 #include <izzgl_materialsystem.h>
 #include <spdlog/spdlog.h>
-#include "ecs_name.h"
-#include "gl_renderable.h"
-#include "izzgl_entityfactory.h"
-#include "izzgl_material.h"
+#include <izzgl_entityfactory.h>
+#include <izzgl_material.h>
 using namespace izz::gui;
 
 static bool p_open{false};

@@ -45,26 +45,25 @@ class Izzy {
   std::shared_ptr<izz::gl::SceneLoader> sceneLoader{nullptr};
   std::shared_ptr<izz::EntityFactory> entityFactory{nullptr};
   std::shared_ptr<izz::FontSystem> fontSystem{nullptr};  // @todo make part of izz::gui
+  std::shared_ptr<izz::gl::LightSystem> lightSystem {nullptr};
 
   static std::shared_ptr<Izzy> CreateSystems() {
     auto izz = std::make_shared<Izzy>();
     izz->guiSystem = std::make_shared<izz::gui::GuiSystem>();
-
     izz->resourceManager = std::make_shared<izz::ResourceManager>();
-
     izz->textureSystem = std::make_shared<izz::gl::TextureSystem>();
     izz->textureSystem->setTextureLoader(".exr", std::make_unique<izz::gl::ExrLoader>(true));
     izz->textureSystem->setTextureLoader(izz::gl::ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<izz::gl::StbTextureLoader>(true));
     izz->resourceManager->setTextureSystem(izz->textureSystem);
-
     izz->materialSystem = std::make_shared<izz::gl::MaterialSystem>(izz->registry, izz->resourceManager);
     izz->meshSystem = std::make_shared<izz::gl::MeshSystem>();
     izz->resourceManager->setMaterialSystem(izz->materialSystem);
+    izz->lightSystem = std::make_shared<izz::gl::LightSystem>(izz->registry, *izz->materialSystem, *izz->meshSystem);
     izz->renderSystem =
-        std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->resourceManager, izz->materialSystem, izz->textureSystem, izz->meshSystem);
-
-    izz->entityFactory = std::make_shared<izz::EntityFactory>(izz->registry, izz->renderSystem, izz->materialSystem, izz->meshSystem);
-
+        std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->resourceManager, izz->materialSystem, izz->textureSystem, izz->meshSystem,
+                                                izz->lightSystem);
+    izz->lightSystem->setRenderSystem(*izz->renderSystem);
+    izz->entityFactory = std::make_shared<izz::EntityFactory>(izz->registry, *izz->renderSystem, *izz->materialSystem, *izz->meshSystem);
     izz->sceneLoader = std::make_shared<izz::gl::SceneLoader>(izz->textureSystem, izz->materialSystem);
     izz->resourceManager->setSceneLoader(izz->sceneLoader);
 

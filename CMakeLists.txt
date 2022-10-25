@@ -26,17 +26,31 @@ list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 set(CMAKE_CXX_STANDARD 20)
 
 add_library(izzy STATIC
-        lib/izzgl/include/izz_resourcemanager.h
         include/anim_animationsystem.h
         include/anim_localrotation.h
+        include/izz.h
+        include/izz_debug.h
+        include/izz_debugmodel.h
+        include/izz_debugshapefactory.h
+        include/izz_debugsystem.h
         include/izz_fontsystem.h
-        src/izz_animationsystem.cpp
-        src/izz_fontsystem.cpp
+        include/izz_izzy.h
+        include/izz_relationship.h
+        include/izz_relationshiputil.h
+        include/izz_renderablecomponentfactory.h
+        include/izz_scenecompositionsystem.h
         include/izz_scenegraphentity.h
+        include/izz_statcounter.h
+        include/izz_util.h
+        lib/izzgl/include/izz_resourcemanager.h
+        src/izz_animationsystem.cpp
+        src/izz_debugshapefactory.cpp
+        src/izz_debugsystem.cpp
+        src/izz_fontsystem.cpp
+        src/izz_relationshiputil.cpp
         src/izz_scenegraphentity.cpp
         src/izz_statcounter.cpp
-        include/izz_scenecompositionsystem.h
-        include/izz_renderablecomponentfactory.h)
+        )
 
 target_include_directories(izzy
         PUBLIC include
@@ -52,7 +66,7 @@ find_package(OpenEXR REQUIRED)
 
 target_link_libraries(izzy
         PUBLIC
-        geo izzgl
+        geo izzgl izz-gui
         PRIVATE
          ecs
         workspace

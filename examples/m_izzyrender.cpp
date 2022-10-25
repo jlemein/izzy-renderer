@@ -125,11 +125,11 @@ void setupScene() {
 
   {
     // adding a custom primitive to the scene
-    auto plane = izzy->entityFactory->makeMoveableEntity("Plane");
+    auto plane = izzy->entityFactory->makeMovableEntity("Plane");
     auto planePrimitive = PrimitiveFactory::MakePlane("MyPlane", 15, 15);
     ecs::TransformUtil::Translate(plane.getTransform(), glm::vec3(0.0, -1.0, 0.0));
     auto& mesh = plane.add<Mesh>(planePrimitive);
-    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
     auto& material = izzy->materialSystem->createMaterial("table_cloth");
     mesh.materialId = material.id;
     auto& dr = plane.add<gl::ForwardRenderable>({material.id, meshBuffer.id, false, BlendMode::OPAQUE});
@@ -168,10 +168,10 @@ int main(int argc, char* argv[]) {
     izzy = Izzy::CreateSystems();
 
     // window should be initialized before calling systems' functions
-    auto window = make_shared<gui::Window>(izzy->getRegistry(), izzy->renderSystem, izzy->guiSystem);  // guiSystem);
+    auto window = make_shared<gui::Window>(*izzy);  // guiSystem);
     window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
-    window->initialize();
+    window->initializeContext();
 
     // setup camera
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
@@ -186,6 +186,7 @@ int main(int argc, char* argv[]) {
 
     setupScene();
     setupLights();
+    window->initialize();
 
     // visualize point lights using a custom material.
     izzy->renderSystem->getLightSystem().setDefaultPointLightMaterial(izzy->materialSystem->createMaterial("pointlight").id);

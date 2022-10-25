@@ -15,6 +15,7 @@
 #include <GLFW/glfw3.h>
 
 namespace izz {
+class Izzy;
 
 namespace anim {
 class AnimationSystem;
@@ -23,20 +24,18 @@ class AnimationSystem;
 namespace ecs {
 class TransformSystem;
 class CameraSystem;
-class DebugSystem;
-class IViewerExtension;
 }  // namespace ecs
 
 namespace io {
 class InputSystem;
 }  // namespace io
-}  // namespace lsw
 
-namespace izz {
-class ResourceManager;
 namespace gl {
 class RenderSystem;
 }
+
+class ResourceManager;
+class DebugSystem;
 class EntityFactory;
 
 namespace gui {
@@ -54,16 +53,11 @@ struct DisplayDetails {
 
 class Window {
  public:
-  typedef entt::registry SceneGraph;
-
   /**!
    * A viewer needs a scene graph and a resource manager to operate.
-   * @param sceneGraph Contains the scene composition to render.
-   * @param resourceManager Used to deallocate objects. (possible viewer does
-   * not need this data).
+   * @param izzy Collection of systems of izzy.
    */
-  Window(entt::registry& registry, std::shared_ptr<gl::RenderSystem> renderSystem,
-         std::shared_ptr<gui::GuiSystem> guiSystem = nullptr);
+  Window(izz::Izzy& izzy);
 
   ~Window();
 
@@ -71,6 +65,10 @@ class Window {
 
   DisplayDetails getDisplayDetails();
 
+  /**
+   * Initializes the windowing system, so that there
+   */
+  void initializeContext();
   void initialize();
   int run();
 
@@ -82,7 +80,7 @@ class Window {
 
  private:
   std::shared_ptr<izz::EntityFactory> m_sceneGraph;
-  std::shared_ptr<izz::ResourceManager> m_resourceManager;
+  std::shared_ptr<izz::ResourceManager> m_resourceManager{nullptr};
   std::shared_ptr<gui::GuiSystem> m_guiSystem{nullptr};
   std::shared_ptr<izz::anim::AnimationSystem> m_animationSystem;
   entt::registry& m_registry;
@@ -90,7 +88,7 @@ class Window {
   std::shared_ptr<gl::RenderSystem> m_renderSystem;
   std::shared_ptr<izz::ecs::TransformSystem> m_transformSystem;
   std::shared_ptr<izz::ecs::CameraSystem> m_cameraSystem;
-//  std::shared_ptr<lsw::ecs::DebugSystem> m_debugSystem;
+  std::shared_ptr<izz::DebugSystem> m_debugSystem;
   std::shared_ptr<izz::io::InputSystem> m_inputSystem;
   std::shared_ptr<izz::ecs::FirstPersonMovementSystem> m_firstPersonSystem;
 

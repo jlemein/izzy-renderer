@@ -3,18 +3,19 @@
 //
 #pragma once
 
-#include <ecs_debugsystem.h>
 #include <gl_renderable.h>
 #include <memory>
+#include <izz_debugsystem.h>
 
 #include <gl_deferredrenderer.h>
 #include <gl_forwardrenderer.h>
 #include <gl_multipassframebuffer.h>
 #include <glrs_lightsystem.h>
 #include <entt/fwd.hpp>
-#include "gl_hdrframebuffer.h"
-#include "izzgl_meshsystem.h"
-#include "izzgl_texture.h"
+#include <gl_hdrframebuffer.h>
+#include <izzgl_meshsystem.h>
+#include <izzgl_texture.h>
+#include <izzgl_renderstrategy.h>
 
 namespace izz {
 class ResourceManager;
@@ -24,8 +25,6 @@ class TextureSystem;
 class LightSystem;
 class ShaderCompiler;
 struct Texture;
-
-enum class RenderStrategy { UNDEFINED = 0, FORWARD, DEFERRED };
 
 /**!
  * Render system that interacts with the GPU using OpenGL.
@@ -42,7 +41,8 @@ class RenderSystem : public IRenderCapabilitySelector {
    */
   RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
                std::shared_ptr<TextureSystem> textureSystem,
-               std::shared_ptr<izz::gl::MeshSystem> meshSystem);
+               std::shared_ptr<izz::gl::MeshSystem> meshSystem,
+               std::shared_ptr<izz::gl::LightSystem> lightSystem);
 
   /**
    * Traverses the scene graph and creates corresponding objects in the render system so that the entities can be rendered.

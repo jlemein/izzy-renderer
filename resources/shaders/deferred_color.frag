@@ -25,13 +25,6 @@ layout(location = 3) in vec3 in_tangent;
 
 void main()
 {
-    // create TBN matrix (tangent to world space)
-    // needed to map the normal map data (in tangent space) to world space.
-    vec3 T = normalize(in_tangent);
-    vec3 N = normalize(in_normal);
-    vec3 B = cross(T, N);
-    mat3 TBN = transpose(mat3(T, B, N));
-
     gbuffer_position = vec4(in_position, 1);
     gbuffer_normal = vec4(N, 0);
     gbuffer_albedospec = albedo_specularity;

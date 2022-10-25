@@ -1,13 +1,12 @@
 //
 // Created by jlemein on 01-02-21.
 //
-#include "izz_scenegraphentity.h"
-#include "ecs_name.h"
-#include "ecs_relationshiputil.h"
-#include "ecs_transform.h"
-#include "ecs_transformutil.h"
+#include <izz.h>
+#include <ecs_transform.h>
+#include <ecs_transformutil.h>
+#include <izz_scenegraphentity.h>
+#include <izz_relationshiputil.h>
 using namespace izz;
-using namespace izz::ecs;
 
 SceneGraphEntity::SceneGraphEntity(entt::registry& registry, entt::entity handle)
   : m_registry{registry}
@@ -30,19 +29,19 @@ void SceneGraphEntity::setName(std::string name) {
 }
 
 glm::mat4& SceneGraphEntity::getTransform() {
-  return m_registry.get<Transform>(m_handle).localTransform;
+  return m_registry.get<ecs::Transform>(m_handle).localTransform;
 }
 
 const glm::mat4& SceneGraphEntity::getTransform() const {
-  return m_registry.get<Transform>(m_handle).localTransform;
+  return m_registry.get<ecs::Transform>(m_handle).localTransform;
 }
 
 void SceneGraphEntity::setTransform(const glm::mat4& transform) {
-  m_registry.get<Transform>(m_handle).localTransform = transform;
+  m_registry.get<ecs::Transform>(m_handle).localTransform = transform;
 }
 
 void SceneGraphEntity::translate(const glm::vec3& translate) {
-  TransformUtil::Translate(this->get<Transform>(), translate);
+  ecs::TransformUtil::Translate(this->get<ecs::Transform>(), translate);
 }
 
 void SceneGraphEntity::addChild(SceneGraphEntity child) {
