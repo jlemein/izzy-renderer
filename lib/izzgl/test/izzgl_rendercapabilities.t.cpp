@@ -4,29 +4,30 @@
 #include <gtest/gtest.h>
 #include <boost/functional/hash.hpp>
 #include "geo_capabilities.h"
-using namespace izz::gl;
+#include <izzgl_irendercapabilityselector.h>
+using namespace izz;
 
 class RenderCapabilitiesTest : public testing::Test {
  public:
 };
 
 TEST_F(RenderCapabilitiesTest, Given_SameRenderCapabilities_When_ComputeHash_Then_ShouldHaveSameHash) {
-  Capabilities cap1;
+  geo::Capabilities cap1;
   cap1.flags.insert("Hello");
   cap1.flags.insert("Bye");
 
-  Capabilities cap2;
+  geo::Capabilities cap2;
   cap2.flags.insert("Bye");
   cap2.flags.insert("Hello");
 
-  auto hash1 = std::hash<RenderCapabilities>{}(cap1);
-  auto hash2 = std::hash<RenderCapabilities>{}(cap2);
+  auto hash1 = std::hash<gl::RenderCapabilities>{}(cap1);
+  auto hash2 = std::hash<gl::RenderCapabilities>{}(cap2);
   EXPECT_EQ(hash1, hash2) << "Hash values should match.";
   EXPECT_TRUE(cap1 == cap2);
 }
 
 TEST_F(RenderCapabilitiesTest, Give_DifferentCapabilities_When_CompareHash_Then_ShouldBeDifferent) {
-  Capabilities cap1, cap2;
+  geo::Capabilities cap1, cap2;
   cap1.flags.insert("A");
   cap1.flags.insert("B");
   cap1.settings["time"] = "12:00";
@@ -35,14 +36,14 @@ TEST_F(RenderCapabilitiesTest, Give_DifferentCapabilities_When_CompareHash_Then_
   cap2 = cap1;
   cap2.flags.erase("A");
 
-  auto hash1 = std::hash<RenderCapabilities>{}(cap1);
-  auto hash2 = std::hash<RenderCapabilities>{}(cap2);
+  auto hash1 = std::hash<gl::RenderCapabilities>{}(cap1);
+  auto hash2 = std::hash<gl::RenderCapabilities>{}(cap2);
   EXPECT_NE(hash1, hash2) << "Hash values should be different.";
   EXPECT_FALSE(cap1 == cap2);
 }
 
 TEST_F(RenderCapabilitiesTest, Give_TwoCapabilities_When_Merging_Then_ShouldHaveMergedCapabilities) {
-  Capabilities cap1, cap2;
+  geo::Capabilities cap1, cap2;
   cap1.flags.insert("A");
   cap1.flags.insert("B");
   cap1.settings["time"] = "12:00";

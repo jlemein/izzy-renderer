@@ -4,6 +4,7 @@
 #include <fmt/format.h>
 #include <izzgl_materialreader.h>
 #include <izzgl_materialsystem.h>
+#include <izzgl_shadersystem.h>
 #include <spdlog/spdlog.h>
 #include <fstream>
 #include <nlohmann/json.hpp>
@@ -45,6 +46,25 @@ void MaterialReader::readMaterials(std::filesystem::path path) {
 
   nlohmann::json j;
   input >> j;
+
+  // shader root decides from where relative paths are resolved.
+  std::filesystem::path shaderRoot = "/";
+  if (path.is_absolute()) {
+    shaderRoot = path.parent_path();
+  } else {
+    shaderRoot = std::filesystem::current_path() / path.parent_path();
+  }
+
+  if (j.contains("shader_root")) {
+    std::filesystem::path p = j["shader_root"].get<std::string>();
+    if (p.is_absolute()) {
+      shaderRoot = p;
+    } else {
+      shaderRoot += j["shader_root"].get<std::string>();
+    }
+  }
+  spdlog::info("Shader root is: {}", shaderRoot.c_str());
+  m_materialSystem->setShaderRootDirectory(shaderRoot);
 
   readMaterialDefinitions(path.parent_path(), j);
   readMaterialInstances(j);

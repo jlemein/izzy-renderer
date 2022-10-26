@@ -17,7 +17,7 @@
 namespace izz {
 class ResourceManager;
 namespace gl {
-
+class ShaderCompiler;
 class RenderSystem;
 
 /// @brief information about shader variant.
@@ -45,6 +45,8 @@ class MaterialSystem {
   MaterialSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager);
 
   virtual ~MaterialSystem() = default;
+
+  void init();
 
   /**
    * Registers a material template to the material system.
@@ -86,6 +88,12 @@ class MaterialSystem {
    * @throws std::runtime_error if no material can be found with the specified material id.
    */
   Material& getMaterialById(int materialId);
+
+  /**
+   * Returns the shader compiler responsible for compiling GLSL shaders.
+   * @returns a reference to the shader compiler.
+   */
+  ShaderCompiler& getShaderCompiler();
 
   /**
    * Every frame this method is called to let the material system update it's shader parameters.
@@ -139,6 +147,8 @@ class MaterialSystem {
 
   void updateUniformsForEntity(entt::entity e, Material& material);
 
+  void setShaderRootDirectory(std::filesystem::path shaderRoot);
+
 
  private:
   /**
@@ -162,8 +172,11 @@ class MaterialSystem {
   UniformBuffer createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& material);
 
   entt::registry& m_registry;
-  std::shared_ptr<izz::ResourceManager> m_resourceManager;
+  std::shared_ptr<izz::ResourceManager> m_resourceManager {nullptr};
+  std::shared_ptr<izz::gl::ShaderCompiler> m_shaderCompiler {nullptr};
+
   std::string m_defaultMaterialTemplateName{""};
+  std::filesystem::path m_shaderRootDirectory = "/";
   const IRenderCapabilitySelector* m_capabilitySelector {nullptr};
 
   /// the registered uniform buffers

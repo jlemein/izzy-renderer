@@ -6,8 +6,8 @@ uniform DebugProperties {
     vec4 color;
 };
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out vec4 out_color;
 
 void main() {
-    outColor = color;
+    out_color = color;
 }

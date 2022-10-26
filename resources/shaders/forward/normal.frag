@@ -11,8 +11,8 @@ uniform UniformBufferBlock {
 
 layout(location = 0) in vec4 in_normal;
 
-layout(location = 0) out vec4 outColor;
+layout(location = 0) out vec4 out_color;
 
 void main() {
-    outColor = normalize(in_normal);
+    out_color = normalize(in_normal);
 }
