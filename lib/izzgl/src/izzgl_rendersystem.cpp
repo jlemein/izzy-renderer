@@ -8,13 +8,13 @@
 #include <ecs_light.h>
 #include <geo_mesh.h>
 #include <glrs_lightsystem.h>
-#include <izzgl_materialsystem.h>
-#include <izzgl_shadersystem.h>
-#include <spdlog/spdlog.h>
-#include <cstring>
 #include <izz_resourcemanager.h>
 #include <izzgl_material.h>
+#include <izzgl_materialsystem.h>
 #include <izzgl_texturesystem.h>
+#include <spdlog/spdlog.h>
+#include <cstring>
+#include "izzgl_shadersystem.h"
 using namespace izz;
 using namespace izz::gl;
 
@@ -47,7 +47,6 @@ RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::Resour
   , m_resourceManager{resourceManager}
   , m_materialSystem(materialSystem)
   , m_meshSystem{meshSystem}
-  , m_shaderSystem(std::make_shared<ShaderCompiler>())
   , m_lightSystem{lightSystem}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(materialSystem, textureSystem, meshSystem, registry)
   , m_deferredRenderer(materialSystem, meshSystem, registry) {

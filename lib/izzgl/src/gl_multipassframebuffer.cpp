@@ -3,9 +3,9 @@
 //
 //#include <glrs_common.h>
 #include <gl_multipassframebuffer.h>
-#include <izzgl_shadersystem.h>
 #include <iostream>
 #include <vector>
+#include "izzgl_shadersystem.h"
 using namespace izz;
 using namespace izz::gl;
 

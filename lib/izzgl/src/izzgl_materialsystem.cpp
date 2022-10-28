@@ -3,30 +3,30 @@
 //
 #include <izzgl_materialsystem.h>
 
-#include <izzgl_shadersystem.h>
 #include <izz_resourcemanager.h>
-#include <izzgl_entityfactory.h>
+#include <izzgl_shadersystem.h>
 #include <izzgl_textureloader.h>
 #include <izzgl_texturesystem.h>
 #include <uniform_constant.h>
+#include <uniform_debugproperties.h>
+#include <uniform_depthpeeling.h>
 #include <uniform_lambert.h>
 #include <uniform_parallax.h>
 #include <uniform_ubermaterial.h>
-#include <uniform_depthpeeling.h>
-#include <uniform_debugproperties.h>
 
 #include <spdlog/fmt/ostr.h>
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
+#include <geo_capabilities.h>
 #include <fstream>
 #include <memory>
+#include "izzgl_shadersource.h"
 #include "uniform_albedospecularity.h"
 #include "uniform_blinnphong.h"
 #include "uniform_blinnphongsimple.h"
 #include "uniform_deferredlighting.h"
 #include "uniform_mvp.h"
-#include <geo_capabilities.h>
 
 using json = nlohmann::json;
 
@@ -54,7 +54,8 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
 
 MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager)
   : m_registry{registry}
-  , m_resourceManager{resourceManager} {
+  , m_resourceManager{resourceManager}
+  , m_shaderCompiler{std::make_shared<ShaderCompiler>()} {
   // for now register the uniform blocks
   // these are the registered uniform blocks that the shaders can make use of.
   m_uniformBuffers[izz::ufm::Lambert::BUFFER_NAME] = std::make_unique<izz::ufm::LambertUniformManager>();
@@ -71,6 +72,10 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
   m_uniformBuffers[izz::ufm::DebugProperties::BUFFER_NAME] = std::make_unique<izz::ufm::DebugPropertiesUniform>();
 }
 
+void MaterialSystem::init() {
+  ShaderCompiler compiler;
+}
+
 void MaterialSystem::addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate) {
   m_materialTemplates[materialTemplate.name] = materialTemplate;
 }
@@ -81,8 +86,7 @@ UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferD
   if (m_uniformBuffers.count(bufferDescription.name) == 0) {
     throw std::runtime_error(
         fmt::format("Material '{}' is defined with a property '{}', but there is no uniform buffer defined for this property in the material system.",
-                    material.name,
-                    bufferDescription.name));
+                    material.name, bufferDescription.name));
   }
 
   // mark the buffer as being in use. If it already exists, this function does not insert again.
@@ -94,7 +98,7 @@ UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferD
   glGenBuffers(1, &ub.bufferId);
   glBindBuffer(GL_UNIFORM_BUFFER, ub.bufferId);
 
-  material.useProgram(); // might not be needed
+  material.useProgram();  // might not be needed
   ub.blockIndex = glGetUniformBlockIndex(material.programId, bufferDescription.name.c_str());
   if (ub.blockIndex == GL_INVALID_INDEX) {
     throw std::runtime_error(fmt::format("Could not find UBO with name {}", bufferDescription.name));
@@ -119,22 +123,29 @@ void MaterialSystem::setDefaultMaterial(const std::string& name) {
   }
 }
 
+void MaterialSystem::setShaderRootDirectory(std::filesystem::path shaderRoot) {
+  m_shaderRootDirectory = shaderRoot;
+}
+
 ShaderVariantInfo MaterialSystem::compileShader(const izz::geo::MaterialTemplate& materialTemplate) {
   ShaderVariantInfo info;
-  ShaderCompiler shaderCompiler;
+
+  ShaderContext context;
+  context.root = m_shaderRootDirectory;
 
   // before shader is compiled. set the render capabilities.
   // Capabilities are coming from two sources:
   //   * defined by the user, i.e. compile time constants set in the materials.json file.
   //   * defined by the render capabilities (in practice usually decided by the render system).
   for (auto& flag : materialTemplate.compileConstants.flags) {
-    shaderCompiler.enableCompileConstant(flag);
+    context.compileConstants.flags.insert(flag);
+//    m_shaderCompiler->enableCompileConstant(flag);
   }
 
   if (materialTemplate.isBinaryShader) {
-    info.programId = shaderCompiler.compileSpirvShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
+    info.programId = m_shaderCompiler->compileSpirvShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
   } else {
-    info.programId = shaderCompiler.compileShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
+    info.programId = m_shaderCompiler->compileShader(materialTemplate.vertexShader, materialTemplate.fragmentShader, &context);
   }
   spdlog::debug("Compilation shader '{}' success.", materialTemplate.name);
 
@@ -169,8 +180,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
       {izz::geo::PropertyType::BOOL, sizeof(GLint)},         {izz::geo::PropertyType::INT, sizeof(GLint)},
       {izz::geo::PropertyType::FLOAT, sizeof(GLfloat)},      {izz::geo::PropertyType::FLOAT4, 4 * sizeof(GLfloat)},
       {izz::geo::PropertyType::FLOAT3, 3 * sizeof(GLfloat)}, {izz::geo::PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
-      {izz::geo::PropertyType::INT_ARRAY, sizeof(GLint)}
-  };
+      {izz::geo::PropertyType::INT_ARRAY, sizeof(GLint)}};
 
   // allocate texture buffers based on texture descriptions.
   allocateTextureBuffers(material, materialTemplate.textures);
@@ -284,9 +294,9 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
 }
 
 Material& MaterialSystem::createMaterial(izz::geo::MaterialTemplate materialTemplate, std::string name) {
-//  return createMaterial(materialTemplate.name);
+  //  return createMaterial(materialTemplate.name);
   // copy material template, because compile constants may differ
-//  auto materialTemplate = getMaterialTemplate(meshMaterialName);
+  //  auto materialTemplate = getMaterialTemplate(meshMaterialName);
 
   // 1. Check material name for collisions.
   if (!name.empty() && m_createdMaterialNames.count(name) > 0) {
@@ -438,6 +448,10 @@ izz::gl::Material& MaterialSystem::getMaterialById(int materialId) {
   } catch (std::out_of_range&) {
     throw std::runtime_error(fmt::format("Could not find material with id {}", materialId));
   }
+}
+
+izz::gl::ShaderCompiler& MaterialSystem::getShaderCompiler() {
+  return *m_shaderCompiler;
 }
 
 void MaterialSystem::update(float dt, float time) {

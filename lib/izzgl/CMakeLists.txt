@@ -19,6 +19,7 @@ add_library(izzgl STATIC
         include/izzgl_meshsystem.h
         include/izzgl_rendersystem.h
         include/izzgl_sceneloader.h
+        include/izzgl_shadersource.h
         include/izzgl_stbtextureloader.h
         include/izzgl_texture.h
         include/izzgl_textureloader.h
@@ -52,8 +53,9 @@ add_library(izzgl STATIC
         src/izzgl_meshsystem.cpp
         src/izzgl_rendersystem.cpp
         src/izzgl_sceneloader.cpp
+        src/izzgl_shadersource.cpp
         src/izzgl_shadersystem.cpp
-        src/izzgl_shadersystem.h
+        include/izzgl_shadersystem.h
         src/izzgl_stbtextureloader.cpp
         src/izzgl_texturesystem.cpp
         src/uniform_ubermaterial.cpp
@@ -77,5 +79,7 @@ find_package(GLEW REQUIRED)
 add_executable(izzgl-test
 #        test/deferredrendersystem.t.cpp
         test/izzgl_rendercapabilities.t.cpp
-        test/izzgl_material.t.cpp)
+        test/izzgl_material.t.cpp
+        test/izzgl_shadercompiler.t.cpp
+        test/izzgl_shadercontext.t.cpp)
 target_link_libraries(izzgl-test PUBLIC gtest::gtest izzgl geo OpenGL::GL GLEW::GLEW)

@@ -1,5 +1,6 @@
 {
-  "default_material": "BlinnPhong",
+  "default_material": "BlinnPhongSimple",
+  "shader_root": "shaders",
   "material_instances": [
     {
       "name": "asphalt_001",
@@ -130,7 +131,7 @@
       "name": "BlinnPhongDeferred",
       "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/deferred_blinnphong.frag",
+      "fragment_shader": "shaders/deferred/deferred_blinnphong.frag",
       "properties":{
         "ModelViewProjection": {},
         "BlinnPhong": {
@@ -169,7 +170,7 @@
       "name": "DeferredLightingPass",
       "vertex_shader": "shaders/passthrough.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/deferred_lighting.frag",
+      "fragment_shader": "shaders/deferred/deferred_lighting.frag",
       "properties": {
         "DeferredLighting": {}
       },
@@ -181,23 +182,6 @@
           "type": "TEXTURE_2D"
         },
         "gbuffer_albedospec": {
-          "type": "TEXTURE_2D"
-        }
-      }
-    },
-    {
-      "name": "VisualizeGBuffer",
-      "vertex_shader": "shaders/experimental/deferred_visualize_gbuffer.vert",
-      "geometry_shader": "",
-      "fragment_shader": "shaders/experimental/deferred_visualize_gbuffer.frag",
-      "textures": {
-        "gbuffer_position": {
-          "type": "TEXTURE_2D"
-        },
-        "gbuffer_normal": {
-          "type": "TEXTURE_2D"
-        },
-        "gbuffer_albedo_spec": {
           "type": "TEXTURE_2D"
         }
       }
@@ -241,9 +225,9 @@
     },
     {
       "name": "ConstantLight",
-      "vertex_shader": "shaders/constantlight.vert",
+      "vertex_shader": "shaders/forward/constantlight.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/constantlight.frag",
+      "fragment_shader": "shaders/forward/constantlight.frag",
       "properties": {
         "ModelViewProjection": {},
         "ConstantLight": {
@@ -296,9 +280,9 @@
     },
     {
       "name": "BlinnPhongSimple",
-      "vertex_shader": "shaders/blinn-phong.vert",
+      "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/blinn-phong-simple.frag",
+      "fragment_shader": "shaders/forward/blinn-phong-simple.frag",
       "blendMode": "ALPHA_BLEND",
       "lighting": {
         "ubo_struct": "ForwardLighting",
@@ -344,7 +328,7 @@
       "name": "BlinnPhong",
       "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/blinn-phong.frag",
+      "fragment_shader": "shaders/forward/blinn-phong.frag",
       "lighting": {
         "ubo_struct": "ForwardLighting",
         "blend_mode": "Add"
@@ -379,7 +363,7 @@
       "name": "Diffuse",
       "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/diffuse.frag",
+      "fragment_shader": "shaders/forward/diffuse.frag",
       "properties": {
         "ModelViewProjection": {},
         "ForwardLighting": {}
