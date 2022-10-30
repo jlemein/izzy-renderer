@@ -1,15 +1,13 @@
 //
 // Created by jeffrey on 12-12-21.
 //
-#include <gui_materialeditor.h>
 #include <imgui.h>
-#include <izzgl_materialsystem.h>
-#include <spdlog/spdlog.h>
 #include <izzgl_entityfactory.h>
 #include <izzgl_material.h>
+#include <izzgl_materialsystem.h>
+#include <izzgui_materialeditor.h>
+#include <spdlog/spdlog.h>
 using namespace izz::gui;
-
-static bool p_open{false};
 
 static int activeTab = 0;
 static std::array<std::string, 2> tabs{"Materials", "Shaders"};
@@ -24,22 +22,9 @@ void MaterialEditor::init() {
 }
 
 void MaterialEditor::render(float time, float dt) {
-  static bool showEditor = false;
-  izz::gl::Material mat;
-
-  //  ImGui::Begin("TRYOUT");
-  //  ImGui::BeginChild("Hello", ImVec2(100, 100), false, ImGuiWindowFlags_NoMove);
-  //  ImGui::Button("Hello");
-  //  ImGui::SetWindowPos(ImVec2(0, 768 - ImGui::GetWindowHeight() - 40), true);
-  //  ImGui::EndChild();
-  //  ImGui::End();
-
-  if (m_show) {
-    if (ImGui::Begin("Material Editor", &m_show)) {
-
-
+  if (MaterialEditor::Show) {
+    if (ImGui::Begin(MaterialEditor::ID, &MaterialEditor::Show)) {
       // -- tabs ---
-
       for (int i=0; i<tabs.size(); ++i) {
         if (i==activeTab) {
           ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2F, 0.389F, 0.619F, 1));
@@ -64,7 +49,7 @@ void MaterialEditor::render(float time, float dt) {
       }
     }
 
-    ImGui::End();  // "Material Editor"
+    ImGui::End();
   }
 
   m_shaderEditor.render(dt, time);
@@ -93,11 +78,11 @@ void MaterialEditor::drawMaterialTable() {
     for (const auto& [id, material] : materials) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text(std::to_string(id).c_str());
+      ImGui::TextUnformatted(std::to_string(id).c_str());
 
       ImGui::TableNextColumn();
       ImGui::PushID(static_cast<int>(id));
-      ImGui::Text(material.name.c_str());
+      ImGui::TextUnformatted(material.name.c_str());
 
       ImGui::TableNextColumn();
       if (ImGui::Button("Edit")) {
@@ -128,29 +113,29 @@ void MaterialEditor::drawShaderProgramTable() {
     if (shaderPrograms.empty()) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("No programs to display");
+      ImGui::TextUnformatted("No programs to display");
     }
 
     for (const auto& [id, shader] : shaderPrograms) {
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text(std::to_string(id).c_str());
+      ImGui::TextUnformatted(std::to_string(id).c_str());
 
       ImGui::TableNextColumn();
-      ImGui::Text(shader.materialTemplateName.c_str());
+      ImGui::TextUnformatted(shader.materialTemplateName.c_str());
 
       auto materialTemplate = m_materialSystem->getMaterialTemplate(shader.materialTemplateName);
       ImGui::TableNextColumn();
-      ImGui::Text(materialTemplate.vertexShader.c_str());
+      ImGui::TextUnformatted(materialTemplate.vertexShader.c_str());
       ImGui::TableNextColumn();
-      ImGui::Text(materialTemplate.geometryShader.c_str());
+      ImGui::TextUnformatted(materialTemplate.geometryShader.c_str());
       ImGui::TableNextColumn();
-      ImGui::Text(materialTemplate.fragmentShader.c_str());
+      ImGui::TextUnformatted(materialTemplate.fragmentShader.c_str());
 
 
       ImGui::TableNextColumn();
       ImGui::PushID(static_cast<int>(id));
-      ImGui::Text(std::to_string(shader.numberOfInstances).c_str());
+      ImGui::TextUnformatted(std::to_string(shader.numberOfInstances).c_str());
 
       ImGui::TableNextColumn();
       if (ImGui::Button("Edit")) {
@@ -163,6 +148,10 @@ void MaterialEditor::drawShaderProgramTable() {
   }
 }
 
-void MaterialEditor::open() {
-  m_show = true;
+void MaterialEditor::Open() {
+  MaterialEditor::Show = true;
+}
+
+void MaterialEditor::Toggle() {
+  MaterialEditor::Show = !MaterialEditor::Show;
 }

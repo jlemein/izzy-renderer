@@ -4,7 +4,7 @@
   "material_instances": [
     {
       "name": "asphalt_001",
-      "material_definition": "BlinnPhongDeferred",
+      "inherit_from_material": "BlinnPhongDeferred",
       "properties": {
         "BlinnPhong.shininess": 32.0,
         "BlinnPhong.specular_color": [
@@ -20,8 +20,28 @@
       }
     },
     {
+      "name": "sphere.001",
+      "inherit_from_material": "BlinnPhongSimple",
+      "properties": {
+        "BlinnPhongSimple.shininess": 32.0,
+        "BlinnPhongSimple.albedo":[1.0, 0.0, 0.0, 1.0],
+        "BlinnPhongSimple.specular": [0.5, 0.0, 0.0, 0.0]
+      },
+      "blendMode": "OPAQUE"
+    },
+    {
+      "name": "sphere.002",
+      "inherit_from_material": "BlinnPhongSimple",
+      "properties": {
+        "BlinnPhongSimple.shininess": 32.0,
+        "BlinnPhongSimple.albedo":[1.0, 1.0, 1.0, 1.0],
+        "BlinnPhongSimple.specular": [0.5, 0.0, 0.0, 0.0]
+      },
+      "blendMode": "OPAQUE"
+    },
+    {
       "name": "tea_set_01",
-      "material_definition": "BlinnPhongDeferred",
+      "inherit_from_material": "BlinnPhongDeferred",
       "properties": {
         "BlinnPhong.shininess": 32.0,
         "BlinnPhong.specular_color": [
@@ -46,7 +66,7 @@
     },
     {
       "name": "brass_vase_001",
-      "material_definition": "BlinnPhong",
+      "inherit_from_material": "BlinnPhong",
       "properties": {
         "albedoMap": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg",
         "normalMap": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr",
@@ -61,7 +81,7 @@
     },
     {
       "name": "Barrel_01",
-      "material_definition": "BlinnPhong",
+      "inherit_from_material": "BlinnPhong",
       "properties": {
         "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
         "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
@@ -76,11 +96,11 @@
     },
     {
       "name": "table_cloth",
-      "material_definition": "Diffuse"
+      "inherit_from_material": "Diffuse"
     },
     {
       "name": "Barrel_01",
-      "material_definition": "BlinnPhong",
+      "inherit_from_material": "BlinnPhong",
       "properties": {
         "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
         "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
@@ -95,7 +115,7 @@
     },
     {
       "name": "pointlight",
-      "material_definition": "ConstantLight"
+      "inherit_from_material": "ConstantLight"
     }
   ],
   "materials": [
@@ -284,10 +304,7 @@
       "geometry_shader": "",
       "fragment_shader": "shaders/forward/blinn-phong-simple.frag",
       "blendMode": "ALPHA_BLEND",
-      "lighting": {
-        "ubo_struct": "ForwardLighting",
-        "blend_mode": "Add"
-      },
+      "lighting": {},
       "compileConstants": {},
       "properties": {
         "ModelViewProjection": {},

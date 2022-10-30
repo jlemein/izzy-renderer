@@ -1,13 +1,13 @@
 #pragma once
 
 #include <ecs_firstpersoncontrolsystem.h>
-#include <gui_iwindowextension.h>
+#include <izzgui_iwindowextension.h>
 
 #include <list>
 #include <memory>
 #include <string>
 
-#include <gui_guisystem.h>
+#include <izzgui_guisystem.h>
 #include <entt/entt.hpp>
 #include "izz_scenegraphentity.h"
 

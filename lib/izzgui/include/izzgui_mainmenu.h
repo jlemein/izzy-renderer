@@ -3,9 +3,11 @@
 //
 #pragma once
 
-#include <gui_iguiwindow.h>
+#include <izzgui_iguiwindow.h>
+#include <izzgui_materialeditor.h>
+#include <izzgui_materialinspector.h>
+#include <izzgui_scenenavigator.h>
 #include <memory>
-#include "gui_materialeditor.h"
 
 namespace izz {
 class Izzy;
@@ -21,8 +23,6 @@ class MainMenu : public IGuiWindow {
 
  private:
   std::shared_ptr<izz::EntityFactory> m_sceneGraph;
-
-  gui::MaterialEditor m_materialEditor;
 };
 }  // namespace gui
 }  // namespace izz

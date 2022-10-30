@@ -2,9 +2,9 @@
 // Created by jeffrey on 12-10-22.
 //
 #include <gtest/gtest.h>
-#include <boost/functional/hash.hpp>
-#include "geo_capabilities.h"
 #include <izzgl_irendercapabilityselector.h>
+#include <boost/functional/hash.hpp>
+#include <izz_capabilities.h>
 using namespace izz;
 
 class RenderCapabilitiesTest : public testing::Test {

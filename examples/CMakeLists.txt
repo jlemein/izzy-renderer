@@ -19,6 +19,10 @@ add_executable(izzyrender m_izzyrender.cpp)
 target_link_libraries(izzyrender PRIVATE izzy izzgl izz-gui common cxxopts::cxxopts)
 target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
 
+add_executable(pb_spheres m_pbspheres.cpp)
+target_link_libraries(pb_spheres PRIVATE izzy izzgl izz-gui common cxxopts::cxxopts)
+target_compile_definitions(pb_spheres PRIVATE -DVERSION_STR="1.0.0")
+
 add_executable(deferredrender m_deferredrender.cpp)
 target_link_libraries(deferredrender PUBLIC izzy izzgl izz-gui common cxxopts::cxxopts)
 target_compile_definitions(deferredrender PRIVATE -DVERSION_STR="1.0.0")

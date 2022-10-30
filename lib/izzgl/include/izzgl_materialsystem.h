@@ -52,7 +52,7 @@ class MaterialSystem {
    * Registers a material template to the material system.
    * @param materialTemplate The material template.
    */
-  void addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate);
+  void addMaterialTemplate(izz::MaterialTemplate materialTemplate);
 
   /**
    * Registers a uniform buffer identified by a
@@ -69,7 +69,7 @@ class MaterialSystem {
    * @param name                Name of the created material. Useful for visualization and debug/error messages.
    * @return a reference to a newly created material.
    */
-  Material& createMaterial(izz::geo::MaterialTemplate materialTemplate, std::string name = "");
+  Material& createMaterial(izz::MaterialTemplate materialTemplate, std::string name = "");
 
   /**
    * Creates a new material with it's own set of data.
@@ -78,7 +78,7 @@ class MaterialSystem {
    * @param instanceName        [in] Optional. Name of the material, useful for debugging and finding the material later on.
    * @return a reference to the created material.
    */
-  Material& createMaterial(std::string meshMaterialName, std::string instanceName = "");
+  Material& createMaterial(const std::string& meshMaterialName, std::string instanceName = "");
 
   /**
    * Retrieves a material from the materials in the scene, matching the specified material id.
@@ -141,9 +141,9 @@ class MaterialSystem {
    * @param materialTemplateName The name of a material template, or definition, which should be present in the materials.json file.
    * @returns a reference to the material template.
    */
-  const geo::MaterialTemplate& getMaterialTemplate(std::string materialTemplateName);
+  const izz::MaterialTemplate& getMaterialTemplate(std::string materialTemplateName);
 
-  const geo::MaterialTemplate& getMaterialTemplateFromMaterial(int materialId) const;
+  const izz::MaterialTemplate& getMaterialTemplateFromMaterial(int materialId) const;
 
   void updateUniformsForEntity(entt::entity e, Material& material);
 
@@ -157,11 +157,11 @@ class MaterialSystem {
    *
    * @throws std::runtime_error     If shader compilation fails.
    */
-  ShaderVariantInfo compileShader(const izz::geo::MaterialTemplate& materialTemplate);
+  ShaderVariantInfo compileShader(const izz::MaterialTemplate& materialTemplate);
 
-  void allocateBuffers(Material& material, const izz::geo::MaterialTemplate& materialTemplate);
+  void allocateBuffers(Material& material, const izz::MaterialTemplate& materialTemplate);
 
-  void allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::geo::TextureDescription>& textureDescriptions);
+  void allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::TextureDescription>& textureDescriptions);
 
   /**
    * Creates a uniform buffer, using the uniform buffer description for the specified material.
@@ -169,7 +169,7 @@ class MaterialSystem {
    * @param material material.
    * @return A pure uniform buffer data object. This buffer is used to send to the GPU.
    */
-  UniformBuffer createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& material);
+  UniformBuffer createUniformBuffer(const UniformBufferDescription& bufferDescription, const Material& material);
 
   entt::registry& m_registry;
   std::shared_ptr<izz::ResourceManager> m_resourceManager {nullptr};
@@ -186,7 +186,7 @@ class MaterialSystem {
   std::unordered_set<std::string> m_uniformBuffersInUse{};
 
   /// @brief Contains the material definitions that are loaded from file.
-  std::unordered_map<std::string, izz::geo::MaterialTemplate> m_materialTemplates;
+  std::unordered_map<std::string, izz::MaterialTemplate> m_materialTemplates;
 
   /// @brief Fbx specific material names are mapped to canonical material names that are defined in a material definition.
   std::unordered_map<std::string, std::string> m_materialMappings;

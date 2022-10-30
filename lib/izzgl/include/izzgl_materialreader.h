@@ -3,14 +3,12 @@
 //
 #pragma once
 
+#include <filesystem>
 #include <memory>
 #include <nlohmann/json_fwd.hpp>
-#include <filesystem>
 
 namespace izz {
-namespace geo {
-class MaterialTemplate;
-}
+struct MaterialTemplate;
 
 namespace gl {
 
@@ -37,13 +35,13 @@ class MaterialReader {
   void readMaterialDefinitions(const std::filesystem::path& parent_path, nlohmann::json& json);
   void readMaterialInstances(nlohmann::json& json);
 
-  void readCompileConstants(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json);
-  void readBlendState(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& json);
-  void readTextures(izz::geo::MaterialTemplate& materialTemplate, const nlohmann::json& j);
+  void readCompileConstants(izz::MaterialTemplate& materialTemplate, const nlohmann::json& json);
+  void readBlendState(izz::MaterialTemplate& materialTemplate, const nlohmann::json& json);
+  void readTextures(izz::MaterialTemplate& materialTemplate, const nlohmann::json& j);
 
   static inline const std::string KEY_COMPILE_CONSTANTS = "compileConstants";
 
-  std::shared_ptr<MaterialSystem> m_materialSystem {nullptr};
+  std::shared_ptr<MaterialSystem> m_materialSystem{nullptr};
 };
-}
-}
+}  // namespace gl
+}  // namespace izz

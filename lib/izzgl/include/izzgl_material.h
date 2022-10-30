@@ -18,7 +18,7 @@
 #include <string>
 #include <variant>
 #include <vector>
-#include "geo_materialtemplate.h"
+#include "izz_materialtemplate.h"
 
 namespace izz {
 namespace gl {
@@ -27,15 +27,16 @@ enum class UType : uint32_t { FLOAT, FLOAT2, FLOAT3, FLOAT4, FLOAT_ARRAY, BOOL, 
 
 class UniformProperty {
  public:
-  UniformProperty(GLint location = 0, unsigned char* data = nullptr, int length = 1)
+  UniformProperty(GLint location = 0, PropertyType type = PropertyType::UNDEFINED, unsigned char* data = nullptr, int length = 1)
     : m_location{location}
+    , m_dataType{type}
     , m_data{data}
     , m_length{length} {}
 
-  GLint m_location;  /// @brief the location of the uniform parameter in the GLSL shader.
-                     //  UType type;      /// @brief Type of the uniform property stored. @see UType.
-  void* m_data;      /// @brief Offset in the UnscopedUniforms::pData attribute where the value is stored. Offset is expressed in bytes (uint8_t).
-  int m_length;      /// @brief length of the property. This is expressed in number of elements (i.e. the length of the array irrespective of data type)
+  GLint m_location;         /// @brief the location of the uniform parameter in the GLSL shader.
+  PropertyType m_dataType;  /// @brief Type of the uniform property stored. @see UType.
+  void* m_data;             /// @brief Offset in the UnscopedUniforms::pData attribute where the value is stored. Offset is expressed in bytes (uint8_t).
+  int m_length;  /// @brief length of the property. This is expressed in number of elements (i.e. the length of the array irrespective of data type)
 };
 
 class UniformProperties {
@@ -75,6 +76,7 @@ class UniformProperties {
 
     UniformProperty* p = &m_properties[m_numProperties++];
     p->m_data = data;
+    p->m_dataType = PropertyType::BOOL;
     p->m_location = location;
     p->m_length = 1;
 
@@ -94,6 +96,7 @@ class UniformProperties {
 
     UniformProperty* p = &m_properties[m_numProperties++];
     p->m_data = data;
+    p->m_dataType = PropertyType::INT;
     p->m_location = location;
     p->m_length = 1;
 
@@ -113,6 +116,7 @@ class UniformProperties {
 
     UniformProperty* p = &m_properties[m_numProperties++];
     p->m_data = data;
+    p->m_dataType = PropertyType::FLOAT;
     p->m_location = location;
     p->m_length = 1;
 
@@ -132,6 +136,10 @@ class UniformProperties {
 
     UniformProperty* p = &m_properties[m_numProperties++];
     p->m_data = data;
+    p->m_dataType = PropertyType::INT_ARRAY;
+    if (values.size() <= 4) {
+      p->m_dataType = static_cast<PropertyType>(static_cast<int>(p->m_dataType) + values.size());
+    }
     p->m_location = location;
     p->m_length = static_cast<int>(values.size());
 
@@ -151,6 +159,10 @@ class UniformProperties {
 
     UniformProperty* p = &m_properties[m_numProperties++];
     p->m_data = data;
+    p->m_dataType = PropertyType::FLOAT_ARRAY;
+    if (values.size() <= 4) {
+      p->m_dataType = static_cast<PropertyType>(static_cast<int>(p->m_dataType) + values.size());
+    }
     p->m_location = location;
     p->m_length = static_cast<int>(values.size());
 
@@ -239,9 +251,9 @@ class Material {
     }
   }
 
-  void setTexture(izz::geo::TextureHint map, Texture* texture) {
+  void setTexture(TextureHint map, Texture* texture) {
     try {
-      auto parameterName = izz::geo::TEXTURE_MAP_NAMES.at(map);
+      auto parameterName = TEXTURE_MAP_NAMES.at(map);
       setTexture(parameterName, texture);
     } catch (std::out_of_range e) {
       throw std::runtime_error("Failed to set texture using provided texture hint. Could not find a mapped parameter name.");
@@ -270,11 +282,10 @@ class Material {
    * @tparam T Uniform buffer type. This type should have a static BUFFER_NAME attribute.
    * @return a raw pointer to uniform buffer data, corresponding to type T*.
    */
-  template<typename T>
+  template <typename T>
   inline T* getUniformBuffer() {
     return reinterpret_cast<T*>(uniformBuffers.at(T::BUFFER_NAME).data);
   }
-
 
   LightingInfo lighting;
 
@@ -289,8 +300,8 @@ class Material {
 
   // ==== PART OF MATERIAL DEFINITION ======================
   MaterialId id{-1};
-  std::string name;
-  izz::geo::BlendMode blendMode { izz::geo::BlendMode::OPAQUE };
+  std::string name; /// @brief Unique name, by default consisting of <material_name>_<instance_id>
+  BlendMode blendMode{BlendMode::OPAQUE};
 
   /// @brief Globally declared uniforms. These are uniforms that are defined outside any interface block.
   /// It's not recommended to use many global uniforms. Use uniform buffers instead.
@@ -302,7 +313,7 @@ class Material {
   std::unordered_map<std::string, UniformBuffer> uniformBuffers{};
 
   // contains map from name to property type
-  std::unordered_map<std::string, izz::geo::PropertyType> propertyTypes;
+  std::unordered_map<std::string, PropertyType> propertyTypes;
 
   std::filesystem::path diffuseTexturePath{""};
   std::filesystem::path specularTexturePath{""};
@@ -315,7 +326,7 @@ class Material {
   int programId{0};  /// @brief Program id as obtained via glCreateProgram()
   std::unordered_map<std::string, izz::gl::TextureBuffer> textures{};
 
-//  std::unordered_map<std::string, izz::gl::IUniformBuffer*> perEntityUniforms{};
+  //  std::unordered_map<std::string, izz::gl::IUniformBuffer*> perEntityUniforms{};
 
   template <typename T>
   void setProperty(const T& data) {
@@ -416,7 +427,6 @@ class Material {
   bool getUniformBool(std::string name) const {
     return static_cast<bool>(getUniformInt(name));
   }
-
 
   float& getUniformFloat(std::string name) const {
     if (m_allUniforms.count(name) > 0) {

@@ -4,16 +4,16 @@
 #pragma once
 
 #include <GL/glew.h>
-#include <geo_capabilities.h>
 #include <filesystem>
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "izz_capabilities.h"
 
 namespace izz {
 namespace gl {
 
-using CompileConstants = izz::geo::Capabilities;
+using CompileConstants = Capabilities;
 using BinaryShaderData = std::vector<char>;
 using SourceCode = std::vector<const char*>;
 using SourceCodeLineLength = std::vector<int>;
@@ -29,12 +29,12 @@ struct ShaderContext {
                                       /// whenever a call to \see resolveContext is made.
 
   /**
-   * Resolves a path given a context object. The context object contains a root directory which is used to offset the provided path argument.
-   * @param path The path to modify, given the shader context.
+   * Resolves a provided path given a context object. The context object contains a root directory which is used to offset the provided path argument.
+   * @param path The input path to resolve, given the shader context.
    * @param context The shader context.
-   * @return The path with the context taken into account. If no context is specified, the path is unaltered.
+   * @return The path with the context taken into account. If no context is specified, the same path is returned as provided as input.
    */
-  static std::filesystem::path ResolvePath(std::filesystem::path& path, ShaderContext* context);
+  static std::filesystem::path ResolvePath(std::filesystem::path path, ShaderContext* context);
 };
 
 /**

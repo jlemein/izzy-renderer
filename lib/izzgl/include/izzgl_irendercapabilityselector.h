@@ -3,16 +3,15 @@
 //
 #pragma once
 
-#include <geo_capabilities.h>
+#include "izz_capabilities.h"
 
 namespace izz {
-namespace geo {
+
 class MaterialTemplate;
-}
 
 namespace gl {
 
-using RenderCapabilities = izz::geo::Capabilities;
+using RenderCapabilities = Capabilities;
 
 /**
  * Abstract interface for a feature selector. A capability selector decides which features to
@@ -31,7 +30,7 @@ class IRenderCapabilitySelector {
    * to use
    * @param materialTemplate
    */
-  virtual RenderCapabilities selectRenderCapabilities(const izz::geo::MaterialTemplate& materialTemplate) const = 0;
+  virtual RenderCapabilities selectRenderCapabilities(const izz::MaterialTemplate& materialTemplate) const = 0;
 };
 
 }  // namespace gl

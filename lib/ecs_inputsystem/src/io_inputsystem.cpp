@@ -10,8 +10,9 @@
 using namespace izz::io;
 
 namespace {
-std::unordered_map<Key, int> toGlfwKey = {
-    {Key::kESCAPE, GLFW_KEY_ESCAPE}, {Key::kSPACEBAR, GLFW_KEY_SPACE}, {Key::kLEFT_SHIFT, GLFW_KEY_LEFT_SHIFT}, {Key::kRIGHT_SHIFT, GLFW_KEY_RIGHT_SHIFT}};
+std::unordered_map<Key, int> toGlfwKey = {{Key::kESCAPE, GLFW_KEY_ESCAPE},         {Key::kSPACEBAR, GLFW_KEY_SPACE},
+                                          {Key::kLEFT_SHIFT, GLFW_KEY_LEFT_SHIFT}, {Key::kRIGHT_SHIFT, GLFW_KEY_RIGHT_SHIFT},
+                                          {Key::kLEFT_ALT, GLFW_KEY_LEFT_ALT},     {Key::kLEFT_CONTROL, GLFW_KEY_LEFT_CONTROL}};
 }
 
 InputSystem::InputSystem(GLFWwindow* window, int width, int height)

@@ -13,8 +13,8 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
-//  2021-01-03: OpenGL: Backup, setup and restore GL_STENCIL_TEST state.
-//  2020-10-23: OpenGL: Backup, setup and restore GL_PRIMITIVE_RESTART state.
+//  2021-01-03: OpenGL: Backup, onBeginFrame and restore GL_STENCIL_TEST state.
+//  2020-10-23: OpenGL: Backup, onBeginFrame and restore GL_PRIMITIVE_RESTART state.
 //  2020-10-15: OpenGL: Use glGetString(GL_VERSION) instead of glGetIntegerv(GL_MAJOR_VERSION, ...) when the later returns zero (e.g. Desktop GL 2.x)
 //  2020-09-17: OpenGL: Fix to avoid compiling/calling glBindSampler() on ES or pre 3.3 context which have the defines set by a loader.
 //  2020-07-10: OpenGL: Added support for glad2 OpenGL loader.
@@ -41,11 +41,11 @@
 //  2018-07-30: OpenGL: Support for GLSL 300 ES and 410 core. Fixes for Emscripten compilation.
 //  2018-07-10: OpenGL: Support for more GLSL versions (based on the GLSL version string). Added error output when shaders fail to compile/link.
 //  2018-06-08: Misc: Extracted imgui_impl_opengl3.cpp/.h away from the old combined GLFW/SDL+OpenGL3 examples.
-//  2018-06-08: OpenGL: Use draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix and clipping rectangle.
+//  2018-06-08: OpenGL: Use draw_data->DisplayPos and draw_data->DisplaySize to onBeginFrame projection matrix and clipping rectangle.
 //  2018-05-25: OpenGL: Removed unnecessary backup/restore of GL_ELEMENT_ARRAY_BUFFER_BINDING since this is part of the VAO state.
 //  2018-05-14: OpenGL: Making the call to glBindSampler() optional so 3.2 context won't fail if the function is a NULL pointer.
 //  2018-03-06: OpenGL: Added const char* glsl_version parameter to ImGui_ImplOpenGL3_Init() so user can override the GLSL version e.g. "#version 150".
-//  2018-02-23: OpenGL: Create the VAO in the render function so the setup can more easily be used with multiple shared GL context.
+//  2018-02-23: OpenGL: Create the VAO in the render function so the onBeginFrame can more easily be used with multiple shared GL context.
 //  2018-02-16: Misc: Obsoleted the io.RenderDrawListsFn callback and exposed ImGui_ImplSdlGL3_RenderDrawData() in the .h file so you can call it yourself.
 //  2018-01-07: OpenGL: Changed GLSL shader version from 330 to 150.
 //  2017-09-01: OpenGL: Save and restore current bound sampler. Save and restore current polygon mode.
@@ -299,7 +299,7 @@ static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_wid
   glBindVertexArray(vertex_array_object);
 #endif
 
-  // Bind vertex/index buffers and setup attributes for ImDrawVert
+  // Bind vertex/index buffers and onBeginFrame attributes for ImDrawVert
   glBindBuffer(GL_ARRAY_BUFFER, g_VboHandle);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, g_ElementsHandle);
   glEnableVertexAttribArray(g_AttribLocationVtxPos);

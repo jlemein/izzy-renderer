@@ -14,12 +14,11 @@
 #include "ecs_transformutil.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
-#include "gui_iguiwindow.h"
-#include "gui_lighteditor.h"
-#include "gui_window.h"
 #include "izz_fontsystem.h"
 #include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
+#include "izzgui_iguiwindow.h"
+#include "izzgui_window.h"
 #include "wsp_workspace.h"
 
 #include <spdlog/spdlog.h>
@@ -134,7 +133,7 @@ int main(int argc, char* argv[]) {
     setupLights();
     setupUserInterface();
 
-    // setup camera
+    // onBeginFrame camera
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 
@@ -156,7 +155,7 @@ int main(int argc, char* argv[]) {
 
     camera.add<PosteffectCollection>({.posteffects = {peFilterBright, peGaussianBlur1, peGaussianBlur2, pe}});
 
-    // setup window
+    // onBeginFrame window
     auto window = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
     window->setActiveCamera(camera);
     window->setWindowSize(1024, 768);

@@ -8,17 +8,16 @@
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
 #include <geo_primitivefactory.h>
-#include <gui_lighteditor.h>
-#include <gui_window.h>
 #include <izz_fontsystem.h>
+#include <izzgui_window.h>
 #include <spdlog/spdlog.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <memory>
 #include "../lib/izzgl/include/izz_resourcemanager.h"
-#include "gui_iguiwindow.h"
 #include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
+#include "izzgui_iguiwindow.h"
 
 using namespace std;
 using namespace izz;

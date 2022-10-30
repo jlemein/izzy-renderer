@@ -6,6 +6,7 @@
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
 #include <memory>
+#include "izz_boundingbox.h"
 
 namespace izz {
 
@@ -23,10 +24,15 @@ class SceneGraphEntity {
  public:
   SceneGraphEntity(entt::registry& owner, entt::entity handle);
 
-  uint64_t id() const;
-  entt::entity handle();
+  // copy constructor
+  SceneGraphEntity(const SceneGraphEntity& other);
 
-  operator entt::entity() const {
+  SceneGraphEntity& operator=(const SceneGraphEntity& other);
+
+  uint64_t id() const;
+  entt::entity handle() const;
+
+  explicit operator entt::entity() const {
     return m_handle;
   }
 
@@ -52,6 +58,12 @@ class SceneGraphEntity {
    */
   glm::mat4& getTransform();
 
+  /**
+   * @returns the world transform. The world transform is a derived matrix, so it is returned as a constant.
+   * If you want to change the world transform, you need to do it explicitly via the \see setWorldTransform.
+   */
+  const glm::mat4& getWorldTransform();
+
   /**!
    * Sets the local transformation matrix for this scene graph entity.
    * The local transformation matrix affects the transformation relative to
@@ -72,6 +84,9 @@ class SceneGraphEntity {
   template <typename Component>
   Component& get();
 
+  template <typename Component>
+  bool has() const;
+
   /**!
    * Removes this entity from the parent's list of children.
    * Also it removes the parent of this entity, so that this entity becomes
@@ -81,15 +96,18 @@ class SceneGraphEntity {
   void detachFromParent();
   void attachToParent(SceneGraphEntity& parent);
 
-  std::vector<SceneGraphEntity*> getChildren();
+  void addChild(SceneGraphEntity child);
+
+  std::vector<SceneGraphEntity> getChildren();
 
   /**!
    * @returns a pointer to the parent entity of this entity, if it exists.
    * If there is no parent entity, then nullptr is returned.
    */
-  SceneGraphEntity* getParent();
+  SceneGraphEntity getParent() const;
 
-  void addChild(SceneGraphEntity child);
+  bool exists() const;
+
   //  void addChildren(SceneGraphEntity&... children);
   void removeChild(SceneGraphEntity child);
   void removeChildren();
@@ -97,7 +115,7 @@ class SceneGraphEntity {
   //  void addSibling(SceneGraphEntity& sibling);
 
  private:
-  entt::registry& m_registry;
+  entt::registry* m_registry {nullptr};
   entt::entity m_handle;
 };
 
@@ -107,9 +125,9 @@ class SceneGraphEntity {
 template <typename Component>
 Component& SceneGraphEntity::get() {
 #ifndef NDEBUG
-  if (m_registry.all_of<Component>(handle())) {
+  if (m_registry->all_of<Component>(handle())) {
 #endif
-    return m_registry.get<Component>(handle());
+    return m_registry->get<Component>(handle());
 #ifndef NDEBUG
   } else {
     throw std::runtime_error("Does not have component");
@@ -118,18 +136,23 @@ Component& SceneGraphEntity::get() {
 }
 
 template <typename Component>
+bool SceneGraphEntity::has() const {
+  return m_registry->all_of<Component>(handle());
+}
+
+template <typename Component>
 decltype(auto) SceneGraphEntity::add() {
-  return m_registry.emplace_or_replace<Component>(handle());
+  return m_registry->emplace_or_replace<Component>(handle());
 }
 
 template <typename Component>
 decltype(auto) SceneGraphEntity::add(Component&& comp) {
-  return m_registry.emplace_or_replace<Component>(handle(), std::forward<Component>(comp));
+  return m_registry->emplace_or_replace<Component>(handle(), std::forward<Component>(comp));
 }
 
 template <typename Component>
 decltype(auto) SceneGraphEntity::add(const Component& comp) {
-  return m_registry.emplace_or_replace<Component>(handle(), comp);
+  return m_registry->emplace_or_replace<Component>(handle(), comp);
 }
 
 }  // namespace izz

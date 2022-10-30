@@ -29,12 +29,14 @@ add_library(izzy STATIC
         include/anim_animationsystem.h
         include/anim_localrotation.h
         include/izz.h
+        include/izz_capabilities.h
         include/izz_debug.h
         include/izz_debugmodel.h
         include/izz_debugshapefactory.h
         include/izz_debugsystem.h
         include/izz_fontsystem.h
         include/izz_izzy.h
+        include/izz_materialtemplate.h
         include/izz_relationship.h
         include/izz_relationshiputil.h
         include/izz_renderablecomponentfactory.h

@@ -2,32 +2,32 @@
 // Created by jlemein on 11-03-21.
 //
 
-#include "anim_localrotation.h"
-#include "ecs_firstpersoncontrol.h"
-#include "ecs_light.h"
-#include "ecs_transformutil.h"
-#include "geo_meshutil.h"
-#include "geo_scene.h"
-#include "gui_lighteditor.h"
-#include "izz_fontsystem.h"
-#include "izzgl_entityfactory.h"
+#include <anim_localrotation.h>
+#include <ecs_firstpersoncontrol.h>
+#include <ecs_light.h>
+#include <ecs_transformutil.h>
+#include <geo_meshutil.h>
+#include <geo_scene.h>
+#include <izz_fontsystem.h>
+#include <izzgl_entityfactory.h>
 
 #include <izzgl_materialsystem.h>
 
-#include "gui_window.h"
-#include "wsp_workspace.h"
+#include <izzgui_window.h>
+#include <wsp_workspace.h>
 
 #include <ecs_transform.h>
 #include <geo_mesh.h>
+#include <geo_primitivefactory.h>
 #include <izz_izzy.h>
+#include <izz_util.h>
+#include <izzgl_materialreader.h>
+#include <izzgui_mainmenu.h>
+#include <izzgui_stats.h>
 #include <spdlog/spdlog.h>
+#include <uniform_blinnphongsimple.h>
 #include <cxxopts.hpp>
 #include <memory>
-#include "geo_primitivefactory.h"
-#include "gui_mainmenu.h"
-#include "izzgl_materialreader.h"
-#include "izzgui_stats.h"
-#include "uniform_blinnphongsimple.h"
 using namespace std;
 using namespace izz;
 using namespace izz::geo;
@@ -68,7 +68,12 @@ void setupScene() {
   }
 
   // add to scene graph
-  izzy->entityFactory->makeScene(*scene, izz::SceneLoaderFlags::All(), gl::RenderStrategy::FORWARD);
+  auto sceneEntity = izzy->entityFactory->makeScene(*scene, izz::SceneLoaderFlags::All(), gl::RenderStrategy::FORWARD);
+
+  // onBeginFrame camera
+  auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
+  camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
+  izz::Util::AlignCameraToBoundingBox(sceneEntity, camera);
 
   //  {
   //    auto box = izzy->entityFactory->makeMoveableEntity("Box1", {0.0F, 0.5F, .0F});
@@ -123,17 +128,17 @@ void setupScene() {
   //      //  e.add<gl::DeferredRenderable>();
   //  }
 
-  {
-    // adding a custom primitive to the scene
-    auto plane = izzy->entityFactory->makeMovableEntity("Plane");
-    auto planePrimitive = PrimitiveFactory::MakePlane("MyPlane", 15, 15);
-    ecs::TransformUtil::Translate(plane.getTransform(), glm::vec3(0.0, -1.0, 0.0));
-    auto& mesh = plane.add<Mesh>(planePrimitive);
-    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
-    auto& material = izzy->materialSystem->createMaterial("table_cloth");
-    mesh.materialId = material.id;
-    auto& dr = plane.add<gl::ForwardRenderable>({material.id, meshBuffer.id, false, BlendMode::OPAQUE});
-  }
+  //  {
+  //    // adding a custom primitive to the scene
+  //    auto plane = izzy->entityFactory->makeMovableEntity("Plane");
+  //    auto planePrimitive = PrimitiveFactory::MakePlane("MyPlane", 15, 15);
+  //    ecs::TransformUtil::Translate(plane.getTransform(), glm::vec3(0.0, -1.0, 0.0));
+  //    auto& mesh = plane.add<Mesh>(planePrimitive);
+  //    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
+  //    auto& material = izzy->materialSystem->createMaterial("table_cloth");
+  //    mesh.materialId = material.id;
+  //    auto& dr = plane.add<gl::ForwardRenderable>({material.id, meshBuffer.id, false, BlendMode::OPAQUE});
+  //  }
 
   // adding a custom primitive to the scene
   //    auto plane = PrimitiveFactory::MakePlane("Plane", 25.0, 25.0);
@@ -150,9 +155,8 @@ void setupScene() {
 }
 
 void setupUserInterface() {
-  izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->entityFactory, izzy->fontSystem));
-  izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(*izzy));
-  izzy->guiSystem->addDialog(make_shared<izz::gui::StatsDialog>());
+  // izzy will provide us with a default set of user interface.
+  izzy->setupUserInterface();
 }
 
 int main(int argc, char* argv[]) {
@@ -172,10 +176,6 @@ int main(int argc, char* argv[]) {
     window->setWindowSize(1920, 1080);
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initializeContext();
-
-    // setup camera
-    auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
-    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");

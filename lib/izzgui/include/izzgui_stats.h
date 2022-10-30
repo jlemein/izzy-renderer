@@ -3,8 +3,8 @@
 //
 #pragma once
 
-#include <gui_iguiwindow.h>
 #include <izz_statcounter.h>
+#include <izzgui_iguiwindow.h>
 
 namespace izz {
 //class StatCounter;

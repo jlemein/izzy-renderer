@@ -3,30 +3,39 @@
 //
 #pragma once
 
+#include <izz_capabilities.h>
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <string>
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include "geo_capabilities.h"
 
 namespace izz {
-namespace geo {
 
 struct UniformBufferDescription {
   std::string name;
 };
 
 enum class PropertyType {
+  UNDEFINED = 0,
   TEXTURE_2D,
   CUBE_MAP,
+
+  // keep the order of the floats.
   FLOAT_ARRAY,
   FLOAT,
-  FLOAT4,
+  FLOAT2,
   FLOAT3,
+  FLOAT4,
+
+  // keep the order of the integers.
   INT_ARRAY,
   INT,
+  INT2,
+  INT3,
+  INT4,
+
   BOOL,  // needed?
   UNIFORM_BUFFER_OBJECT
 };
@@ -101,8 +110,6 @@ struct MaterialTemplate {
 
   Capabilities compileConstants;
 
-  //  std::unordered_map<std::string, PropertyType> uniforms;
-
   /// @brief This map contains information about individual uniform parameters (e.g. their data types and default values).
   /// @details Note that all uniform parameters, both part of a scoped/named uniform block, as well as global or unscoped uniform parameters are added
   /// together in this map.
@@ -112,5 +119,4 @@ struct MaterialTemplate {
   std::unordered_map<std::string, UniformBufferDescription> uniformBuffers;
 };
 
-}  // namespace geo
 }  // namespace izz

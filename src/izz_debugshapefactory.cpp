@@ -42,8 +42,8 @@ DebugModel DebugShapeFactory::MakeBoundingBox(entt::registry& registry, entt::en
     // then place the bounding box around the mesh
     auto targetMesh = registry.get<geo::Mesh>(target);
     auto bb = geo::ShapeUtil::computeBoundingBox(targetMesh);
-    auto size = geo::BoundingBoxUtil::getSize(bb);
-    auto center = geo::BoundingBoxUtil::getCenter(bb);
+    auto size = bb.getSize();
+    auto center = bb.getCenter();
   } else {
     // if there is no mesh, then add a bounding box around the
     // world position with size determined by debug component.

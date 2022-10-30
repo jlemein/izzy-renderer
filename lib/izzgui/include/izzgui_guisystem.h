@@ -3,11 +3,13 @@
 //
 #pragma once
 
-#include <gui_iguiwindow.h>
-#include <gui_iwindowextension.h>
+#include <izzgui_iguiwindow.h>
+#include <izzgui_iwindowextension.h>
 
 #include <imgui.h>
 #include <vector>
+#include "izzgui_docklayout.h"
+#include "izzgui_layout.h"
 
 namespace izz {
 class FontSystem;
@@ -25,6 +27,8 @@ class GuiSystem : public IWindowExtension {
 
   void addDialog(std::shared_ptr<IGuiWindow> dialog);
 
+  void setLayout(std::unique_ptr<izz::gui::Layout> layout);
+
   void initialize(izz::gui::Window* viewer) override;
   void update(float time, float dt) override;
   void beforeRender() override;
@@ -34,17 +38,15 @@ class GuiSystem : public IWindowExtension {
   bool isProcessingInput() const;
 
  private:
-  //  std::shared_ptr<IGuiWindow> m_window {nullptr};
   std::shared_ptr<izz::FontSystem> m_fontSystem;
   std::vector<std::shared_ptr<IGuiWindow>> m_dialogs{};
+  std::unique_ptr<Layout> m_layout {std::make_unique<izz::gui::DockLayout>()};
 
   void* m_windowHandle{nullptr};
   std::string m_shadingLanguage{""};
   std::string m_shadingVersion{""};
 
   ImVec4 m_clearColor = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
-  bool show_demo_window = true;
-  bool show_another_window = false;
   std::vector<ImFont*> m_fonts;
 };
 

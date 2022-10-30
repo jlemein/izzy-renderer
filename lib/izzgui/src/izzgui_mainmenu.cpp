@@ -1,20 +1,18 @@
 //
 // Created by jeffrey on 12-12-21.
 //
-#include <gui_lighteditor.h>
-#include <gui_mainmenu.h>
 #include <imgui.h>
+#include <izzgui_mainmenu.h>
 #include <spdlog/spdlog.h>
-#include "izz_izzy.h"
-#include "izzgui_stats.h"
+#include <izz_izzy.h>
+#include <izzgui_stats.h>
 using namespace izz::gui;
 
 MainMenu::MainMenu(Izzy& izzy)
   : m_sceneGraph{izzy.entityFactory}
-  , m_materialEditor(izzy.materialSystem, izzy.entityFactory) {}
+  {}
 
 void MainMenu::init() {
-  m_materialEditor.init();
 }
 
 void MainMenu::render(float time, float dt) {
@@ -30,13 +28,21 @@ void MainMenu::render(float time, float dt) {
   }
 
   if (ImGui::BeginMenu("Edit")) {
-    if (ImGui::MenuItem("Material Editor..", "Ctrl+M")) {
-      spdlog::info("Opening material editor");
-      m_materialEditor.open();
+    if (ImGui::MenuItem(ComponentEditor::ID, "Ctrl+Alt+C")) {
+      spdlog::info("Opening component editor");
+      ComponentEditor::Open();
     }
-    if (ImGui::MenuItem("Light Control..", "Ctrl+L")) {
-      spdlog::info("Opening light  editor");
-      LightEditor::Show = true;
+    if (ImGui::MenuItem(SceneNavigator::ID, "Ctrl+Alt+N")) {
+      spdlog::info("Opening scene navigator");
+      SceneNavigator::Open();
+    }
+    if (ImGui::MenuItem(MaterialInspector::ID, "Ctrl+Alt+M")) {
+      spdlog::info("Opening material inspector");
+      MaterialInspector::Open();
+    }
+    if (ImGui::MenuItem(MaterialEditor::ID, "Ctrl+Alt+E")) {
+      spdlog::info("Opening material editor");
+      MaterialEditor::Open();
     }
 
     ImGui::EndMenu();
@@ -48,7 +54,4 @@ void MainMenu::render(float time, float dt) {
   }
 
   ImGui::EndMainMenuBar();
-
-  m_materialEditor.render(dt, time);
-
 }

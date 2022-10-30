@@ -1,0 +1,403 @@
+{
+  "default_material": "BlinnPhongSimple",
+  "shader_root": "shaders",
+  "material_instances": [
+    {
+      "name": "asphalt_001",
+      "material_definition": "BlinnPhongDeferred",
+      "properties": {
+        "BlinnPhong.shininess": 32.0,
+        "BlinnPhong.specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
+      },
+      "textures": {
+        "albedoMap": "textures/Road006_4K-JPG/Road006_4K_Color.jpg",
+        "normalMap": "textures/Road006_4K-JPG/Road006_4K_NormalGL.jpg"
+      }
+    },
+    {
+      "name": "tea_set_01",
+      "material_definition": "BlinnPhongDeferred",
+      "properties": {
+        "BlinnPhong.shininess": 32.0,
+        "BlinnPhong.specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
+      },
+      "textures": {
+        "albedoMap": {
+          "type": "TEXTURE_2D",
+          "hint": "DIFFUSE",
+          "file": "models/textures/tea_set_01_diff_4k.jpg"
+        },
+        "normalMap": {
+          "type": "TEXTURE_2D",
+          "hint": "NORMAL",
+          "file": "models/textures/tea_set_01_nor_gl_4k.exr"
+        }
+      }
+    },
+    {
+      "name": "brass_vase_001",
+      "material_definition": "BlinnPhong",
+      "properties": {
+        "albedoMap": "models/brass_vase/textures/brass_vase_01_diff_4k.jpg",
+        "normalMap": "models/brass_vase/textures/brass_vase_01_nor_gl_4k.exr",
+        "BlinnPhong.shininess": 32.0,
+        "BlinnPhong.specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "Barrel_01",
+      "material_definition": "BlinnPhong",
+      "properties": {
+        "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
+        "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
+        "BlinnPhong.shininess": 32.0,
+        "BlinnPhong.specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "table_cloth",
+      "material_definition": "Diffuse"
+    },
+    {
+      "name": "Barrel_01",
+      "material_definition": "BlinnPhong",
+      "properties": {
+        "albedoMap": "models/barrel/textures/Barrel_01_explosive_diff_4k.png",
+        "normalMap": "models/barrel/textures/Barrel_01_explosive_nor_gl_4k.png",
+        "BlinnPhong.shininess": 32.0,
+        "BlinnPhong.specular_color": [
+          0.5,
+          0.5,
+          0.5,
+          0.0
+        ]
+      }
+    },
+    {
+      "name": "pointlight",
+      "material_definition": "ConstantLight"
+    }
+  ],
+  "materials": [
+    {
+      "name": "GrayScalePostEffect",
+      "vertex_shader": "shaders/postprocess/grayscale.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/grayscale.frag"
+    },
+    {
+      "name": "DeferredStandard_Color",
+      "vertex_shader": "shaders/standard_perspective.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/deferred_color.frag",
+      "properties":{
+        "ModelViewProjection": {},
+        "AlbedoSpecularity": {
+          "albedo": [1.0, 1.0, 1.0, 0.0],
+          "specularity": 0.5
+        }
+      }
+    },
+    {
+      "name": "DebugWireframe",
+      "vertex_shader": "shaders/debug.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/debug.frag",
+      "properties":{
+        "ModelViewProjection": {}
+      }
+    },
+    {
+      "name": "BlinnPhongDeferred",
+      "vertex_shader": "shaders/standard_perspective.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/deferred/deferred_blinnphong.frag",
+      "properties":{
+        "ModelViewProjection": {},
+        "BlinnPhong": {
+          "shininess": 32.0,
+          "specular_color": [
+            0.3,
+            0.3,
+            0.3,
+            0.0
+          ]
+        }
+      },
+      "textures": {
+        "normalMap": {
+          "type": "TEXTURE_2D",
+          "hint": "NORMAL",
+          "path": "models/textures/tea_set_01_nor_gl_4k.exr"
+        },
+        "albedoMap": {
+          "type": "texture",
+          "hint": "DIFFUSE",
+          "path": "models/textures/tea_set_01_diff_4k.jpg"
+        }
+      }
+    },
+    {
+      "name": "Deferred_VisualizeGBuffer",
+      "vertex_shader": "shaders/passthrough.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/experimental/deferred_visualize_gbuffer.frag",
+      "properties":{
+        "ModelViewProjection": {}
+      }
+    },
+    {
+      "name": "DeferredLightingPass",
+      "vertex_shader": "shaders/passthrough.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/deferred/deferred_lighting.frag",
+      "properties": {
+        "DeferredLighting": {}
+      },
+      "textures": {
+        "gbuffer_position": {
+          "type": "TEXTURE_2D"
+        },
+        "gbuffer_normal": {
+          "type": "TEXTURE_2D"
+        },
+        "gbuffer_albedospec": {
+          "type": "TEXTURE_2D"
+        }
+      }
+    },
+    {
+      "name": "FilterBrightPostEffect",
+      "vertex_shader": "shaders/postprocess/filter_bright.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/filter_bright.frag",
+      "properties": {
+        "brightnessThreshold": 0.7
+      }
+    },
+    {
+      "name": "GaussianBlur",
+      "vertex_shader": "shaders/postprocess/gaussianblur.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/gaussianblur.frag",
+      "properties": {
+        "weights": [
+          0.227027,
+          0.1945946,
+          0.1216216,
+          0.054054,
+          0.016216
+        ],
+        "horizontal": true
+      }
+    },
+    {
+      "name": "CombineTextures",
+      "vertex_shader": "shaders/postprocess/add.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/add.frag"
+    },
+    {
+      "name": "VignettePostEffect",
+      "vertex_shader": "shaders/postprocess/vignette.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/postprocess/vignette.frag"
+    },
+    {
+      "name": "ConstantLight",
+      "vertex_shader": "shaders/forward/constantlight.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/forward/constantlight.frag",
+      "properties": {
+        "ModelViewProjection": {},
+        "ConstantLight": {
+          "color": [
+            1.0,
+            1.0,
+            1.0,
+            1.0
+          ],
+          "intensity": 1.0,
+          "radius": 0.1
+        }
+      }
+    },
+    {
+      "name": "RenderTexture",
+      "vertex_shader": "shaders/passthrough.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/render_texture.frag"
+    },
+    {
+      "name": "DebugUv",
+      "vertex_shader": "shaders/uv.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/uv.frag"
+    },
+    {
+      "name": "DebugNormal",
+      "vertex_shader": "shaders/normal.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/normal.frag"
+    },
+    {
+      "name": "DebugBinormal",
+      "vertex_shader": "shaders/tangent.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/tangent.frag"
+    },
+    {
+      "name": "Texture",
+      "vertex_shader": "shaders/texture.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/texture.frag",
+      "textures": {
+        "textureMap": {
+          "type": "TEXTURE_2D",
+          "path": "textures/castle_albedo.jpg"
+        }
+      }
+    },
+    {
+      "name": "BlinnPhongSimple",
+      "vertex_shader": "shaders/standard_perspective.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/forward/blinn-phong-simple.frag",
+      "blendMode": "OPAQUE",
+      "lighting": {},
+      "compileConstants": {},
+      "properties": {
+        "ModelViewProjection": {},
+        "ForwardLighting": {},
+        "DepthPeeling": {},
+        "BlinnPhongSimple": {
+          "shininess": 32.0,
+          "albedo": [
+            1.0,
+            0.0,
+            1.0,
+            0.5
+          ],
+          "specular": [
+            0.1,
+            0.1,
+            0.1,
+            0.0
+          ]
+        }
+      }
+    }
+  ],
+  "effects": [
+    {
+      "name": "table_cloth",
+      "passes": [
+        {
+          "id": 0,
+          "material": "table_cloth",
+          "framebuffer": "Default"
+        }
+      ]
+    },
+    {
+      "name": "Bloom",
+      "passes": [
+        {
+          "id": 0,
+          "material": "ExtractBrightness",
+          "framebuffer": "Bloom1",
+          "binding": {
+            "0": {
+              "target_pass": 0,
+              "target_bind": 0
+            }
+          }
+        },
+        {
+          "id": 1,
+          "material": "GaussianBlurH",
+          "framebuffer": "Transform"
+        },
+        {
+          "id": 2,
+          "material": "GaussianBlurV",
+          "framebuffer": "Transform"
+        },
+        {
+          "id": 3,
+          "material": "Combine",
+          "framebuffer": "Final2->1"
+        }
+      ]
+    }
+  ],
+  "framebuffers": [
+    {
+      "name": "StandardHdrWithDepth",
+      "input": {
+        "0": "HDR_COLORBUFFER_RGBA",
+        "DEPTH": "DEPTH"
+      },
+      "output": {
+        "0": "HDR_COLORBUFFER_RGBA"
+      }
+    },
+    {
+      "name": "Bloom1",
+      "input": {
+        "0": "HDR_COLORBUFFER_RGBA",
+        "1": "DEPTH"
+      },
+      "output": {
+        "0": "HDR_COLORBUFFER_RGBA",
+        "1": "HDR_COLORBUFFER_RGBA"
+      }
+    },
+    {
+      "name": "Transform",
+      "input": {
+        "0": "HDR_COLORBUFFER_RGBA"
+      },
+      "output": {
+        "0": "HDR_COLORBUFFER_RGBA"
+      }
+    },
+    {
+      "name": "Default",
+      "input": {},
+      "output": {
+        "0": "HDR_COLORBUFFER_RGBA"
+      }
+    },
+    {
+      "name": "Final2->1",
+      "input": {
+        "0": "HDR_COLORBUFFER_RGBA",
+        "1": "HDR_COLORBUFFER_RGBA"
+      },
+      "output": {
+        "0": "COLORBUFFER_RGBA"
+      }
+    }
+  ]
+}

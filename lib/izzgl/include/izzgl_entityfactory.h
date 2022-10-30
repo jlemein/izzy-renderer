@@ -55,6 +55,7 @@ struct SceneLoaderFlags {
  */
 class EntityFactory {
   static inline const char* ID = "SceneGraphHelper";
+  static inline int NEXT_ENTITY_ID = 0;
 
  public:
   EntityFactory(entt::registry& registry,
@@ -132,8 +133,8 @@ class EntityFactory {
 
   SceneGraphEntity makeGeometry(std::string name, izz::Geometry geometry, gl::RenderStrategy strategy = izz::gl::RenderStrategy::UNDEFINED);
   SceneGraphEntity makeGeometry(izz::Geometry geometry, gl::RenderStrategy strategy = izz::gl::RenderStrategy::UNDEFINED);
-  SceneGraphEntity makeRenderable(izz::VertexBufferId vertexBufferId, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
-  SceneGraphEntity makeRenderable(std::string name, VertexBufferId vertexBuffer, MaterialId materialId, glm::mat4 transform, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeRenderable(izz::Geometry geometry, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
+  SceneGraphEntity makeRenderable(std::string name, izz::Geometry geometry, glm::mat4 transform, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
   SceneGraphEntity makeRenderable(izz::geo::Curve&& curve, MaterialId materialId, gl::RenderStrategy type = gl::RenderStrategy::UNDEFINED);
 
   /**!

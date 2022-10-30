@@ -10,9 +10,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include <geo_boundingbox.h>
 #include <boost/functional/hash.hpp>
-#include "geo_materialtemplate.h"
+#include "izz_boundingbox.h"
+#include "izz_materialtemplate.h"
 
 namespace izz {
 namespace geo {

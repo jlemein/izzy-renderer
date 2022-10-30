@@ -1,8 +1,10 @@
 #pragma once
 
 #include <cstdint>
-#include <string>
 #include <glm/glm.hpp>
+#include <string>
+#include <izz_boundingbox.h>
+#include <izz_relationship.h>
 
 namespace izz {
 
@@ -24,7 +26,7 @@ struct Name {
 struct Geometry {
   MaterialId materialId{-1};
   VertexBufferId vertexBufferId{-1};
-  glm::mat4 transform {1.0};
+  BoundingBox aabb; /// @brief bounds of the local geometry. Does not take into account world transformations.
 };
 
 }  // namespace izz

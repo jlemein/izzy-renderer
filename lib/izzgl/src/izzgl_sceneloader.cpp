@@ -8,10 +8,11 @@
 #include <assimp/Importer.hpp>
 #include "geo_camera.h"
 #include "geo_light.h"
-#include "geo_materialtemplate.h"
 #include "geo_mesh.h"
 #include "geo_meshinstance.h"
 #include "geo_scene.h"
+#include "geo_shapeutil.h"
+#include "izz_materialtemplate.h"
 #include "izzgl_materialsystem.h"
 #include "izzgl_texturesystem.h"
 
@@ -24,13 +25,13 @@ SceneLoader::SceneLoader(std::shared_ptr<izz::gl::TextureSystem> textureSystem, 
   : m_textureSystem{textureSystem}
   , m_materialSystem{materialSystem} {}
 
-std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial_p,
+std::unique_ptr<izz::TextureDescription> SceneLoader::readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial_p,
                                                                          const std::unordered_map<std::string, aiTexture*>& embeddedTextures) const {
-  std::unique_ptr<izz::geo::TextureDescription> td = nullptr;
+  std::unique_ptr<izz::TextureDescription> td = nullptr;
 
   if (aiMaterial_p->GetTextureCount(ttype) > 0) {
-    td = std::make_unique<izz::geo::TextureDescription>();
-    td->type = izz::geo::PropertyType::TEXTURE_2D;
+    td = std::make_unique<TextureDescription>();
+    td->type = PropertyType::TEXTURE_2D;
 
     aiString aiPath;
     aiTextureMapping textureMapping;
@@ -56,23 +57,23 @@ std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const i
 
     switch (ttype) {
       case aiTextureType::aiTextureType_DIFFUSE_ROUGHNESS:
-        td->hint = izz::geo::TextureHint::ROUGHNESS_MAP;
+        td->hint = izz::TextureHint::ROUGHNESS_MAP;
         td->name = "roughnessMap";
         break;
       case aiTextureType::aiTextureType_NORMALS:
-        td->hint = izz::geo::TextureHint::NORMAL_MAP;
+        td->hint = izz::TextureHint::NORMAL_MAP;
         td->name = "normalMap";
         break;
       case aiTextureType::aiTextureType_SPECULAR:
-        td->hint = izz::geo::TextureHint::SPECULAR_MAP;
+        td->hint = izz::TextureHint::SPECULAR_MAP;
         td->name = "specularMap";
         break;
       case aiTextureType::aiTextureType_DIFFUSE:
-        td->hint = izz::geo::TextureHint::DIFFUSE_MAP;
+        td->hint = izz::TextureHint::DIFFUSE_MAP;
         td->name = "diffuseMap";
         break;
       case aiTextureType::aiTextureType_HEIGHT:
-        td->hint = izz::geo::TextureHint::HEIGHT_MAP;
+        td->hint = izz::TextureHint::HEIGHT_MAP;
         td->name = "heightMap";
         break;
       default:
@@ -84,7 +85,7 @@ std::unique_ptr<izz::geo::TextureDescription> SceneLoader::readAiTexture(const i
   return td;
 }
 
-void SceneLoader::readTextures(const izz::geo::Scene& scene, const aiScene* aiScene_p, const aiMaterial* aiMaterial_p, izz::geo::MaterialTemplate& material) {
+void SceneLoader::readTextures(const izz::geo::Scene& scene, const aiScene* aiScene_p, const aiMaterial* aiMaterial_p, izz::MaterialTemplate& material) {
   std::array<aiTextureType, 4> textureTypes{aiTextureType_DIFFUSE, aiTextureType_NORMALS, aiTextureType_SPECULAR, aiTextureType_DIFFUSE_ROUGHNESS};
 
   aiString textureFile;
@@ -116,7 +117,7 @@ void SceneLoader::readMaterials(const aiScene* scene_p, izz::geo::Scene& scene) 
     aiMaterial* aiMaterial = scene_p->mMaterials[i];
 
     std::string name = aiMaterial->GetName().C_Str();
-    izz::geo::MaterialTemplate materialDescription = m_materialSystem->getMaterialTemplate(name);
+    izz::MaterialTemplate materialDescription = m_materialSystem->getMaterialTemplate(name);
 
     spdlog::debug("Read material {} -- (vertex shader: {})", name, materialDescription.vertexShader);
 
@@ -224,12 +225,8 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, izz::geo::Scene& scene) 
 
       auto mesh = scene.m_meshes[node_p->mMeshes[i]];
 
-      //      if (node_p->mMetaData != nullptr) {
-      //        for (int k = 0; k < node_p->mMetaData->mNumProperties; ++k) {
-      //          spdlog::debug("\t\t{}", node_p->mMetaData->mKeys[k].C_Str());
-      //        }
-      //      }
       meshInstance->mesh = mesh;
+      meshInstance->aabb = geo::ShapeUtil().computeBoundingBox(*mesh);
       meshInstance->name = std::string{node_p->mName.C_Str()};
       meshInstance->materialId = mesh->materialId;
       meshInstance->transform = glm::mat4(1.0F);

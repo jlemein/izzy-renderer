@@ -79,7 +79,7 @@ void ForwardRenderer::renderOpaqueObjects(const entt::registry& registry) {
   const auto view = registry.view<const ForwardRenderable, const izz::ecs::Transform>();
 
   for (const auto& [e, forward, transform] : view.each()) {
-    if (forward.blendMode == izz::geo::BlendMode::OPAQUE) {
+    if (forward.blendMode == izz::BlendMode::OPAQUE) {
       IZZ_STAT_COUNT(OPAQUE_OBJECTS)
 
       auto& mat = m_materialSystem->getMaterialById(forward.materialId);

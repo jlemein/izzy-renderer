@@ -92,7 +92,7 @@ void RenderSystem::init(int width, int height) {
 
   m_lightSystem->initialize();
 
-  // setup postprocessing screen quad
+  // onBeginFrame postprocessing screen quad
   initPostprocessBuffers();
 
   m_forwardRenderer.setClearColor(m_clearColor);
@@ -116,7 +116,7 @@ void RenderSystem::init(int width, int height) {
   return;
 }
 
-void RenderSystem::addRenderableComponent(izz::SceneGraphEntity& e, izz::gl::RenderStrategy renderStrategy) {
+void RenderSystem::onGeometryAdded(izz::SceneGraphEntity& e, izz::gl::RenderStrategy renderStrategy) {
   if (renderStrategy == RenderStrategy::UNDEFINED || renderStrategy == RenderStrategy::FORWARD) {
     m_forwardRenderer.onEntityCreate(e);
     return;
@@ -161,10 +161,10 @@ void RenderSystem::resize(int width, int height) {
   m_deferredRenderer.resize(width, height);
 }
 
-RenderCapabilities RenderSystem::selectRenderCapabilities(const geo::MaterialTemplate& materialTemplate) const {
+RenderCapabilities RenderSystem::selectRenderCapabilities(const MaterialTemplate& materialTemplate) const {
   RenderCapabilities capabilities;
 
-  if (materialTemplate.blendMode == geo::BlendMode::ALPHA_BLEND) {
+  if (materialTemplate.blendMode == BlendMode::ALPHA_BLEND) {
     capabilities.flags.insert("DEPTHPEELING");
   }
 

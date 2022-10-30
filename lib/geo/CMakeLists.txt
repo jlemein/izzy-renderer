@@ -1,12 +1,11 @@
 
 add_library(geo STATIC
-        include/geo_boundingbox.h
+        ../../include/izz_boundingbox.h
         include/geo_camera.h
         include/geo_curve.h
         include/geo_effect.h
         include/geo_graph.h
         include/geo_light.h
-        include/geo_materialtemplate.h
         include/geo_materialutil.h
         include/geo_mesh.h
         include/geo_meshinstance.h
@@ -17,11 +16,9 @@ add_library(geo STATIC
         include/geo_scenetransform.h
         include/geo_shapeutil.h
         include/geo_transform.h
-        src/geo_boundingbox.cpp
         src/geo_graph.cpp
 #        src/geo_graph.t.cpp
 #        src/geo_material.t.cpp
-        src/geo_materialutil.cpp
         src/geo_meshtransform.cpp
         src/geo_meshutil.cpp
 #        src/geo_meshutil.t.cpp

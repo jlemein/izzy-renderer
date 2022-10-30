@@ -66,17 +66,17 @@ void main() {
 
     for(int i=0; i<numberOfDirectionalLights; i++) {
         DirectionalLight light = directionalLights[i];
-        out_color.rgb += GetDirectionalLightContribution(light, normal, v, albedo.rgb, specularity);
+        out_color.rgb += GetDirectionalLightContribution_shininess(light, normal, v, albedo.rgb, specularity, shininess);
     }
 
     for (int i=0; i<numberOfPointLights; ++i) {
         PointLight light = pointLights[i];
-        out_color.rgb += GetPointLightContribution(light, p, normal, v, albedo.rgb, specularity);
+        out_color.rgb += GetPointLightContribution_shininess(light, p, normal, v, albedo.rgb, specularity, shininess);
     }
 
     for (int i=0; i<numberOfSpotLights; i++) {
         SpotLight light = spotLights[i];
-        out_color.rgb += GetSpotLightContribution(light, p, normal, v, albedo.rgb, specularity);
+        out_color.rgb += GetSpotLightContribution_shininess(light, p, normal, v, albedo.rgb, specularity, shininess);
     }
 
     out_color.a = material_color.a;

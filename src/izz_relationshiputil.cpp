@@ -1,5 +1,6 @@
-#include <izz_relationshiputil.h>
 #include <izz_relationship.h>
+#include <izz_relationshiputil.h>
+#include "izz_scenegraphentity.h"
 using namespace izz;
 
 void RelationshipUtil::MakeChild(entt::registry& registry, entt::entity parent, entt::entity child) {
@@ -16,6 +17,10 @@ void RelationshipUtil::MakeChild(entt::registry& registry, entt::entity parent, 
   childRelationship.depth = parentRelationship.depth + 1;
   parentRelationship.children.push_back(child);
   childRelationship.parent = parent;
+}
+
+void RelationshipUtil::MakeChild(entt::registry& registry, SceneGraphEntity& parent, SceneGraphEntity& child) {
+  return MakeChild(registry, parent.handle(), child.handle());
 }
 
 void RelationshipUtil::MakeChildren(entt::registry& registry, entt::entity parent, const std::vector<entt::entity>& children) {

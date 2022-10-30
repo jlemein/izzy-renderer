@@ -53,7 +53,7 @@ class RenderSystem : public IRenderCapabilitySelector {
 
   void resize(int width, int height);
 
-  void addRenderableComponent(SceneGraphEntity& e, RenderStrategy renderStrategy);
+  void onGeometryAdded(SceneGraphEntity& e, RenderStrategy renderStrategy);
 
   /**
    * @returns the light system.
@@ -63,7 +63,7 @@ class RenderSystem : public IRenderCapabilitySelector {
   ~RenderSystem() override = default;
 
   /// @inherit
-  RenderCapabilities selectRenderCapabilities(const geo::MaterialTemplate& materialTemplate) const override;
+  RenderCapabilities selectRenderCapabilities(const MaterialTemplate& materialTemplate) const override;
 
  private:
   ForwardRenderer m_forwardRenderer;

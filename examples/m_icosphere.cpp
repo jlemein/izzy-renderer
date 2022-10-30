@@ -3,8 +3,8 @@
 #include <ecs_wireframe.h>
 #include <geo_mesh.h>
 #include <geo_primitivefactory.h>
-#include <gui_window.h>
 #include <izz_izzy.h>
+#include <izzgui_window.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <iostream>
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initialize();
 
-    // setup camera
+    // onBeginFrame camera
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 

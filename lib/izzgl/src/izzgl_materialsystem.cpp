@@ -18,9 +18,9 @@
 #include <spdlog/spdlog.h>
 #include <nlohmann/json.hpp>
 
-#include <geo_capabilities.h>
 #include <fstream>
 #include <memory>
+#include "izz_capabilities.h"
 #include "izzgl_shadersource.h"
 #include "uniform_albedospecularity.h"
 #include "uniform_blinnphong.h"
@@ -76,12 +76,12 @@ void MaterialSystem::init() {
   ShaderCompiler compiler;
 }
 
-void MaterialSystem::addMaterialTemplate(izz::geo::MaterialTemplate materialTemplate) {
+void MaterialSystem::addMaterialTemplate(izz::MaterialTemplate materialTemplate) {
   m_materialTemplates[materialTemplate.name] = materialTemplate;
 }
 
-UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferDescription& bufferDescription, const Material& material) {
-  spdlog::info("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, material.getName());
+UniformBuffer MaterialSystem::createUniformBuffer(const izz::UniformBufferDescription& bufferDescription, const Material& material) {
+  spdlog::debug("MaterialSystem: creating UBO '{}' for material {}", bufferDescription.name, material.getName());
 
   if (m_uniformBuffers.count(bufferDescription.name) == 0) {
     throw std::runtime_error(
@@ -101,7 +101,12 @@ UniformBuffer MaterialSystem::createUniformBuffer(const izz::geo::UniformBufferD
   material.useProgram();  // might not be needed
   ub.blockIndex = glGetUniformBlockIndex(material.programId, bufferDescription.name.c_str());
   if (ub.blockIndex == GL_INVALID_INDEX) {
-    throw std::runtime_error(fmt::format("Could not find UBO with name {}", bufferDescription.name));
+    //    throw std::runtime_error(fmt::format("Could not find UBO with name {}", bufferDescription.name));
+    spdlog::error(
+        "Material '{}' declares usage of UBO '{}', but it's not defined in the shader! This might cause "
+        "runtime glitches.",
+        material.name, bufferDescription.name);
+    return UniformBuffer{};
   }
   glGetActiveUniformBlockiv(material.programId, ub.blockIndex, GL_UNIFORM_BLOCK_BINDING, &ub.blockBind);
 
@@ -127,7 +132,7 @@ void MaterialSystem::setShaderRootDirectory(std::filesystem::path shaderRoot) {
   m_shaderRootDirectory = shaderRoot;
 }
 
-ShaderVariantInfo MaterialSystem::compileShader(const izz::geo::MaterialTemplate& materialTemplate) {
+ShaderVariantInfo MaterialSystem::compileShader(const izz::MaterialTemplate& materialTemplate) {
   ShaderVariantInfo info;
 
   ShaderContext context;
@@ -139,7 +144,7 @@ ShaderVariantInfo MaterialSystem::compileShader(const izz::geo::MaterialTemplate
   //   * defined by the render capabilities (in practice usually decided by the render system).
   for (auto& flag : materialTemplate.compileConstants.flags) {
     context.compileConstants.flags.insert(flag);
-//    m_shaderCompiler->enableCompileConstant(flag);
+    //    m_shaderCompiler->enableCompileConstant(flag);
   }
 
   if (materialTemplate.isBinaryShader) {
@@ -153,7 +158,7 @@ ShaderVariantInfo MaterialSystem::compileShader(const izz::geo::MaterialTemplate
   return info;
 }
 
-void MaterialSystem::allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::geo::TextureDescription>& textureDescriptions) {
+void MaterialSystem::allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::TextureDescription>& textureDescriptions) {
   for (const auto& [textureName, texture] : textureDescriptions) {
     spdlog::debug("Loading Texture {}: {}", textureName, texture.path.string());
 
@@ -175,12 +180,12 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
   }
 }
 
-void MaterialSystem::allocateBuffers(Material& material, const izz::geo::MaterialTemplate& materialTemplate) {
-  static std::unordered_map<izz::geo::PropertyType, uint64_t> PropertyTypeSize = {
-      {izz::geo::PropertyType::BOOL, sizeof(GLint)},         {izz::geo::PropertyType::INT, sizeof(GLint)},
-      {izz::geo::PropertyType::FLOAT, sizeof(GLfloat)},      {izz::geo::PropertyType::FLOAT4, 4 * sizeof(GLfloat)},
-      {izz::geo::PropertyType::FLOAT3, 3 * sizeof(GLfloat)}, {izz::geo::PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
-      {izz::geo::PropertyType::INT_ARRAY, sizeof(GLint)}};
+void MaterialSystem::allocateBuffers(Material& material, const MaterialTemplate& materialTemplate) {
+  static std::unordered_map<izz::PropertyType, uint64_t> PropertyTypeSize = {
+      {PropertyType::BOOL, sizeof(GLint)},         {PropertyType::INT, sizeof(GLint)},
+      {PropertyType::FLOAT, sizeof(GLfloat)},      {PropertyType::FLOAT4, 4 * sizeof(GLfloat)},
+      {PropertyType::FLOAT3, 3 * sizeof(GLfloat)}, {PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
+      {PropertyType::INT_ARRAY, sizeof(GLint)}};
 
   // allocate texture buffers based on texture descriptions.
   allocateTextureBuffers(material, materialTemplate.textures);
@@ -188,7 +193,10 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
   for (auto& [name, uboDescription] : materialTemplate.uniformBuffers) {
     spdlog::debug("MaterialSystem: allocating uniform buffer on GPU");
     if (m_uniformBuffers.contains(uboDescription.name)) {
-      material.uniformBuffers[name] = createUniformBuffer(uboDescription, material);
+      auto buffer = createUniformBuffer(uboDescription, material);
+      if (buffer.data != nullptr) {
+        material.uniformBuffers[name] = createUniformBuffer(uboDescription, material);
+      }
 
       m_uniformBuffers.at(name)->onInit();
     }
@@ -241,7 +249,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
     UniformProperty* prop;
 
     switch (p.type) {
-      case geo::PropertyType::BOOL:
+      case PropertyType::BOOL:
         prop = uniforms->addBoolean(name, std::get<bool>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
@@ -250,7 +258,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<bool>(p.value));
         break;
 
-      case geo::PropertyType::INT:
+      case PropertyType::INT:
         prop = uniforms->addInt(name, std::get<int>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
@@ -259,7 +267,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<int>(p.value));
         break;
 
-      case geo::PropertyType::FLOAT:
+      case PropertyType::FLOAT:
         prop = uniforms->addFloat(name, std::get<float>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
@@ -268,7 +276,10 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         spdlog::info("Initialized: {}.{} = {}", material.getName(), name, std::get<float>(p.value));
         break;
 
-      case geo::PropertyType::FLOAT_ARRAY: {
+      case PropertyType::FLOAT2:
+      case PropertyType::FLOAT3:
+      case PropertyType::FLOAT4:
+      case PropertyType::FLOAT_ARRAY: {
         prop = uniforms->addFloatArray(name, std::get<std::vector<float>>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
@@ -277,7 +288,10 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
         break;
       }
 
-      case geo::PropertyType::INT_ARRAY: {
+      case PropertyType::INT2:
+      case PropertyType::INT3:
+      case PropertyType::INT4:
+      case PropertyType::INT_ARRAY: {
         prop = uniforms->addIntArray(name, std::get<std::vector<int32_t>>(p.value), location);
         material.m_allUniforms[name] = prop;
         if (!isGlobalUniform) {
@@ -293,11 +307,7 @@ void MaterialSystem::allocateBuffers(Material& material, const izz::geo::Materia
   }
 }
 
-Material& MaterialSystem::createMaterial(izz::geo::MaterialTemplate materialTemplate, std::string name) {
-  //  return createMaterial(materialTemplate.name);
-  // copy material template, because compile constants may differ
-  //  auto materialTemplate = getMaterialTemplate(meshMaterialName);
-
+Material& MaterialSystem::createMaterial(izz::MaterialTemplate materialTemplate, std::string name) {
   // 1. Check material name for collisions.
   if (!name.empty() && m_createdMaterialNames.count(name) > 0) {
     throw std::runtime_error("Cannot create material with name that already exists.");
@@ -332,7 +342,11 @@ Material& MaterialSystem::createMaterial(izz::geo::MaterialTemplate materialTemp
 
   // 6. Generate a unique material name (if no material name is specified).
   if (material.name.empty()) {
-    material.name = materialTemplate.name + "_" + std::to_string(shaderInfo.numberOfInstances - 1);
+    material.name = materialTemplate.name;
+
+    if (shaderInfo.numberOfInstances > 1) {  // don't append instance number if it's the first instance
+      material.name += "_" + std::to_string(shaderInfo.numberOfInstances - 1);
+    }
   }
 
   // 7. Allocate unique buffers (i.e. texture buffers, uniform buffers, etc.).
@@ -345,7 +359,7 @@ Material& MaterialSystem::createMaterial(izz::geo::MaterialTemplate materialTemp
   return m_createdMaterials.at(material.id);
 }
 
-Material& MaterialSystem::createMaterial(std::string meshMaterialName, std::string instanceName) {
+Material& MaterialSystem::createMaterial(const std::string& meshMaterialName, std::string instanceName) {
   // copy material template, because compile constants may differ
   auto materialTemplate = getMaterialTemplate(meshMaterialName);
 
@@ -383,7 +397,10 @@ Material& MaterialSystem::createMaterial(std::string meshMaterialName, std::stri
 
   // 6. Generate a unique material name (if no material name is specified).
   if (material.name.empty()) {
-    material.name = materialTemplate.name + "_" + std::to_string(shaderInfo.numberOfInstances - 1);
+    material.name = materialTemplate.name;
+    if (shaderInfo.numberOfInstances > 1) {  // don't append instance number if it's the first instance
+      material.name += "_" + std::to_string(shaderInfo.numberOfInstances - 1);
+    }
   }
 
   // 7. Allocate unique buffers (i.e. texture buffers, uniform buffers, etc.).
@@ -396,9 +413,13 @@ Material& MaterialSystem::createMaterial(std::string meshMaterialName, std::stri
   return m_createdMaterials.at(material.id);
 }
 
-const geo::MaterialTemplate& MaterialSystem::getMaterialTemplate(std::string meshMaterialName) {
+const MaterialTemplate& MaterialSystem::getMaterialTemplate(std::string meshMaterialName) {
   // 1. Map the mesh material name (if available in the mapping table).
-  auto templateName = m_materialMappings.count(meshMaterialName) > 0 ? m_materialMappings.at(meshMaterialName) : meshMaterialName;
+  auto templateName = meshMaterialName;
+  if (m_materialMappings.count(meshMaterialName) > 0) {
+    templateName = m_materialMappings.at(meshMaterialName);
+    spdlog::debug("material mapping override: {} maps to material: {}", meshMaterialName, templateName);
+  }
 
   if (!m_materialTemplates.contains(templateName)) {
     if (!m_materialTemplates.contains(m_defaultMaterialTemplateName)) {
@@ -412,7 +433,7 @@ const geo::MaterialTemplate& MaterialSystem::getMaterialTemplate(std::string mes
   return m_materialTemplates.at(templateName);
 }
 
-const geo::MaterialTemplate& MaterialSystem::getMaterialTemplateFromMaterial(int materialId) const {
+const MaterialTemplate& MaterialSystem::getMaterialTemplateFromMaterial(int materialId) const {
   try {
     auto programId = m_createdMaterials.at(materialId).programId;
     ShaderVariantInfo info = m_compiledShaderPrograms.at(programId);

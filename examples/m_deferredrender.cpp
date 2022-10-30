@@ -15,8 +15,6 @@
 #include "ecs_transformutil.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
-#include "gui_iguiwindow.h"
-#include "gui_lighteditor.h"
 #include "izz_fontsystem.h"
 #include "izzgl_entityfactory.h"
 #include "izzgl_exrloader.h"
@@ -24,7 +22,7 @@
 #include "izzgl_stbtextureloader.h"
 #include "izzgl_texturesystem.h"
 
-#include "gui_window.h"
+#include "izzgui_window.h"
 #include "wsp_workspace.h"
 
 #include <ecs_transformutil.h>
@@ -35,9 +33,9 @@
 #include <memory>
 #include "ecs_camera.h"
 #include "geo_primitivefactory.h"
-#include "gui_mainmenu.h"
 #include "izz_behavior.h"
 #include "izz_relationshiputil.h"
+#include "izzgui_mainmenu.h"
 #include "uniform_constant.h"
 using namespace std;
 using namespace izz;
@@ -138,9 +136,7 @@ void setupScene() {
 }
 
 void setupUserInterface() {
-  izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->entityFactory, izzy->fontSystem));
-  izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(*izzy));
-  izzy->guiSystem->addDialog(make_shared<gui::StatsDialog>());
+  izzy->setupUserInterface();
 }
 
 int main(int argc, char* argv[]) {
@@ -160,7 +156,7 @@ int main(int argc, char* argv[]) {
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initializeContext();
 
-    // setup camera
+    // onBeginFrame camera
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 

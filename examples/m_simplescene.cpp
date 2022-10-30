@@ -7,7 +7,7 @@
 #include <geo_primitivefactory.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
-#include <gui_window.h>
+#include <izzgui_window.h>
 #include <spdlog/spdlog.h>
 #include <memory>
 #include "../lib/core/include/anim_localrotation.h"

@@ -70,17 +70,7 @@ void DepthPeeling::init(int width, int height) {
   // Color texture
   m_opaqueTexture = m_textureSystem->allocateTexture(width, height);
   m_depthTexture = m_textureSystem->allocateDepthTexture(width, height);
-//  m_materialSystem->glGenTextures(1, &m_opaqueTexture);
-//  glBindTexture(GL_TEXTURE_2D, m_opaqueTexture);  // so that all subsequent calls will affect position texture.
-//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_opaqueTexture->bufferId, 0);
-//  glGenTextures(1, &m_depthTexture);
-//  glBindTexture(GL_TEXTURE_2D, m_depthTexture);
-//  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->bufferId, 0);
 
   if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
@@ -157,7 +147,7 @@ void DepthPeeling::renderTransparentObjects(bool isDepthPeeling) {
   const auto view = m_registry.view<const ForwardRenderable, const izz::ecs::Transform>();
 
   for (const auto& [e, forward, transform] : view.each()) {
-    if (forward.blendMode == izz::geo::BlendMode::ALPHA_BLEND) {
+    if (forward.blendMode == izz::BlendMode::ALPHA_BLEND) {
       IZZ_STAT_COUNT(TRANSPARENT_OBJECTS)
       auto& mat = m_materialSystem->getMaterialById(forward.materialId);
       const auto& mesh = m_meshSystem->getMeshBuffer(forward.vertexBufferId);

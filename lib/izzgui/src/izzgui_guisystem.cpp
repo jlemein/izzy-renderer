@@ -1,14 +1,16 @@
 //
 // Created by jlemein on 08-02-21.
 //
-#include <gui_guisystem.h>
-#include <gui_iguiwindow.h>
-#include <gui_window.h>
+#include <izzgui_guisystem.h>
+#include <izzgui_iguiwindow.h>
+#include <izzgui_window.h>
 
 #include <GLFW/glfw3.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 #include <memory>
 
+#include <IconFontCppHeaders/IconsFontAwesome6.h>
 #include <izz_fontsystem.h>
 #include <spdlog/spdlog.h>
 #include "imgui_impl_glfw.h"
@@ -43,17 +45,26 @@ void GuiSystem::initialize(Window* viewer) {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO& io = ImGui::GetIO();
-  (void)io;
 
   for (auto font : m_fontSystem->getAvailableFonts()) {
     m_fonts.push_back(io.Fonts->AddFontFromFileTTF(font.name.c_str(), font.preferredSize));
     spdlog::info("Loaded font: {}", font.name);
   }
 
+  // load additional icons
+  static const ImWchar iconsRanges[] = {ICON_MIN_FA, ICON_MAX_16_FA, 0};
+  ImFontConfig iconsConfig;
+  iconsConfig.MergeMode = true;
+  iconsConfig.PixelSnapH = true;
+  io.Fonts->AddFontFromFileTTF("fonts/" FONT_ICON_FILE_NAME_FAS, 16.0F, &iconsConfig, iconsRanges);
+
   for (const auto& dialog : m_dialogs) {
     dialog->init();
   }
 
+  // enable docking
+  io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable | ImGuiConfigFlags_ViewportsEnable;
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
   // io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
 
@@ -62,13 +73,17 @@ void GuiSystem::initialize(Window* viewer) {
   ImGui_ImplOpenGL3_Init(m_shadingVersion.c_str());
 }
 
+void GuiSystem::setLayout(std::unique_ptr<izz::gui::Layout> layout) {
+  m_layout = std::move(layout);
+}
+
 void GuiSystem::update(float time, float dt) {
   // Start the Dear ImGui frame
   ImGui_ImplOpenGL3_NewFrame();
   ImGui_ImplGlfw_NewFrame();
   ImGui::NewFrame();
 
-  // handle input
+  m_layout->onBeginFrame();
 
   for (const auto& dialog : m_dialogs) {
     dialog->render(dt, time);
@@ -76,7 +91,6 @@ void GuiSystem::update(float time, float dt) {
 }
 
 void GuiSystem::beforeRender() {
-  // Rendering
   ImGui::Render();
 }
 
@@ -85,12 +99,11 @@ void GuiSystem::afterRender() {
 }
 
 void GuiSystem::cleanup() {
-  // Cleanup
   ImGui_ImplOpenGL3_Shutdown();
   ImGui_ImplGlfw_Shutdown();
   ImGui::DestroyContext();
 }
 
 bool GuiSystem::isProcessingInput() const {
-  return ImGui::IsAnyItemActive() && ImGui::IsAnyMouseDown();
+  return ImGui::IsAnyItemActive();
 }

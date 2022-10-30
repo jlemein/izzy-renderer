@@ -77,7 +77,7 @@ izzy renderer as well.
 
 ### Setting up systems
 
-The first thing to setup are the systems. The systems are the heart of the simulation. Without systems nothing will
+The first thing to onBeginFrame are the systems. The systems are the heart of the simulation. Without systems nothing will
 happen.
 Izzy renderer will contain a huge amount of systems. Setting up the systems can be tricky because the order is
 important.
@@ -239,7 +239,7 @@ Example of adding two post-processing effects. Note that the post-processing eff
 the same as standard materials, except for the fact they have different uniform shader parameters.
 
 ```cpp
-// setup camera
+// onBeginFrame camera
 auto camera = entityFactory->makeCamera("DummyCamera", 4);
 auto grayscale = entityFactory->makePosteffect("GrayScale", *materialSystem->createMaterial("GrayScalePostEffect"));
 auto vignette = entityFactory->makePosteffect("Vignette", *materialSystem->createMaterial("VignettePostEffect"));

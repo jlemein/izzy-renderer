@@ -6,12 +6,12 @@
 #include <anim_animationsystem.h>
 #include <ecs_camerasystem.h>
 #include <ecs_transformsystem.h>
-#include <gui_window.h>
-#include <gui_windowinputlistener.h>
 #include <io_inputsystem.h>
-#include "izzgl_entityfactory.h"
 #include <izz_debugsystem.h>
 #include <izz_izzy.h>
+#include <izzgui_window.h>
+#include <izzgui_windowinputlistener.h>
+#include "izzgl_entityfactory.h"
 
 #include <iostream>
 #include <spdlog/spdlog.h>

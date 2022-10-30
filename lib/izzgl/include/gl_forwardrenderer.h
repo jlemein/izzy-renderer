@@ -22,7 +22,7 @@ struct ForwardRenderable {
   MaterialId materialId{-1};
   VertexBufferId vertexBufferId{-1};
   bool isWireframe{false};
-  izz::geo::BlendMode blendMode { izz::geo::BlendMode::OPAQUE };
+  BlendMode blendMode { BlendMode::OPAQUE };
 };
 
 class ForwardRenderer {

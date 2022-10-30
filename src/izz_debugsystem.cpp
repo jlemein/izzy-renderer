@@ -20,15 +20,16 @@ void DebugSystem::init() {
     Debug debug = view.get<Debug>(e);
 
     auto pName = m_registry.try_get<Name>(e);
-    std::string name = pName ? pName->name  : "Unnamed";
+    std::string name = pName ? pName->name : "Unnamed";
 
     DebugModel model = DebugShapeFactory(*m_izzy.materialSystem, *m_izzy.meshSystem).MakeModel(debug.shape, m_registry, e);
 
     for (int i = 0; i < model.renderable.size(); ++i) {
       std::string debugName = std::string{"Debug#"} + std::to_string(i) + " " + name;
-      auto sge = m_izzy.entityFactory->makeRenderable(debugName, model.renderable[i].vertexBufferId, model.renderable[i].materialId,
-                                           model.transformations[i].localTransform, izz::gl::RenderStrategy::FORWARD);
-//      sge.get<izz::gl::ForwardRenderable>().isWireframe = model.isWireframe;
+
+      auto sge =
+          m_izzy.entityFactory->makeRenderable(debugName, model.renderable[i], model.transformations[i].localTransform, izz::gl::RenderStrategy::FORWARD);
+      //      sge.get<izz::gl::ForwardRenderable>().isWireframe = model.isWireframe;
       RelationshipUtil::MakeChild(m_registry, e, sge.handle());
     }
   }

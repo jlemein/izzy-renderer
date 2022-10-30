@@ -2,7 +2,7 @@
 // Created by jeffrey on 12-12-21.
 //
 #pragma once
-#include <gui_iguiwindow.h>
+#include <izzgui_iguiwindow.h>
 #include "izz_scenegraphentity.h"
 
 #include <memory>

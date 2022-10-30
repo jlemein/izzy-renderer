@@ -2,8 +2,8 @@
 // Created by jeffrey on 12-12-21.
 //
 #include <fmt/format.h>
-#include <gui_shadereditor.h>
 #include <imgui.h>
+#include <izzgui_shadereditor.h>
 #include <spdlog/spdlog.h>
 #include "izzgl_entityfactory.h"
 #include "izzgl_material.h"
@@ -20,7 +20,7 @@ void izz::gui::ShaderEditor::render(float time, float dt) {
       auto& material = m_sceneGraph->getRegistry().get<izz::gl::Material>(entity);
 
       auto id = fmt::format("ShaderEditor_{}", static_cast<int>(entity));
-      ImGui::PushID(id.c_str());
+//      ImGui::PushID(id.c_str());
 //      ImGui::Begin("Shader Editor", &show);
 //        for (auto& p : material.unscopedUniforms.floatValues) {
 //          ImGui::DragFloat(p.first.c_str(), &p.second);
@@ -38,7 +38,7 @@ void izz::gui::ShaderEditor::render(float time, float dt) {
 //          ImGui::DragFloat4(p.first.c_str(), p.second.data(), 0.1F);
 //        }
 //      ImGui::End();
-      ImGui::PopID();
+//      ImGui::PopID();
     }
   }
 }

@@ -3,13 +3,12 @@
 //
 #pragma once
 
-#include <string>
+#include <boost/functional/hash.hpp>
 #include <map>
 #include <set>
-#include <boost/functional/hash.hpp>
+#include <string>
 
 namespace izz {
-namespace geo {
 
 /**
  * Structure of render capabilities.
@@ -65,16 +64,12 @@ struct Capabilities {
   }
 };
 
-
-}  // namespace gl
 }  // namespace izz
 
 // custom specialization of std::hash can be injected in namespace std
-template<>
-struct std::hash<izz::geo::Capabilities>
-{
-  std::size_t operator()(izz::geo::Capabilities const& r) const noexcept
-  {
+template <>
+struct std::hash<izz::Capabilities> {
+  std::size_t operator()(izz::Capabilities const& r) const noexcept {
     std::size_t result = 0;
     boost::hash_combine(result, r.flags);
     boost::hash_combine(result, r.settings);

@@ -8,19 +8,18 @@
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
 #include <geo_meshutil.h>
-#include <gui_lighteditor.h>
-#include <gui_window.h>
 #include <izz_fontsystem.h>
-#include <wsp_workspace.h>
-#include "izzgl/izz_resourcemanager.h"
 #include <izzgl/izzgl_exrloader.h>
 #include <izzgl/izzgl_sceneloader.h>
 #include <izzgl/izzgl_stbtextureloader.h>
 #include <izzgl/izzgl_texturesystem.h>
+#include <izzgui_window.h>
+#include <wsp_workspace.h>
 #include "geo_scene.h"
-#include "gui_iguiwindow.h"
+#include "izzgl/izz_resourcemanager.h"
 #include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
+#include "izzgui_iguiwindow.h"
 
 #include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>

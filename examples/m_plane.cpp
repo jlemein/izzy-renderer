@@ -8,13 +8,12 @@
 #include "ecs_transformutil.h"
 #include "geo_meshutil.h"
 #include "geo_scene.h"
-#include "gui_lighteditor.h"
 #include "izz_fontsystem.h"
 #include "izzgl_entityfactory.h"
 
 #include <izzgl_materialsystem.h>
 
-#include "gui_window.h"
+#include "izzgui_window.h"
 #include "wsp_workspace.h"
 
 #include <ecs_transform.h>
@@ -24,10 +23,9 @@
 #include <cxxopts.hpp>
 #include <memory>
 #include "geo_primitivefactory.h"
-#include "gui_mainmenu.h"
 #include "izzgl_materialreader.h"
+#include "izzgui_mainmenu.h"
 #include "izzgui_stats.h"
-#include <izz_izzy.h>
 using namespace std;
 using namespace izz;
 using namespace izz::geo;
@@ -108,7 +106,7 @@ int main(int argc, char* argv[]) {
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initializeContext();
 
-    // setup camera
+    // onBeginFrame camera
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 

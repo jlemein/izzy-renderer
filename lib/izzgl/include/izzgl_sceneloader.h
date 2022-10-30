@@ -12,16 +12,13 @@
 #include "geo_transform.h"
 
 namespace izz {
+struct MaterialTemplate;
+struct TextureDescription;
+
 namespace geo {
 struct Scene;
 }  // namespace geo
-}  // namespace izz
 
-namespace izz {
-namespace geo {
-struct MaterialTemplate;
-struct TextureDescription;
-}  // namespace geo
 namespace gl {
 class MaterialSystem;
 class TextureSystem;
@@ -89,10 +86,10 @@ class SceneLoader {
    * @param aiMaterial
    * @param material
    */
-  void readTextures(const izz::geo::Scene& scene, const aiScene* aiScene_p, const aiMaterial* aiMaterial, izz::geo::MaterialTemplate& material);
+  void readTextures(const izz::geo::Scene& scene, const aiScene* aiScene_p, const aiMaterial* aiMaterial, izz::MaterialTemplate& material);
 
-  std::unique_ptr<izz::geo::TextureDescription> readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial,
-                                                              const std::unordered_map<std::string, aiTexture*>& embeddedTextures) const;
+  std::unique_ptr<izz::TextureDescription> readAiTexture(const izz::geo::Scene& scene, aiTextureType ttype, const aiMaterial* aiMaterial,
+                                                         const std::unordered_map<std::string, aiTexture*>& embeddedTextures) const;
 
  private:
   std::shared_ptr<izz::gl::TextureSystem> m_textureSystem{nullptr};

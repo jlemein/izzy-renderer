@@ -7,6 +7,8 @@
 
 namespace izz {
 
+class SceneGraphEntity;
+
 /**!
  * @brief Utility methods to set data on a @see Relationship component.
  * It is recommended to set data via the utility methods. They keep the
@@ -15,6 +17,8 @@ namespace izz {
 struct RelationshipUtil {
  public:
   static void MakeChild(entt::registry& registry, entt::entity parent, entt::entity child);
+  static void MakeChild(entt::registry& registry, SceneGraphEntity& parent, SceneGraphEntity& child);
+
   static void MakeChildren(entt::registry& registry, entt::entity parent, const std::vector<entt::entity>& children);
 
   /**!
@@ -31,3 +35,4 @@ struct RelationshipUtil {
 };
 
 }  // namespace izz
+

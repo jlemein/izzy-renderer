@@ -3,12 +3,12 @@
 //
 #pragma once
 
-#include <geo_materialtemplate.h>
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <list>
 #include <unordered_map>
 #include <vector>
+#include "izz_materialtemplate.h"
 
 namespace izz {
 namespace geo {
@@ -40,7 +40,7 @@ class Scene {
   using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
   //  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
   using TextureIterable = std::vector<std::shared_ptr<Texture>>;
-  using MaterialIterable = std::vector<izz::geo::MaterialTemplate>;
+  using MaterialIterable = std::vector<izz::MaterialTemplate>;
   using LightIterable = std::vector<std::shared_ptr<Light>>;
   using CameraIterable = std::vector<std::shared_ptr<Camera>>;
   using SceneNodeIterable = std::vector<std::shared_ptr<SceneNode>>;

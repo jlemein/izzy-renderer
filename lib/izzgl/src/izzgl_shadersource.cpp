@@ -41,7 +41,7 @@ int getOffsetToFirstLineNotStartingWithDirective(const std::vector<std::string>&
 }
 }  // namespace
 
-std::filesystem::path izz::gl::ShaderContext::ResolvePath(std::filesystem::path& path, ShaderContext* context) {
+std::filesystem::path izz::gl::ShaderContext::ResolvePath(std::filesystem::path path, ShaderContext* context) {
   if (context && path.is_absolute()) {
     path = context->root / path.string().substr(1);
   }
@@ -96,8 +96,6 @@ void ShaderSource::readFile(std::filesystem::path path) {
     if (line.starts_with("#include")) {
       auto includePath = getIncludeFilePath(line);
       includePath = ShaderContext::ResolvePath(includePath, m_context);
-
-      spdlog::debug("{} will include file: {}", path.string(), includePath.string());
 
       // Read file referenced file in #include directive.
       ShaderSource includedSource(m_context);

@@ -6,7 +6,7 @@
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
 #include <geo_primitivefactory.h>
-#include <gui_window.h>
+#include <izzgui_window.h>
 #include <spdlog/spdlog.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
