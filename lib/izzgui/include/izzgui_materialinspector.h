@@ -3,17 +3,13 @@
 //
 
 #pragma once
-
-//
-// Created by jeffrey on 12-12-21.
-//
-#pragma once
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <izzgui_iguiwindow.h>
 #include <izzgui_imguix.h>
 #include <memory>
 #include "izzgui_shadereditor.h"
+#include <izz.h>
 
 namespace izz {
 class EntityFactory;
@@ -34,19 +30,26 @@ class MaterialInspector : public gui::IGuiWindow {
   /// Opens the material inspector.
   static void Open();
   static void Toggle();
+  static MaterialId SelectedMaterial; //= MATERIAL_UNDEFINED;
 
-  static inline const char* ID = "Material inspector";
+  static inline const char* ID = "Material Inspector";
 
   void init() override;
   void render(float time, float dt) override;
   void open();
 
  private:
-  static bool inline Show = false;  /// controls whether the window is visible/displayed.
+  static bool inline Show = true;  /// controls whether the window is visible/displayed.
   int m_guiId = 0;
   float m_indent = 10.0F;
   std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
   std::shared_ptr<izz::EntityFactory> m_sceneGraph {nullptr};
+  ImVec4 m_frameHeaderColor = ImVec4(ImColor(0, 0x40, 0));            /// Color used for background of component headers.
+  ImVec4 m_inputBackgroundColor = ImVec4(ImColor(0x20, 0x20, 0x20));  /// Background color for input controls.
+
+  void generalInfo();
+  void uniformProperties();
+  void compileConstants();
 };
 
 }  // namespace gui

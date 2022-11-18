@@ -5,6 +5,7 @@ add_library(izz-gui
         include/izzgui_materialeditor.h
         include/izzgui_materialinspector.h
         include/izzgui_scenenavigator.h
+        include/izzgui_materialnavigator.h
         include/izzgui_stats.h src/izzgui_stats.cpp
         src/izzgui_guisystem.cpp
         src/izzgui_imguix.cpp
@@ -12,6 +13,7 @@ add_library(izz-gui
         src/izzgui_materialeditor.cpp
         src/izzgui_materialinspector.cpp
         src/izzgui_scenenavigator.cpp
+        src/izzgui_materialnavigator.cpp
         src/izzgui_shadereditor.cpp include/izzgui_shadereditor.h
         src/izzgui_windowinputlistener.cpp
         src/izzgui_docklayout.cpp

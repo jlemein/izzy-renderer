@@ -23,6 +23,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <izzgui_materialnavigator.h>
 
 namespace izz {
 namespace geo {
@@ -72,7 +73,7 @@ class Izzy {
 
     izz->fontSystem = std::make_shared<izz::FontSystem>();
     //    izz->fontSystem->addFont("fonts/SegoeUi.ttf", 16);
-    izz->fontSystem->addFont("fonts/DroidSans.ttf", 20);
+    izz->fontSystem->addFont("fonts/DroidSans.ttf", 18);
     izz->guiSystem = make_shared<gui::GuiSystem>(izz->fontSystem);
 
     return izz;
@@ -89,6 +90,7 @@ class Izzy {
     guiSystem->addDialog(std::make_shared<izz::gui::SceneNavigator>(entityFactory));
     guiSystem->addDialog(std::make_shared<izz::gui::MaterialInspector>(materialSystem));
     guiSystem->addDialog(std::make_shared<izz::gui::MaterialEditor>(materialSystem, entityFactory));
+    guiSystem->addDialog(std::make_shared<izz::gui::MaterialNavigator>(entityFactory, materialSystem));
     guiSystem->addDialog(std::make_shared<izz::gui::ComponentEditor>(*this));
 
     guiSystem->setLayout(std::make_unique<izz::gui::DockLayout>(0.2, 0.2, 0.2, 0.5));

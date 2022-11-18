@@ -135,12 +135,15 @@ vec3 GetSpotLightContribution(SpotLight light, vec3 p, vec3 n, vec3 v, vec3 albe
 
 void main()
 {
+//    #define DEBUG
     #ifdef DEBUG
     out_color = debugview();
     #else// DEBUG
 
     // fetch normal and tangent from gBuffer.
-    vec3 p = texture(gbuffer_position, in_uv).xyz;
+    vec4 pos = texture(gbuffer_position, in_uv);
+    vec3 p = pos.xyz;
+    float ambient_weight = pos.w;
     vec3 n = texture(gbuffer_normal, in_uv).rgb;
     vec4 albedo_spec = texture(gbuffer_albedospec, in_uv);
     vec3 albedo = albedo_spec.rgb;
@@ -149,8 +152,10 @@ void main()
     vec3 view_position = viewPosition;
     vec3 v = normalize(view_position.xyz - p.xyz);
 
-    out_color = vec4(ambient.rgb * albedo, 0.0);
+    if (ambient_weight == 0)
+        discard;
 
+    out_color = vec4(ambient_weight * ambient.rgb * albedo, ambient_weight);
     for (int i=0; i<numberOfDirectionalLights; i++) {
         DirectionalLight light = directionalLights[i];
         out_color.rgb += GetDirectionalLightContribution(light, n, v, albedo, specularity);

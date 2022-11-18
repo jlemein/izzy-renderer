@@ -34,12 +34,13 @@ class ComponentEditor : public IGuiWindow {
   ImVec4 m_frameHeaderColor = ImVec4(ImColor(0x40, 0, 0));            /// Color used for background of component headers.
   ImVec4 m_inputBackgroundColor = ImVec4(ImColor(0x20, 0x20, 0x20));  /// Background color for input controls.
 
+  void addComponentMenuBar();
+
+  // components
   void transformComponent();
   void nameComponent();
   void cameraComponent();
   void fpsControlComponent();
-
-  // light components
   void directionalLightComponent();
   void pointLightComponent();
   void spotLightComponent();

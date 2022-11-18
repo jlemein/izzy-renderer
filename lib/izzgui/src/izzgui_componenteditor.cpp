@@ -20,9 +20,19 @@ void ComponentEditor::init() {}
 
 void ComponentEditor::render(float time, float dt) {
   auto& reg = m_izzy.getRegistry();
+  bool hasMenuBar = SelectedEntity != entt::null;
+
+  ImGuiWindowFlags windowFlags = 0;
+  if (hasMenuBar) {
+    windowFlags |= ImGuiWindowFlags_MenuBar;
+  }
 
   if (ComponentEditor::Show) {
-    if (ImGui::Begin(ComponentEditor::ID, &ComponentEditor::Show)) {
+    if (ImGui::Begin(ComponentEditor::ID, &ComponentEditor::Show, windowFlags)) {
+      if (hasMenuBar) {
+        addComponentMenuBar();
+      }
+
       ImGui::PushStyleColor(ImGuiCol_Header, m_frameHeaderColor);
       ImGui::PushStyleColor(ImGuiCol_FrameBg, m_inputBackgroundColor);
       if (SelectedEntity != entt::null) {
@@ -44,6 +54,29 @@ void ComponentEditor::render(float time, float dt) {
     }
     ImGui::End();
   }
+}
+
+void ComponentEditor::addComponentMenuBar(){
+  ImGui::BeginMenuBar();
+  if (ImGui::BeginMenu("Add")) {
+    ImGui::MenuItem("Name");
+    ImGui::MenuItem("Transform");
+    ImGui::MenuItem("Relationship");
+    ImGui::MenuItem("Camera");
+    if (ImGui::BeginMenu("User input")) {
+      ImGui::MenuItem("FPS Control");
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("Lighting")) {
+      ImGui::MenuItem("Ambient");
+      ImGui::MenuItem("Directional");
+      ImGui::MenuItem("Point");
+      ImGui::MenuItem("Spot");
+      ImGui::EndMenu();
+    }
+    ImGui::EndMenu();
+  }
+  ImGui::EndMenuBar();
 }
 
 static int TextCallback(ImGuiInputTextCallbackData* data) {

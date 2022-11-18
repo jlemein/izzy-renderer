@@ -27,6 +27,9 @@ void DepthPeeling::init(int width, int height) {
   m_width = width;
   m_height = height;
 
+  m_opaqueTexture = m_textureSystem->allocateTexture(width, height);
+  m_depthTexture = m_textureSystem->allocateDepthTexture(width, height);
+
   createScreenSpaceRect();
 
   glGenFramebuffers(1, &m_peelFbo);
@@ -68,8 +71,6 @@ void DepthPeeling::init(int width, int height) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_opaqueFbo);
 
   // Color texture
-  m_opaqueTexture = m_textureSystem->allocateTexture(width, height);
-  m_depthTexture = m_textureSystem->allocateDepthTexture(width, height);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_opaqueTexture->bufferId, 0);
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture->bufferId, 0);
 
@@ -95,6 +96,8 @@ void DepthPeeling::render() {
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_opaqueFbo);
   glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_peelFbo);
+  glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
 
   // Pass 0: First pass render transparent objects
   glBindFramebuffer(GL_FRAMEBUFFER, m_peelFbo);
@@ -128,12 +131,14 @@ void DepthPeeling::render() {
 
   // combine the opaque and transparent layer.
   // transparent layer is stored in framebuffer (hence destination).
+  glDisable(GL_DEPTH_TEST); // depth test is irrelevant. We want to blend two layers on top of each other.
   glEnable(GL_BLEND);
-  glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_ONE);
+  glBlendFunc(GL_ONE_MINUS_DST_ALPHA, GL_DST_ALPHA);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, m_opaqueTexture->bufferId);
   glDrawElements(meshBuffer.primitiveType, meshBuffer.drawElementCount, GL_UNSIGNED_INT, 0);
   glDisable(GL_BLEND);
+  glEnable(GL_DEPTH_TEST);
 
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT, GL_NEAREST);

@@ -9,6 +9,7 @@
 #include <izzgui_materialeditor.h>
 #include <izzgui_materialinspector.h>
 #include <izzgui_scenenavigator.h>
+#include <izzgui_materialnavigator.h>
 using namespace izz::gui;
 
 DockLayout::DockLayout(float left, float top, float right, float bottom)
@@ -35,11 +36,14 @@ void DockLayout::onBeginFrame() {
     ImGuiID dockLeft1 = ImGui::DockBuilderSplitNode(dockLeft, ImGuiDir_Up, 0.4, NULL, &dockLeft);
     ImGuiID dockLeft2 = ImGui::DockBuilderSplitNode(dockLeft, ImGuiDir_Down, 0.4, NULL, &dockLeft);
     ImGuiID dockRight = ImGui::DockBuilderSplitNode(dockMain, ImGuiDir_Right, m_right, NULL, &dockMain);
+    ImGuiID dockRight1 = ImGui::DockBuilderSplitNode(dockRight, ImGuiDir_Up, 0.4, NULL, &dockRight);
+    ImGuiID dockRight2 = ImGui::DockBuilderSplitNode(dockRight, ImGuiDir_Down, 0.4, NULL, &dockRight);
 
     ImGui::DockBuilderDockWindow(SceneNavigator::ID, dockLeft1);
     ImGui::DockBuilderDockWindow(ComponentEditor::ID, dockLeft2);
-    ImGui::DockBuilderDockWindow(MaterialInspector::ID, dockLeft);
     ImGui::DockBuilderDockWindow(MaterialEditor::ID, dockBottom);
+    ImGui::DockBuilderDockWindow(MaterialNavigator::ID, dockRight1);
+    ImGui::DockBuilderDockWindow(MaterialInspector::ID, dockRight2);
 
     ImGui::DockBuilderFinish(dockspaceId);
     dockspaceCreated = true;

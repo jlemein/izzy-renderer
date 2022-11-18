@@ -37,7 +37,7 @@ bool ImGuiX::TreeNode(const char* label, ImGuiTreeNodeFlags flags, int depth, bo
       flags, label,
       NULL, depth);
 
-  isClicked = ImGui::IsItemClicked();
+  isClicked = ImGui::IsItemClicked() || (ImGui::IsItemFocused() && ImGui::IsKeyPressed(ImGuiKey_Enter));
 
   // draw the folder icon.
   const float TREE_SPACING = 24.0F;

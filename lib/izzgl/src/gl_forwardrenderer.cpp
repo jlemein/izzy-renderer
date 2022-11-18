@@ -65,6 +65,7 @@ void ForwardRenderer::render(const entt::registry& registry) {
 
   // blit the results from deferred renderer (opaque objects) into the opaqueFbo.
   glBindFramebuffer(GL_FRAMEBUFFER, 0); // should already be bound before starting.
+
   renderOpaqueObjects(registry);
   if (m_isAlphaBlendingEnabled) {
     m_depthPeeling.render();

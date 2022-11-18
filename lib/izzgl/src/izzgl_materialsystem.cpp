@@ -447,7 +447,11 @@ izz::gl::Material& MaterialSystem::makeDefaultMaterial() {
   return createMaterial(m_defaultMaterialTemplateName);
 }
 
-const std::unordered_map<int, Material>& MaterialSystem::getCreatedMaterials() {
+std::unordered_map<MaterialId, Material>& MaterialSystem::getCreatedMaterials() {
+  return m_createdMaterials;
+}
+
+const std::unordered_map<MaterialId, Material>& MaterialSystem::getCreatedMaterials() const {
   return m_createdMaterials;
 }
 

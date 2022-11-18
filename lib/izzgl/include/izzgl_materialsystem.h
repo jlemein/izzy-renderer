@@ -122,7 +122,8 @@ class MaterialSystem {
    */
   izz::gl::Material& makeDefaultMaterial();
 
-  const std::unordered_map<int, Material>& getCreatedMaterials();
+  std::unordered_map<MaterialId, Material>& getCreatedMaterials();
+  const std::unordered_map<MaterialId, Material>& getCreatedMaterials() const;
 
   void setCapabilitySelector(const IRenderCapabilitySelector* selector);
 
@@ -182,17 +183,20 @@ class MaterialSystem {
   /// the registered uniform buffers
   std::unordered_map<std::string, std::unique_ptr<IUniformBuffer>> m_uniformBuffers;
 
-  /// actual buffers in use, which is a subset of @see \m_uniformBuffers.
+  /// actual buffers in use, which is a subset of @see m_uniformBuffers.
   std::unordered_set<std::string> m_uniformBuffersInUse{};
 
   /// @brief Contains the material definitions that are loaded from file.
   std::unordered_map<std::string, izz::MaterialTemplate> m_materialTemplates;
 
+  /// @brief List of parent material, mapping to the child material instances.
+//  std::unordered_map<std::string, std::vector<std::string>> m_childMaterials;
+
   /// @brief Fbx specific material names are mapped to canonical material names that are defined in a material definition.
   std::unordered_map<std::string, std::string> m_materialMappings;
 
   /// @brief The materials that have been created. Maps material id to material.
-  std::unordered_map<int, Material> m_createdMaterials;
+  std::unordered_map<MaterialId, Material> m_createdMaterials;
   std::unordered_map<std::string, int> m_createdMaterialNames;
 
   /// @brief maps shader program id to a shader variant information struct.

@@ -31,7 +31,13 @@ layout(binding = 2) uniform sampler2D colorMap;  // combined transparent objects
                                                                                                         \
         /* blend under-operator, from Real-Time Rendering 4th edition (p.153) */                        \
         /* I believe there is an error in the book and this one should be correct. */                   \
-        out_color.rgb = /*color_d.a * */ color_d.rgb + (1.0 - color_d.a) * out_color.a * out_color.rgb; \
+        /* out_color.rgb = color_d.rgb + (1.0 - color_d.a) * out_color.a * out_color.rgb; */            \
+        /* out_color.a = out_color.a * (1-color_d.a) + color_d.a; */                                    \
+                                                                                                        \
+        /* MAYBE NEXT ONE IS BETTER */                                                                  \
+        /* blend under-operator, from Real-Time Rendering 4th edition (p.153) */                        \
+        /* I believe there is an error in the book and this one should be correct. */                   \
+        out_color.rgb = color_d.a * color_d.rgb + (1.0 - color_d.a) * out_color.rgb;                    \
         out_color.a = out_color.a * (1-color_d.a) + color_d.a;                                          \
     }                                                                                                   \
 }

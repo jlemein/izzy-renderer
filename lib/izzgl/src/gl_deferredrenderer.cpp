@@ -147,8 +147,7 @@ void DeferredRenderer::init(int width, int height) {
   spdlog::info("=== Deferred Renderer Initialization Complete ===");
 }
 
-void DeferredRenderer::update(float dt, float time) {
-}
+void DeferredRenderer::update(float dt, float time) {}
 
 void DeferredRenderer::render(const entt::registry& registry) {
   izz::gl::checkError("Deferred Renderer: begin render step");
@@ -157,8 +156,13 @@ void DeferredRenderer::render(const entt::registry& registry) {
 
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
   glDrawBuffers(attachmentCount, colorAttachments);
-  glClearColor(1.0, m_clearColor.g, m_clearColor.b, m_clearColor.a);
+
+  glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, m_clearColor.a);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // enable writing to depth buffer, and also depth testing.
+  glDepthMask(GL_TRUE);
+  glEnable(GL_DEPTH_TEST);
   glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  // reset to filled mode (to prevent wireframe rendering)
 
   renderGeometryPass(registry);
@@ -174,9 +178,6 @@ void DeferredRenderer::render(const entt::registry& registry) {
 }
 
 void DeferredRenderer::renderGeometryPass(const entt::registry& registry) {
-  // enable writing to depth buffer, and also depth testing.
-  glDepthMask(GL_TRUE);
-  glEnable(GL_DEPTH_TEST);
   glCullFace(GL_BACK);
   glEnable(GL_CULL_FACE);
 
@@ -246,7 +247,6 @@ void DeferredRenderer::renderLightingPass() {
   auto& meshBuffer = m_meshSystem->getMeshBuffer(m_screenSpaceMeshBufferId);
   m_meshSystem->bindBuffer(meshBuffer);
 
-  glDrawBuffer(GL_BACK);
   glDrawElements(meshBuffer.primitiveType, meshBuffer.drawElementCount, GL_UNSIGNED_INT, 0);
 }
 

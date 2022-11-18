@@ -82,7 +82,7 @@ void RenderSystem::init(int width, int height) {
   glCullFace(GL_BACK);
   glFrontFace(GL_CCW);
 
-  m_clearColor = glm::vec4(0.15F, 0.15F, 0.25F, 1.0F);
+  m_clearColor = glm::vec4(0.15F, 0.15F, 0.25F, 0.0F);
   glClearColor(m_clearColor.x, m_clearColor.y, m_clearColor.z, m_clearColor.w);
 
   GLuint m_gPosition;
@@ -134,7 +134,7 @@ void RenderSystem::update(float dt, float time) {
   // update light visualizations, recompute hierarchies for efficient rendering.
   m_lightSystem->updateLightProperties();
 
-//  m_forwardRenderer.update(dt, time);
+  m_forwardRenderer.update(dt, time);
   m_deferredRenderer.update(dt, time);
 
   // updates the materials per frame (once)
@@ -144,6 +144,7 @@ void RenderSystem::update(float dt, float time) {
 
 void RenderSystem::render() {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   m_deferredRenderer.render(m_registry);

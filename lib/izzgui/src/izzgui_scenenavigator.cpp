@@ -56,6 +56,9 @@ ImRect SceneNavigator::renderHierarchy(entt::registry& reg, entt::entity e, int 
     if (auto pRelationship = reg.try_get<Relationship>(e); !pRelationship || !pRelationship->hasChildren()) {
       flags |= ImGuiTreeNodeFlags_Leaf;
     }
+  } else {
+    // by default open the world node (for user convenience).
+    flags |= ImGuiTreeNodeFlags_DefaultOpen;
   }
 
   if (m_selectedHierarchyNode == e) {

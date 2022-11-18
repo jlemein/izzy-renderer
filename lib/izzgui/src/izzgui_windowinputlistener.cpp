@@ -6,6 +6,7 @@
 #include <izzgui_componenteditor.h>
 #include <izzgui_materialeditor.h>
 #include <izzgui_materialinspector.h>
+#include <izzgui_materialnavigator.h>
 #include <izzgui_scenenavigator.h>
 #include <izzgui_stats.h>
 #include <izzgui_windowinputlistener.h>
@@ -38,6 +39,9 @@ void WindowInputListener::update(const izz::io::InputSystem* inputSystem) {
     }
     if (inputSystem->isKeyPressed('N')) {
       izz::gui::SceneNavigator::Open();
+    }
+    if (inputSystem->isKeyPressed('J')) {
+      izz::gui::MaterialNavigator::Open();
     }
   }
 }

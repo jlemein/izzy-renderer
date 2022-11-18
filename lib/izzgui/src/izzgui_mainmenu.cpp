@@ -40,6 +40,10 @@ void MainMenu::render(float time, float dt) {
       spdlog::info("Opening material inspector");
       MaterialInspector::Open();
     }
+    if (ImGui::MenuItem(MaterialNavigator::ID, "Ctrl+Alt+J")) {
+      spdlog::info("Opening material navigator");
+      MaterialInspector::Open();
+    }
     if (ImGui::MenuItem(MaterialEditor::ID, "Ctrl+Alt+E")) {
       spdlog::info("Opening material editor");
       MaterialEditor::Open();
