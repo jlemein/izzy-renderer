@@ -22,7 +22,7 @@ class StbTextureLoader : public TextureLoader {
   virtual ~StbTextureLoader() = default;
 
   /// @inherit
-  Texture loadTexture(const std::filesystem::path& path) override;
+  Texture loadImage(const std::filesystem::path& path) override;
 
   /// @inherit
   Texture loadTextureFromMemory(unsigned char* pData, int size) override;

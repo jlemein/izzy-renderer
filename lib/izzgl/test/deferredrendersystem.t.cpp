@@ -1,8 +1,8 @@
 //
 // Created by jeffrey on 16-12-21.
 //
-#include <gl_deferredrenderer.h>
 #include <gtest/gtest.h>
+#include <izzgl_deferredrenderer.h>
 #include <izzgl_rendersystem.h>
 #include <entt/entt.hpp>
 #include <memory>

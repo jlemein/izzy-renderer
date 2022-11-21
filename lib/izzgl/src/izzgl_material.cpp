@@ -4,6 +4,7 @@
 #include <GL/glew.h>
 #include <izzgl_material.h>
 #include <uniform_blinnphongsimple.h>
+#include "uniform_mvp.h"
 using namespace izz::gl;
 
 //namespace {
@@ -32,8 +33,10 @@ void Material::useTextures() const {
 void Material::pushUniforms() const {
   for (const auto& uniform : uniformBuffers) {
     const auto& mapping = uniform.second;
+
     glBindBuffer(GL_UNIFORM_BUFFER, uniform.second.bufferId);
     glBindBufferBase(GL_UNIFORM_BUFFER, mapping.blockBind, mapping.bufferId);
+    auto* p = reinterpret_cast<izz::ufm::ModelViewProjection*>(mapping.data);
 
     // is this needed?
     glUniformBlockBinding(programId, mapping.blockIndex, mapping.blockBind);

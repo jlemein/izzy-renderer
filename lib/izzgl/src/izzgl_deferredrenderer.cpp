@@ -5,9 +5,9 @@
 #include <ecs_camera.h>
 #include <ecs_transform.h>
 #include <geo_mesh.h>
-#include <gl_deferredrenderer.h>
 #include <gl_renderutils.h>
 #include <izz_util.h>
+#include <izzgl_deferredrenderer.h>
 #include <izzgl_rendersystem.h>
 #include "geo_primitivefactory.h"
 #include "izzgl_error.h"

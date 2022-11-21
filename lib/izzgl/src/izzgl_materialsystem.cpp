@@ -73,7 +73,6 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
 }
 
 void MaterialSystem::init() {
-  ShaderCompiler compiler;
 }
 
 void MaterialSystem::addMaterialTemplate(izz::MaterialTemplate materialTemplate) {
@@ -128,6 +127,15 @@ void MaterialSystem::setDefaultMaterial(const std::string& name) {
   }
 }
 
+void MaterialSystem::bindMaterial(izz::MaterialId id, bool pushProperties) {
+  const auto& material = getMaterialById(id);
+  material.useProgram();
+  if (pushProperties) {
+    material.pushUniforms();
+  }
+  material.useTextures();
+}
+
 void MaterialSystem::setShaderRootDirectory(std::filesystem::path shaderRoot) {
   m_shaderRootDirectory = shaderRoot;
 }
@@ -163,6 +171,12 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
     spdlog::debug("Loading Texture {}: {}", textureName, texture.path.string());
 
     Texture* pTexture{nullptr};
+
+    if (texture.type == PropertyType::CUBE_MAP && !texture.paths.empty()) {
+      pTexture = m_resourceManager->getTextureSystem()->loadCubeMap(texture.paths);
+      pTexture->name = texture.name;
+    }
+
     if (!texture.path.empty()) {
       pTexture = m_resourceManager->getTextureSystem()->loadTexture(texture.path);
     }
@@ -449,6 +463,10 @@ izz::gl::Material& MaterialSystem::makeDefaultMaterial() {
 
 std::unordered_map<MaterialId, Material>& MaterialSystem::getCreatedMaterials() {
   return m_createdMaterials;
+}
+
+std::unordered_map<std::string, MaterialTemplate>& MaterialSystem::getMaterialTemplates() {
+  return m_materialTemplates;
 }
 
 const std::unordered_map<MaterialId, Material>& MaterialSystem::getCreatedMaterials() const {

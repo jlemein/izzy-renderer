@@ -1,9 +1,9 @@
 //
 // Created by jlemein on 18-02-22.
 //
-#include <gl_deferredrenderer.h>
 #include <gl_renderutils.h>
 #include <izzgl_deferredrenderablefactory.h>
+#include <izzgl_deferredrenderer.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_rendersystem.h>
 #include <entt/entt.hpp>

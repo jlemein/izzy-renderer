@@ -20,7 +20,7 @@ class ExrLoader : public TextureLoader {
   virtual ~ExrLoader() = default;
 
   /// @inherit
-  Texture loadTexture(const std::filesystem::path& path) override;
+  Texture loadImage(const std::filesystem::path& path) override;
 
   /// @inherit
   Texture loadTextureFromMemory(unsigned char* pData, int size) override;

@@ -3,7 +3,7 @@
 //
 #pragma once
 
-#include "izzgl_texture.h"
+#include "izz_texture.h"
 #include "izzgl_textureloader.h"
 
 #include <filesystem>
@@ -23,6 +23,16 @@ struct Texture;
  * is best done via the texture system.
  * It is responsible for delegating to appropriate texture loader (i.e. RGBA vs floating point format).
  *
+ * @details
+ * There are different types of methods to be called:
+ *
+ * load* methods (e.g. Texture, loadCubeMap, etc.)
+ *      Allocates corresponding texture and loads the image data into the texture, so that it is available in the GPU.
+ *
+ * allocate* methods (e.g. allocateTexture, allocateCubeMap, etc.)
+ *      allocates a texture unit, but does not fill data. Data needs to be specified by user after creation.
+ *      useful when texture units are filled in by the user, or as a target destination for results to be used in subsequent render passes.
+ *
  * @details Note that there is no texture component or whatsoever.
  */
 class TextureSystem {
@@ -35,6 +45,14 @@ class TextureSystem {
   Texture* loadTexture(const std::filesystem::path& path);
 
   /**
+   * Allocates a cube map (on the GPU) and loads the textures by file path.
+   * Order of paths are: positive_x, negative_x, negative_y, positive_y, positive_z, negative_z.
+   * @param paths Vector of paths. Size should be equal to 6. For different sizes, use @see loadTextureAtlas.
+   * @return A generic texture object, with data bound to the GPU.
+   */
+  Texture* loadCubeMap(const std::vector<std::filesystem::path> paths);
+
+  /**
    * Creates a texture from raw image data, usually used to load embedded textures.
    * @param path Path name to the embedded texture. Sometimes embedded textures still have an internal name.
    *             This name will then not point to an actual file.
@@ -43,8 +61,16 @@ class TextureSystem {
    * @param extensionHint (Optional) hint to find the appropriate file loader.
    * @return
    */
-  Texture* loadEmbeddedTexture(const std::filesystem::path& path, unsigned char* data, int size,
-                                 std::string extensionHint = "");
+  Texture* loadEmbeddedTexture(const std::filesystem::path& path, unsigned char* data, int size, std::string extensionHint = "");
+
+  /**
+   * Retrieves the texture by id, previously obtained via loadTexture or loadCubeMap.
+   * @param id Texture id uniquely describing the texture entity.
+   * @return A pointer to the texture.
+   *
+   * @throws std::runtime_error if texture with specified id could not be found.
+   */
+  Texture* getTextureById(TextureId id);
 
   /**
    * Allocates a texture on the GPU with the specified width and height.
@@ -53,6 +79,13 @@ class TextureSystem {
    * @return A pointer to the created texture.
    */
   Texture* allocateTexture(int width, int height);
+
+  /**
+   * Similar to allocating a texture (\see allocateTexture), but in this case a cubemap is allocated.
+   * A cubemap has 6 sides each defined by a texture.
+   * @return
+   */
+  Texture* allocateCubeMap();
 
   Texture* allocateDepthTexture(int width, int height);
 
@@ -75,12 +108,34 @@ class TextureSystem {
    */
   void clearTextureLoaders();
 
-  const std::unordered_map<std::string, Texture>& getTextures() const;
+  /**
+   * @returns all textures created via the texture system. This includes, normal file-based textures, internal textures (depth buffer, intermediate render
+   * results for multi-pass rendering).
+   */
+  inline const std::unordered_map<TextureId, Texture>& getTextures() const {
+    return m_textures;
+  }
+
+  /**
+   * @returns all textures that are named. Named textures are usually identified by file name.
+   * To return all textures (including internal textures, such as created depth buffers, etc) call @see getTextures.
+   */
+  inline const std::unordered_map<std::string, TextureId>& getNamedTextures() const {
+    return m_cachedTextures;
+  }
 
  private:
+  /**
+   * Loads image data but does not yet allocate the texture on the GPU.
+   * @param path
+   * @return
+   * @throws std::out_of_range if texture could not be found.
+   */
+  Texture* loadImageData(const std::filesystem::path& path);
+
   std::unordered_map<std::string, std::shared_ptr<TextureLoader>> m_textureLoaders;
-  std::unordered_map<std::string, Texture> m_cachedTextures;
-  std::unordered_map<TextureId, Texture> m_textures;
+  std::unordered_map<std::string, TextureId> m_cachedTextures;  /// maps file name to texture id, so that textures can reuse already loaded image data.
+  std::unordered_map<TextureId, Texture> m_textures;            /// map of all created textures identified by texture id.
 };
 
 }  // namespace gl

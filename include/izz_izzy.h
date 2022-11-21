@@ -17,13 +17,14 @@
 #include <izzgui_docklayout.h>
 #include <izzgui_guisystem.h>
 #include <izzgui_mainmenu.h>
+#include <izzgui_materialnavigator.h>
 #include <izzgui_stats.h>
 #include <entt/entt.hpp>
 #include <filesystem>
 #include <memory>
 #include <string>
 #include <unordered_map>
-#include <izzgui_materialnavigator.h>
+#include "izzgui_cubemaptool.h"
 
 namespace izz {
 namespace geo {
@@ -86,6 +87,7 @@ class Izzy {
   void setupUserInterface() {
     guiSystem->addDialog(std::make_shared<izz::gui::MainMenu>(*this));
     guiSystem->addDialog(std::make_shared<izz::gui::StatsDialog>());
+    guiSystem->addDialog(std::make_shared<izz::gui::CubeMapTool>(materialSystem, textureSystem, meshSystem, entityFactory));
 
     guiSystem->addDialog(std::make_shared<izz::gui::SceneNavigator>(entityFactory));
     guiSystem->addDialog(std::make_shared<izz::gui::MaterialInspector>(materialSystem));
@@ -97,9 +99,9 @@ class Izzy {
   }
 
  private:
-  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
-  std::shared_ptr<izz::gl::SceneLoader> m_sceneLoader{nullptr};
-  std::shared_ptr<izz::gl::TextureSystem> m_textureSystem;
+//  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
+//  std::shared_ptr<izz::gl::SceneLoader> m_sceneLoader{nullptr};
+//  std::shared_ptr<izz::gl::TextureSystem> m_textureSystem;
 };
 
 }  // namespace izz

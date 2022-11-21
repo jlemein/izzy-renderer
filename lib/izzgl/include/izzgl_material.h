@@ -9,7 +9,6 @@
 #include <izz.h>
 #include <izz_statcounter.h>
 #include <izzgl_scenedependentuniform.h>
-#include <izzgl_texture.h>
 #include <spdlog/spdlog.h>
 #include <filesystem>
 #include <glm/glm.hpp>
@@ -19,6 +18,7 @@
 #include <variant>
 #include <vector>
 #include "izz_materialtemplate.h"
+#include "izz_texture.h"
 
 namespace izz {
 namespace gl {

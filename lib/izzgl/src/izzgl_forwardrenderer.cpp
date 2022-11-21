@@ -2,15 +2,16 @@
 // Created by jeffrey on 19-01-22.
 //
 #include <GL/glew.h>
+#include <ecs_camera.h>
 #include <ecs_transform.h>
 #include <ecs_wireframe.h>
-#include <gl_forwardrenderer.h>
+#include <geo_mesh.h>
 #include <gl_renderable.h>
 #include <izzgl_error.h>
+#include <izzgl_forwardrenderer.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_meshsystem.h>
-#include <ecs_camera.h>
-#include <geo_mesh.h>
+#include <izz_skybox.h>
 using namespace izz::gl;
 
 ForwardRenderer::ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem,
@@ -60,6 +61,7 @@ void ForwardRenderer::update(float dt, float time) {
 void ForwardRenderer::render(const entt::registry& registry) {
   // reset values - other render strategies might have changed these settings.
   glViewport(0, 0, m_width, m_height);
+
   glDepthMask(GL_TRUE);
   glEnable(GL_DEPTH_TEST);
 
@@ -71,6 +73,7 @@ void ForwardRenderer::render(const entt::registry& registry) {
     m_depthPeeling.render();
   }
 
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
   izz::gl::checkError("Forward renderer");
 }
 

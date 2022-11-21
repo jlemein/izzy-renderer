@@ -21,6 +21,8 @@ add_library(izz-gui
         include/izzgui_componenteditor.h
         include/izzgui_docklayout.h
         include/izzgui_layout.h
+        include/izzgui_cubemaptool.h
+        src/izzgui_cubemaptool.cpp
 
         # VWR - need to be extracted to a lib independent of GUI
         include/izzgui_iwindowextension.h

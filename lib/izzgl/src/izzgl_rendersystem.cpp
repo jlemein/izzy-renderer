@@ -14,6 +14,8 @@
 #include <izzgl_texturesystem.h>
 #include <spdlog/spdlog.h>
 #include <cstring>
+#include "geo_primitivefactory.h"
+#include "izz_skybox.h"
 #include "izzgl_shadersystem.h"
 using namespace izz;
 using namespace izz::gl;
@@ -107,6 +109,16 @@ void RenderSystem::init(int width, int height) {
   auto numForwardRenderables = m_registry.view<gl::ForwardRenderable>().size();
   spdlog::info("Forward renderables: {}, Deferred renderables: {}", numForwardRenderables, numDeferredRenderables);
 
+  auto box = izz::geo::PrimitiveFactory::MakeBox("UnitCube");
+  izz::geo::Mesh mesh;
+  mesh.vertices.reserve(sizeof(Skybox::Vertices)/sizeof(float));
+  float* begin = Skybox::Vertices;
+  float* end = begin + sizeof(Skybox::Vertices)/sizeof(float);
+  mesh.vertices = std::vector<float>(begin, end);
+//  m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(mesh).id;
+  m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(box).id;
+
+
   // small summary
   spdlog::info(
       "Render system initialized | "
@@ -143,14 +155,53 @@ void RenderSystem::update(float dt, float time) {
 }
 
 void RenderSystem::render() {
+  glViewport(0, 0, m_viewportWidth, m_viewportHeight);
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
   glClearColor(m_clearColor.r, m_clearColor.g, m_clearColor.b, 0.0);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+  // render skybox first
+  renderSkybox();
 
   m_deferredRenderer.render(m_registry);
 
   // forward renderer should be after deferred render, because forward may render transparency.
   m_forwardRenderer.render(m_registry);
+}
+
+void RenderSystem::renderSkybox() {
+  auto view = m_registry.view<izz::Skybox>();
+//  auto e = view.size() > 0 ? view[0] : entt::null;
+
+  if (view.size() != 0) {
+    auto e = view[0];
+    auto& skybox = m_registry.get<izz::Skybox>(e);
+
+    if (!skybox.isEnabled) {
+      return;
+    }
+
+    auto& material = m_materialSystem->getMaterialById(skybox.material);
+    auto& buffer = m_meshSystem->getMeshBuffer(m_unitCubeVertexBufferId);
+
+    m_materialSystem->updateUniformsForEntity(e, material);
+
+    material.useProgram();
+    material.pushUniforms();
+    material.useTextures();
+    //    m_materialSystem->bindMaterial(material);
+    m_meshSystem->bindBuffer(buffer);
+
+//    glDepthFunc(GL_LEQUAL);
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
+//    glCullFace(GL_BACK);
+//    glDrawArrays(buffer.primitiveType, 0, buffer.drawElementCount*3);
+    glDrawElements(buffer.primitiveType, buffer.drawElementCount, GL_UNSIGNED_INT, 0);
+//    glCullFace(GL_BACK);
+    glEnable(GL_DEPTH_TEST);
+//    glDepthFunc(GL_LESS);
+  }
 }
 
 void RenderSystem::resize(int width, int height) {

@@ -4,7 +4,7 @@
 #include "izzgl_exrloader.h"
 #include <algorithm>
 #include <filesystem>
-#include "izzgl_texture.h"
+#include "izz_texture.h"
 
 #include <ImfArray.h>
 #include <ImfRgbaFile.h>
@@ -43,7 +43,7 @@ void transformHdrToLdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical
 ExrLoader::ExrLoader(bool flipVertical)
   : m_flipVertical{flipVertical} {}
 
-Texture ExrLoader::loadTexture(const std::filesystem::path& path) {
+Texture ExrLoader::loadImage(const std::filesystem::path& path) {
   // Read data via OpenEXR library into imageData
   RgbaInputFile file(path.c_str());
   Box2i dw = file.dataWindow();
@@ -57,6 +57,7 @@ Texture ExrLoader::loadTexture(const std::filesystem::path& path) {
 
   // convert HDR to LDR to use as geo::Texture
   Texture texture;
+  texture.type = TextureType::TEXTURE_2D;
   transformHdrToLdr(imageData, texture, m_flipVertical);
   texture.path = path;
 

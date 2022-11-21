@@ -35,6 +35,7 @@
 #include "geo_primitivefactory.h"
 #include "izz_behavior.h"
 #include "izz_relationshiputil.h"
+#include "izz_skybox.h"
 #include "izzgui_mainmenu.h"
 #include "uniform_constant.h"
 using namespace std;
@@ -156,16 +157,16 @@ int main(int argc, char* argv[]) {
     window->setTitle(fmt::format("Izzy Renderer: {}", programArguments->sceneFile.filename().string()));
     window->initializeContext();
 
-    // onBeginFrame camera
-    auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
-    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-
     if (programArguments->materialsFile.empty()) {
       spdlog::warn("No materials provided. Rendering results may be different than expected.");
     } else {
       izz::gl::MaterialReader reader(izzy->materialSystem);
       reader.readMaterials(programArguments->materialsFile);
     }
+
+    auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
+    camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
+    camera.add<izz::Skybox>(izz::Skybox{izzy->materialSystem->createMaterial("Skybox").id});
 
     izzy->renderSystem->getLightSystem().setDefaultPointLightMaterial(izzy->materialSystem->createMaterial("pointlight").id);
 

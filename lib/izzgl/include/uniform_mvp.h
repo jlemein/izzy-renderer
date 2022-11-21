@@ -1,7 +1,10 @@
 #pragma once
 
-#include <izzgl_scenedependentuniform.h>
 #include <izzgl_material.h>
+#include <izzgl_scenedependentuniform.h>
+#include "izz_skybox.h"
+#include <ecs_camera.h>
+#include <ecs_transform.h>
 
 namespace izz {
 namespace ufm {

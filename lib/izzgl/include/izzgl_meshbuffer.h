@@ -13,6 +13,7 @@ namespace gl {
 struct VertexAttribArray {
   GLint size;
   GLuint buffer_offset;
+  bool isEnabled;
 };
 
 /// @brief Represents the buffered mesh data, stored on the GPU.

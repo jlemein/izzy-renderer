@@ -45,6 +45,7 @@ class ComponentEditor : public IGuiWindow {
   void pointLightComponent();
   void spotLightComponent();
   void ambientLightComponent();
+  void skyboxComponent();
 };
 
 }  // namespace gui

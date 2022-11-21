@@ -7,8 +7,10 @@
 #include <izzgui_componenteditor.h>
 #include <entt/entt.hpp>
 #include <glm/glm.hpp>
+#include "IconFontCppHeaders/IconsFontAwesome6.h"
 #include "ecs_camera.h"
 #include "ecs_firstpersoncontrol.h"
+#include "izz_skybox.h"
 using namespace izz::gui;
 
 entt::entity ComponentEditor::SelectedEntity = entt::null;
@@ -47,6 +49,8 @@ void ComponentEditor::render(float time, float dt) {
         spotLightComponent();
         ambientLightComponent();
 
+        skyboxComponent();
+
       } else {
         ImGui::TextUnformatted("Please select an entity in the navigator panel.");
       }
@@ -56,7 +60,7 @@ void ComponentEditor::render(float time, float dt) {
   }
 }
 
-void ComponentEditor::addComponentMenuBar(){
+void ComponentEditor::addComponentMenuBar() {
   ImGui::BeginMenuBar();
   if (ImGui::BeginMenu("Add")) {
     ImGui::MenuItem("Name");
@@ -115,7 +119,7 @@ void ComponentEditor::transformComponent() {
   ImGui::PopID();
 }
 
-void ComponentEditor::cameraComponent() {\
+void ComponentEditor::cameraComponent() {
   ImGui::PushID("CameraComponent");
   if (auto camera = m_izzy.getRegistry().try_get<ecs::Camera>(SelectedEntity)) {
     if (ImGui::CollapsingHeader("Camera")) {
@@ -134,6 +138,53 @@ void ComponentEditor::fpsControlComponent() {
       ImGui::DragFloat("H. Sensitivity", &fps->sensitivityX, 0.1F, 0.1F, 10.0F);
       ImGui::DragFloat("V. Sensitivity", &fps->sensitivityY, 0.1F, 0.1F, 10.0F);
       ImGui::Checkbox("Rotate on mouse press", &fps->onlyRotateOnMousePress);
+    }
+  }
+  ImGui::PopID();
+}
+
+void ComponentEditor::skyboxComponent() {
+  ImGui::PushID("SkyboxComponent");
+  if (auto skybox = m_izzy.getRegistry().try_get<izz::Skybox>(SelectedEntity)) {
+    if (ImGui::CollapsingHeader("Skybox")) {
+      ImGui::Checkbox("Enabled", &skybox->isEnabled);
+
+      static char buff[100];
+      static bool showTemplates{true};
+      static bool showMaterialInstances{true};
+      izz::gl::Material& currentMaterial = m_izzy.materialSystem->getMaterialById(skybox->material);
+
+      if (ImGui::BeginCombo("Material", currentMaterial.name.c_str())) {
+        ImGui::InputTextWithHint("##Search", ICON_FA_MAGNIFYING_GLASS "Search materials...", buff, 100);
+        ImGui::Checkbox("Templates", &showTemplates);
+        ImGui::SameLine();
+        ImGui::Checkbox("Instances", &showMaterialInstances);
+
+        if (showMaterialInstances) {
+          for (auto [id, material] : m_izzy.materialSystem->getCreatedMaterials()) {
+            if (ImGui::Selectable(material.name.c_str(), skybox->material == id)) {
+              skybox->material = id;
+              spdlog::info("Selected material has id {}", skybox->material);
+            }
+          }
+        }
+
+        // only add seperator if both templates and instances are shown.
+        if (showMaterialInstances && showTemplates) {
+          ImGui::Separator();
+        }
+
+        if (showTemplates) {
+          for (auto& [name, materialTemplate] : m_izzy.materialSystem->getMaterialTemplates()) {
+            if (ImGui::Selectable(name.c_str(), false)) {
+              spdlog::info("Creating material {}", name);
+              skybox->material = m_izzy.materialSystem->createMaterial(name).id;
+              spdlog::info("Created material {} has id {}", name, skybox->material);
+            }
+          }
+        }
+        ImGui::EndCombo();
+      }
     }
   }
   ImGui::PopID();

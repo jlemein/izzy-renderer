@@ -56,6 +56,11 @@ void MainMenu::render(float time, float dt) {
     }
     ImGui::EndMenu();
   }
+  if (ImGui::BeginMenu("Tools")) {
+    if (ImGui::MenuItem("Cube map editor", "Ctrl+Shift+C", &izz::gui::CubeMapTool::Show)) { /* Do stuff */
+    }
+    ImGui::EndMenu();
+  }
 
   ImGui::EndMainMenuBar();
 }

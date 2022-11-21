@@ -3,13 +3,13 @@
 //
 #include "../include/izz_resourcemanager.h"
 
-#include "geo_scene.h"
 #include <izzgl_exrloader.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_sceneloader.h>
-#include <izzgl_texture.h>
 #include <izzgl_textureloader.h>
 #include <izzgl_texturesystem.h>
+#include "geo_scene.h"
+#include "izz_texture.h"
 
 using namespace izz;
 using namespace izz;

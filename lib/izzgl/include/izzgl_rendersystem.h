@@ -7,15 +7,15 @@
 #include <memory>
 #include <izz_debugsystem.h>
 
-#include <gl_deferredrenderer.h>
-#include <gl_forwardrenderer.h>
+#include <gl_hdrframebuffer.h>
 #include <gl_multipassframebuffer.h>
 #include <glrs_lightsystem.h>
-#include <entt/fwd.hpp>
-#include <gl_hdrframebuffer.h>
+#include <izzgl_deferredrenderer.h>
+#include <izzgl_forwardrenderer.h>
 #include <izzgl_meshsystem.h>
-#include <izzgl_texture.h>
 #include <izzgl_renderstrategy.h>
+#include <entt/fwd.hpp>
+#include "izz_texture.h"
 
 namespace izz {
 class ResourceManager;
@@ -51,6 +51,8 @@ class RenderSystem : public IRenderCapabilitySelector {
   void update(float dt, float time);
   void render();
 
+  void renderSkybox();
+
   void resize(int width, int height);
 
   void onGeometryAdded(SceneGraphEntity& e, RenderStrategy renderStrategy);
@@ -71,6 +73,7 @@ class RenderSystem : public IRenderCapabilitySelector {
   glm::vec4 m_clearColor;
 
   std::unordered_map<TextureId, GLuint> m_allocatedTextures;
+  VertexBufferId m_unitCubeVertexBufferId = {-1};
 
   entt::registry& m_registry;
   std::shared_ptr<izz::ResourceManager> m_resourceManager{nullptr};

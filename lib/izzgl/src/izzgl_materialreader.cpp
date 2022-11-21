@@ -228,6 +228,19 @@ void MaterialReader::readTextures(MaterialTemplate& materialTemplate, const nloh
           if (value.contains("path")) {
             textureDescription.path = value["path"].get<std::string>();
           }
+          if (value.contains("name")) {
+            textureDescription.name = value["name"].get<std::string>();
+          }
+          if (value.contains("paths")) {
+            if (!value["paths"].is_array()) {
+              throw std::runtime_error("texture.paths should be an array of paths.");
+            }
+            auto paths = value["paths"].get<std::vector<std::string>>();
+            textureDescription.paths.reserve(paths.size());
+            for(auto s : paths) {
+              textureDescription.paths.emplace_back(std::filesystem::path{s});
+            }
+          }
         } else {
           // concise representation
           //        try {

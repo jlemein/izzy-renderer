@@ -63,6 +63,7 @@ struct TextureDescription {
   std::string name;            /// @brief name of uniform attribute in shader (the texture sampler).
   std::filesystem::path path;  /// @brief path to the texture file (if known). Leave empty to indicate no texture need to be loaded, either because it will
                                /// be set later or because it will get assigned a generated texture from previous render passes.
+  std::vector<std::filesystem::path> paths {};  /// @brief vector of paths. Used for cube maps or texture atlases.
   TextureHint hint{TextureHint::NO_HINT};  /// @brief (Optional) Use-case hint for the texture.
 };
 

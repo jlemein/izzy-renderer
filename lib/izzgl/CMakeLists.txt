@@ -1,7 +1,7 @@
 add_library(izzgl STATIC
         include/gl_common.h
-        include/gl_deferredrenderer.h
-        include/gl_forwardrenderer.h
+        include/izzgl_deferredrenderer.h
+        include/izzgl_forwardrenderer.h
         include/gl_hdrframebuffer.h
         include/gl_iframebuffer.h
         include/gl_multipassframebuffer.h
@@ -21,7 +21,7 @@ add_library(izzgl STATIC
         include/izzgl_sceneloader.h
         include/izzgl_shadersource.h
         include/izzgl_stbtextureloader.h
-        include/izzgl_texture.h
+        ../../include/izz_texture.h
         include/izzgl_textureloader.h
         include/izzgl_texturesystem.h
         include/uniform_albedospecularity.h
@@ -35,8 +35,8 @@ add_library(izzgl STATIC
         include/uniform_ubermaterial.h
         include/uniform_uniformblockmanager.h
         src/izzgl_common.cpp
-        src/gl_deferredrenderer.cpp
-        src/gl_forwardrenderer.cpp
+        src/izzgl_deferredrenderer.cpp
+        src/izzgl_forwardrenderer.cpp
         src/gl_hdrframebuffer.cpp
         src/gl_multipassframebuffer.cpp
         src/gl_renderutils.cpp

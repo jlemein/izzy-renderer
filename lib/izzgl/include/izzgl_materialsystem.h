@@ -122,6 +122,12 @@ class MaterialSystem {
    */
   izz::gl::Material& makeDefaultMaterial();
 
+  /**
+   * Retrieves all material templates.
+   * @return
+   */
+  std::unordered_map<std::string, MaterialTemplate>& getMaterialTemplates();
+
   std::unordered_map<MaterialId, Material>& getCreatedMaterials();
   const std::unordered_map<MaterialId, Material>& getCreatedMaterials() const;
 
@@ -149,6 +155,14 @@ class MaterialSystem {
   void updateUniformsForEntity(entt::entity e, Material& material);
 
   void setShaderRootDirectory(std::filesystem::path shaderRoot);
+
+  /**
+   * Actives the material id.
+   * If indicated, it also sets the material properties.
+   * @param id material id
+   * @param updateUniformData If true, also sends uniform buffer data to shader.
+   */
+  void bindMaterial(MaterialId id, bool updatehUniformData = true);
 
 
  private:
@@ -186,7 +200,7 @@ class MaterialSystem {
   /// actual buffers in use, which is a subset of @see m_uniformBuffers.
   std::unordered_set<std::string> m_uniformBuffersInUse{};
 
-  /// @brief Contains the material definitions that are loaded from file.
+  /// @brief Names all available material templates by name.
   std::unordered_map<std::string, izz::MaterialTemplate> m_materialTemplates;
 
   /// @brief List of parent material, mapping to the child material instances.

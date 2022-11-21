@@ -24,8 +24,18 @@
       "inherit_from_material": "BlinnPhongSimple",
       "properties": {
         "BlinnPhongSimple.shininess": 32.0,
-        "BlinnPhongSimple.albedo":[1.0, 0.0, 0.0, 1.0],
-        "BlinnPhongSimple.specular": [0.5, 0.0, 0.0, 0.0]
+        "BlinnPhongSimple.albedo": [
+          1.0,
+          0.0,
+          0.0,
+          1.0
+        ],
+        "BlinnPhongSimple.specular": [
+          0.5,
+          0.0,
+          0.0,
+          0.0
+        ]
       },
       "blendMode": "OPAQUE"
     },
@@ -34,8 +44,18 @@
       "inherit_from_material": "BlinnPhongSimple",
       "properties": {
         "BlinnPhongSimple.shininess": 32.0,
-        "BlinnPhongSimple.albedo":[1.0, 1.0, 1.0, 1.0],
-        "BlinnPhongSimple.specular": [0.5, 0.0, 0.0, 0.0]
+        "BlinnPhongSimple.albedo": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "BlinnPhongSimple.specular": [
+          0.5,
+          0.0,
+          0.0,
+          0.0
+        ]
       },
       "blendMode": "OPAQUE"
     },
@@ -130,11 +150,80 @@
       "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/deferred_color.frag",
-      "properties":{
+      "properties": {
         "ModelViewProjection": {},
         "AlbedoSpecularity": {
-          "albedo": [1.0, 1.0, 1.0, 0.0],
+          "albedo": [
+            1.0,
+            1.0,
+            1.0,
+            0.0
+          ],
           "specularity": 0.5
+        }
+      }
+    },
+    {
+      "name": "Skybox2",
+      "vertex_shader": "shaders/skybox.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/skybox.frag",
+      "properties": {
+        "ModelViewProjection": {},
+        "Skybox": {
+          "intensity": 1.0
+        }
+      },
+      "textures": {
+        "skybox": {
+          "type": "CUBE_MAP",
+          "paths": [
+            "textures/skybox/right.jpg",
+            "textures/skybox/left.jpg",
+            "textures/skybox/bottom.jpg",
+            "textures/skybox/top.jpg",
+            "textures/skybox/front.jpg",
+            "textures/skybox/back.jpg"
+          ]
+        }
+      }
+    },
+    {
+      "name": "RenderCubeMap",
+      "vertex_shader": "shaders/project_cubemap.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/project_cubemap.frag",
+      "properties": {},
+      "textures": {
+        "cubemap": {
+          "type": "CUBE_MAP",
+          "name": "Projected Cube Map"
+        }
+      }
+    },
+    {
+      "name": "Skybox",
+      "vertex_shader": "shaders/skybox.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/skybox.frag",
+      "properties": {
+        "ModelViewProjection": {},
+        "Skybox": {
+          "intensity": 1.0
+        }
+      },
+      "textures": {
+        "skybox": {
+          "type": "CUBE_MAP",
+          "name": "Yokohama3",
+          "paths": [
+            "textures/Yokohama3/posx.jpg",
+            "textures/Yokohama3/negx.jpg",
+            "textures/Yokohama3/negy.jpg",
+            "textures/Yokohama3/posy.jpg",
+            "textures/Yokohama3/posz.jpg",
+            "textures/Yokohama3/negz.jpg"
+          ]
         }
       }
     },
@@ -143,7 +232,7 @@
       "vertex_shader": "shaders/debug.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/debug.frag",
-      "properties":{
+      "properties": {
         "ModelViewProjection": {}
       }
     },
@@ -152,7 +241,7 @@
       "vertex_shader": "shaders/standard_perspective.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/deferred/deferred_blinnphong.frag",
-      "properties":{
+      "properties": {
         "ModelViewProjection": {},
         "BlinnPhong": {
           "shininess": 32.0,
@@ -182,7 +271,7 @@
       "vertex_shader": "shaders/passthrough.vert",
       "geometry_shader": "",
       "fragment_shader": "shaders/experimental/deferred_visualize_gbuffer.frag",
-      "properties":{
+      "properties": {
         "ModelViewProjection": {}
       }
     },
@@ -337,7 +426,12 @@
       "properties": {
         "ModelViewProjection": {},
         "DebugProperties": {
-          "color": [0.9, 0.9, 1.0, 1.0]
+          "color": [
+            0.9,
+            0.9,
+            1.0,
+            1.0
+          ]
         }
       }
     },

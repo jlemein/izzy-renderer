@@ -26,7 +26,7 @@ class TextureLoader {
    * @param path Path to the file texture. This method should only be called with supported file extensions retrieved from \see getSupportedExtensions.
    * @return Texture content.
    */
-  virtual Texture loadTexture(const std::filesystem::path& path) = 0;
+  virtual Texture loadImage(const std::filesystem::path& path) = 0;
 
   virtual Texture loadTextureFromMemory(unsigned char* pData, int size) = 0;
 

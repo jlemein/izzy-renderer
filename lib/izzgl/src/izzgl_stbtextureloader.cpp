@@ -2,7 +2,7 @@
 // Created by jlemein on 22-02-21.
 //
 #include "izzgl_stbtextureloader.h"
-#include "izzgl_texture.h"
+#include "izz_texture.h"
 
 #include "wsp_workspace.h"
 
@@ -22,10 +22,9 @@ const std::vector<std::string> SUPPORTED_EXTENSIONS = {".bmp", ".hdr", ".jpg", "
 }  // namespace
 
 StbTextureLoader::StbTextureLoader(bool flipVertical)
-  : m_flipVertical{flipVertical}
-  {}
+  : m_flipVertical{flipVertical} {}
 
-Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
+Texture StbTextureLoader::loadImage(const std::filesystem::path& path) {
   int desiredChannels = 4;
   int width, height, channels;
 
@@ -44,7 +43,7 @@ Texture StbTextureLoader::loadTexture(const std::filesystem::path& path) {
     throw std::runtime_error(fmt::format("Cannot load texture from file '{}': width or height is 0", path.c_str()));
   }
 
-  Texture texture{.path = path, .width = width, .height = height, .channels = desiredChannels};
+  Texture texture{.type = TextureType::TEXTURE_2D, .path = path, .width = width, .height = height, .channels = desiredChannels};
 
   // number of pixels * channels * 8 bit
   uint64_t sizeImageData = width * height * desiredChannels;
@@ -61,7 +60,7 @@ Texture StbTextureLoader::loadTextureFromMemory(unsigned char* pData, int size) 
   stbi_set_flip_vertically_on_load_thread(m_flipVertical);
   unsigned char* imageData = stbi_load_from_memory(pData, size, &width, &height, &channels, desiredChannels);
 
-  Texture texture {.path = "", .width = width, .height = height, .channels = desiredChannels};
+  Texture texture{.type = TextureType::TEXTURE_2D, .path = "", .width = width, .height = height, .channels = desiredChannels};
 
   // number of pixels * channels * 8 bit
   uint64_t sizeImageData = width * height * desiredChannels;

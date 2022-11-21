@@ -23,8 +23,24 @@ class MeshSystem {
     return m_allocatedBuffers.at(id);
   }
 
+  /**
+   *
+   * @param meshBuffer
+   */
   void bindBuffer(const MeshBuffer& meshBuffer);
   void bindBuffer(izz::VertexBufferId meshBufferId);
+
+  /**
+   * Only bind the vertex buffer.
+   * @param vbo
+   */
+  void bindVertexBuffer(izz::VertexBufferId vbo);
+
+  /**
+   * Only bind the index buffer
+   * @param meshBuffer
+   */
+  void bindIndexBuffer(const MeshBuffer& meshBuffer);
 
  private:
   std::unordered_map<VertexBufferId, MeshBuffer> m_allocatedBuffers;
