@@ -88,6 +88,12 @@ class TextureSystem {
   Texture* allocateTexture(int width, int height);
 
   /**
+   * Registers texture to texture system. Only use this if
+   * @return
+   */
+  Texture* registerTexture(Texture& texture);
+
+  /**
    * Similar to allocating a texture (\see allocateTexture), but in this case a cubemap is allocated.
    * A cubemap has 6 sides each defined by a texture.
    * @return

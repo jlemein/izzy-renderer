@@ -175,6 +175,11 @@ Texture* TextureSystem::getTextureById(TextureId id) {
   return &m_textures.at(id);
 }
 
+
+Texture* TextureSystem::registerTexture(Texture& texture) {
+  return &texture;
+}
+
 Texture* TextureSystem::allocateTexture(int width, int height) {
   Texture texture;
   texture.type = TextureType::TEXTURE_2D;

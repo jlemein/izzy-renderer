@@ -44,7 +44,8 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
 
   // GBuffer: position texture
-//  m_textureSystem->allocateTexture()
+  Texture* texture = m_textureSystem->registerTexture(m_gPosition);
+
   glGenTextures(1, &m_gPosition);
   glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
