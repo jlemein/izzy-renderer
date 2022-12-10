@@ -15,6 +15,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb_image_write.h>
+
 using namespace izz::gl;
 
 namespace {
@@ -53,6 +56,10 @@ Texture StbTextureLoader::loadImage(const std::filesystem::path& path) {
   return texture;
 }
 
+Texture StbTextureLoader::loadHdrImage(const std::filesystem::path& path) {
+  throw std::runtime_error(fmt::format("No support for loading HDR texture '{}'", path.string()));
+}
+
 Texture StbTextureLoader::loadTextureFromMemory(unsigned char* pData, int size) {
   int desiredChannels = 4;
   int width, height, channels;
@@ -68,6 +75,11 @@ Texture StbTextureLoader::loadTextureFromMemory(unsigned char* pData, int size) 
   stbi_image_free(imageData);
 
   return texture;
+}
+
+void StbTextureLoader::writeTexture(Texture const* texture, std::filesystem::path path) {
+  spdlog::info("Writing texture {}x{} to file {}", texture->width, texture->height, path.c_str());
+  stbi_write_png(path.c_str(), texture->width, texture->height, texture->channels, texture->data.data(), 0);
 }
 
 ExtensionList StbTextureLoader::getSupportedExtensions() const {

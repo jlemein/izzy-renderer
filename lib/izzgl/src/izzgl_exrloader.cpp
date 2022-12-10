@@ -17,8 +17,6 @@ using namespace Imath;
 namespace {
 void transformHdrToLdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical = false) {
   dst.data.resize(src.width() * src.height() * 4);
-  dst.width = src.width();
-  dst.height = src.height();
   dst.channels = 4U;
   dst.depth = 1;
 
@@ -38,6 +36,28 @@ void transformHdrToLdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical
     }
   }
 }
+
+void transformHdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical = false) {
+  dst.data.resize(src.width() * src.height() * sizeof(RgbaHdr));
+  dst.channels = 4U;
+  dst.depth = 1;
+
+  RgbaHdr* pData = reinterpret_cast<RgbaHdr*>(dst.data.data());
+
+  for (int y = 0; y < src.height(); ++y) {
+    for (int x = 0; x < src.width(); ++x) {
+      auto& pixel = pData[y * src.width() + x];
+
+      // take into account y flipping (for example for OpenGL)
+      int yy = flipVertical ? src.height() - y - 1 : y;
+
+      pixel.r = src[yy][x].r;
+      pixel.g = src[yy][x].g;
+      pixel.b = src[yy][x].b;
+      pixel.a = src[yy][x].a;
+    }
+  }
+}
 }  // namespace
 
 ExrLoader::ExrLoader(bool flipVertical)
@@ -50,7 +70,7 @@ Texture ExrLoader::loadImage(const std::filesystem::path& path) {
   Array2D<Rgba> imageData;
   auto width = dw.max.x - dw.min.x + 1;
   auto height = dw.max.y - dw.min.y + 1;
-  spdlog::debug("Loading EXR texture {} - width: {} - height: {}", path.string(), width, height);
+  spdlog::info("Loading EXR texture {} - width: {} - height: {}", path.string(), width, height);
   imageData.resizeErase(width, height);
   file.setFrameBuffer(&imageData[0][0] - dw.min.x - dw.min.y * width, 1, width);
   file.readPixels(dw.min.y, dw.max.y);
@@ -58,7 +78,35 @@ Texture ExrLoader::loadImage(const std::filesystem::path& path) {
   // convert HDR to LDR to use as geo::Texture
   Texture texture;
   texture.type = TextureType::TEXTURE_2D;
+  texture.dataType = TextureDataType::UNSIGNED_BYTE; // LDR image
+  texture.width = width;
+  texture.height = height;
   transformHdrToLdr(imageData, texture, m_flipVertical);
+  texture.path = path;
+
+  return texture;
+}
+
+Texture ExrLoader::loadHdrImage(const std::filesystem::path& path) {
+  // Read data via OpenEXR library into imageData
+  RgbaInputFile file(path.c_str());
+
+  Box2i dw = file.dataWindow();
+  Array2D<Rgba> imageData;
+  auto width = dw.max.x - dw.min.x + 1;
+  auto height = dw.max.y - dw.min.y + 1;
+  spdlog::info("Loading EXR HDR texture {} - width: {} - height: {}", path.string(), width, height);
+  imageData.resizeErase(width, height);
+  file.setFrameBuffer(&imageData[0][0] - dw.min.x - dw.min.y * width, 1, width);
+  file.readPixels(dw.min.y, dw.max.y);
+
+  // convert HDR to LDR to use as geo::Texture
+  Texture texture;
+  texture.type = TextureType::TEXTURE_2D;
+  texture.dataType = TextureDataType::FLOAT;
+  texture.width = width;
+  texture.height = height;
+  transformHdr(imageData, texture, m_flipVertical);
   texture.path = path;
 
   return texture;

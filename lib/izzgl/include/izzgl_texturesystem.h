@@ -27,10 +27,10 @@ struct Texture;
  * There are different types of methods to be called:
  *
  * load* methods (e.g. Texture, loadCubeMap, etc.)
- *      Allocates corresponding texture and loads the image data into the texture, so that it is available in the GPU.
+ *      Allocates a texture buffer and fills image data into the buffer, so that it is available in the GPU.
  *
  * allocate* methods (e.g. allocateTexture, allocateCubeMap, etc.)
- *      allocates a texture unit, but does not fill data. Data needs to be specified by user after creation.
+ *      Allocates a texture buffer, but does not fill data. Data needs to be specified by user after creation.
  *      useful when texture units are filled in by the user, or as a target destination for results to be used in subsequent render passes.
  *
  * @details Note that there is no texture component or whatsoever.
@@ -43,6 +43,13 @@ class TextureSystem {
    * @return a texture object that is shared with the texture system.
    */
   Texture* loadTexture(const std::filesystem::path& path);
+
+  /**
+   * Loads and creates a floating point HDR texture, specified by path name.
+   * @param path The file location of the HDR texture.
+   * @return A pointer to the Hdr texture.
+   */
+  Texture* loadHdrTexture(const std::filesystem::path& path);
 
   /**
    * Allocates a cube map (on the GPU) and loads the textures by file path.
@@ -58,7 +65,7 @@ class TextureSystem {
    *             This name will then not point to an actual file.
    * @param data Pointer to raw data containing image data. Image data may be compressed and uncompressed.
    * @param size Size of the image data (in bytes).
-   * @param extensionHint (Optional) hint to find the appropriate file loader.
+   * @param extensionHint (Optional) tag to find the appropriate file loader.
    * @return
    */
   Texture* loadEmbeddedTexture(const std::filesystem::path& path, unsigned char* data, int size, std::string extensionHint = "");
@@ -132,6 +139,8 @@ class TextureSystem {
    * @throws std::out_of_range if texture could not be found.
    */
   Texture* loadImageData(const std::filesystem::path& path);
+
+  Texture* loadHdrImageData(const std::filesystem::path& path);
 
   std::unordered_map<std::string, std::shared_ptr<TextureLoader>> m_textureLoaders;
   std::unordered_map<std::string, TextureId> m_cachedTextures;  /// maps file name to texture id, so that textures can reuse already loaded image data.

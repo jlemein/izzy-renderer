@@ -118,7 +118,6 @@ void RenderSystem::init(int width, int height) {
 //  m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(mesh).id;
   m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(box).id;
 
-
   // small summary
   spdlog::info(
       "Render system initialized | "
@@ -146,12 +145,40 @@ void RenderSystem::update(float dt, float time) {
   // update light visualizations, recompute hierarchies for efficient rendering.
   m_lightSystem->updateLightProperties();
 
+  updateEnvironmentMaps();
+
   m_forwardRenderer.update(dt, time);
   m_deferredRenderer.update(dt, time);
 
   // updates the materials per frame (once)
   // then updates all materials individually (is this needed)?
   m_materialSystem->update(dt, time);
+}
+
+void RenderSystem::updateEnvironmentMaps() {
+  auto view = m_registry.view<izz::Skybox>();
+  if (view.size() != 0) {
+    auto e = view[0];
+    auto& skybox = m_registry.get<izz::Skybox>(e);
+    auto& skyboxMaterial = m_materialSystem->getMaterialById(skybox.material);
+
+    if (skyboxMaterial.hasTexture(TextureTag::ENVIRONMENT_MAP)) {
+      if (skybox.isEnabled) {
+        TextureId id = skyboxMaterial.getTexture(TextureTag::ENVIRONMENT_MAP);
+        Texture* environmentMap = m_resourceManager->getTextureSystem()->getTextureById(id);
+
+        for (auto& [id, material] : m_materialSystem->getCreatedMaterials()) {
+          if (material.id != skyboxMaterial.id && material.hasTexture(TextureTag::ENVIRONMENT_MAP)) {
+            spdlog::info("Update environment map: id: {}, bufferId: {}", environmentMap->id, environmentMap->bufferId);
+            material.setTexture(TextureTag::ENVIRONMENT_MAP, environmentMap);
+          }
+        }
+      } else {
+        //      Texture* nullTexture = m_resourceManager->getTextureSystem()->getNullTexture();
+        spdlog::warn("Cannot unset the environment map texture");
+      }
+    }
+  }
 }
 
 void RenderSystem::render() {

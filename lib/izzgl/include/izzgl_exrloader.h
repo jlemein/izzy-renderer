@@ -23,6 +23,9 @@ class ExrLoader : public TextureLoader {
   Texture loadImage(const std::filesystem::path& path) override;
 
   /// @inherit
+  Texture loadHdrImage(const std::filesystem::path& path) override;
+
+  /// @inherit
   Texture loadTextureFromMemory(unsigned char* pData, int size) override;
 
   ExtensionList getSupportedExtensions() const override;

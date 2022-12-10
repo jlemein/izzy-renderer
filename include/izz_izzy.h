@@ -59,7 +59,7 @@ class Izzy {
     izz->resourceManager = std::make_shared<izz::ResourceManager>();
     izz->textureSystem = std::make_shared<izz::gl::TextureSystem>();
     izz->textureSystem->setTextureLoader(".exr", std::make_unique<izz::gl::ExrLoader>(true));
-    izz->textureSystem->setTextureLoader(izz::gl::ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<izz::gl::StbTextureLoader>(true));
+    izz->textureSystem->setTextureLoader(izz::gl::ExtensionList{".jpg", ".png", ".bmp", ".hdr"}, std::make_unique<izz::gl::StbTextureLoader>(true));
     izz->resourceManager->setTextureSystem(izz->textureSystem);
     izz->materialSystem = std::make_shared<izz::gl::MaterialSystem>(izz->registry, izz->resourceManager);
     izz->meshSystem = std::make_shared<izz::gl::MeshSystem>();

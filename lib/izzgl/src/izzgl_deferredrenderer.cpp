@@ -9,12 +9,16 @@
 #include <izz_util.h>
 #include <izzgl_deferredrenderer.h>
 #include <izzgl_rendersystem.h>
+#include <izzgl_texturesystem.h>
 #include "geo_primitivefactory.h"
+#include "izz_skybox.h"
 #include "izzgl_error.h"
 using namespace izz::gl;
 
-DeferredRenderer::DeferredRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
+DeferredRenderer::DeferredRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<TextureSystem> textureSystem,
+                                   std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
   : m_materialSystem{materialSystem}
+  , m_textureSystem{textureSystem}
   , m_meshSystem{meshSystem}
   , m_registry{registry} {
   m_registry.on_construct<gl::DeferredRenderable>().connect<&DeferredRenderer::onConstruct>(this);
@@ -40,6 +44,7 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
 
   // GBuffer: position texture
+//  m_textureSystem->allocateTexture()
   glGenTextures(1, &m_gPosition);
   glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
@@ -101,7 +106,7 @@ void DeferredRenderer::createScreenSpaceRect() {
   const auto& meshBuffer = m_meshSystem->createVertexBuffer(rectangle);
 
   // DeferredLightingPass UBO is required.
-  const auto& material = m_materialSystem->createMaterial("DeferredLightingPass");
+  auto& material = m_materialSystem->createMaterial("DeferredLightingPass");
   if (material.uniformBuffers.count("DeferredLighting") == 0) {
     throw std::runtime_error(fmt::format("{}: material '{}' misses required uniform buffer '{}'", ID, material.name, "DeferredLighting"));
   }
@@ -109,9 +114,26 @@ void DeferredRenderer::createScreenSpaceRect() {
   m_lightPassMaterialId = material.getId();
   m_screenSpaceMeshBufferId = meshBuffer.id;
 
+  // lighting pass material contains slots for textures. Now we can populate them.
+  TextureSlot& position = material.getTexture("gbuffer_position");
+  position.location = glGetUniformLocation(material.programId, "gbuffer_position");
+  position.textureId = m_gPosition;
+
+  TextureSlot& normal = material.getTexture("gbuffer_normal");
+  normal.location = glGetUniformLocation(material.programId, "gbuffer_normal");
+  normal.textureId = m_gNormal;
+
+  TextureSlot& albedoSpec = material.getTexture("gbuffer_albedospec");
+  albedoSpec.location = glGetUniformLocation(material.programId, "gbuffer_albedospec");
+  albedoSpec.textureId = m_gAlbedoSpec;
+
+  TextureSlot& environment = material.getTexture("environmentMap");
+  environment.location = glGetUniformLocation(material.programId, "environmentMap");
+
   m_gPositionLoc = glGetUniformLocation(material.programId, "gbuffer_position");
   m_gNormalLoc = glGetUniformLocation(material.programId, "gbuffer_normal");
   m_gAlbedoSpecLoc = glGetUniformLocation(material.programId, "gbuffer_albedospec");
+  m_environmentMapLoc = glGetUniformLocation(material.programId, "environmentMap");
 }
 
 void DeferredRenderer::init(int width, int height) {
@@ -135,6 +157,13 @@ void DeferredRenderer::init(int width, int height) {
   spdlog::info("Deferred Renderer: Mesh Initialization");
   auto numRenderables = m_registry.view<DeferredRenderable>().size();
   auto numMeshRenderables = m_registry.view<izz::geo::Mesh, DeferredRenderable>().size_hint();
+
+  // find environment map
+  //  auto view = m_registry.view<izz::Skybox>();
+  //  if (view.size() != 0) {
+  //    auto e = view[0];
+  //    auto& skybox = m_registry.get<izz::Skybox>(e);
+  //    skybox.
 
   if (numRenderables != numMeshRenderables) {
     spdlog::warn("It seems some renderable objects are missing a mesh: renderables: {} vs renderables w. mesh: {}", numRenderables, numMeshRenderables);
@@ -230,19 +259,30 @@ void DeferredRenderer::renderLightingPass() {
 
   lightPassMaterial.useProgram();
   lightPassMaterial.pushUniforms();
+  lightPassMaterial.useTextures2();
 
+  spdlog::info("AAA: environmentMap -- Texture Unit 0: bound texture buffer id {}, on location {}", m_environmentMap, m_environmentMapLoc);
+
+  spdlog::info("AAA: albedoSpecMap -- Texture Unit 1: bound texture buffer id {}, on location {}", m_gAlbedoSpec, m_gAlbedoSpecLoc);
   // bind the gbuffer textures to their appropriate texture binding points.
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, m_gPosition);
-  glUniform1i(m_gPositionLoc, 0);
+  //  glActiveTexture(GL_TEXTURE0);
+  //  glBindTexture(GL_TEXTURE_2D, m_gPosition);
+  //  glUniform1i(m_gPositionLoc, 0);
+  spdlog::info("AAA: positionMap -- Texture Unit 2: bound texture buffer id {}, on location {}", m_gPosition, m_gPositionLoc);
+  //
+  //  glActiveTexture(GL_TEXTURE0 + 1);
+  //  glBindTexture(GL_TEXTURE_2D, m_gNormal);
+  //  glUniform1i(m_gNormalLoc, 1);
+  spdlog::info("AAA: normalMap -- Texture Unit 3: bound texture buffer id {}, on location {}", m_gNormal, m_gNormalLoc);
+  //
+  //  glActiveTexture(GL_TEXTURE0 + 2);
+  //  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
+  //  glUniform1i(m_gAlbedoSpecLoc, 2);
 
-  glActiveTexture(GL_TEXTURE0 + 1);
-  glBindTexture(GL_TEXTURE_2D, m_gNormal);
-  glUniform1i(m_gNormalLoc, 1);
-
-  glActiveTexture(GL_TEXTURE0 + 2);
-  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
-  glUniform1i(m_gAlbedoSpecLoc, 2);
+  //
+  //  glActiveTexture(GL_TEXTURE0 + 3);
+  //  glBindTexture(GL_TEXTURE_2D, m_environmentMapLoc);
+  //  glUniform1i(m_environmentMapLoc, 3);
 
   auto& meshBuffer = m_meshSystem->getMeshBuffer(m_screenSpaceMeshBufferId);
   m_meshSystem->bindBuffer(meshBuffer);

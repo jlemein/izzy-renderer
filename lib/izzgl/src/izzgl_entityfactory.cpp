@@ -297,10 +297,15 @@ void EntityFactory::processChildren(const izz::geo::Scene& scene, std::shared_pt
   if (flags.geometry) {
     // add mesh instances for this root
     for (auto& instance : node->meshInstances) {
-      auto& materialDescription = scene.m_materials[instance->materialId];
-      auto& material = m_materialSystem.createMaterial(materialDescription);
+
+      if (!m_instantiatedMaterials.contains(instance->materialId)) {
+        auto& materialDescription = scene.m_materials[instance->materialId];
+        MaterialId materialId = m_materialSystem.createMaterial(materialDescription).id;
+        m_instantiatedMaterials[instance->materialId] = materialId;
+      }
+      auto materialId = m_instantiatedMaterials[instance->materialId];
       auto vertexBuffer = m_meshSystem.createVertexBuffer(*instance->mesh);
-      izz::Geometry geometry {.materialId = material.id, .vertexBufferId=vertexBuffer.id, .aabb=instance->aabb};
+      izz::Geometry geometry {.materialId = materialId, .vertexBufferId=vertexBuffer.id, .aabb=instance->aabb};
       auto e = makeRenderable(instance->name, geometry, instance->transform, renderStrategy);
 
       root.addChild(e);
@@ -317,7 +322,8 @@ SceneGraphEntity EntityFactory::makeScene(const izz::geo::Scene& scene, SceneLoa
 
   auto rootScene = makeMovableEntity(scene.m_path.filename());
 
-  // for geometry and mesh data
+  // clears the cached material list. So every new scene created using makeScene has unique materials.
+  m_instantiatedMaterials.clear();
   processChildren(scene, scene.rootNode(), flags, &rootScene, renderStrategy);
 
   return rootScene;

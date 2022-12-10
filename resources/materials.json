@@ -74,12 +74,12 @@
       "textures": {
         "albedoMap": {
           "type": "TEXTURE_2D",
-          "hint": "DIFFUSE",
+          "tag": "DIFFUSE",
           "file": "models/textures/tea_set_01_diff_4k.jpg"
         },
         "normalMap": {
           "type": "TEXTURE_2D",
-          "hint": "NORMAL",
+          "tag": "NORMAL",
           "file": "models/textures/tea_set_01_nor_gl_4k.exr"
         }
       }
@@ -202,6 +202,43 @@
       }
     },
     {
+      "name": "Skydome2",
+      "vertex_shader": "shaders/skydome.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/skydome.frag",
+      "properties": {
+        "ModelViewProjection": {},
+        "Skybox": {
+          "intensity": 1.0
+        }
+      },
+      "textures": {
+        "environmentMap": {
+          "type": "HDR_TEXTURE",
+          "path": "textures/park_parking_4k.exr"
+        }
+      }
+    },
+    {
+      "name": "Skydome",
+      "vertex_shader": "shaders/skydome.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/skydome.frag",
+      "properties": {
+        "ModelViewProjection": {},
+        "Skybox": {
+          "intensity": 1.0
+        }
+      },
+      "textures": {
+        "environmentMap": {
+          "type": "HDR_TEXTURE",
+          "path": "textures/park_parking_4k.exr",
+          "tag": "ENVIRONMENT"
+        }
+      }
+    },
+    {
       "name": "Skybox",
       "vertex_shader": "shaders/skybox.vert",
       "geometry_shader": "",
@@ -256,12 +293,12 @@
       "textures": {
         "normalMap": {
           "type": "TEXTURE_2D",
-          "hint": "NORMAL",
+          "tag": "NORMAL",
           "path": "models/textures/tea_set_01_nor_gl_4k.exr"
         },
         "albedoMap": {
           "type": "texture",
-          "hint": "DIFFUSE",
+          "tag": "DIFFUSE",
           "path": "models/textures/tea_set_01_diff_4k.jpg"
         }
       }
@@ -279,7 +316,7 @@
       "name": "DeferredLightingPass",
       "vertex_shader": "shaders/passthrough.vert",
       "geometry_shader": "",
-      "fragment_shader": "shaders/deferred/deferred_lighting.frag",
+      "fragment_shader": "shaders/deferred/deferred_lighting_hdr.frag",
       "properties": {
         "DeferredLighting": {}
       },
@@ -292,6 +329,10 @@
         },
         "gbuffer_albedospec": {
           "type": "TEXTURE_2D"
+        },
+        "environmentMap": {
+          "type": "HDR_TEXTURE",
+          "tag": "ENVIRONMENT"
         }
       }
     },
@@ -447,12 +488,12 @@
       "textures": {
         "albedoMap": {
           "type": "TEXTURE_2D",
-          "hint": "DIFFUSE",
+          "tag": "DIFFUSE",
           "path": "models/textures/tea_set_01_diff_4k.jpg"
         },
         "normalMap": {
           "type": "TEXTURE_2D",
-          "hint": "NORMAL",
+          "tag": "NORMAL",
           "path": "models/textures/tea_set_01_nor_gl_4k.exr"
         }
       },
@@ -482,12 +523,12 @@
       "textures": {
         "albedoMap": {
           "type": "TEXTURE_2D",
-          "hint": "DIFFUSE",
+          "tag": "DIFFUSE",
           "path": "textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"
         },
         "normalMap": {
           "type": "TEXTURE_2D",
-          "hint": "NORMAL",
+          "tag": "NORMAL",
           "path": "textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"
         }
       }
@@ -509,17 +550,17 @@
       "textures": {
         "albedoMap": {
           "type": "TEXTURE_2D",
-          "hint": "DIFFUSE",
+          "tag": "DIFFUSE",
           "path": "textures/cobble_stone/StreetCobblestone3_1K_albedo.png"
         },
         "normalMap": {
           "type": "TEXTURE_2D",
-          "hint": "NORMAL",
+          "tag": "NORMAL",
           "path": "textures/cobble_stone/StreetCobblestone3_1K_normal.png"
         },
         "heightMap": {
           "type": "TEXTURE_2D",
-          "hint": "HEIGHT",
+          "tag": "HEIGHT",
           "path": "textures/cobble_stone/StreetCobblestone3_1K_height.png"
         }
       }

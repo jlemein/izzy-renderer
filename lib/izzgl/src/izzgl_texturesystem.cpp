@@ -28,8 +28,20 @@ GLuint allocateTextureBuffer(const Texture& texture) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   if (!texture.data.empty()) {
-    GLint colorFormat = texture.channels == 3 ? GL_RGB : GL_RGBA;
-    glTexImage2D(GL_TEXTURE_2D, 0, colorFormat, texture.width, texture.height, 0, colorFormat, GL_UNSIGNED_BYTE, texture.data.data());
+    GLint colorFormat = texture.channels == 3 ? GL_RGB : GL_RGBA; // color format of the texture data.
+    GLint internalColorFormat = colorFormat;  // directs OpenGL to internally clamp values to [0.0, 1.0] (for GL_RGBA) or not.
+
+    GLuint dataType = GL_UNSIGNED_BYTE;
+    if (texture.dataType == TextureDataType::HALF_FLOAT){
+      internalColorFormat = GL_RGBA16F;
+      dataType = GL_FLOAT;
+    }
+    if (texture.dataType == TextureDataType::FLOAT){
+      internalColorFormat = GL_RGBA32F;
+      dataType = GL_FLOAT;
+    }
+
+    glTexImage2D(GL_TEXTURE_2D, 0, internalColorFormat, texture.width, texture.height, 0, colorFormat, dataType, texture.data.data());
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
     spdlog::error("Failed to create texture buffer for texture '{}'. Data is empty.", texture.path);
@@ -70,8 +82,36 @@ Texture* TextureSystem::loadImageData(const std::filesystem::path& path) {
   return &m_textures[texture.id];
 }
 
+Texture* TextureSystem::loadHdrImageData(const std::filesystem::path& path) {
+  auto extension = path.extension().string();
+  boost::to_lower(extension);
+
+  if (m_cachedTextures.count(path) > 0) {
+    return &m_textures.at(m_cachedTextures.at(path.string()));
+  }
+  if (m_textureLoaders.count(extension) == 0) {
+    spdlog::warn("Texture system cannot load HDR texture '{}'. Unrecognized extension {}.", path.string(), extension);
+    return nullptr;
+  }
+
+  spdlog::info("TextureSystem: loading HDR texture '{}'", path.string());
+  Texture texture = m_textureLoaders.at(extension)->loadHdrImage(path);
+
+  texture.id = m_textures.size() + 1;
+  m_textures[texture.id] = texture;
+  m_cachedTextures[path] = texture.id;
+
+  return &m_textures[texture.id];
+}
+
 Texture* TextureSystem::loadTexture(const std::filesystem::path& path) {
   auto pTexture = loadImageData(path);
+  pTexture->bufferId = allocateTextureBuffer(*pTexture);
+  return pTexture;
+}
+
+Texture* TextureSystem::loadHdrTexture(const std::filesystem::path& path) {
+  auto pTexture = loadHdrImageData(path);
   pTexture->bufferId = allocateTextureBuffer(*pTexture);
   return pTexture;
 }

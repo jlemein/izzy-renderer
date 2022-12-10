@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include <half.h>
 #include <izz.h>
 #include <cstdint>
 #include <string>
@@ -15,12 +16,19 @@ struct Rgba8888 {
   uint8_t r, g, b, a;
 };
 
+struct RgbaHdr {
+  float r, g, b, a;
+};
+
 enum class TextureType { UNDEFINED = 0, TEXTURE_2D, CUBEMAP };
+
+enum class TextureDataType { UNSIGNED_BYTE, HALF_FLOAT, FLOAT };
 
 struct Texture {
   /// @brief Unique id to fetch texture from texture system
   TextureId id{-1};
   TextureType type{TextureType::UNDEFINED};
+  TextureDataType dataType {TextureDataType::UNSIGNED_BYTE};
 
   /// @brief Texture buffer id, which is retrieved using a call to glGenTextures()
   uint32_t bufferId{0U};  // TODO make it a void*, so that each texture system is able to return it's own buffer handle.

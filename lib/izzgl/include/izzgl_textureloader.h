@@ -28,6 +28,13 @@ class TextureLoader {
    */
   virtual Texture loadImage(const std::filesystem::path& path) = 0;
 
+  /**
+   *
+   * @param path
+   * @return
+   */
+  virtual Texture loadHdrImage(const std::filesystem::path& path) = 0;
+
   virtual Texture loadTextureFromMemory(unsigned char* pData, int size) = 0;
 
   /**

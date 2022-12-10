@@ -22,13 +22,14 @@ bool isIntArray(const T& array) {
   return std::all_of(array.begin(), array.end(), [](const nlohmann::json& el) { return el.is_number_integer(); });
 }
 
-TextureHint GetTextureHintFromString(std::string s) {
-  static std::unordered_map<std::string, TextureHint> hintMap = {
-    {"DIFFUSE", TextureHint::DIFFUSE_MAP},
-    {"NORMAL", TextureHint::NORMAL_MAP},
-    {"ROUGHNESS", TextureHint::ROUGHNESS_MAP},
-    {"HEIGHT", TextureHint::HEIGHT_MAP},
-    {"SPECULAR", TextureHint::SPECULAR_MAP}
+TextureTag GetTextureHintFromString(std::string s) {
+  static std::unordered_map<std::string, TextureTag> hintMap = {
+    {"DIFFUSE", TextureTag::DIFFUSE_MAP},
+    {"NORMAL", TextureTag::NORMAL_MAP},
+    {"ROUGHNESS", TextureTag::ROUGHNESS_MAP},
+    {"HEIGHT", TextureTag::HEIGHT_MAP},
+    {"SPECULAR", TextureTag::SPECULAR_MAP},
+    {"ENVIRONMENT", TextureTag::ENVIRONMENT_MAP}
   };
   return hintMap.at(s);
 }
@@ -212,18 +213,22 @@ void MaterialReader::readTextures(MaterialTemplate& materialTemplate, const nloh
     for (const auto& [key, value] : j["textures"].items()) {
       TextureDescription textureDescription;
       textureDescription.name = key;
-      textureDescription.hint = TextureHint::NO_HINT;
+      textureDescription.tag = TextureTag::UNTAGGED;
       textureDescription.type = PropertyType::TEXTURE_2D;
       textureDescription.path = "";
 
       try {
         if (value.is_object()) {
           // explicit representation
-          if (value.contains("type") && value["type"].get<std::string>() == "CUBE_MAP") {
-            textureDescription.type = PropertyType::CUBE_MAP;
+          if (value.contains("type")) {
+            if (value["type"].get<std::string>() == "CUBE_MAP") {
+              textureDescription.type = PropertyType::CUBE_MAP;
+            } else if(value["type"].get<std::string>() == "HDR_TEXTURE") {
+              textureDescription.type = PropertyType::HDR_TEXTURE;
+            }
           }
-          if (value.contains("hint")) {
-            textureDescription.hint = GetTextureHintFromString(value["hint"].get<std::string>());
+          if (value.contains("tag")) {
+            textureDescription.tag = GetTextureHintFromString(value["tag"].get<std::string>());
           }
           if (value.contains("path")) {
             textureDescription.path = value["path"].get<std::string>();

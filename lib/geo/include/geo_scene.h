@@ -76,7 +76,7 @@ class Scene {
 
   std::unordered_map<std::string, SceneNodeIterable> m_sceneNodes;
   std::shared_ptr<SceneNode> m_rootNode{nullptr};
-  MaterialIterable m_materials{};
+  MaterialIterable m_materials{};   /// list of material templates.
   MeshIterable m_meshes{};
   LightIterable m_lights{};
   CameraIterable m_cameras{};

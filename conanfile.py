@@ -39,7 +39,7 @@ class RendererConan(ConanFile):
         self.build_requires("gtest/1.11.0")
 
     def requirements(self):
-        self.requires("assimp/5.0.1")
+        self.requires("assimp/5.2.2")
         self.requires("glm/0.9.9.8")
         self.requires("entt/3.9.0")
         self.requires("glfw/3.3.2")
@@ -47,8 +47,8 @@ class RendererConan(ConanFile):
         # self.requires("imgui/1.88")
         self.requires("imgui/cci.20220621+1.88.docking")
         self.requires("nlohmann_json/3.9.1")
-        self.requires("stb/20200203")
-        self.requires("boost/1.76.0")
+        self.requires("stb/cci.20210910")
+        self.requires("boost/1.80.0")
         self.requires("cxxopts/2.2.1")
-        self.requires("openexr/2.5.7")
+        self.requires("openexr/3.1.5")
 

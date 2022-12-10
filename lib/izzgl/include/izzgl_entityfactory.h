@@ -165,6 +165,9 @@ class EntityFactory {
   /// Default render strategy to use if not specified.
   izz::gl::RenderStrategy m_defaultRenderStrategy = gl::RenderStrategy::UNDEFINED;
 
+  /// Used to reuse materials when creating a scene from a loaded scene.
+  std::unordered_map<int, MaterialId> m_instantiatedMaterials; /// instantiated material templates.
+
   std::shared_ptr<izz::gl::Material> m_defaultMaterial{nullptr};
   const SceneGraphEntity* m_activeCamera{nullptr};
 

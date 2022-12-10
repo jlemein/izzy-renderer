@@ -21,11 +21,30 @@ using namespace izz::gl;
 void Material::useTextures() const {
   int tid = 0;
   for (auto& [name, texture] : textures) {
-    auto l = glGetUniformLocation(programId, name.c_str());
-
     glActiveTexture(GL_TEXTURE0 + tid);
     glBindTexture(GL_TEXTURE_2D, texture.textureId);
+
+    if (texture.location < 0) {
+      spdlog::warn("Cannot bind texture {}. It is not present in shader", name);
+    }
+
     glUniform1i(texture.location, tid);
+    ++tid;
+  }
+}
+
+void Material::useTextures2() const {
+  int tid = 0;
+  for (auto& [name, textureSlot] : textures) {
+    glActiveTexture(GL_TEXTURE0 + tid);
+    glBindTexture(GL_TEXTURE_2D, textureSlot.textureId);
+
+    if (textureSlot.location < 0) {
+      spdlog::warn("Cannot bind texture {}. It is not present in shader", name);
+    }
+    spdlog::info("Set Texture: {} -- Texture Unit {}: bound texture buffer id {}, on location {}", name, tid, textureSlot.textureId, textureSlot.location);
+
+    glUniform1i(textureSlot.location, tid);
     ++tid;
   }
 }

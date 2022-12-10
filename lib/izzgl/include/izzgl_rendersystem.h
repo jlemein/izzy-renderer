@@ -51,6 +51,16 @@ class RenderSystem : public IRenderCapabilitySelector {
   void update(float dt, float time);
   void render();
 
+  /**
+   * Updates the materials with the environment maps.
+   *
+   * @details
+   * Many materials require environment maps to show reflections or use them for lighting the scene. Depending on the use of environment maps, they may
+   * need to be set once for each material, or the map get's recomputed per frame to deal with dynamic objects.
+   * Calling this method loops through the materials and updates the environment map texture.
+   */
+  void updateEnvironmentMaps();
+
   void renderSkybox();
 
   void resize(int width, int height);

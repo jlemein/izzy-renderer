@@ -219,7 +219,8 @@ class FramebufferConfiguration {
   FramebufferFormat outColorBuffers[4] = {FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED, FramebufferFormat::UNUSED};
 };
 
-struct TextureBuffer {
+struct TextureSlot {
+  TextureId id; // to lookup in texture system
   GLuint textureId{0};  // as obtained via glGenTextures(, &id)
   GLint location{-1};   // as obtained via glGetUniformLocation()
 };
@@ -234,6 +235,7 @@ class Material {
   }
 
   void useTextures() const;
+  void useTextures2() const;
 
   void pushUnscopedUniforms() const;
 
@@ -243,29 +245,47 @@ class Material {
     if (!textures.contains(name)) {
       auto location = glGetUniformLocation(programId, name.c_str());
       if (location == GL_INVALID_INDEX) {
-        spdlog::warn("Material: texture sampler '{}' could not be found in material {}: {}", name, programId, name);
+        spdlog::warn("Material: texture sampler '{}' could not be found in material {}: {}", name, programId, this->name);
       }
-      textures[name] = TextureBuffer{pTexture != nullptr ? pTexture->bufferId : 0, location};
+      textures[name] =
+          TextureSlot{.id = pTexture != nullptr ? pTexture->id : -1,
+                                     .textureId = pTexture != nullptr ? pTexture->bufferId : 0,
+                                     .location = location};
     } else {
+      // TODO: remove bufferId from TextureSlot. Even reconsider just storing Texture* instead of TextureSlot.
+      textures.at(name).id = pTexture->id;
       textures.at(name).textureId = pTexture->bufferId;
     }
   }
 
-  void setTexture(TextureHint map, Texture* texture) {
+  void setTexture(TextureTag tag, Texture* texture) {
     try {
-      auto parameterName = TEXTURE_MAP_NAMES.at(map);
+      auto parameterName = textureTags.at(tag);
       setTexture(parameterName, texture);
     } catch (std::out_of_range e) {
-      throw std::runtime_error("Failed to set texture using provided texture hint. Could not find a mapped parameter name.");
+      throw std::runtime_error("Failed to set texture using provided texture tag. Could not find a mapped parameter name.");
     }
   }
 
-  GLint getTextureBuffer(const std::string& key) const {
+  GLuint getTexture(const std::string& key) const {
     if (textures.count(key) > 0) {
       return textures.at(key).textureId;
     } else {
       return -1;
       //      throw std::runtime_error(fmt::format("Property {} (texture) does not exist for material {}", key, name));
+    }
+  }
+
+  inline bool hasTexture(TextureTag tag) const {
+    return textureTags.contains(tag);
+  }
+
+  TextureId getTexture(TextureTag tag) const {
+    try {
+      auto textureBuffer = textures.at(textureTags.at(tag));
+      return textureBuffer.id;
+    } catch(std::out_of_range e) {
+      throw std::runtime_error(fmt::format("Cannot get texture by tag '{}'. No such tag present in material {}", tag, name));
     }
   }
 
@@ -300,7 +320,7 @@ class Material {
 
   // ==== PART OF MATERIAL DEFINITION ======================
   MaterialId id{-1};
-  std::string name; /// @brief Unique name, by default consisting of <material_name>_<instance_id>
+  std::string name;  /// @brief Unique name, by default consisting of <material_name>_<instance_id>
   BlendMode blendMode{BlendMode::OPAQUE};
 
   /// @brief Globally declared uniforms. These are uniforms that are defined outside any interface block.
@@ -324,7 +344,21 @@ class Material {
 
   // ==== PROPERTIES BELOW ARE PART OF GPU ================================
   int programId{0};  /// @brief Program id as obtained via glCreateProgram()
-  std::unordered_map<std::string, izz::gl::TextureBuffer> textures{};
+
+  /// Textures defined in the material. Maps texture name (in shader) to the texture buffer.
+  std::unordered_map<std::string, izz::gl::TextureSlot> textures{};
+
+  TextureSlot& getTexture(const std::string& name) {
+    try {
+      return textures.at(name);
+    } catch(std::out_of_range e) {
+      auto msg = fmt::format("Cannot retrieve texture '{}' from material '{}'", name, this->name);
+      throw std::runtime_error(msg);
+    }
+  }
+
+  /// Maps the texture tag to the name in the shader.
+  std::unordered_map<TextureTag, std::string> textureTags{};
 
   //  std::unordered_map<std::string, izz::gl::IUniformBuffer*> perEntityUniforms{};
 

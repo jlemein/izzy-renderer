@@ -57,23 +57,23 @@ std::unique_ptr<izz::TextureDescription> SceneLoader::readAiTexture(const izz::g
 
     switch (ttype) {
       case aiTextureType::aiTextureType_DIFFUSE_ROUGHNESS:
-        td->hint = izz::TextureHint::ROUGHNESS_MAP;
+        td->tag = izz::TextureTag::ROUGHNESS_MAP;
         td->name = "roughnessMap";
         break;
       case aiTextureType::aiTextureType_NORMALS:
-        td->hint = izz::TextureHint::NORMAL_MAP;
+        td->tag = izz::TextureTag::NORMAL_MAP;
         td->name = "normalMap";
         break;
       case aiTextureType::aiTextureType_SPECULAR:
-        td->hint = izz::TextureHint::SPECULAR_MAP;
+        td->tag = izz::TextureTag::SPECULAR_MAP;
         td->name = "specularMap";
         break;
       case aiTextureType::aiTextureType_DIFFUSE:
-        td->hint = izz::TextureHint::DIFFUSE_MAP;
+        td->tag = izz::TextureTag::DIFFUSE_MAP;
         td->name = "diffuseMap";
         break;
       case aiTextureType::aiTextureType_HEIGHT:
-        td->hint = izz::TextureHint::HEIGHT_MAP;
+        td->tag = izz::TextureTag::HEIGHT_MAP;
         td->name = "heightMap";
         break;
       default:
@@ -101,9 +101,9 @@ void SceneLoader::readTextures(const izz::geo::Scene& scene, const aiScene* aiSc
   for (auto aiTextureType : textureTypes) {
     if (auto pTextureDescription = readAiTexture(scene, aiTextureType, aiMaterial_p, embeddedTextures)) {
 
-      // overwrite the stored texture if the texture inside the scene file matches the same hint
+      // overwrite the stored texture if the texture inside the scene file matches the same tag
       for (auto& [name, storedTexture] : material.textures) {
-        if (pTextureDescription->hint == storedTexture.hint) {
+        if (pTextureDescription->tag == storedTexture.tag) {
           pTextureDescription->name = name;
           material.textures[name] = *pTextureDescription;
         }

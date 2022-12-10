@@ -20,6 +20,7 @@ struct UniformBufferDescription {
 enum class PropertyType {
   UNDEFINED = 0,
   TEXTURE_2D,
+  HDR_TEXTURE,
   CUBE_MAP,
 
   // keep the order of the floats.
@@ -41,30 +42,30 @@ enum class PropertyType {
 };
 
 /**
- * @brief Optional hint for a texture. Sometimes when loading a texture, the use-case is already known.
- * Rather than treating it as one of the textures, a hint can be provided so that the renderer can map them
+ * @brief Optional tag for a texture. Sometimes when loading a texture, the use-case is already known.
+ * Rather than treating it as one of the textures, a tag can be provided so that the renderer can map them
  * automatically to the right texture slot.
  */
-enum class TextureHint { NO_HINT = 0, DIFFUSE_MAP, NORMAL_MAP, SPECULAR_MAP, ROUGHNESS_MAP, HEIGHT_MAP };
+enum class TextureTag { UNTAGGED = 0, DIFFUSE_MAP, NORMAL_MAP, SPECULAR_MAP, ROUGHNESS_MAP, HEIGHT_MAP, ENVIRONMENT_MAP };
 
 /**
  * @brief Map of the default shader parameter names corresponding to the specific texture types.
  */
-static inline const std::unordered_map<TextureHint, const char*> TEXTURE_MAP_NAMES{{TextureHint::DIFFUSE_MAP, "diffuseMap"},
-                                                                                   {TextureHint::NORMAL_MAP, "normalMap"},
-                                                                                   {TextureHint::SPECULAR_MAP, "specularMap"},
-                                                                                   {TextureHint::ROUGHNESS_MAP, "roughnessMap"},
-                                                                                   {TextureHint::HEIGHT_MAP, "heightMap"}
-
-};
+//static inline const std::unordered_map<TextureTag, const char*> TEXTURE_MAP_NAMES{{TextureTag::DIFFUSE_MAP, "diffuseMap"},
+//                                                                                  {TextureTag::NORMAL_MAP, "normalMap"},
+//                                                                                  {TextureTag::SPECULAR_MAP, "specularMap"},
+//                                                                                  {TextureTag::ROUGHNESS_MAP, "roughnessMap"},
+//                                                                                  {TextureTag::HEIGHT_MAP, "heightMap"},
+//                                                                                  {TextureTag::ENVIRONMENT_MAP, "environmentMap"}
+//};
 
 struct TextureDescription {
   PropertyType type;           /// @brief type of texture. Intended to be set to any value of TEXTURE_*.
   std::string name;            /// @brief name of uniform attribute in shader (the texture sampler).
   std::filesystem::path path;  /// @brief path to the texture file (if known). Leave empty to indicate no texture need to be loaded, either because it will
                                /// be set later or because it will get assigned a generated texture from previous render passes.
-  std::vector<std::filesystem::path> paths {};  /// @brief vector of paths. Used for cube maps or texture atlases.
-  TextureHint hint{TextureHint::NO_HINT};  /// @brief (Optional) Use-case hint for the texture.
+  std::vector<std::filesystem::path> paths{};  /// @brief vector of paths. Used for cube maps or texture atlases.
+  TextureTag tag{TextureTag::UNTAGGED};        /// @brief (Optional) Use-case tag for the texture.
 };
 
 using PropertyValue = std::variant<bool, int, float, std::string, std::vector<float>, std::vector<int32_t>>;

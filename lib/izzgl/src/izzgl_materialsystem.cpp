@@ -168,21 +168,32 @@ ShaderVariantInfo MaterialSystem::compileShader(const izz::MaterialTemplate& mat
 
 void MaterialSystem::allocateTextureBuffers(Material& material, const std::unordered_map<std::string, izz::TextureDescription>& textureDescriptions) {
   for (const auto& [textureName, texture] : textureDescriptions) {
-    spdlog::debug("Loading Texture {}: {}", textureName, texture.path.string());
-
     Texture* pTexture{nullptr};
 
     if (texture.type == PropertyType::CUBE_MAP && !texture.paths.empty()) {
+      spdlog::debug("Loading cube map {}: {}", textureName, texture.path.string());
       pTexture = m_resourceManager->getTextureSystem()->loadCubeMap(texture.paths);
       pTexture->name = texture.name;
     }
 
-    if (!texture.path.empty()) {
+    if (texture.type == PropertyType::TEXTURE_2D && !texture.path.empty()) {
+      spdlog::debug("Loading texture {}: {}", textureName, texture.path.string());
       pTexture = m_resourceManager->getTextureSystem()->loadTexture(texture.path);
     }
 
-    TextureBuffer tb;
-    tb.textureId = pTexture != nullptr ? pTexture->bufferId : -1;
+    if (texture.type == PropertyType::HDR_TEXTURE && !texture.path.empty()) {
+      spdlog::debug("Loading HDR texture {}: {}", textureName, texture.path.string());
+      pTexture = m_resourceManager->getTextureSystem()->loadHdrTexture(texture.path);
+    }
+
+    // map the texture tags to their names, so the user can set the texture by tag instead of remembering the name.
+    if (texture.tag != TextureTag::UNTAGGED) {
+      material.textureTags[texture.tag] = textureName;
+    }
+
+    TextureSlot tb;
+    tb.id = pTexture != nullptr ? pTexture->id : -1;
+    tb.textureId = pTexture != nullptr ? pTexture->bufferId : 0;
     tb.location = glGetUniformLocation(material.programId, textureName.c_str());
 
     if (tb.location != GL_INVALID_INDEX) {

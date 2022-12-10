@@ -25,7 +25,12 @@ class StbTextureLoader : public TextureLoader {
   Texture loadImage(const std::filesystem::path& path) override;
 
   /// @inherit
+  Texture loadHdrImage(const std::filesystem::path& path) override;
+
+  /// @inherit
   Texture loadTextureFromMemory(unsigned char* pData, int size) override;
+
+  void writeTexture(Texture const* texture, std::filesystem::path path);
 
   /// @inherit
   ExtensionList getSupportedExtensions() const override;

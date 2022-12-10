@@ -114,8 +114,8 @@ void setupScene() {
     auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
     //    auto& material = izzy->materialSystem->createMaterial("table_cloth");
     auto& material = izzy->materialSystem->createMaterial("Diffuse");
-    material.setTexture(TextureHint::DIFFUSE_MAP, izzy->textureSystem->loadTexture("textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"));
-    material.setTexture(TextureHint::NORMAL_MAP, izzy->textureSystem->loadTexture("textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"));
+    material.setTexture(TextureTag::DIFFUSE_MAP, izzy->textureSystem->loadTexture("textures/fabric_pattern_07_4k/fabric_pattern_07_col_1_4k.png"));
+    material.setTexture(TextureTag::NORMAL_MAP, izzy->textureSystem->loadTexture("textures/fabric_pattern_07_4k/fabric_pattern_07_nor_gl_4k.exr"));
     mesh.materialId = material.id;
     auto& dr = plane.add<gl::ForwardRenderable>({material.id, meshBuffer.id});
   }
@@ -166,7 +166,8 @@ int main(int argc, char* argv[]) {
 
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
-    camera.add<izz::Skybox>(izz::Skybox{izzy->materialSystem->createMaterial("Skybox").id});
+//    camera.add<izz::Skybox>(izz::Skybox{izzy->materialSystem->createMaterial("Skybox").id});
+    camera.add<izz::Skybox>(izz::Skybox{izzy->materialSystem->createMaterial("Skydome").id}); /// park parking
 
     izzy->renderSystem->getLightSystem().setDefaultPointLightMaterial(izzy->materialSystem->createMaterial("pointlight").id);
 
