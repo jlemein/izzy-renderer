@@ -46,9 +46,9 @@ Texture StbTextureLoader::loadImage(const std::filesystem::path& path) {
     throw std::runtime_error(fmt::format("Cannot load texture from file '{}': width or height is 0", path.c_str()));
   }
 
-  Texture texture{.type = TextureType::TEXTURE_2D, .path = path, .width = width, .height = height, .channels = desiredChannels};
+  Texture texture{.type = TextureType::TEXTURE_2D, .path = path, .width = width, .height = height, .numChannels = desiredChannels};
 
-  // number of pixels * channels * 8 bit
+  // number of pixels * numChannels * 8 bit
   uint64_t sizeImageData = width * height * desiredChannels;
   texture.data = std::vector<uint8_t>(pixelData, pixelData + sizeImageData);
   stbi_image_free(pixelData);
@@ -67,9 +67,9 @@ Texture StbTextureLoader::loadTextureFromMemory(unsigned char* pData, int size) 
   stbi_set_flip_vertically_on_load_thread(m_flipVertical);
   unsigned char* imageData = stbi_load_from_memory(pData, size, &width, &height, &channels, desiredChannels);
 
-  Texture texture{.type = TextureType::TEXTURE_2D, .path = "", .width = width, .height = height, .channels = desiredChannels};
+  Texture texture{.type = TextureType::TEXTURE_2D, .path = "", .width = width, .height = height, .numChannels = desiredChannels};
 
-  // number of pixels * channels * 8 bit
+  // number of pixels * numChannels * 8 bit
   uint64_t sizeImageData = width * height * desiredChannels;
   texture.data = std::vector<uint8_t>(imageData, imageData + sizeImageData);
   stbi_image_free(imageData);
@@ -79,7 +79,7 @@ Texture StbTextureLoader::loadTextureFromMemory(unsigned char* pData, int size) 
 
 void StbTextureLoader::writeTexture(Texture const* texture, std::filesystem::path path) {
   spdlog::info("Writing texture {}x{} to file {}", texture->width, texture->height, path.c_str());
-  stbi_write_png(path.c_str(), texture->width, texture->height, texture->channels, texture->data.data(), 0);
+  stbi_write_png(path.c_str(), texture->width, texture->height, texture->numChannels, texture->data.data(), 0);
 }
 
 ExtensionList StbTextureLoader::getSupportedExtensions() const {

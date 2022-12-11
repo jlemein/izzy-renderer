@@ -1,14 +1,69 @@
 //
 // Created by jeffrey on 15-11-21.
 //
-#include "izzgl_texturesystem.h"
 #include <GL/glew.h>
+#include <izz_textureutils.h>
+#include <izzgl_texturesystem.h>
 #include <spdlog/spdlog.h>
 #include <boost/algorithm/string.hpp>
 
 using namespace izz::gl;
 
 namespace {
+void getGlInternalFormat(TextureFormat format, GLint& glInternalFormat, GLenum& glPixelFormat, GLenum& glPixelType) {
+  switch(format) {
+    case TextureFormat::R8:
+      glInternalFormat = GL_R8;
+      glPixelFormat = GL_R;
+      glPixelType = GL_UNSIGNED_BYTE;
+      break;
+    case TextureFormat::R16F:
+      glInternalFormat = GL_R16F;
+      glPixelFormat = GL_R;
+      glPixelType = GL_FLOAT;
+      break;
+    case TextureFormat::R32F:
+      glInternalFormat = GL_R32F;
+      glPixelFormat = GL_R;
+      glPixelType = GL_FLOAT;
+      break;
+
+    case TextureFormat::RGB8:
+      glInternalFormat = GL_RGB8;
+      glPixelFormat = GL_RGB;
+      glPixelType = GL_UNSIGNED_BYTE;
+      break;
+    case TextureFormat::RGB16F:
+      glInternalFormat = GL_RGB16F;
+      glPixelFormat = GL_RGB;
+      glPixelType = GL_FLOAT;
+      break;
+    case TextureFormat::RGB32F:
+      glInternalFormat = GL_RGB32F;
+      glPixelFormat = GL_RGB;
+      glPixelType = GL_FLOAT;
+      break;
+
+    case TextureFormat::RGBA8:
+      glInternalFormat = GL_RGBA8;
+      glPixelFormat = GL_RGBA;
+      glPixelType = GL_UNSIGNED_BYTE;
+      break;
+    case TextureFormat::RGBA16F:
+      glInternalFormat = GL_RGBA16F;
+      glPixelFormat = GL_RGBA;
+      glPixelType = GL_FLOAT;
+      break;
+    case TextureFormat::RGBA32F:
+      glInternalFormat = GL_RGBA32F;
+      glPixelFormat = GL_RGBA;
+      glPixelType = GL_FLOAT;
+      break;
+    default:
+      throw std::runtime_error("No compatible internal format found.");
+  }
+}
+
 /**!
  * @brief Creates a texture buffer and sends the data over to the GPU. This
  * method therefore converts a texture resource to GPU ready representation.
@@ -28,20 +83,13 @@ GLuint allocateTextureBuffer(const Texture& texture) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
   if (!texture.data.empty()) {
-    GLint colorFormat = texture.channels == 3 ? GL_RGB : GL_RGBA; // color format of the texture data.
-    GLint internalColorFormat = colorFormat;  // directs OpenGL to internally clamp values to [0.0, 1.0] (for GL_RGBA) or not.
 
-    GLuint dataType = GL_UNSIGNED_BYTE;
-    if (texture.dataType == TextureDataType::HALF_FLOAT){
-      internalColorFormat = GL_RGBA16F;
-      dataType = GL_FLOAT;
-    }
-    if (texture.dataType == TextureDataType::FLOAT){
-      internalColorFormat = GL_RGBA32F;
-      dataType = GL_FLOAT;
-    }
+    GLint internalFormat;
+    GLenum format;
+    GLenum type;
+    getGlInternalFormat(texture.format, internalFormat, format, type);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, internalColorFormat, texture.width, texture.height, 0, colorFormat, dataType, texture.data.data());
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, texture.width, texture.height, 0, format, type, texture.data.data());
     glGenerateMipmap(GL_TEXTURE_2D);
   } else {
     spdlog::error("Failed to create texture buffer for texture '{}'. Data is empty.", texture.path);
@@ -53,7 +101,7 @@ GLuint allocateTextureBuffer(const Texture& texture) {
 
 void uploadCubeMapData(const Texture textures[], int length) {
   for (int i = 0; i < length; ++i) {
-    GLint colorFormat = textures[i].channels == 3 ? GL_RGB : GL_RGBA;
+    GLint colorFormat = textures[i].numChannels == 3 ? GL_RGB : GL_RGBA;
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, colorFormat, textures[i].width, textures[i].height, 0, colorFormat, GL_UNSIGNED_BYTE,
                  textures[i].data.data());
   }
@@ -130,9 +178,9 @@ Texture* TextureSystem::loadCubeMap(const std::vector<std::filesystem::path> pat
     cubeMap->width = imageData->width;
     cubeMap->height = imageData->height;
     cubeMap->depth = imageData->depth;
-    cubeMap->channels = imageData->channels;
+    cubeMap->numChannels = imageData->numChannels;
 
-    GLint colorFormat = cubeMap->channels == 3 ? GL_RGB : GL_RGBA;
+    GLint colorFormat = cubeMap->numChannels == 3 ? GL_RGB : GL_RGBA;
     glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, colorFormat, imageData->width, imageData->height, 0, colorFormat, GL_UNSIGNED_BYTE,
                  imageData->data.data());
 
@@ -175,18 +223,23 @@ Texture* TextureSystem::getTextureById(TextureId id) {
   return &m_textures.at(id);
 }
 
-
 Texture* TextureSystem::registerTexture(Texture& texture) {
   return &texture;
 }
 
-Texture* TextureSystem::allocateTexture(int width, int height) {
+Texture* TextureSystem::allocateTexture(int width, int height, TextureFormat format) {
   Texture texture;
   texture.type = TextureType::TEXTURE_2D;
 
+  // convert to compatible GL texture format
+  GLint glInternalFormat = GL_RGBA8;
+  GLenum glPixelFormat = GL_RGBA;
+  GLenum glPixelType = GL_UNSIGNED_BYTE;
+  getGlInternalFormat(format, glInternalFormat, glPixelFormat, glPixelType);
+
   glGenTextures(1, &texture.bufferId);
   glBindTexture(GL_TEXTURE_2D, texture.bufferId);  // so that all subsequent calls will affect position texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, glPixelFormat, glPixelType, 0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 

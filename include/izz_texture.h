@@ -22,13 +22,21 @@ struct RgbaHdr {
 
 enum class TextureType { UNDEFINED = 0, TEXTURE_2D, CUBEMAP };
 
-enum class TextureDataType { UNSIGNED_BYTE, HALF_FLOAT, FLOAT };
+enum class TextureFormat {
+  R8, R16F, R32F,
+  RGB8, RGB16F, RGB32F,
+  RGBA8, RGBA16F, RGBA32F
+};
+
+
+enum class TextureMemoryLayout { RGBA8, RGBA16F, RGBA32F };
 
 struct Texture {
+
   /// @brief Unique id to fetch texture from texture system
   TextureId id{-1};
   TextureType type{TextureType::UNDEFINED};
-  TextureDataType dataType {TextureDataType::UNSIGNED_BYTE};
+  TextureFormat format {TextureFormat::RGBA8};
 
   /// @brief Texture buffer id, which is retrieved using a call to glGenTextures()
   uint32_t bufferId{0U};  // TODO make it a void*, so that each texture system is able to return it's own buffer handle.
@@ -38,7 +46,7 @@ struct Texture {
   int width{0};
   int height{0};
   int depth{1};
-  int channels{0};
+  int numChannels{4};
   std::vector<uint8_t> data;
 };
 

@@ -51,7 +51,7 @@ RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::Resour
   , m_meshSystem{meshSystem}
   , m_lightSystem{lightSystem}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(materialSystem, textureSystem, meshSystem, registry)
-  , m_deferredRenderer(materialSystem, meshSystem, registry) {
+  , m_deferredRenderer(materialSystem, textureSystem, meshSystem, registry) {
   m_materialSystem->setCapabilitySelector(this);
 }
 

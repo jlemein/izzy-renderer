@@ -17,7 +17,7 @@ using namespace Imath;
 namespace {
 void transformHdrToLdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical = false) {
   dst.data.resize(src.width() * src.height() * 4);
-  dst.channels = 4U;
+  dst.numChannels = 4U;
   dst.depth = 1;
 
   Rgba8888* pData = reinterpret_cast<Rgba8888*>(dst.data.data());
@@ -39,7 +39,7 @@ void transformHdrToLdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical
 
 void transformHdr(const Array2D<Rgba>& src, Texture& dst, bool flipVertical = false) {
   dst.data.resize(src.width() * src.height() * sizeof(RgbaHdr));
-  dst.channels = 4U;
+  dst.numChannels = 4U;
   dst.depth = 1;
 
   RgbaHdr* pData = reinterpret_cast<RgbaHdr*>(dst.data.data());
@@ -78,7 +78,7 @@ Texture ExrLoader::loadImage(const std::filesystem::path& path) {
   // convert HDR to LDR to use as geo::Texture
   Texture texture;
   texture.type = TextureType::TEXTURE_2D;
-  texture.dataType = TextureDataType::UNSIGNED_BYTE; // LDR image
+  texture.format = TextureFormat::RGBA8; // LDR image
   texture.width = width;
   texture.height = height;
   transformHdrToLdr(imageData, texture, m_flipVertical);
@@ -103,7 +103,7 @@ Texture ExrLoader::loadHdrImage(const std::filesystem::path& path) {
   // convert HDR to LDR to use as geo::Texture
   Texture texture;
   texture.type = TextureType::TEXTURE_2D;
-  texture.dataType = TextureDataType::FLOAT;
+  texture.format = TextureFormat::RGBA16F;
   texture.width = width;
   texture.height = height;
   transformHdr(imageData, texture, m_flipVertical);

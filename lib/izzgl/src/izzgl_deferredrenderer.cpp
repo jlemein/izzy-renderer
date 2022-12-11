@@ -44,14 +44,15 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
 
   // GBuffer: position texture
-  Texture* texture = m_textureSystem->registerTexture(m_gPosition);
+  Texture* m_gbufferPosition = m_textureSystem->allocateTexture(width, height, TextureFormat::RGBA16F);
 
-  glGenTextures(1, &m_gPosition);
-  glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gPosition, 0);
+
+//  glGenTextures(1, &m_gPosition);
+//  glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
+//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gPosition, 0);
 
   // GBuffer: normal texture
   glGenTextures(1, &m_gNormal);

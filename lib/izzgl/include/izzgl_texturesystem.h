@@ -81,11 +81,12 @@ class TextureSystem {
 
   /**
    * Allocates a texture on the GPU with the specified width and height.
-   * @param width Width in pixels.
-   * @param height Height in pixels.
+   * @param width           Width in pixels.
+   * @param height          Height in pixels.
+   * @param format          Internal storage format of the texture data.
    * @return A pointer to the created texture.
    */
-  Texture* allocateTexture(int width, int height);
+  Texture* allocateTexture(int width, int height, TextureFormat format = TextureFormat::RGBA8);
 
   /**
    * Registers texture to texture system. Only use this if
