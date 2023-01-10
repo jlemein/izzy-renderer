@@ -4,19 +4,17 @@
 
 #pragma once
 
+#include <izzgl_depthpeeling.h>
 #include <izzgl_material.h>
 #include <entt/fwd.hpp>
 #include "gl_renderable.h"
 #include "izz.h"
 #include "izz_scenegraphentity.h"
-#include <izzgl_depthpeeling.h>
 
 namespace izz {
 namespace gl {
 
-class MaterialSystem;
-class TextureSystem;
-class MeshSystem;
+class Gpu;
 
 struct ForwardRenderable {
   MaterialId materialId{-1};
@@ -29,8 +27,7 @@ class ForwardRenderer {
   static constexpr inline const char* ID = "ForwardRenderer";
 
  private:
-  std::shared_ptr<MaterialSystem> m_materialSystem{nullptr};
-  std::shared_ptr<MeshSystem> m_meshSystem{nullptr};
+  std::shared_ptr<Gpu> m_gpu{nullptr};
   entt::registry& m_registry;
   DepthPeeling m_depthPeeling;
   bool m_isAlphaBlendingEnabled = true;
@@ -38,9 +35,7 @@ class ForwardRenderer {
 
 
  public:
-  ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem,
-                  std::shared_ptr<TextureSystem> textureSystem,
-                  std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry);
+  ForwardRenderer(std::shared_ptr<Gpu> gpu, entt::registry& registry);
 
   /**
    * @brief Called when an gl::DeferredRenderable component is added to the entity.

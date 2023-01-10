@@ -44,7 +44,6 @@ add_library(izzy STATIC
         include/izz_scenegraphentity.h
         include/izz_statcounter.h
         include/izz_util.h
-        lib/izzgl/include/izz_resourcemanager.h
         src/izz_animationsystem.cpp
         src/izz_debugshapefactory.cpp
         src/izz_debugsystem.cpp
@@ -52,6 +51,7 @@ add_library(izzy STATIC
         src/izz_relationshiputil.cpp
         src/izz_scenegraphentity.cpp
         src/izz_statcounter.cpp
+        src/izz_texture.cpp
         )
 
 target_include_directories(izzy

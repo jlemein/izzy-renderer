@@ -13,13 +13,11 @@
 #include <izzgl_texturesystem.h>
 #include <spdlog/spdlog.h>
 #include <uniform_depthpeeling.h>
+#include "izzgl_gpu.h"
 using namespace izz::gl;
 
-DepthPeeling::DepthPeeling(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<TextureSystem> textureSystem,
-                           std::shared_ptr<MeshSystem> meshSystem, const entt::registry& registry, int numPeelPasses)
-  : m_materialSystem{materialSystem}
-  , m_textureSystem{textureSystem}
-  , m_meshSystem{meshSystem}
+DepthPeeling::DepthPeeling(std::shared_ptr<Gpu> gpu, const entt::registry& registry, int numPeelPasses)
+  : m_gpu{gpu}
   , m_registry{registry}
   , m_numPeelPasses{numPeelPasses} {}
 
@@ -27,8 +25,8 @@ void DepthPeeling::init(int width, int height) {
   m_width = width;
   m_height = height;
 
-  m_opaqueTexture = m_textureSystem->allocateTexture(width, height);
-  m_depthTexture = m_textureSystem->allocateDepthTexture(width, height);
+  m_opaqueTexture = m_gpu->textures.allocateTexture(width, height);
+  m_depthTexture = m_gpu->textures.allocateDepthTexture(width, height);
 
   createScreenSpaceRect();
 
@@ -83,10 +81,10 @@ void DepthPeeling::init(int width, int height) {
 
 void DepthPeeling::createScreenSpaceRect() {
   auto rectangle = izz::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
-  const auto& meshBuffer = m_meshSystem->createVertexBuffer(rectangle);
+  const auto& meshBuffer = m_gpu->meshes.createVertexBuffer(rectangle);
 
   // DeferredLightingPass UBO is required.
-  const auto& material = m_materialSystem->createMaterial("RenderTexture");
+  const auto& material = m_gpu->materials.createMaterial("RenderTexture");
   m_renderTextureMaterialId = material.getId();
   m_screenSpaceMeshBufferId = meshBuffer.id;
 }
@@ -122,12 +120,12 @@ void DepthPeeling::render() {
     renderTransparentObjects(true);
   }
 
-  const auto& m = m_materialSystem->getMaterialById(m_renderTextureMaterialId);
+  const auto& m = m_gpu->materials.getMaterialById(m_renderTextureMaterialId);
   m.useProgram();
   m.pushUniforms();
   m.useTextures();
-  auto& meshBuffer = m_meshSystem->getMeshBuffer(m_screenSpaceMeshBufferId);
-  m_meshSystem->bindBuffer(meshBuffer);
+  auto& meshBuffer = m_gpu->meshes.getMeshBuffer(m_screenSpaceMeshBufferId);
+  m_gpu->meshes.bindBuffer(meshBuffer);
 
   // combine the opaque and transparent layer.
   // transparent layer is stored in framebuffer (hence destination).
@@ -154,19 +152,19 @@ void DepthPeeling::renderTransparentObjects(bool isDepthPeeling) {
   for (const auto& [e, forward, transform] : view.each()) {
     if (forward.blendMode == izz::BlendMode::ALPHA_BLEND) {
       IZZ_STAT_COUNT(TRANSPARENT_OBJECTS)
-      auto& mat = m_materialSystem->getMaterialById(forward.materialId);
-      const auto& mesh = m_meshSystem->getMeshBuffer(forward.vertexBufferId);
+      auto& mat = m_gpu->materials.getMaterialById(forward.materialId);
+      const auto& mesh = m_gpu->meshes.getMeshBuffer(forward.vertexBufferId);
 
       auto depthPeeling = mat.getUniformBuffer<izz::ufm::DepthPeeling>();
       depthPeeling->isPeelingPass = static_cast<GLint>(isDepthPeeling);
       depthPeeling->screenSize = glm::ivec2(m_width, m_height);
 
-      m_materialSystem->updateUniformsForEntity(e, mat);
+      m_gpu->materials.updateUniformsForEntity(e, mat);
 
       mat.useProgram();
       mat.useTextures();
       mat.pushUniforms();
-      m_meshSystem->bindBuffer(mesh);
+      m_gpu->meshes.bindBuffer(mesh);
 
       bool isWireframe = forward.isWireframe || m_registry.any_of<izz::ecs::Wireframe>(e);
       glPolygonMode(GL_FRONT_AND_BACK, isWireframe ? GL_LINE : GL_FILL);

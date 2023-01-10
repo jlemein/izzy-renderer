@@ -3,20 +3,20 @@
 //
 #pragma once
 
-#include <entt/entt.hpp>
-#include <memory>
-#include <nlohmann/json.hpp>
-#include <vector>
-#include <izz_resourcemanager.h>
 #include <izz_scenegraphentity.h>
 #include <izzgl_irendercapabilityselector.h>
 #include <izzgl_material.h>
 #include <izzgl_rendersystem.h>
 #include <uniform_uniformblockmanager.h>
+#include <entt/entt.hpp>
+#include <memory>
+#include <nlohmann/json.hpp>
+#include <vector>
+#include "izzgl_shadersystem.h"
 
 namespace izz {
-class ResourceManager;
 namespace gl {
+class TextureSystem;
 class ShaderCompiler;
 class RenderSystem;
 
@@ -42,7 +42,7 @@ class MaterialSystem {
  public:
   static inline const char* ID = "MaterialSystem";
 
-  MaterialSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager);
+  MaterialSystem(entt::registry& registry, izz::gl::TextureSystem& textureSystem);
 
   virtual ~MaterialSystem() = default;
 
@@ -187,8 +187,8 @@ class MaterialSystem {
   UniformBuffer createUniformBuffer(const UniformBufferDescription& bufferDescription, const Material& material);
 
   entt::registry& m_registry;
-  std::shared_ptr<izz::ResourceManager> m_resourceManager {nullptr};
-  std::shared_ptr<izz::gl::ShaderCompiler> m_shaderCompiler {nullptr};
+  izz::gl::TextureSystem& m_textureSystem;
+  izz::gl::ShaderCompiler m_shaderCompiler;
 
   std::string m_defaultMaterialTemplateName{""};
   std::filesystem::path m_shaderRootDirectory = "/";

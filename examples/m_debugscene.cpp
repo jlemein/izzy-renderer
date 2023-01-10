@@ -16,7 +16,6 @@
 #include <izzgui_window.h>
 #include <wsp_workspace.h>
 #include "geo_scene.h"
-#include "izzgl/izz_resourcemanager.h"
 #include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
 #include "izzgui_iguiwindow.h"

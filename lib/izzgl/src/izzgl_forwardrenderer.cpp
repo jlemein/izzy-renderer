@@ -7,27 +7,25 @@
 #include <ecs_wireframe.h>
 #include <geo_mesh.h>
 #include <gl_renderable.h>
+#include <izz_skybox.h>
 #include <izzgl_error.h>
 #include <izzgl_forwardrenderer.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_meshsystem.h>
-#include <izz_skybox.h>
+#include "izzgl_gpu.h"
 using namespace izz::gl;
 
-ForwardRenderer::ForwardRenderer(std::shared_ptr<MaterialSystem> materialSystem,
-                                 std::shared_ptr<TextureSystem> textureSystem,
-                                 std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
-  : m_materialSystem{materialSystem}
-  , m_meshSystem{meshSystem}
-  , m_registry{registry}
-  , m_depthPeeling{materialSystem, textureSystem, meshSystem, registry} {
+ForwardRenderer::ForwardRenderer(std::shared_ptr<Gpu> gpu, entt::registry& registry)
+  : m_registry{registry}
+  , m_gpu{gpu}
+  , m_depthPeeling{m_gpu, registry} {
   m_registry.on_construct<gl::ForwardRenderable>().connect<&ForwardRenderer::onConstruct>(this);
 }
 
 void ForwardRenderer::onEntityCreate(SceneGraphEntity& e) {
   auto& renderable = e.get<izz::Geometry>();
 
-  const auto& material = m_materialSystem->getMaterialById(renderable.materialId);
+  const auto& material = m_gpu->materials.getMaterialById(renderable.materialId);
   e.add(ForwardRenderable{.materialId = renderable.materialId, .vertexBufferId = renderable.vertexBufferId, .blendMode = material.blendMode});
 }
 
@@ -86,15 +84,15 @@ void ForwardRenderer::renderOpaqueObjects(const entt::registry& registry) {
     if (forward.blendMode == izz::BlendMode::OPAQUE) {
       IZZ_STAT_COUNT(OPAQUE_OBJECTS)
 
-      auto& mat = m_materialSystem->getMaterialById(forward.materialId);
-      const auto& mesh = m_meshSystem->getMeshBuffer(forward.vertexBufferId);
+      auto& mat = m_gpu->materials.getMaterialById(forward.materialId);
+      const auto& mesh = m_gpu->meshes.getMeshBuffer(forward.vertexBufferId);
 
-      m_materialSystem->updateUniformsForEntity(e, mat);
+      m_gpu->materials.updateUniformsForEntity(e, mat);
 
       mat.useProgram();
       mat.useTextures();
       mat.pushUniforms();
-      m_meshSystem->bindBuffer(mesh);
+      m_gpu->meshes.bindBuffer(mesh);
 
       bool isWireframe = forward.isWireframe || registry.any_of<izz::ecs::Wireframe>(e);
       glPolygonMode(GL_FRONT_AND_BACK, isWireframe ? GL_LINE : GL_FILL);

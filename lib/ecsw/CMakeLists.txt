@@ -1,7 +1,7 @@
 
 add_library(ecsw STATIC
         include/ecsw_model.h src/ecsw_model.cpp
-        include/ecsw_material.h src/ecsw_material.cpp include/ecsw_transform.h include/ecsw_meshinstance.h src/ecsu_sceneutil.cpp)
+        include/ecsw_transform.h include/ecsw_meshinstance.h src/ecsu_sceneutil.cpp)
 
 find_package(glm REQUIRED)
 find_package(assimp REQUIRED)

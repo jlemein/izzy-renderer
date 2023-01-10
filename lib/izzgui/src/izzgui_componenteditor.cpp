@@ -10,6 +10,7 @@
 #include "IconFontCppHeaders/IconsFontAwesome6.h"
 #include "ecs_camera.h"
 #include "ecs_firstpersoncontrol.h"
+#include "izz_gamma.h"
 #include "izz_skybox.h"
 using namespace izz::gui;
 
@@ -41,6 +42,7 @@ void ComponentEditor::render(float time, float dt) {
         nameComponent();
         transformComponent();
         cameraComponent();
+        gammaCorrectionComponent();
         fpsControlComponent();
 
         // lights
@@ -185,6 +187,16 @@ void ComponentEditor::skyboxComponent() {
         }
         ImGui::EndCombo();
       }
+    }
+  }
+  ImGui::PopID();
+}
+
+void ComponentEditor::gammaCorrectionComponent() {
+  ImGui::PushID("GammaCorrectionComponent");
+  if (auto gammaCorrection = m_izzy.getRegistry().try_get<GammaCorrection>(SelectedEntity)) {
+    if (ImGui::CollapsingHeader("Gamma Correction")) {
+      ImGui::DragFloat("Gamma", &gammaCorrection->gamma, 0.01F, 0.0F, 5.0F);
     }
   }
   ImGui::PopID();

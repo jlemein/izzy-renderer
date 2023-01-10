@@ -18,6 +18,7 @@ void main()
     vec2 uv = vec2(phi / TWO_PI, (theta + PI2)/PI);
 
     out_color = texture(environmentMap, uv);
+
 //    out_color.xy = uv;
 //    out_color.z = 0.1;
 //    out_color.r = theta;

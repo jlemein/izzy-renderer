@@ -16,12 +16,15 @@
 #include <izzgl_renderstrategy.h>
 #include <entt/fwd.hpp>
 #include "izz_texture.h"
+#include "izzgl_gammacorrectionpe.h"
+#include "izzgl_gpu.h"
+#include <izzgl_postprocessor.h>
 
 namespace izz {
-class ResourceManager;
 namespace gl {
 class MaterialSystem;
 class TextureSystem;
+class SkySystem;
 class LightSystem;
 class ShaderCompiler;
 struct Texture;
@@ -35,13 +38,14 @@ class RenderSystem : public IRenderCapabilitySelector {
 
   /**
    * Constructor.
-   * @param [in] sceneGraph      Scenegraph that consists of the entities to be rendered.
-   * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
-   * @param [in] meshSystem      Mesh system to allocate vertex and index buffers for mesh data.
+   * @param [in] registry        Scenegraph that consists of the entities to be rendered.
+   * @param [in] gpu             Access to GPU for buffer structures.
+   * @param [in] skySystem       Sky system deals with rendering the atmosphere (skyboxes, etc.).
+   * @param [in] lightSystem     Light system.
    */
-  RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager, std::shared_ptr<izz::gl::MaterialSystem> materialSystem,
-               std::shared_ptr<TextureSystem> textureSystem,
-               std::shared_ptr<izz::gl::MeshSystem> meshSystem,
+  RenderSystem(entt::registry& registry,
+               std::shared_ptr<izz::gl::Gpu> gpu,
+               std::shared_ptr<izz::gl::SkySystem> skySystem,
                std::shared_ptr<izz::gl::LightSystem> lightSystem);
 
   /**
@@ -50,18 +54,6 @@ class RenderSystem : public IRenderCapabilitySelector {
   void init(int width, int height);
   void update(float dt, float time);
   void render();
-
-  /**
-   * Updates the materials with the environment maps.
-   *
-   * @details
-   * Many materials require environment maps to show reflections or use them for lighting the scene. Depending on the use of environment maps, they may
-   * need to be set once for each material, or the map get's recomputed per frame to deal with dynamic objects.
-   * Calling this method loops through the materials and updates the environment map texture.
-   */
-  void updateEnvironmentMaps();
-
-  void renderSkybox();
 
   void resize(int width, int height);
 
@@ -80,24 +72,23 @@ class RenderSystem : public IRenderCapabilitySelector {
  private:
   ForwardRenderer m_forwardRenderer;
   DeferredRenderer m_deferredRenderer;
+  Postprocessor m_postProcessor;
   glm::vec4 m_clearColor;
 
   std::unordered_map<TextureId, GLuint> m_allocatedTextures;
-  VertexBufferId m_unitCubeVertexBufferId = {-1};
 
   entt::registry& m_registry;
-  std::shared_ptr<izz::ResourceManager> m_resourceManager{nullptr};
-  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
-  std::shared_ptr<izz::gl::MeshSystem> m_meshSystem{nullptr};
-  //  lsw::ecs::DebugSystem m_debugSystem;
-  std::shared_ptr<LightSystem> m_lightSystem;
+  std::shared_ptr<izz::gl::Gpu> m_gpu{nullptr};
+  std::shared_ptr<izz::gl::SkySystem> m_skySystem{nullptr};
+  std::shared_ptr<LightSystem> m_lightSystem {nullptr};
   int m_viewportWidth = 0;
   int m_viewportHeight = 0;
 
-  GLuint m_quadVbo, m_quadVao;
+  /// Gamma correction posteffect.
+  GammaCorrectionPE m_gammaCorrectionPE;
 
-  void initPostprocessBuffers();
-  //  void renderPosteffects();
+  /// Framebuffer to render
+  GLuint m_fbo;
 };
 
 }  // namespace gl

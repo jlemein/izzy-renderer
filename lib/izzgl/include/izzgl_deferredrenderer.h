@@ -13,9 +13,7 @@
 namespace izz {
 namespace gl {
 
-class MaterialSystem;
-class TextureSystem;
-class MeshSystem;
+class Gpu;
 
 struct DeferredRenderable {
   MaterialId materialId{-1};
@@ -26,7 +24,7 @@ class DeferredRenderer {
   static constexpr inline const char* ID = "DeferredRenderer";
 
  public:
-  DeferredRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<TextureSystem> textureSystem, std::shared_ptr<MeshSystem> meshSystem,
+  DeferredRenderer(std::shared_ptr<Gpu> gpu,
                    entt::registry& registry);
 
   /// @brief Called when an gl::DeferredRenderable component is added to an entity.
@@ -83,23 +81,19 @@ class DeferredRenderer {
   void renderGeometryPass(const entt::registry& registry);
   void renderLightingPass();
 
-  std::shared_ptr<MaterialSystem> m_materialSystem {nullptr};
-  std::shared_ptr<TextureSystem> m_textureSystem {nullptr};
-  std::shared_ptr<MeshSystem> m_meshSystem {nullptr};
+  std::shared_ptr<Gpu> m_gpu;
   entt::registry& m_registry;
 
   glm::vec4 m_clearColor;
   GLuint m_gBufferFbo, m_lightingPassFbo;
 
-  /// Texture id's (obtained via glGenTextures)
-  GLuint m_gPosition, m_gNormal, m_gAlbedoSpec;
-  GLuint m_environmentMap;
-  GLuint m_depthBuffer;
+  /// GBuffer textures
+  Texture* m_gbufferPositionTex{nullptr};
+  Texture* m_gBufferNormalTex{nullptr};
+  Texture* m_gBufferAlbedoSpecTex{nullptr};
 
-  /// Uniform locations in shader (obtained via glGetUniformLocation).
-  GLint m_gPositionLoc = -1, m_gNormalLoc = -1, m_gAlbedoSpecLoc = -1;
-  GLint m_environmentMapLoc = -1;
-  entt::entity m_activeCamera = entt::null;
+  /// Texture id's (obtained via glGenTextures)
+  GLuint m_depthBuffer;
 
   int m_screenWidth;
   int m_screenHeight;

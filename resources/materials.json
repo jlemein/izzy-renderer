@@ -164,6 +164,23 @@
       }
     },
     {
+      "name": "gamma_correction",
+      "vertex_shader": "shaders/passthrough.vert",
+      "geometry_shader": "",
+      "fragment_shader": "shaders/gamma_postprocess.frag",
+      "properties": {
+        "ModelViewProjection": {},
+        "GammaCorrection": {
+          "invGamma": 1.0
+        }
+      },
+      "textures": {
+        "hdrTexture": {
+          "type": "HDR_TEXTURE"
+        }
+      }
+    },
+    {
       "name": "Skybox2",
       "vertex_shader": "shaders/skybox.vert",
       "geometry_shader": "",

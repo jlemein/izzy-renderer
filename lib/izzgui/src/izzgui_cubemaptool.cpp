@@ -58,7 +58,7 @@ void CubeMapTool::init() {
   // create framebuffer object, that is needed to render projected cube map into.
   //  auto builder = m_renderSystem->frameBufferBuilder();
   //  auto buffer = builder.setDepthBuffer(200, 200).setColorBuffer().create();
-  //  buffer.validate();
+  //  buffer.isValid();
   glGenFramebuffers(1, &m_fbo);
   glBindFramebuffer(GL_FRAMEBUFFER, m_fbo);
 

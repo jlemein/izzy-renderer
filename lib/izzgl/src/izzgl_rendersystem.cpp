@@ -5,18 +5,23 @@
 #include <izzgl_common.cpp>
 
 #include <ecs_camera.h>
-#include <ecs_light.h>
+
 #include <geo_mesh.h>
 #include <glrs_lightsystem.h>
-#include <izz_resourcemanager.h>
+#include <izzgl_gammacorrectionpe.h>
+#include <izzgl_gpu.h>
 #include <izzgl_material.h>
 #include <izzgl_materialsystem.h>
+#include <izzgl_postprocessor.h>
 #include <izzgl_texturesystem.h>
 #include <spdlog/spdlog.h>
 #include <cstring>
 #include "geo_primitivefactory.h"
 #include "izz_skybox.h"
+#include "izzgl_error.h"
+#include "izzgl_framebufferbuilder.h"
 #include "izzgl_shadersystem.h"
+#include "izzgl_skysystem.h"
 using namespace izz;
 using namespace izz::gl;
 
@@ -40,40 +45,17 @@ LightSystem& RenderSystem::getLightSystem() {
   return *m_lightSystem;
 }
 
-RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager,
-                           std::shared_ptr<MaterialSystem> materialSystem,
-                           std::shared_ptr<TextureSystem> textureSystem,
-                           std::shared_ptr<izz::gl::MeshSystem> meshSystem,
+RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<Gpu> gpu, std::shared_ptr<izz::gl::SkySystem> skySystem,
                            std::shared_ptr<izz::gl::LightSystem> lightSystem)
-  : m_registry{registry}  //  , m_debugSystem(registry)
-  , m_resourceManager{resourceManager}
-  , m_materialSystem(materialSystem)
-  , m_meshSystem{meshSystem}
+  : m_registry{registry}
+  , m_gpu{gpu}
+  , m_skySystem{skySystem}
   , m_lightSystem{lightSystem}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
-  , m_forwardRenderer(materialSystem, textureSystem, meshSystem, registry)
-  , m_deferredRenderer(materialSystem, textureSystem, meshSystem, registry) {
-  m_materialSystem->setCapabilitySelector(this);
-}
-
-void RenderSystem::initPostprocessBuffers() {
-  // prepare quad for collecting
-  float vertices[] = {
-      // pos        // tex
-      -1.0f, -1.f, 0.0f, 0.0f, 1.f, 1.f, 1.0f, 1.0f, -1.f, 1.f, 0.0f, 1.0f, -1.f, -1.f, 0.0f, 0.0f, 1.f, -1.f, 1.0f, 0.0f, 1.f, 1.f, 1.0f, 1.0f};
-  // vao 1
-  glGenVertexArrays(1, &m_quadVao);
-  glGenBuffers(1, &m_quadVbo);
-  glBindVertexArray(m_quadVao);
-  glBindBuffer(GL_ARRAY_BUFFER, m_quadVbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(vertices) + 4, vertices, GL_STATIC_DRAW);
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), izz::gl::BUFFER_OFFSET(0));
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), izz::gl::BUFFER_OFFSET(2 * sizeof(float)));
-
-  glBindVertexArray(0);
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+  , m_forwardRenderer(gpu, registry)
+  , m_deferredRenderer(gpu, registry)
+  , m_postProcessor(*gpu, nullptr)
+  , m_gammaCorrectionPE(gpu, m_postProcessor, registry) {
+  m_gpu->materials.setCapabilitySelector(this);
 }
 
 void RenderSystem::init(int width, int height) {
@@ -92,10 +74,17 @@ void RenderSystem::init(int width, int height) {
   glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 
-  m_lightSystem->initialize();
+  //
+  auto colorAttachment = m_gpu->textures.allocateTexture(width, height, TextureFormat::RGBA8);
+  auto depthAttachment = m_gpu->textures.allocateDepthTexture(width, height);
+  auto framebuffer = FramebufferBuilder(*m_gpu).setColorAttachment(colorAttachment).setDepthAttachment(depthAttachment).create();
+  m_postProcessor.setFramebuffer(framebuffer);
 
-  // onBeginFrame postprocessing screen quad
-  initPostprocessBuffers();
+  m_postProcessor.initialize();
+  m_lightSystem->initialize();
+  m_skySystem->init(width, height);
+
+  m_gammaCorrectionPE.init(width, height);
 
   m_forwardRenderer.setClearColor(m_clearColor);
   m_deferredRenderer.setClearColor(m_clearColor);
@@ -108,15 +97,6 @@ void RenderSystem::init(int width, int height) {
   auto numDeferredRenderables = m_registry.view<gl::DeferredRenderable>().size();
   auto numForwardRenderables = m_registry.view<gl::ForwardRenderable>().size();
   spdlog::info("Forward renderables: {}, Deferred renderables: {}", numForwardRenderables, numDeferredRenderables);
-
-  auto box = izz::geo::PrimitiveFactory::MakeBox("UnitCube");
-  izz::geo::Mesh mesh;
-  mesh.vertices.reserve(sizeof(Skybox::Vertices)/sizeof(float));
-  float* begin = Skybox::Vertices;
-  float* end = begin + sizeof(Skybox::Vertices)/sizeof(float);
-  mesh.vertices = std::vector<float>(begin, end);
-//  m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(mesh).id;
-  m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(box).id;
 
   // small summary
   spdlog::info(
@@ -144,41 +124,27 @@ void RenderSystem::onGeometryAdded(izz::SceneGraphEntity& e, izz::gl::RenderStra
 void RenderSystem::update(float dt, float time) {
   // update light visualizations, recompute hierarchies for efficient rendering.
   m_lightSystem->updateLightProperties();
-
-  updateEnvironmentMaps();
-
+  m_skySystem->update(dt, time);
   m_forwardRenderer.update(dt, time);
   m_deferredRenderer.update(dt, time);
 
+  m_gammaCorrectionPE.update(dt, time);
+  //  // postprocess
+  //  auto view = m_registry.view<ecs::Camera>();
+  //  if (view.size() > 0) {
+  //    auto e = view[0];
+  //    if (m_registry.all_of<izz::GammaCorrection>(e)) {
+  //      auto& gammaCorrection = m_registry.get<GammaCorrectionPE>(e);
+  //      std::cout << "Setting gamma to " << gammaCorrection.gamma << std::endl;
+  //      auto& material = m_materialSystem->getMaterialById(m_postEffect);
+  //      auto u = material.getUniformBuffer<izz::ufm::GammaCorrection>();
+  //      u->invGamma = 1.0/gammaCorrection.gamma;
+  //    }
+  //  }
+
   // updates the materials per frame (once)
   // then updates all materials individually (is this needed)?
-  m_materialSystem->update(dt, time);
-}
-
-void RenderSystem::updateEnvironmentMaps() {
-  auto view = m_registry.view<izz::Skybox>();
-  if (view.size() != 0) {
-    auto e = view[0];
-    auto& skybox = m_registry.get<izz::Skybox>(e);
-    auto& skyboxMaterial = m_materialSystem->getMaterialById(skybox.material);
-
-    if (skyboxMaterial.hasTexture(TextureTag::ENVIRONMENT_MAP)) {
-      if (skybox.isEnabled) {
-        TextureId id = skyboxMaterial.getTexture(TextureTag::ENVIRONMENT_MAP);
-        Texture* environmentMap = m_resourceManager->getTextureSystem()->getTextureById(id);
-
-        for (auto& [id, material] : m_materialSystem->getCreatedMaterials()) {
-          if (material.id != skyboxMaterial.id && material.hasTexture(TextureTag::ENVIRONMENT_MAP)) {
-            spdlog::info("Update environment map: id: {}, bufferId: {}", environmentMap->id, environmentMap->bufferId);
-            material.setTexture(TextureTag::ENVIRONMENT_MAP, environmentMap);
-          }
-        }
-      } else {
-        //      Texture* nullTexture = m_resourceManager->getTextureSystem()->getNullTexture();
-        spdlog::warn("Cannot unset the environment map texture");
-      }
-    }
-  }
+  m_gpu->materials.update(dt, time);
 }
 
 void RenderSystem::render() {
@@ -188,47 +154,16 @@ void RenderSystem::render() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // render skybox first
-  renderSkybox();
+  m_skySystem->render();
 
   m_deferredRenderer.render(m_registry);
 
   // forward renderer should be after deferred render, because forward may render transparency.
   m_forwardRenderer.render(m_registry);
-}
 
-void RenderSystem::renderSkybox() {
-  auto view = m_registry.view<izz::Skybox>();
-//  auto e = view.size() > 0 ? view[0] : entt::null;
+  m_gammaCorrectionPE.render();
 
-  if (view.size() != 0) {
-    auto e = view[0];
-    auto& skybox = m_registry.get<izz::Skybox>(e);
-
-    if (!skybox.isEnabled) {
-      return;
-    }
-
-    auto& material = m_materialSystem->getMaterialById(skybox.material);
-    auto& buffer = m_meshSystem->getMeshBuffer(m_unitCubeVertexBufferId);
-
-    m_materialSystem->updateUniformsForEntity(e, material);
-
-    material.useProgram();
-    material.pushUniforms();
-    material.useTextures();
-    //    m_materialSystem->bindMaterial(material);
-    m_meshSystem->bindBuffer(buffer);
-
-//    glDepthFunc(GL_LEQUAL);
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
-//    glCullFace(GL_BACK);
-//    glDrawArrays(buffer.primitiveType, 0, buffer.drawElementCount*3);
-    glDrawElements(buffer.primitiveType, buffer.drawElementCount, GL_UNSIGNED_INT, 0);
-//    glCullFace(GL_BACK);
-    glEnable(GL_DEPTH_TEST);
-//    glDepthFunc(GL_LESS);
-  }
+  // post effects
 }
 
 void RenderSystem::resize(int width, int height) {
@@ -236,7 +171,8 @@ void RenderSystem::resize(int width, int height) {
   m_viewportHeight = height;
   glViewport(0, 0, m_viewportWidth, m_viewportHeight);
 
-//  m_forwardRenderer.resize(width, height);
+  m_skySystem->resize(width, height);
+  //  m_forwardRenderer.resize(width, height);
   m_deferredRenderer.resize(width, height);
 }
 

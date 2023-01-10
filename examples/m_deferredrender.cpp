@@ -8,7 +8,6 @@
 #include <izzgl_materialreader.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_rendersystem.h>
-#include "../lib/izzgl/include/izz_resourcemanager.h"
 #include "anim_localrotation.h"
 #include "ecs_firstpersoncontrol.h"
 #include "ecs_light.h"
@@ -34,6 +33,7 @@
 #include "ecs_camera.h"
 #include "geo_primitivefactory.h"
 #include "izz_behavior.h"
+#include "izz_gamma.h"
 #include "izz_relationshiputil.h"
 #include "izz_skybox.h"
 #include "izzgui_mainmenu.h"
@@ -165,6 +165,8 @@ int main(int argc, char* argv[]) {
     }
 
     auto camera = izzy->entityFactory->makeCamera("DummyCamera", 4);
+//    camera.add<PostprocessCollection>{GammaCorrectionPE(2.2)};
+    camera.add<GammaCorrection>().gamma = 2.2;
     camera.add<ecs::FirstPersonControl>().onlyRotateOnMousePress = true;
 //    camera.add<izz::Skybox>(izz::Skybox{izzy->materialSystem->createMaterial("Skybox").id});
     camera.add<izz::Skybox>(izz::Skybox{izzy->materialSystem->createMaterial("Skydome").id}); /// park parking

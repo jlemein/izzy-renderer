@@ -307,7 +307,6 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
                 uniform.value = value.get<std::vector<float>>();
                 {
                   auto aalbedo = std::get<std::vector<float>>(uniform.value);
-                  std::cout << "Albedo: " << aalbedo[0] << "  " << aalbedo[1] << "  " << aalbedo[2] << "  " << aalbedo[3] << std::endl;
                 }
                 break;
 
@@ -332,7 +331,6 @@ void MaterialReader::readMaterialInstances(nlohmann::json& j) {
     }
     if (material.uniforms.contains("BlinnPhongSimple.albedo")) {
       auto albedo = std::get<std::vector<float>>(material.uniforms.at("BlinnPhongSimple.albedo").value);
-      std::cout << "Albedo: " << albedo[0] << "  " << albedo[1] << "  " << albedo[2] << "  " << albedo[3] << std::endl;
     }
     m_materialSystem->addMaterialTemplate(material);
   }

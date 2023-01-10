@@ -230,6 +230,8 @@ Texture* TextureSystem::registerTexture(Texture& texture) {
 Texture* TextureSystem::allocateTexture(int width, int height, TextureFormat format) {
   Texture texture;
   texture.type = TextureType::TEXTURE_2D;
+  texture.width = width;
+  texture.height = height;
 
   // convert to compatible GL texture format
   GLint glInternalFormat = GL_RGBA8;
@@ -239,7 +241,7 @@ Texture* TextureSystem::allocateTexture(int width, int height, TextureFormat for
 
   glGenTextures(1, &texture.bufferId);
   glBindTexture(GL_TEXTURE_2D, texture.bufferId);  // so that all subsequent calls will affect position texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, width, height, 0, glPixelFormat, glPixelType, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, glInternalFormat, texture.width, texture.height, 0, glPixelFormat, glPixelType, 0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
@@ -263,10 +265,12 @@ Texture* TextureSystem::allocateCubeMap() {
 Texture* TextureSystem::allocateDepthTexture(int width, int height) {
   Texture texture;
   texture.type = TextureType::TEXTURE_2D;
+  texture.width = width;
+  texture.height = height;
 
   glGenTextures(1, &texture.bufferId);
   glBindTexture(GL_TEXTURE_2D, texture.bufferId);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, texture.width, texture.height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   //  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, m_depthTexture, 0);

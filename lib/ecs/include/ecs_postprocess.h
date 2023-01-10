@@ -6,7 +6,7 @@
 namespace izz {
 namespace ecs {
 
-struct Postprocess {
+struct `Postprocess {
 
 };
 

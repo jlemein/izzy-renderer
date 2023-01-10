@@ -11,7 +11,6 @@
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <memory>
-#include "../lib/izzgl/include/izz_resourcemanager.h"
 #include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"
 
@@ -58,11 +57,9 @@ int main(int argc, char** argv) {
   auto workspace = parseProgramArguments(argc, argv);
 
   try {
-    auto resourceManager = make_shared<ResourceManager>();
     auto sceneGraph = make_shared<izz::EntityFactory>();
-    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
+    auto materialSystem = make_shared<MaterialSystem>(sceneGraph);
     materialSystem->loadMaterialsFromFile(workspace->materialsFile);
-    resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
     auto viewer = std::make_shared<izz::gui::Window>(sceneGraph, renderSystem);

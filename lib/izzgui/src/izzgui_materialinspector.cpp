@@ -104,6 +104,20 @@ void MaterialInspector::generalInfo() {
     auto& info = m_materialSystem->getShaderVariantInfo(material);
     ImGui::Text("%d", info.numberOfInstances);
 
+    // vertex + fragment shader
+    auto& materialTemplate = m_materialSystem->getMaterialTemplateFromMaterial(material.id);
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    ImGui::TextUnformatted("Vertex shader:");
+    ImGui::TableSetColumnIndex(1);
+    ImGui::Text("%s", materialTemplate.vertexShader.c_str());
+
+    ImGui::TableNextRow();
+    ImGui::TableSetColumnIndex(0);
+    ImGui::TextUnformatted("Fragment shader:");
+    ImGui::TableSetColumnIndex(1);
+    ImGui::Text("%s", materialTemplate.fragmentShader.c_str());
+
     ImGui::EndTable();
   }
 
@@ -133,11 +147,11 @@ void MaterialInspector::uniformProperties() {
   //  }
 
   if (ImGui::CollapsingHeader("Textures")) {
-    for (auto& [file, texture] : material.textures) {
+    for (auto& [file, slot] : material.textures) {
       ImGui::Text("%s  %s", ICON_FA_CHESS_BOARD, file.c_str());
       if (ImGui::IsItemHovered()) {
         ImGui::BeginTooltip();
-        ImGui::Image((void*)(intptr_t)texture.textureId, ImVec2(600, 600));
+        ImGui::Image((void*)(intptr_t)slot.texture->bufferId, ImVec2(600, 600));
         ImGui::EndTooltip();
       }
     }

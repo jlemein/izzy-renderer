@@ -46,7 +46,8 @@ enum class PropertyType {
  * Rather than treating it as one of the textures, a tag can be provided so that the renderer can map them
  * automatically to the right texture slot.
  */
-enum class TextureTag { UNTAGGED = 0, DIFFUSE_MAP, NORMAL_MAP, SPECULAR_MAP, ROUGHNESS_MAP, HEIGHT_MAP, ENVIRONMENT_MAP };
+enum class TextureTag { UNTAGGED = 0, DIFFUSE_MAP, NORMAL_MAP, SPECULAR_MAP, ROUGHNESS_MAP, HEIGHT_MAP, ENVIRONMENT_MAP,
+                        IRRADIANCE_MAP};
 
 /**
  * @brief Map of the default shader parameter names corresponding to the specific texture types.

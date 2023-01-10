@@ -11,11 +11,10 @@
 #include <izz_fontsystem.h>
 #include <izzgui_window.h>
 #include <wsp_workspace.h>
-#include "../lib/izzgl/include/izz_resourcemanager.h"
-#include "../lib/lsw-gl/include/izzgl_exrloader.h"
-#include "../lib/lsw-gl/include/izzgl_sceneloader.h"
-#include "../lib/lsw-gl/include/izzgl_stbtextureloader.h"
-#include "../lib/lsw-gl/include/izzgl_texturesystem.h"
+#include "izzgl_exrloader.h"
+#include "izzgl_sceneloader.h"
+#include "izzgl_stbtextureloader.h"
+#include "izzgl_texturesystem.h"
 #include "geo_scene.h"
 #include "izzgl_entityfactory.h"
 #include "izzgl_materialsystem.h"

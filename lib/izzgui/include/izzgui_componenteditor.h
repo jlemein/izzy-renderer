@@ -41,6 +41,7 @@ class ComponentEditor : public IGuiWindow {
   void nameComponent();
   void cameraComponent();
   void fpsControlComponent();
+  void gammaCorrectionComponent();
   void directionalLightComponent();
   void pointLightComponent();
   void spotLightComponent();

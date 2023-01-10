@@ -94,6 +94,30 @@ vec3 GetDirectionalLightContribution(DirectionalLight light, vec3 n, vec3 v, vec
     return diffuse + specular;
 }
 
+/**
+ albedo: surface color
+ */
+vec3 GetEnvironmentMapContribution(vec3 v, vec3 n, vec3 albedo) {
+    #define TWO_PI 6.28318530718
+    #define PI 3.1415926538
+    #define PI2 1.57079632679
+    vec3 r = reflect(-v, n);
+
+    vec3 d = normalize(r);
+    float phi = d.x == 0.0 ? PI : atan(d.z, d.x);
+    float theta = asin(d.y);
+    vec2 uv = vec2(phi / TWO_PI, (theta + PI2)/PI);
+
+    // add diffuse and specular component
+    vec3 light_color = texture(environmentMap, uv).rgb;
+
+    float lambert = max(0.0, dot(n, r));
+    vec3 diffuse = albedo * light_color.rgb * lambert;
+
+    return diffuse;
+
+}
+
 vec3 GetPointLightContribution(PointLight light, vec3 p, vec3 n, vec3 v, vec3 albedo, float specularity) {
     vec3 l = light.worldPosition.xyz - p;
     float dist = length(l);
@@ -134,20 +158,7 @@ vec3 GetSpotLightContribution(SpotLight light, vec3 p, vec3 n, vec3 v, vec3 albe
     return t*t*(diffuse + specular) / (dist*dist);
 }
 
-vec3 GetEnvironmentMapContribution(vec3 v, vec3 n) {
-    #define TWO_PI 6.28318530718
-    #define PI 3.1415926538
-    #define PI2 1.57079632679
-    vec3 r = reflect(-v, n);
 
-    vec3 d = normalize(r);
-    float phi = d.x == 0.0 ? PI : atan(d.z, d.x);
-    float theta = asin(d.y);
-    vec2 uv = vec2(phi / TWO_PI, (theta + PI2)/PI);
-
-    // add diffuse and specular component
-    return texture(environmentMap, uv).rgb;
-}
 
 void main()
 {
@@ -188,7 +199,7 @@ void main()
     }
 
     // contribute HDR environment map
-    out_color.rgb = out_color.rgb * 0.01 + GetEnvironmentMapContribution(v, n);
+    out_color.rgb = out_color.rgb * 0.01 + GetEnvironmentMapContribution(v, n, albedo);
 
     #endif// DEBUG
 }

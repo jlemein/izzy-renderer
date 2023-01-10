@@ -6,7 +6,6 @@
 #include <ecs_transform.h>
 #include <geo_mesh.h>
 #include <gl_renderutils.h>
-#include <izz_util.h>
 #include <izzgl_deferredrenderer.h>
 #include <izzgl_rendersystem.h>
 #include <izzgl_texturesystem.h>
@@ -15,11 +14,8 @@
 #include "izzgl_error.h"
 using namespace izz::gl;
 
-DeferredRenderer::DeferredRenderer(std::shared_ptr<MaterialSystem> materialSystem, std::shared_ptr<TextureSystem> textureSystem,
-                                   std::shared_ptr<MeshSystem> meshSystem, entt::registry& registry)
-  : m_materialSystem{materialSystem}
-  , m_textureSystem{textureSystem}
-  , m_meshSystem{meshSystem}
+DeferredRenderer::DeferredRenderer(std::shared_ptr<Gpu> gpu, entt::registry& registry)
+  : m_gpu{gpu}
   , m_registry{registry} {
   m_registry.on_construct<gl::DeferredRenderable>().connect<&DeferredRenderer::onConstruct>(this);
 }
@@ -43,32 +39,14 @@ void DeferredRenderer::createGBuffer(int width, int height) {
   glGenFramebuffers(1, &m_gBufferFbo);
   glBindFramebuffer(GL_FRAMEBUFFER, m_gBufferFbo);
 
-  // GBuffer: position texture
-  Texture* m_gbufferPosition = m_textureSystem->allocateTexture(width, height, TextureFormat::RGBA16F);
+  // GBuffer textures
+  m_gbufferPositionTex = m_gpu->textures.allocateTexture(width, height, TextureFormat::RGBA16F);
+  m_gBufferNormalTex = m_gpu->textures.allocateTexture(width, height, TextureFormat::RGBA16F);
+  m_gBufferAlbedoSpecTex = m_gpu->textures.allocateTexture(width, height, TextureFormat::RGBA8);
 
-
-//  glGenTextures(1, &m_gPosition);
-//  glBindTexture(GL_TEXTURE_2D, m_gPosition);  // so that all subsequent calls will affect position texture.
-//  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-//  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-//  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gPosition, 0);
-
-  // GBuffer: normal texture
-  glGenTextures(1, &m_gNormal);
-  glBindTexture(GL_TEXTURE_2D, m_gNormal);  // so that all subsequent calls will affect normal texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, m_gNormal, 0);
-
-  // GBuffer: albedoTexture
-  glGenTextures(1, &m_gAlbedoSpec);
-  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);  // so that all subsequent calls will affect albedoSpec texture.
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, m_gAlbedoSpec, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_gbufferPositionTex->bufferId, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 1, GL_TEXTURE_2D, m_gBufferNormalTex->bufferId, 0);
+  glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + 2, GL_TEXTURE_2D, m_gBufferAlbedoSpecTex->bufferId, 0);
 
   glGenRenderbuffers(1, &m_depthBuffer);
   glBindRenderbuffer(GL_RENDERBUFFER, m_depthBuffer);
@@ -87,14 +65,18 @@ void DeferredRenderer::resize(int width, int height) {
   m_screenWidth = width;
   m_screenHeight = height;
 
-  glBindTexture(GL_TEXTURE_2D, m_gPosition);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+  if (m_gbufferPositionTex && m_gBufferNormalTex && m_gBufferAlbedoSpecTex) {
+    glBindTexture(GL_TEXTURE_2D, m_gbufferPositionTex->bufferId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 
-  glBindTexture(GL_TEXTURE_2D, m_gNormal);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferNormalTex->bufferId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
 
-  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
-  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glBindTexture(GL_TEXTURE_2D, m_gBufferAlbedoSpecTex->bufferId);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+  } else {
+    spdlog::error("Cannot resize deferred renderer buffers if they are not yet initialized");
+  }
   //
   //  if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE) {
   //    spdlog::info("Deferred renderer: successfully created framebuffer");
@@ -105,37 +87,22 @@ void DeferredRenderer::resize(int width, int height) {
 
 void DeferredRenderer::createScreenSpaceRect() {
   auto rectangle = izz::geo::PrimitiveFactory::MakePlaneXY("ScreenSpaceRect", 2.0, 2.0);
-  const auto& meshBuffer = m_meshSystem->createVertexBuffer(rectangle);
+  const auto& meshBuffer = m_gpu->meshes.createVertexBuffer(rectangle);
 
-  // DeferredLightingPass UBO is required.
-  auto& material = m_materialSystem->createMaterial("DeferredLightingPass");
-  if (material.uniformBuffers.count("DeferredLighting") == 0) {
+  // The deferred renderer creates its own textures.
+  // Therefore, the material is explicitly assigned the textures to use.
+  auto& material = m_gpu->materials.createMaterial("DeferredLightingPass");
+  material.setTexture("gbuffer_position", m_gbufferPositionTex);
+  material.setTexture("gbuffer_normal", m_gBufferNormalTex);
+  material.setTexture("gbuffer_albedospec", m_gBufferAlbedoSpecTex);
+
+  // Sanity check: DeferredLightingPass UBO is required.
+  if (!material.uniformBuffers.contains("DeferredLighting")) {
     throw std::runtime_error(fmt::format("{}: material '{}' misses required uniform buffer '{}'", ID, material.name, "DeferredLighting"));
   }
 
   m_lightPassMaterialId = material.getId();
   m_screenSpaceMeshBufferId = meshBuffer.id;
-
-  // lighting pass material contains slots for textures. Now we can populate them.
-  TextureSlot& position = material.getTexture("gbuffer_position");
-  position.location = glGetUniformLocation(material.programId, "gbuffer_position");
-  position.textureId = m_gPosition;
-
-  TextureSlot& normal = material.getTexture("gbuffer_normal");
-  normal.location = glGetUniformLocation(material.programId, "gbuffer_normal");
-  normal.textureId = m_gNormal;
-
-  TextureSlot& albedoSpec = material.getTexture("gbuffer_albedospec");
-  albedoSpec.location = glGetUniformLocation(material.programId, "gbuffer_albedospec");
-  albedoSpec.textureId = m_gAlbedoSpec;
-
-  TextureSlot& environment = material.getTexture("environmentMap");
-  environment.location = glGetUniformLocation(material.programId, "environmentMap");
-
-  m_gPositionLoc = glGetUniformLocation(material.programId, "gbuffer_position");
-  m_gNormalLoc = glGetUniformLocation(material.programId, "gbuffer_normal");
-  m_gAlbedoSpecLoc = glGetUniformLocation(material.programId, "gbuffer_albedospec");
-  m_environmentMapLoc = glGetUniformLocation(material.programId, "environmentMap");
 }
 
 void DeferredRenderer::init(int width, int height) {
@@ -217,18 +184,18 @@ void DeferredRenderer::renderGeometryPass(const entt::registry& registry) {
   for (entt::entity e : view) {
     try {
       auto deferred = view.get<const DeferredRenderable>(e);
-      auto& mat = m_materialSystem->getMaterialById(deferred.materialId);
+      auto& mat = m_gpu->materials.getMaterialById(deferred.materialId);
 
       auto meshBufferId = deferred.vertexBufferId;
-      const auto& mesh = m_meshSystem->getMeshBuffer(meshBufferId);
+      const auto& mesh = m_gpu->meshes.getMeshBuffer(meshBufferId);
 
-      m_materialSystem->updateUniformsForEntity(e, mat);
+      m_gpu->materials.updateUniformsForEntity(e, mat);
 
       // materials are up-to-date. Synchronize them with the GPU
       mat.useProgram();
       mat.useTextures();
       mat.pushUniforms();
-      m_meshSystem->bindBuffer(mesh);
+      m_gpu->meshes.bindBuffer(mesh);
 
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -257,37 +224,14 @@ void DeferredRenderer::renderLightingPass() {
   glDepthMask(GL_FALSE);
   glDisable(GL_DEPTH_TEST);
 
-  auto& lightPassMaterial = m_materialSystem->getMaterialById(m_lightPassMaterialId);
+  auto& lightPassMaterial = m_gpu->materials.getMaterialById(m_lightPassMaterialId);
 
   lightPassMaterial.useProgram();
   lightPassMaterial.pushUniforms();
-  lightPassMaterial.useTextures2();
+  lightPassMaterial.useTextures();
 
-  spdlog::info("AAA: environmentMap -- Texture Unit 0: bound texture buffer id {}, on location {}", m_environmentMap, m_environmentMapLoc);
-
-  spdlog::info("AAA: albedoSpecMap -- Texture Unit 1: bound texture buffer id {}, on location {}", m_gAlbedoSpec, m_gAlbedoSpecLoc);
-  // bind the gbuffer textures to their appropriate texture binding points.
-  //  glActiveTexture(GL_TEXTURE0);
-  //  glBindTexture(GL_TEXTURE_2D, m_gPosition);
-  //  glUniform1i(m_gPositionLoc, 0);
-  spdlog::info("AAA: positionMap -- Texture Unit 2: bound texture buffer id {}, on location {}", m_gPosition, m_gPositionLoc);
-  //
-  //  glActiveTexture(GL_TEXTURE0 + 1);
-  //  glBindTexture(GL_TEXTURE_2D, m_gNormal);
-  //  glUniform1i(m_gNormalLoc, 1);
-  spdlog::info("AAA: normalMap -- Texture Unit 3: bound texture buffer id {}, on location {}", m_gNormal, m_gNormalLoc);
-  //
-  //  glActiveTexture(GL_TEXTURE0 + 2);
-  //  glBindTexture(GL_TEXTURE_2D, m_gAlbedoSpec);
-  //  glUniform1i(m_gAlbedoSpecLoc, 2);
-
-  //
-  //  glActiveTexture(GL_TEXTURE0 + 3);
-  //  glBindTexture(GL_TEXTURE_2D, m_environmentMapLoc);
-  //  glUniform1i(m_environmentMapLoc, 3);
-
-  auto& meshBuffer = m_meshSystem->getMeshBuffer(m_screenSpaceMeshBufferId);
-  m_meshSystem->bindBuffer(meshBuffer);
+  auto& meshBuffer = m_gpu->meshes.getMeshBuffer(m_screenSpaceMeshBufferId);
+  m_gpu->meshes.bindBuffer(meshBuffer);
 
   glDrawElements(meshBuffer.primitiveType, meshBuffer.drawElementCount, GL_UNSIGNED_INT, 0);
 }

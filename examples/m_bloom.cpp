@@ -2,11 +2,10 @@
 // Created by jlemein on 11-03-21.
 //
 
-#include "../lib/izzgl/include/izz_resourcemanager.h"
-#include "../lib/lsw-gl/include/izzgl_exrloader.h"
-#include "../lib/lsw-gl/include/izzgl_sceneloader.h"
-#include "../lib/lsw-gl/include/izzgl_stbtextureloader.h"
-#include "../lib/lsw-gl/include/izzgl_texturesystem.h"
+#include "izzgl_exrloader.h"
+#include "izzgl_sceneloader.h"
+#include "izzgl_stbtextureloader.h"
+#include "izzgl_texturesystem.h"
 #include "anim_localrotation.h"
 #include "core_util.h"
 #include "ecs_firstpersoncontrol.h"

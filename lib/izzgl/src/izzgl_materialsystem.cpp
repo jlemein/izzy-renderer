@@ -3,7 +3,6 @@
 //
 #include <izzgl_materialsystem.h>
 
-#include <izz_resourcemanager.h>
 #include <izzgl_shadersystem.h>
 #include <izzgl_textureloader.h>
 #include <izzgl_texturesystem.h>
@@ -26,6 +25,7 @@
 #include "uniform_blinnphong.h"
 #include "uniform_blinnphongsimple.h"
 #include "uniform_deferredlighting.h"
+#include "uniform_gammacorrection.h"
 #include "uniform_mvp.h"
 
 using json = nlohmann::json;
@@ -34,13 +34,6 @@ using namespace izz;
 using namespace izz::gl;
 
 namespace {
-/// @brief Reserved material names in material definition file.
-struct ReservedNames {
-  static inline const std::string DIFFUSE_TEXTURE = "diffuseTex";
-  static inline const std::string SPECULAR_TEXTURE = "specularTex";
-  static inline const std::string NORMAL_TEXTURE = "normalTex";
-  static inline const std::string ROUGHNESS_TEXTURE = "roughTex";
-};
 
 int getUniformLocation(GLint program, const char* name, const std::string& materialName) {
   int location = glGetUniformLocation(program, name);
@@ -52,10 +45,9 @@ int getUniformLocation(GLint program, const char* name, const std::string& mater
 }
 }  // namespace
 
-MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::ResourceManager> resourceManager)
+MaterialSystem::MaterialSystem(entt::registry& registry, izz::gl::TextureSystem& textureSystem)
   : m_registry{registry}
-  , m_resourceManager{resourceManager}
-  , m_shaderCompiler{std::make_shared<ShaderCompiler>()} {
+  , m_textureSystem{textureSystem} {
   // for now register the uniform blocks
   // these are the registered uniform blocks that the shaders can make use of.
   m_uniformBuffers[izz::ufm::Lambert::BUFFER_NAME] = std::make_unique<izz::ufm::LambertUniformManager>();
@@ -70,10 +62,10 @@ MaterialSystem::MaterialSystem(entt::registry& registry, std::shared_ptr<izz::Re
   m_uniformBuffers[izz::ufm::ForwardLighting::BUFFER_NAME] = std::make_unique<izz::ufm::ForwardLightingUniform>(registry);
   m_uniformBuffers[izz::ufm::DepthPeeling::BUFFER_NAME] = std::make_unique<izz::ufm::DepthPeelingUniformBuffer>();
   m_uniformBuffers[izz::ufm::DebugProperties::BUFFER_NAME] = std::make_unique<izz::ufm::DebugPropertiesUniform>();
+  m_uniformBuffers[izz::ufm::GammaCorrection::BUFFER_NAME] = std::make_unique<izz::ufm::GammaCorrectionUniformUpdater>();
 }
 
-void MaterialSystem::init() {
-}
+void MaterialSystem::init() {}
 
 void MaterialSystem::addMaterialTemplate(izz::MaterialTemplate materialTemplate) {
   m_materialTemplates[materialTemplate.name] = materialTemplate;
@@ -156,9 +148,9 @@ ShaderVariantInfo MaterialSystem::compileShader(const izz::MaterialTemplate& mat
   }
 
   if (materialTemplate.isBinaryShader) {
-    info.programId = m_shaderCompiler->compileSpirvShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
+    info.programId = m_shaderCompiler.compileSpirvShader(materialTemplate.vertexShader, materialTemplate.fragmentShader);
   } else {
-    info.programId = m_shaderCompiler->compileShader(materialTemplate.vertexShader, materialTemplate.fragmentShader, &context);
+    info.programId = m_shaderCompiler.compileShader(materialTemplate.vertexShader, materialTemplate.fragmentShader, &context);
   }
   spdlog::debug("Compilation shader '{}' success.", materialTemplate.name);
 
@@ -172,18 +164,18 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
 
     if (texture.type == PropertyType::CUBE_MAP && !texture.paths.empty()) {
       spdlog::debug("Loading cube map {}: {}", textureName, texture.path.string());
-      pTexture = m_resourceManager->getTextureSystem()->loadCubeMap(texture.paths);
+      pTexture = m_textureSystem.loadCubeMap(texture.paths);
       pTexture->name = texture.name;
     }
 
     if (texture.type == PropertyType::TEXTURE_2D && !texture.path.empty()) {
       spdlog::debug("Loading texture {}: {}", textureName, texture.path.string());
-      pTexture = m_resourceManager->getTextureSystem()->loadTexture(texture.path);
+      pTexture = m_textureSystem.loadTexture(texture.path);
     }
 
     if (texture.type == PropertyType::HDR_TEXTURE && !texture.path.empty()) {
       spdlog::debug("Loading HDR texture {}: {}", textureName, texture.path.string());
-      pTexture = m_resourceManager->getTextureSystem()->loadHdrTexture(texture.path);
+      pTexture = m_textureSystem.loadHdrTexture(texture.path);
     }
 
     // map the texture tags to their names, so the user can set the texture by tag instead of remembering the name.
@@ -192,8 +184,7 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
     }
 
     TextureSlot tb;
-    tb.id = pTexture != nullptr ? pTexture->id : -1;
-    tb.textureId = pTexture != nullptr ? pTexture->bufferId : 0;
+    tb.texture = pTexture;
     tb.location = glGetUniformLocation(material.programId, textureName.c_str());
 
     if (tb.location != GL_INVALID_INDEX) {
@@ -207,9 +198,8 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
 
 void MaterialSystem::allocateBuffers(Material& material, const MaterialTemplate& materialTemplate) {
   static std::unordered_map<izz::PropertyType, uint64_t> PropertyTypeSize = {
-      {PropertyType::BOOL, sizeof(GLint)},         {PropertyType::INT, sizeof(GLint)},
-      {PropertyType::FLOAT, sizeof(GLfloat)},      {PropertyType::FLOAT4, 4 * sizeof(GLfloat)},
-      {PropertyType::FLOAT3, 3 * sizeof(GLfloat)}, {PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
+      {PropertyType::BOOL, sizeof(GLint)},         {PropertyType::INT, sizeof(GLint)},          {PropertyType::FLOAT, sizeof(GLfloat)},
+      {PropertyType::FLOAT4, 4 * sizeof(GLfloat)}, {PropertyType::FLOAT3, 3 * sizeof(GLfloat)}, {PropertyType::FLOAT_ARRAY, sizeof(GLfloat)},
       {PropertyType::INT_ARRAY, sizeof(GLint)}};
 
   // allocate texture buffers based on texture descriptions.
@@ -505,7 +495,7 @@ izz::gl::Material& MaterialSystem::getMaterialById(int materialId) {
 }
 
 izz::gl::ShaderCompiler& MaterialSystem::getShaderCompiler() {
-  return *m_shaderCompiler;
+  return m_shaderCompiler;
 }
 
 void MaterialSystem::update(float dt, float time) {

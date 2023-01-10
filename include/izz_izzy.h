@@ -4,13 +4,13 @@
 #pragma once
 
 #include <izz_fontsystem.h>
-#include <izz_resourcemanager.h>
 #include <izzgl_deferredrenderablefactory.h>
 #include <izzgl_entityfactory.h>
 #include <izzgl_exrloader.h>
 #include <izzgl_materialsystem.h>
 #include <izzgl_meshsystem.h>
 #include <izzgl_sceneloader.h>
+#include <izzgl_skysystem.h>
 #include <izzgl_stbtextureloader.h>
 #include <izzgl_texturesystem.h>
 #include <izzgui_componenteditor.h>
@@ -24,6 +24,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include "izzgl_gpu.h"
 #include "izzgui_cubemaptool.h"
 
 namespace izz {
@@ -43,34 +44,34 @@ class Izzy {
 
  public:
   std::shared_ptr<izz::gui::GuiSystem> guiSystem{nullptr};
-  std::shared_ptr<izz::ResourceManager> resourceManager{nullptr};
   std::shared_ptr<izz::gl::TextureSystem> textureSystem{nullptr};
   std::shared_ptr<izz::gl::MaterialSystem> materialSystem{nullptr};
   std::shared_ptr<izz::gl::MeshSystem> meshSystem{nullptr};
+  std::shared_ptr<izz::gl::Gpu> gpu{nullptr};
   std::shared_ptr<izz::gl::RenderSystem> renderSystem{nullptr};
   std::shared_ptr<izz::gl::SceneLoader> sceneLoader{nullptr};
   std::shared_ptr<izz::EntityFactory> entityFactory{nullptr};
   std::shared_ptr<izz::FontSystem> fontSystem{nullptr};  // @todo make part of izz::gui
+  std::shared_ptr<izz::gl::SkySystem> skySystem{nullptr};
   std::shared_ptr<izz::gl::LightSystem> lightSystem{nullptr};
 
   static std::shared_ptr<Izzy> CreateSystems() {
     auto izz = std::make_shared<Izzy>();
     izz->guiSystem = std::make_shared<izz::gui::GuiSystem>();
-    izz->resourceManager = std::make_shared<izz::ResourceManager>();
+
     izz->textureSystem = std::make_shared<izz::gl::TextureSystem>();
     izz->textureSystem->setTextureLoader(".exr", std::make_unique<izz::gl::ExrLoader>(true));
     izz->textureSystem->setTextureLoader(izz::gl::ExtensionList{".jpg", ".png", ".bmp", ".hdr"}, std::make_unique<izz::gl::StbTextureLoader>(true));
-    izz->resourceManager->setTextureSystem(izz->textureSystem);
-    izz->materialSystem = std::make_shared<izz::gl::MaterialSystem>(izz->registry, izz->resourceManager);
+    izz->materialSystem = std::make_shared<izz::gl::MaterialSystem>(izz->registry, *izz->textureSystem);
     izz->meshSystem = std::make_shared<izz::gl::MeshSystem>();
-    izz->resourceManager->setMaterialSystem(izz->materialSystem);
+    izz->gpu = std::make_shared<izz::gl::Gpu>(*izz->materialSystem, *izz->textureSystem, *izz->meshSystem);
+
+    izz->skySystem = std::make_shared<izz::gl::SkySystem>(izz->registry, izz->materialSystem, izz->textureSystem, izz->meshSystem);
     izz->lightSystem = std::make_shared<izz::gl::LightSystem>(izz->registry, *izz->materialSystem, *izz->meshSystem);
-    izz->renderSystem = std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->resourceManager, izz->materialSystem, izz->textureSystem,
-                                                                izz->meshSystem, izz->lightSystem);
+    izz->renderSystem = std::make_shared<izz::gl::RenderSystem>(izz->registry, izz->gpu, izz->skySystem, izz->lightSystem);
     izz->lightSystem->setRenderSystem(*izz->renderSystem);
     izz->entityFactory = std::make_shared<izz::EntityFactory>(izz->registry, *izz->renderSystem, *izz->materialSystem, *izz->meshSystem);
     izz->sceneLoader = std::make_shared<izz::gl::SceneLoader>(izz->textureSystem, izz->materialSystem);
-    izz->resourceManager->setSceneLoader(izz->sceneLoader);
 
     izz->fontSystem = std::make_shared<izz::FontSystem>();
     //    izz->fontSystem->addFont("fonts/SegoeUi.ttf", 16);
@@ -99,9 +100,9 @@ class Izzy {
   }
 
  private:
-//  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
-//  std::shared_ptr<izz::gl::SceneLoader> m_sceneLoader{nullptr};
-//  std::shared_ptr<izz::gl::TextureSystem> m_textureSystem;
+  //  std::shared_ptr<izz::gl::MaterialSystem> m_materialSystem{nullptr};
+  //  std::shared_ptr<izz::gl::SceneLoader> m_sceneLoader{nullptr};
+  //  std::shared_ptr<izz::gl::TextureSystem> m_textureSystem;
 };
 
 }  // namespace izz

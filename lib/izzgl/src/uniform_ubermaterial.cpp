@@ -26,5 +26,5 @@ void UberUniformManager::onUpdate(void* data, const Material& material, float dt
   uber->ambient = glm::vec4(ambientData[0], ambientData[1], ambientData[2], 0.0F);
   uber->specular = glm::vec4(specularData[0], specularData[1], specularData[2], 0.0F);
   uber->diffuse = glm::vec4(diffuseData[0], diffuseData[1], diffuseData[2], 0.0F);
-  uber->hasDiffuseTex = material.getTexture("diffuse_texture") >= 0;
+  uber->hasDiffuseTex = material.hasTexture("diffuse_texture");
 }

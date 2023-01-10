@@ -205,7 +205,7 @@ struct UniformBlockInfo {
 };
 
 struct LightingInfo {
-  // name of UBO struct in shader
+  // name of UBO struct in shaderD
   std::string ubo_struct_name;
 };
 
@@ -220,9 +220,10 @@ class FramebufferConfiguration {
 };
 
 struct TextureSlot {
-  TextureId id; // to lookup in texture system
-  GLuint textureId{0};  // as obtained via glGenTextures(, &id)
-  GLint location{-1};   // as obtained via glGetUniformLocation()
+  Texture* texture;    // to lookup in texture system
+                       //  GLuint bufferId{0};  // as obtained via glGenTextures(, &id)
+  GLint location{-1};  // as obtained via glGetUniformLocation()
+
 };
 
 class Material {
@@ -235,7 +236,6 @@ class Material {
   }
 
   void useTextures() const;
-  void useTextures2() const;
 
   void pushUnscopedUniforms() const;
 
@@ -247,14 +247,16 @@ class Material {
       if (location == GL_INVALID_INDEX) {
         spdlog::warn("Material: texture sampler '{}' could not be found in material {}: {}", name, programId, this->name);
       }
-      textures[name] =
-          TextureSlot{.id = pTexture != nullptr ? pTexture->id : -1,
-                                     .textureId = pTexture != nullptr ? pTexture->bufferId : 0,
-                                     .location = location};
+      textures[name] = {.texture = pTexture, .location = location};
     } else {
-      // TODO: remove bufferId from TextureSlot. Even reconsider just storing Texture* instead of TextureSlot.
-      textures.at(name).id = pTexture->id;
-      textures.at(name).textureId = pTexture->bufferId;
+      TextureSlot slot = textures.at(name);
+
+//      if (m_materialSystem->getTemplate(this->templateName).textre)
+//      if (slot.texture->type == pTexture->type) {
+//        spdlog::warn("Texture type for texture '{}' does not match. Expected {} but got {}", name, slot.texture->type, pTexture->type);
+//      }
+
+      textures.at(name).texture = pTexture;
     }
   }
 
@@ -267,24 +269,19 @@ class Material {
     }
   }
 
-  GLuint getTexture(const std::string& key) const {
-    if (textures.count(key) > 0) {
-      return textures.at(key).textureId;
-    } else {
-      return -1;
-      //      throw std::runtime_error(fmt::format("Property {} (texture) does not exist for material {}", key, name));
-    }
-  }
-
   inline bool hasTexture(TextureTag tag) const {
     return textureTags.contains(tag);
+  }
+
+  inline bool hasTexture(const std::string& tag) const {
+    return textures.contains(tag);
   }
 
   TextureId getTexture(TextureTag tag) const {
     try {
       auto textureBuffer = textures.at(textureTags.at(tag));
-      return textureBuffer.id;
-    } catch(std::out_of_range e) {
+      return textureBuffer.texture->id;
+    } catch (std::out_of_range e) {
       throw std::runtime_error(fmt::format("Cannot get texture by tag '{}'. No such tag present in material {}", tag, name));
     }
   }
@@ -351,7 +348,7 @@ class Material {
   TextureSlot& getTexture(const std::string& name) {
     try {
       return textures.at(name);
-    } catch(std::out_of_range e) {
+    } catch (std::out_of_range e) {
       auto msg = fmt::format("Cannot retrieve texture '{}' from material '{}'", name, this->name);
       throw std::runtime_error(msg);
     }

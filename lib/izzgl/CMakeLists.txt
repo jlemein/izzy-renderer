@@ -8,7 +8,6 @@ add_library(izzgl STATIC
         include/gl_renderable.h
         include/gl_renderutils.h
         include/glrs_lightsystem.h
-        include/izz_resourcemanager.h
         include/izzgl_deferredrenderablefactory.h
         include/izzgl_depthpeeling.h
         include/izzgl_exrloader.h
@@ -16,6 +15,10 @@ add_library(izzgl STATIC
         include/izzgl_materialreader.h
         include/izzgl_materialsystem.h
         include/izzgl_meshbuffer.h
+        include/izzgl_framebuffer.h
+        src/izzgl_framebuffer.cpp
+        src/izzgl_postprocessor.cpp
+        include/izzgl_postprocessor.h
         include/izzgl_meshsystem.h
         include/izzgl_rendersystem.h
         include/izzgl_sceneloader.h
@@ -39,9 +42,10 @@ add_library(izzgl STATIC
         src/gl_hdrframebuffer.cpp
         src/gl_multipassframebuffer.cpp
         src/gl_renderutils.cpp
+        src/izzgl_gpu.cpp
+        include/izzgl_gpu.h
         src/glrs_lightsystem.cpp
         src/glrs_shadersystem.t.cpp
-        src/izz_resourcemanager.cpp
         src/izzgl_deferredrenderablefactory.cpp
         src/izzgl_depthpeeling.cpp
         src/izzgl_entityfactory.cpp
@@ -58,6 +62,12 @@ add_library(izzgl STATIC
         src/izzgl_stbtextureloader.cpp
         src/izzgl_texturesystem.cpp
         src/uniform_ubermaterial.cpp
+        src/izzgl_gammacorrection.cpp
+        include/izzgl_gammacorrectionpe.h
+        src/izzgl_skysystem.cpp
+        src/izzgl_framebufferbuilder.cpp
+        include/izzgl_framebufferbuilder.h
+        include/izzgl_skysystem.h
 #        include/ecs_debugshapefactory.h
 #        include/izzgl_effectsystem.h
 #        src/ecs_debugshapefactory.cpp
