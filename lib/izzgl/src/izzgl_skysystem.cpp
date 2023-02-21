@@ -62,7 +62,7 @@ void SkySystem::init(int width, int height) {
   float* begin = Skybox::Vertices;
   float* end = begin + sizeof(Skybox::Vertices) / sizeof(float);
   mesh.vertices = std::vector<float>(begin, end);
-  //  m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(mesh).id;
+  //  m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(vertexBufferId).id;
   m_unitCubeVertexBufferId = m_meshSystem->createVertexBuffer(box).id;
 
   // explicitly call this the first time of initialization.

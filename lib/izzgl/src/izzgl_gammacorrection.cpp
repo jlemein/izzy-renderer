@@ -18,7 +18,22 @@ using namespace izz::gl;
 GammaCorrectionPE::GammaCorrectionPE(std::shared_ptr<Gpu> gpu, Postprocessor& postprocessor, entt::registry& registry)
   : m_gpu{gpu}
   , m_postprocessor{postprocessor}
-  , m_registry{registry} {}
+  , m_registry{registry} {
+
+  // a simple postprocessor takes a single color attachment, renders it full-screen quad.
+  m_posteffects = Postprocessor(m_gpu.get());
+  PostEffect e {
+      .materialId = m_gpu->materials.createMaterial("gamma_correction"),
+      .meshId = Postprocessor::GetFullScreenQuadVbo(),
+      .colorAttachmentMapping = {},
+      .depthAttachmentMapping = ""
+  };
+  m_posteffects.addPosteffect(e);
+
+  m_posteffects.re
+
+
+}
 
 void GammaCorrectionPE::init(int width, int height) {
   m_width = width;

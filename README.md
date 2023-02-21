@@ -140,9 +140,9 @@ ecs::TransformUtil::Scale(scene->rootNode()->transform, .20);
 If you also want to generate smooth normals, tangents and bitangents:
 
 ```shell
-for (auto& mesh : scene->m_meshes) {
-  geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*mesh);
-  geo::MeshUtil::GenerateSmoothNormals(*mesh);
+for (auto& vertexBufferId : scene->m_meshes) {
+  geo::MeshUtil::GenerateTangentsAndBitangentsFromUvCoords(*vertexBufferId);
+  geo::MeshUtil::GenerateSmoothNormals(*vertexBufferId);
 }
 ```
 
@@ -281,7 +281,7 @@ Resources are always loaded relative from the point of declaration.
 
 Most meshes make use of external data, such as textures, animation files, lookup data, etcetera. By default, relative
 paths in the model
-are resolved to the directory where the mesh is located.
+are resolved to the directory where the vertexBufferId is located.
 If the relative path cannot be found, it is resolved to the workspace.
 
 If the workspace does not contain the asset, it is resolved to the home directory.
@@ -312,7 +312,7 @@ When creating a material using the same shader file names, the engine will try t
 | C++ class                     | Description                                                                                                                                                                                               | Lives on |
 |-------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------|
 | `MaterialTemplate`         | Describes the complete material on CPU side. Used to instantiate the real GPU specific materials.                                                                                                         | CPU      |
-| `MaterialInstanceDescription` | Inherits from `MaterialTemplate` and differs only in specified attributes. This makes it possible to define multiple materials in a mesh object, but still using the same Material program in the end. | CPU      |
+| `MaterialInstanceDescription` | Inherits from `MaterialTemplate` and differs only in specified attributes. This makes it possible to define multiple materials in a vertexBufferId object, but still using the same Material program in the end. | CPU      |
 | `Material`                    | Material program (accompanied with program id and allocated texture and uniform buffers.                                                                                                                  | GPU      |
 
 ## Texture system
@@ -407,7 +407,7 @@ For linux follow the instructions:
 # Object creation
 
 * **PrimitiveFactory**: factory for creating simple objects, planes, triangles, boxes, spheres, cubes, cylinders,
-  etcetera. A primitive factory produces a mesh object to which additional operations can be performed using the mesh
+  etcetera. A primitive factory produces a vertexBufferId object to which additional operations can be performed using the vertexBufferId
   utilities.
 
 # Utilities
@@ -418,8 +418,8 @@ Creating meshes can be done by loading in scene files, or by generating them usi
 or loaded from file, they often lack essential data Therefore a couple of
 fingertips.
 
-* **Mesh utilities** (`geo::MeshUtil`): essential for transforming raw mesh data. This includes generating normals and
-  tangent data. Changes are applied to the mesh data itself, meaning that no computation logic is needed after a mesh
+* **Mesh utilities** (`geo::MeshUtil`): essential for transforming raw vertexBufferId data. This includes generating normals and
+  tangent data. Changes are applied to the vertexBufferId data itself, meaning that no computation logic is needed after a vertexBufferId
   utility is used.
 * **Transform utilities** (`ecs::TransformUtil`): essential for applying transformations to entities, such as scaling,
   rotating and moving objects.

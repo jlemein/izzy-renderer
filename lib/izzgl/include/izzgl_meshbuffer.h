@@ -16,7 +16,7 @@ struct VertexAttribArray {
   bool isEnabled;
 };
 
-/// @brief Represents the buffered mesh data, stored on the GPU.
+/// @brief Represents the buffered vertexBufferId data, stored on the GPU.
 struct MeshBuffer {
   VertexBufferId id;
   GLuint vertex_buffer{0U}, index_buffer{0U};

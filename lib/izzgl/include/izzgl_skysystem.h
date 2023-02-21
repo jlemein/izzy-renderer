@@ -38,7 +38,7 @@ class SkySystem {
    * @param [in] registry        Scenegraph that consists of the entities to be rendered.
    * @param [in] materialSystem  Material system deals with updating and gathering of material properties.
    * @param [in] textureSystem   Texture system deals with creation of texture buffers.
-   * @param [in] meshSystem      Mesh system to allocate vertex and index buffers for mesh data.
+   * @param [in] meshSystem      Mesh system to allocate vertex and index buffers for vertexBufferId data.
    * @param [in] lightSystem     Light system.
    */
   SkySystem(entt::registry& registry,

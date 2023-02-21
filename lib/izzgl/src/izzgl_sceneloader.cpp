@@ -218,7 +218,7 @@ void SceneLoader::readHierarchy(const aiScene* scene_p, izz::geo::Scene& scene) 
     std::memcpy(&node->transform[0][0], &node_p->mTransformation.a1, 16 * sizeof(ai_real));
     node->transform = glm::transpose(node->transform);
 
-    // loops through all mesh instances of this node
+    // loops through all vertexBufferId instances of this node
     node->meshInstances.reserve(node_p->mNumMeshes);
     for (int i = 0U; i < node_p->mNumMeshes; ++i) {
       auto meshInstance = std::make_shared<izz::geo::MeshInstance>();

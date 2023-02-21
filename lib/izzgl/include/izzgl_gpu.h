@@ -17,7 +17,7 @@ class Texture;
 class Framebuffer;
 
 /**
- * Gpu provides access to buffer structures on the GPU. It wraps the lower level material, texture and mesh system to provide a
+ * Gpu provides access to buffer structures on the GPU. It wraps the lower level material, texture and vertexBufferId system to provide a
  * unified interface to the GPU (memory).
  */
 class Gpu {
@@ -58,6 +58,8 @@ class Gpu {
    * @param framebuffer
    */
   void bindDrawFramebuffer(Framebuffer* framebuffer);
+
+  void blitFramebuffer(Framebuffer* from, Framebuffer* to);
 
   inline Framebuffer* getActiveFramebuffer() {
     return m_activeFramebuffer;

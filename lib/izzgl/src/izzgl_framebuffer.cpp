@@ -17,10 +17,14 @@ void Framebuffer::bind() {
   m_gpu.bindFramebuffer(this);
 }
 
-void Framebuffer::bindAsRead() {
+void Framebuffer::bindRead() {
   m_gpu.bindReadFramebuffer(this);
 }
 
-void Framebuffer::bindAsDestination() {
+void Framebuffer::bindDestination() {
   m_gpu.bindDrawFramebuffer(this);
+}
+
+void Framebuffer::blit(Framebuffer* dest) {
+  m_gpu.blitFramebuffer(this, dest);
 }

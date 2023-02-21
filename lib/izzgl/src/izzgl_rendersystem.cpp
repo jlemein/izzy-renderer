@@ -53,7 +53,7 @@ RenderSystem::RenderSystem(entt::registry& registry, std::shared_ptr<Gpu> gpu, s
   , m_lightSystem{lightSystem}  //  , m_framebuffer{std::make_unique<HdrFramebuffer>()}
   , m_forwardRenderer(gpu, registry)
   , m_deferredRenderer(gpu, registry)
-  , m_postProcessor(*gpu, nullptr)
+  , m_postProcessor(gpu.get(), nullptr)
   , m_gammaCorrectionPE(gpu, m_postProcessor, registry) {
   m_gpu->materials.setCapabilitySelector(this);
 }
@@ -80,7 +80,6 @@ void RenderSystem::init(int width, int height) {
   auto framebuffer = FramebufferBuilder(*m_gpu).setColorAttachment(colorAttachment).setDepthAttachment(depthAttachment).create();
   m_postProcessor.setFramebuffer(framebuffer);
 
-  m_postProcessor.initialize();
   m_lightSystem->initialize();
   m_skySystem->init(width, height);
 

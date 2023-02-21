@@ -32,6 +32,16 @@ void Gpu::bindDrawFramebuffer(Framebuffer* framebuffer) {
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, framebuffer->bufferId());
 }
 
+void Gpu::blitFramebuffer(Framebuffer* from, Framebuffer* to) {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, from->bufferId());
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, to->bufferId());
+
+    int width = from->getColorAttachment(0)->width;
+    int height = from->getColorAttachment(0)->height;
+
+    glBlitFramebuffer(0, 0, width, height, 0, 0, width, height,
+                      GL_COLOR_BUFFER_BIT, GL_NEAREST);
+}
 
 Framebuffer* Gpu::allocateFramebuffer() {
   GLuint fbo;

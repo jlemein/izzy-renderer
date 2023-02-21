@@ -17,6 +17,7 @@ namespace izz {
 namespace gl {
 class Gpu;
 class Framebuffer;
+class Postprocessor;
 
 struct Texture;
 
@@ -64,6 +65,7 @@ class GammaCorrectionPE {
   Texture* m_hdrTexture{nullptr};
   Framebuffer* m_framebuffer {nullptr};
   Postprocessor& m_postprocessor;
+  Postprocessor m_posteffects;
   GLuint m_fbo;
 };
 

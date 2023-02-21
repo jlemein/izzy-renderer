@@ -77,41 +77,41 @@ void setupScene() {
 
   //  {
   //    auto box = izzy->entityFactory->makeMoveableEntity("Box1", {0.0F, 0.5F, .0F});
-  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox1", 1.0, 1.0));
-  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  //    auto& vertexBufferId = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox1", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(vertexBufferId);
   //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
   //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(1.0, 0.0, 0.0, 0.1));
-  //    mesh.materialId = material.id;
+  //    vertexBufferId.materialId = material.id;
   //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
   //  }
   //  {
   //    auto box = izzy->entityFactory->makeMoveableEntity("Box2", glm::vec3(1.5, 0.5, -1.5));
-  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox2", 1.0, 1.0));
-  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  //    auto& vertexBufferId = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox2", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(vertexBufferId);
   //    box.get<izz::ecs::Transform>().localTransform *= izz::ecs::TransformUtil::RotateEulerDegrees(glm::vec3(.0F, 1.0F, 0.0F), 45.0F);
   //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
   //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(1.0, 1.0, 0.0, 0.1));
-  //    mesh.materialId = material.id;
+  //    vertexBufferId.materialId = material.id;
   //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
   //  }
   //  {
   //    auto box = izzy->entityFactory->makeMoveableEntity("Box3", glm::vec3(.0, 0.5, -3.0));
-  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox3", 1.0, 1.0));
-  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  //    auto& vertexBufferId = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox3", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(vertexBufferId);
   //    box.get<izz::ecs::Transform>().localTransform *= izz::ecs::TransformUtil::RotateEulerDegrees(glm::vec3(.0F, 1.0F, 0.0F), 45.0F);
   //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
   //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(0.0, 1.0, 0.0, 0.1));
-  //    mesh.materialId = material.id;
+  //    vertexBufferId.materialId = material.id;
   //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
   //  }
   //  {
   //    auto box = izzy->entityFactory->makeMoveableEntity("Box4", glm::vec3(2.0, 0.5, 1.0));
-  //    auto& mesh = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox4", 1.0, 1.0));
-  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(mesh);
+  //    auto& vertexBufferId = box.add<Mesh>(PrimitiveFactory::MakeBox("MyBox4", 1.0, 1.0));
+  //    auto& meshBuffer = izzy->meshSystem->createMeshBuffer(vertexBufferId);
   ////    box.get<izz::ecs::Transform>().localTransform *= izz::ecs::TransformUtil::RotateEulerDegrees(glm::vec3(.0F, 1.0F, 0.0F), 45.0F);
   //    auto& material = izzy->materialSystem->createMaterial("BlinnPhongSimple");
   //    material.setUniformVec4("BlinnPhongSimple.albedo", glm::vec4(0.3, .3, 1.0, 0.1));
-  //    mesh.materialId = material.id;
+  //    vertexBufferId.materialId = material.id;
   //    box.add<gl::ForwardRenderable>({.materialId=material.id, .meshBufferId=meshBuffer.id, .blendMode=gl::BlendMode::ALPHA_BLEND});
   //  }
   //  {
@@ -133,10 +133,10 @@ void setupScene() {
   //    auto plane = izzy->entityFactory->makeMovableEntity("Plane");
   //    auto planePrimitive = PrimitiveFactory::MakePlane("MyPlane", 15, 15);
   //    ecs::TransformUtil::Translate(plane.getTransform(), glm::vec3(0.0, -1.0, 0.0));
-  //    auto& mesh = plane.add<Mesh>(planePrimitive);
-  //    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(mesh);
+  //    auto& vertexBufferId = plane.add<Mesh>(planePrimitive);
+  //    auto& meshBuffer = izzy->meshSystem->createVertexBuffer(vertexBufferId);
   //    auto& material = izzy->materialSystem->createMaterial("table_cloth");
-  //    mesh.materialId = material.id;
+  //    vertexBufferId.materialId = material.id;
   //    auto& dr = plane.add<gl::ForwardRenderable>({material.id, meshBuffer.id, false, BlendMode::OPAQUE});
   //  }
 
