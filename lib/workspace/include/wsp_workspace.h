@@ -4,7 +4,7 @@
 #include <filesystem>
 #include <memory>
 
-namespace izz {
+namespace lsw {
 namespace wsp {
 
 /**
@@ -17,8 +17,6 @@ struct Workspace {
 
   /// @brief Materials file as specified by command line arguments.
   std::filesystem::path materialsFile{""};
-
-  std::string material{""};
 
   bool debugMode{true};
 

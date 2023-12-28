@@ -2,27 +2,28 @@
 // Created by jlemein on 17-11-20.
 //
 #include <io_command.h>
-#include <io_inputlistener.h>
 #include <io_inputsystem.h>
 #include <io_keyconstants.h>
+#include <io_inputlistener.h>
 
 #include <unordered_map>
-using namespace izz::io;
+using namespace lsw::io;
 
 namespace {
-std::unordered_map<Key, int> toGlfwKey = {{Key::kESCAPE, GLFW_KEY_ESCAPE},         {Key::kSPACEBAR, GLFW_KEY_SPACE},
-                                          {Key::kLEFT_SHIFT, GLFW_KEY_LEFT_SHIFT}, {Key::kRIGHT_SHIFT, GLFW_KEY_RIGHT_SHIFT},
-                                          {Key::kLEFT_ALT, GLFW_KEY_LEFT_ALT},     {Key::kLEFT_CONTROL, GLFW_KEY_LEFT_CONTROL}};
+std::unordered_map<Key, int> toGlfwKey = {
+  {Key::kESCAPE, GLFW_KEY_ESCAPE},
+  {Key::kSPACEBAR, GLFW_KEY_SPACE},
+  {Key::kLEFT_SHIFT, GLFW_KEY_LEFT_SHIFT}
+};
 }
 
-InputSystem::InputSystem(GLFWwindow* window, int width, int height)
-  : m_window(window)
-  , m_windowWidth{width}
-  , m_windowHeight{height} {}
+InputSystem::InputSystem(GLFWwindow* window, int screenWidth, int screenHeight)
+    : m_window(window), m_windowWidth{screenWidth}, m_windowHeight{screenHeight} {
+}
 
 void InputSystem::init() {
   // hide mouse cursor and reset to center screen
-  //  glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+//  glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
   glfwGetCursorPos(m_window, &m_currentMouseX, &m_currentMouseY);
 
   for (auto& listener : m_inputListeners) {
@@ -44,13 +45,14 @@ void InputSystem::update() {
   }
 }
 
-bool InputSystem::isKeyPressed(char key) const {
+bool InputSystem::isKeyPressed(char key) const
+{
   return glfwGetKey(m_window, GLFW_KEY_A + (key - 'A')) == GLFW_PRESS;
 }
 
-bool InputSystem::isKeyPressed(Key key) const {
-  int glfwKeyCode = toGlfwKey.at(key);
-  return glfwGetKey(m_window, glfwKeyCode) == GLFW_PRESS;
+bool InputSystem::isKeyPressed(Key key) const
+{
+  return glfwGetKey(m_window, toGlfwKey.at(key)) == GLFW_PRESS;
 }
 
 bool InputSystem::isMouseButtonPressed(MouseButton button) const {
@@ -58,14 +60,10 @@ bool InputSystem::isMouseButtonPressed(MouseButton button) const {
   return glfwGetMouseButton(m_window, glfwButton) == GLFW_PRESS;
 }
 
-void InputSystem::getRelativeMouseMovement(double* dx, double* dy) const {
+void InputSystem::getRelativeMouseMovement(double *dx, double *dy) const
+{
   *dx = m_relativeMouseX / m_windowWidth;
   *dy = m_relativeMouseY / m_windowHeight;
-}
-
-void InputSystem::setWindowSize(int width, int height) {
-  m_windowWidth = width;
-  m_windowHeight = height;
 }
 
 void InputSystem::registerInputListener(std::shared_ptr<InputListener> listener) {

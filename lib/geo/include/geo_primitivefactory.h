@@ -3,9 +3,7 @@
 //
 #pragma once
 
-#include <string>
-
-namespace izz {
+namespace lsw {
 namespace geo {
 
 struct Curve;
@@ -28,20 +26,12 @@ struct Mesh;
 class PrimitiveFactory {
 public:
   /**
-   * Creates a plane in the XZ plane made of two triangles with the specified width and depth.
-   * @param width The width of the plane.
-   * @param height The depth of the plane.
-   * @returns a mesh object with coordinates, normals, tangents and uv coordinates defined.
-   */
-  static Mesh MakePlane(const std::string& name, float width, float depth);
-
-  /**
-   * Creates a plane in the XY plane made of two triangles with the specified width and height.
+   * Creates a plane made of two triangles with the specified width and height.
    * @param width The width of the plane.
    * @param height The height of the plane.
-   * @returns a plane with coordinates, uv coordinates defined.
+   * @returns a plane wt
    */
-  static Mesh MakePlaneXY(const std::string& name, float width, float height);
+  static Mesh MakePlane(const std::string& name, float width, float height);
 
   /**!
    * Creates a simple axis aligned 3D box with center at origin, e.g. (0,0,0).

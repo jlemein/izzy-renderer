@@ -4,8 +4,20 @@
 
 #pragma once
 
-namespace izz {
+namespace lsw {
 namespace geo {
+
+//class Light {
+//public:
+//  Light::Type type;
+//  std::string name;
+//  glm::vec3 diffuseColor;
+//  glm::vec3 specularColor;
+//  glm::vec3 ambientColor;
+//
+//  void* LightProperties;
+//};
+
 
 /**!
  * Represents a simple non-physics based description of a light source,

@@ -5,11 +5,15 @@
 #conan_basic_setup(TARGETS)
 
 set (HEADERS
-        include/ecs_wireframe.h include/ecs_postprocess.h)
+        include/uniform_parallax.h
+        include/uniform_ubermaterial.h
+        include/uniform_lambert.h
+        src/uniform_ubermaterial.cpp include/uniform_uniformblockmanager.h include/ecs_wireframe.h ../workspace/include/wsp_workspace.h)
 
 add_library(ecs STATIC include/ecs_camera.h
         include/ecs_firstpersoncontrol.h
         include/ecs_moveable.h
+        include/ecs_relationship.h
         include/ecs_texture.h
         include/ecs_transform.h
         include/ecs_transformutil.h
@@ -23,29 +27,21 @@ add_library(ecs STATIC include/ecs_camera.h
 
         include/ecs_firstpersoncontrolsystem.h
         src/ecs_transformutil.cpp
-        include/ecs_dirty.h
-        include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp
-        include/ecs_light.h
+        include/ecs_debug.h
+        include/ecs_debugsystem.h
+        src/ecs_debugsystem.cpp
+        include/ecs_debugshapefactory.h
+        include/ecs_relationshiputil.h src/ecs_relationshiputil.cpp include/ecs_dirty.h
+        include/ecsu_relationshipsorter.h src/ecsu_relationshipsorter.cpp src/ecs_debugshapefactory.cpp
+        include/ecs_debugmodel.h include/ecs_name.h include/ecs_light.h
+#        ../core/include/core_exceptions.h
+        include/core_util.h
         ${HEADERS})
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
 target_include_directories(ecs PUBLIC include PRIVATE src)
-target_link_libraries(ecs PUBLIC izzy geo EnTT::EnTT spdlog::spdlog)
-
-find_package(GTest REQUIRED)
-add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
-
-target_link_libraries(ecsu_test PUBLIC ecs gtest::gtest)
-
-
-add_executable(ecs_test
-        src/ecs_shader.t.cpp
-        src/ecs_firstpersoncontrolsystem.t.cpp
-        src/ecs_transformsystem.t.cpp
-        )
-target_link_libraries(ecs_test PRIVATE ecs gtest::gtest)
-target_include_directories(ecs_test PRIVATE src)
+target_link_libraries(ecs PUBLIC geo EnTT::EnTT spdlog::spdlog ecsg)
 
 #
 #target_include_directories(camerasystem
@@ -74,3 +70,18 @@ find_package(glm REQUIRED)
 target_link_libraries(ecs
         PUBLIC EnTT::EnTT glm::glm inputsystem)
 
+if (BUILD_TESTING)
+        find_package(GTest REQUIRED)
+        add_executable(ecsu_test src/ecsu_relationshipsorter.t.cpp)
+
+        target_link_libraries(ecsu_test PUBLIC ecs GTest::GTest)
+
+
+        add_executable(ecs_test
+                src/ecs_shader.t.cpp
+                src/ecs_firstpersoncontrolsystem.t.cpp
+                src/ecs_transformsystem.t.cpp
+        )
+        target_link_libraries(ecs_test PRIVATE ecs GTest::GTest)
+        target_include_directories(ecs_test PRIVATE src)
+endif()

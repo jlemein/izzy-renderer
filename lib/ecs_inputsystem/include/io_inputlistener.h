@@ -2,17 +2,23 @@
 // Created by jlemein on 29-11-20.
 //
 
-#pragma once
+#ifndef GLVIEWER_IO_INPUTLISTENER_H
+#define GLVIEWER_IO_INPUTLISTENER_H
 
-namespace izz {
-namespace io {
+namespace lsw
+{
+namespace io
+{
 class InputSystem;
 
-class InputListener {
+class InputListener
+{
  public:
   virtual void init() = 0;
-  virtual void update(const InputSystem* inputSystem) = 0;
+  virtual void update(const InputSystem *inputSystem) = 0;
 };
 
-}  // namespace io
-}  // namespace izz
+}
+}
+
+#endif  // GLVIEWER_IO_INPUTLISTENER_H

@@ -9,7 +9,7 @@
 #include <vector>
 #include <stack>
 
-namespace izz {
+namespace lsw {
 namespace fractal {
 
 struct State {

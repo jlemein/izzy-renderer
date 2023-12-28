@@ -1,22 +1,21 @@
 //
 // Created by jlemein on 11-03-21.
 //
+#include <georm_materialsystem.h>
+#include <memory>
+#include <spdlog/spdlog.h>
+#include <vwr_viewer.h>
+#include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
+#include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
 #include <georm_materialsystem.h>
 #include <georm_resourcemanager.h>
-#include <izzgui_window.h>
-#include <spdlog/spdlog.h>
-#include <memory>
-#include "../lib/core/include/anim_localrotation.h"
-#include "../lib/core/include/georm_materialsystem.h"
-#include "izz_entityfactory.h"
 
 using namespace std;
 using namespace lsw;
-using namespace izz;
 using namespace geo;
 using lsw::core::Util;
 
@@ -28,10 +27,10 @@ int main(int argc, char **argv) {
 //    std::cout << "Usage: program --materials=materials.json --scene=hello.fbx"
 
   try {
-    auto resourceManager = make_shared<ResourceManager>();
-    auto sceneGraph = make_shared<izz::SceneGraphHelper>();
+    auto resourceManager = make_shared<georm::ResourceManager>();
+    auto sceneGraph = make_shared<ecsg::SceneGraph>();
     auto materialSystem =
-        make_shared<MaterialSystem>(sceneGraph, resourceManager);
+        make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
     materialSystem->loadMaterialsFromFile("../assets/shaders/materials.json");
     resourceManager->setMaterialSystem(materialSystem);
 
@@ -49,7 +48,7 @@ int main(int argc, char **argv) {
             {.radiansPerSecond = Util::ToRadians(2.0F),
              .axis = glm::vec3(0.0, 1.0, 0.0)});
 
-    auto viewer = std::make_shared<gui::Window>(
+    auto viewer = std::make_shared<viewer::Viewer>(
         sceneGraph, renderSystem, resourceManager->getRawResourceManager());
 
     auto sun =

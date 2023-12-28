@@ -7,30 +7,31 @@
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
+#include <ecsg_scenegraph.h>
 #include <geo_meshutil.h>
-#include <izz_fontsystem.h>
-#include <izzgui_window.h>
+#include <geo_scene.h>
+#include <georm_exrloader.h>
+#include <georm_fontsystem.h>
+#include <georm_materialsystem.h>
+#include <georm_resourcemanager.h>
+#include <georm_sceneloader.h>
+#include <georm_stbtextureloader.h>
+#include <georm_texturesystem.h>
+#include <gui_lighteditor.h>
+#include <vwr_viewer.h>
 #include <wsp_workspace.h>
-#include "izzgl_exrloader.h"
-#include "izzgl_sceneloader.h"
-#include "izzgl_stbtextureloader.h"
-#include "izzgl_texturesystem.h"
-#include "geo_scene.h"
-#include "izzgl_entityfactory.h"
-#include "izzgl_materialsystem.h"
-#include "izzgui_iguiwindow.h"
+#include "gui_guiwindow.h"
 
 #include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
 using namespace std;
-using namespace izz;
-using namespace izz;
-using namespace izz::geo;
-using izz::core::Util;
+using namespace lsw;
+using namespace geo;
+using lsw::core::Util;
 using namespace glm;
-using izz::wsp::Workspace;
+using lsw::wsp::Workspace;
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
@@ -41,20 +42,20 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    auto resourceManager = make_shared<ResourceManager>();
+    auto resourceManager = make_shared<georm::ResourceManager>();
 
-    auto fontSystem = make_shared<FontSystem>();
-    auto sceneGraph = make_shared<izz::EntityFactory>();
+    auto fontSystem = make_shared<georm::FontSystem>();
+    auto sceneGraph = make_shared<ecsg::SceneGraph>();
 
-    auto textureSystem = make_shared<TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
+    auto textureSystem = make_shared<georm::TextureSystem>();
+    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
     resourceManager->setTextureSystem(textureSystem);
 
-    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
+    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
     resourceManager->setMaterialSystem(materialSystem);
 
-    auto sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
+    auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
     resourceManager->setSceneLoader(sceneLoader);
 
     if (workspace->materialsFile.empty()) {
@@ -69,9 +70,9 @@ int main(int argc, char* argv[]) {
     renderSystem->getLightSystem().setDefaultPointLightMaterial(materialSystem->createMaterial("pointlight"));
 
     // ==== GUI =============================================================
-    auto editor = make_shared<gui::LightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<gui::GuiSystem>(fontSystem, vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);  // guiSystem);
+    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);  // guiSystem);
 
     // ==== SCENE SETUP ======================================================
     auto sphere11 = sceneGraph->makeMesh(PrimitiveFactory::MakeUVSphere("Sphere11", .5F));
@@ -99,7 +100,7 @@ int main(int argc, char* argv[]) {
     auto& lightComp = ptLight.get<ecs::PointLight>();
     lightComp.intensity = 4.0;
     lightComp.color = glm::vec3(0.1, 0.1, 1.0);
-    ptLight.add(PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
+    ptLight.add(geo::PrimitiveFactory::MakeUVSphere("SphericalPointLight", 0.1));
 
     // ==== CAMERA SETUP ====================================================
     auto camera = sceneGraph->makeCamera("DummyCamera", 4);

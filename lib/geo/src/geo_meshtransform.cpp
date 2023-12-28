@@ -7,21 +7,27 @@
 #include <geo_shapeutil.h>
 #include <glm/gtx/quaternion.hpp>
 
-using namespace izz;
-using namespace izz::geo;
+using namespace lsw;
+using namespace lsw::geo;
 
 void MeshTransform::ScaleToUniformSize(Mesh& mesh, float size) {
   auto bb = ShapeUtil::computeBoundingBox(mesh);
-  auto scale = bb.getSize();
+  auto scaleX = bb.xMax - bb.xMin;
+  auto scaleY = bb.yMax - bb.yMin;
+  auto scaleZ = bb.zMax - bb.zMin;
 
-  auto maxSize = std::max(std::max(scale.x, scale.y), scale.z);
+  auto maxSize = std::max(std::max(scaleX, scaleY), scaleZ);
   auto correctionScale = size / maxSize;
+//  std::cout << "Correction scale: " << correctionScale << " size: " << size << " maxsize: " << scaleX << " " << scaleY << " " << scaleZ << std::endl;
+//  std::cout << "bbox: " << "[" << bb.xMin << " x " << bb.xMax << " ], [" << bb.yMin << " x " << bb.yMax << " ], [" << bb.zMin << " x " << bb.zMax << " ]\n";
 
   // make sure model is on ground plane
   for (unsigned int i=0; i<mesh.vertices.size(); i+=3) {
     auto& vx = mesh.vertices[i];
     auto& vy = mesh.vertices[i+1];
     auto& vz = mesh.vertices[i+2];
+
+//    vy -= bb.yMin;
 
     vx *= correctionScale;
     vy *= correctionScale;
@@ -31,9 +37,11 @@ void MeshTransform::ScaleToUniformSize(Mesh& mesh, float size) {
 
 void MeshTransform::ScaleToUniformSize(Curve &curve, float size) {
   auto bb = ShapeUtil::computeBoundingBox(curve);
-  auto scale = bb.getSize();
-  auto maxSize = std::max(std::max(scale.x, scale.y), scale.z);
+  auto scaleX = bb.xMax - bb.xMin;
+  auto scaleY = bb.yMax - bb.yMin;
+  auto scaleZ = bb.zMax - bb.zMin;
 
+  auto maxSize = std::max(std::max(scaleX, scaleY), scaleZ);
   auto correctionScale = size / maxSize;
 
   // make sure model is on ground plane
@@ -42,7 +50,7 @@ void MeshTransform::ScaleToUniformSize(Curve &curve, float size) {
     auto& vy = curve.vertices[i+1];
     auto& vz = curve.vertices[i+2];
 
-    vy -= bb.min.y;
+    vy -= bb.yMin;
 
     vx *= correctionScale;
     vy *= correctionScale;

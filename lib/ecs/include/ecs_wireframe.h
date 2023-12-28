@@ -1,6 +1,6 @@
 #pragma once
 
-namespace izz {
+namespace lsw {
 namespace ecs {
 struct Wireframe {};
 }  // namespace ecs

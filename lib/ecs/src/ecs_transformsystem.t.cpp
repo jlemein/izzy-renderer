@@ -1,13 +1,14 @@
 //
 // Created by jlemein on 06-02-21.
 //
+#include <ecs_name.h>
+#include <ecs_relationship.h>
 #include <ecs_transform.h>
 #include <ecs_transformsystem.h>
-#include <gtest/gtest.h>
 #include <glm/glm.hpp>
 #include <glm/gtx/transform.hpp>
-#include "../../../include/izz_relationship.h"
-using namespace izz::ecs;
+#include <gtest/gtest.h>
+using namespace lsw::ecs;
 
 class TransformSystemTest : public ::testing::Test {};
 

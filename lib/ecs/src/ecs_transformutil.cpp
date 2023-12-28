@@ -3,8 +3,7 @@
 //
 #include <ecs_transform.h>
 #include <ecs_transformutil.h>
-#include "izz_relationship.h"
-using namespace izz::ecs;
+using namespace lsw::ecs;
 
 void TransformUtil::SetPosition(Transform &t, const glm::vec3 &e) {
   t.localTransform[3] = glm::vec4(e, 1.0f);
@@ -50,27 +49,6 @@ void TransformUtil::Translate(Transform &transform, const glm::vec3& translate) 
   transform.localTransform[3] += glm::vec4(translate, 0.0f);
 }
 
-void TransformUtil::Translate(glm::mat4 &transform, const glm::vec3& translate) {
-  transform[3] += glm::vec4(translate, 0.0f);
-}
-
 void TransformUtil::SetWorldPosition(Transform &transform, const glm::vec3 &position) {
   transform.localTransform[3] += glm::vec4(position, 0.0f);
-}
-
-void TransformUtil::UpdateTransformChain(izz::SceneGraphEntity e) {
-  auto& transform = e.get<ecs::Transform>();
-  auto& relationship = e.get<Relationship>();
-
-  // TODO: look at parent.
-  auto parent = e.getParent();
-  if (parent.exists()) {
-    transform.worldTransform = parent.getWorldTransform() *  transform.localTransform;
-  } else {
-    transform.worldTransform = transform.localTransform;
-  }
-
-  for (auto child: e.getChildren()) {
-    UpdateTransformChain(child);
-  }
 }
