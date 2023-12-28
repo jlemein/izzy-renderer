@@ -12,7 +12,7 @@
 #include <memory>
 #include <vector>
 
-namespace izz {
+namespace lsw {
 namespace ecsw {
 
 class Model_Node {

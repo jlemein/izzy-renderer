@@ -1,12 +1,16 @@
 //
 // Created by jlemein on 10-01-21.
 //
-#pragma once
 
-#include <entt/entt.hpp>
+#ifndef GLVIEWER_ECSU_RELATIONSHIPSORTER_H
+#define GLVIEWER_ECSU_RELATIONSHIPSORTER_H
 
-namespace izz {
+#include <entt/fwd.hpp>
+
+namespace lsw {
+namespace ecs {
 struct Relationship;
+}
 namespace ecsu {
 
 /**!
@@ -14,7 +18,7 @@ namespace ecsu {
  * component in in a breadth first manner.
  */
 class RelationshipSorter {
- public:
+public:
   /**!
    * Sorts another component based on the relationship component
    * Possibly needs to be moved to another component.
@@ -24,16 +28,20 @@ class RelationshipSorter {
    * @param registry
    */
   template <typename T>
-  static void Sort(entt::registry& registry);
+  static void Sort(entt::registry &registry);
 
   static bool Compare(const entt::registry& registry, const entt::entity lhs, const entt::entity rhs);
-  static bool Compare(const izz::Relationship& lhs, const izz::Relationship& rhs);
+  static bool Compare(const ecs::Relationship& lhs, const ecs::Relationship& rhs);
 };
 
 template <typename T>
-void RelationshipSorter::Sort(entt::registry& registry) {
-  registry.sort<T>([&registry](const entt::entity lhs, const entt::entity rhs) { return Compare(registry, lhs, rhs); });
+void RelationshipSorter::Sort(entt::registry &registry) {
+  registry.sort<T>([&registry](const entt::entity lhs, const entt::entity rhs) {
+    return Compare(registry, lhs, rhs);
+  });
 }
 
-}  // namespace ecsu
-}  // namespace izz
+} // end of package
+} // end of enterprise
+
+#endif // GLVIEWER_ECSU_RELATIONSHIPSORTER_H

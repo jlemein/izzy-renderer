@@ -7,30 +7,31 @@
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
+#include <ecsg_scenegraph.h>
 #include <geo_meshutil.h>
-#include <izz_fontsystem.h>
-#include <izzgl/izzgl_exrloader.h>
-#include <izzgl/izzgl_sceneloader.h>
-#include <izzgl/izzgl_stbtextureloader.h>
-#include <izzgl/izzgl_texturesystem.h>
-#include <izzgui_window.h>
+#include <geo_scene.h>
+#include <georm_exrloader.h>
+#include <georm_fontsystem.h>
+#include <georm_materialsystem.h>
+#include <georm_resourcemanager.h>
+#include <georm_sceneloader.h>
+#include <georm_stbtextureloader.h>
+#include <georm_texturesystem.h>
+#include <gui_lighteditor.h>
+#include <vwr_viewer.h>
 #include <wsp_workspace.h>
-#include "geo_scene.h"
-#include "izzgl_entityfactory.h"
-#include "izzgl_materialsystem.h"
-#include "izzgui_iguiwindow.h"
+#include "gui_guiwindow.h"
 
 #include <geo_primitivefactory.h>
 #include <spdlog/spdlog.h>
 #include <cxxopts.hpp>
 #include <memory>
 using namespace std;
-using namespace izz;
-using namespace izz;
-using namespace izz::geo;
-using izz::core::Util;
+using namespace lsw;
+using namespace geo;
+using lsw::core::Util;
 using namespace glm;
-using izz::wsp::Workspace;
+using lsw::wsp::Workspace;
 
 std::shared_ptr<Workspace> parseProgramArguments(int argc, char* argv[]);
 
@@ -41,29 +42,29 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    auto resourceManager = make_shared<ResourceManager>();
-    auto fontSystem = make_shared<FontSystem>();
-    auto sceneGraph = make_shared<izz::EntityFactory>();
-    auto textureSystem = make_shared<TextureSystem>();
-    textureSystem->setTextureLoader(".exr", std::make_unique<ExrLoader>(true));
-    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<StbTextureLoader>(true));
+    auto resourceManager = make_shared<georm::ResourceManager>();
+    auto fontSystem = make_shared<georm::FontSystem>();
+    auto sceneGraph = make_shared<ecsg::SceneGraph>();
+    auto textureSystem = make_shared<georm::TextureSystem>();
+    textureSystem->setTextureLoader(".exr", std::make_unique<georm::ExrLoader>(true));
+    textureSystem->setTextureLoader(ExtensionList{".jpg", ".png", ".bmp"}, std::make_unique<georm::StbTextureLoader>(true));
     resourceManager->setTextureSystem(textureSystem);
 
-    auto materialSystem = make_shared<MaterialSystem>(sceneGraph, resourceManager);
+    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
     resourceManager->setMaterialSystem(materialSystem);
 
-    auto sceneLoader = make_shared<SceneLoader>(textureSystem, materialSystem);
+    auto sceneLoader = make_shared<georm::SceneLoader>(textureSystem, materialSystem);
     resourceManager->setSceneLoader(sceneLoader);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
 
     // ==== GUI =============================================================
-    auto editor = make_shared<gui::LightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<gui::GuiSystem>(fontSystem, vector<std::shared_ptr<gui::IGuiWindow>>{editor});
-    auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);
+    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
+    auto guiSystem = make_shared<gui::GuiSystem>(vector<std::shared_ptr<gui::IGuiWindow>>{editor});
+    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    auto uvPlane = PrimitiveFactory::MakePlane("UVPlane", 10, 10);
+    auto uvPlane = geo::PrimitiveFactory::MakePlane("UVPlane", 10, 10);
     auto mat = materialSystem->createMaterial("BlinnPhong");
     std::cout << "Number of textures: " << mat->textures.size() << " - " << mat->texturePaths.size() << std::endl;
     for(auto& t : mat->textures) {

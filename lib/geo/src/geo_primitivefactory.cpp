@@ -5,16 +5,16 @@
 #include <geo_mesh.h>
 #include <geo_meshutil.h>
 #include <geo_primitivefactory.h>
-using namespace izz;
-using namespace izz::geo;
+using namespace lsw;
+using namespace lsw::geo;
 
 Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float depth) {
   Mesh mesh{.name = name};
   mesh.vertices = std::vector<float>{
-      -.5F * width, .0F, .5F * depth,   // v0
-      .5F * width,  .0F, .5F * depth,   // v1
-      .5F * width,  .0F, -.5F * depth,  // v2
-      -.5F * width, .0F, -.5F * depth,  // v3
+      -.5F*width, .0F, .5F*depth,   // v0
+      .5F*width,  .0F, .5F*depth,   // v1
+      .5F*width,  .0F, -.5F*depth,  // v2
+      -.5F*width, .0F, -.5F*depth,  // v3
   };
   mesh.uvs = std::vector<float>{.0F, .0F, 1.F, .0F, 1.F, 1.F, .0F, 1.F};  // 0 1 2 3
   mesh.normals = std::vector<float>{.0F, 1.F, .0F, .0F, 1.F, 0.F,         // v0 v1
@@ -22,26 +22,6 @@ Mesh PrimitiveFactory::MakePlane(const std::string& name, float width, float dep
   mesh.tangents = std::vector<float>{1.F, 0.F, 0.F, 1.F, .0F, .0F, 1.F, .0F, .0F, 1.F, .0F, .0F};
   mesh.bitangents = std::vector<float>{0.F, 0.F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F};
   mesh.indices = std::vector<uint32_t>{0, 1, 3, 1, 2, 3};
-
-  return mesh;
-}
-
-Mesh PrimitiveFactory::MakePlaneXY(const std::string& name, float width, float height) {
-  Mesh mesh{.name = name};
-  mesh.vertices = std::vector<float>{
-      -.5F * width, -.5F * height, .0F,  // v0
-      -.5F * width, .5F * height,  .0F,  // v1
-      .5F * width,  .5F * height,  .0F,  // v2
-      .5F * width,  -.5F * height, .0F   // v3
-  };
-  mesh.uvs = std::vector<float>{.0F, .0F, .0F, 1.F, 1.F, 1.F, 1.F, .0F};  // 0 1 2 3
-  //    mesh.normals = std::vector<float>{.0F, 1.F, .0F, .0F, 1.F, 0.F,         // v0 v1
-  //                                      .0F, 1.F, .0F, .0F, 1.F, 0.F};        // v2 v3
-  mesh.normals = std::vector<float>{.0F, .0F, 1.F, .0F, .0F, 1.F,   // v0 v1
-                                    .0F, .0F, 1.F, .0F, .0F, 1.F};  // v2 v3
-  //    mesh.tangents = std::vector<float>{1.F, 0.F, 0.F, 1.F, .0F, .0F, 1.F, .0F, .0F, 1.F, .0F, .0F};
-  //    mesh.bitangents = std::vector<float>{0.F, 0.F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F, .0F, .0F, -1.F};
-  mesh.indices = std::vector<uint32_t>{0, 2, 1, 0, 3, 2};
 
   return mesh;
 }
@@ -235,9 +215,9 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
   int numVertices = numSides * (numSides - 2) + 2;
   int numTriangles = (numSides - 2) * numSides;
 
-  mesh.vertices.reserve(numVertices * 3);
-  mesh.normals.reserve(numVertices * 3);
-  mesh.uvs.reserve(numVertices * 2);
+  mesh.vertices.reserve(numVertices*3);
+  mesh.normals.reserve(numVertices*3);
+  mesh.uvs.reserve(numVertices*2);
   mesh.indices.reserve(numTriangles * 3);
 
   for (int h = 0; h < numSides; ++h) {
@@ -273,7 +253,7 @@ Mesh PrimitiveFactory::MakeUVSphere(const std::string& name, float radius, int n
       mesh.normals.push_back(y);
       mesh.normals.push_back(z);
 
-      float u = atan2(x, z) / (2.0 * M_PI) + 0.5;
+      float u = atan2(x, z) / (2.0*M_PI) + 0.5;
       float v = y * 0.5 + 0.5;
       mesh.uvs.push_back(u);
       mesh.uvs.push_back(v);

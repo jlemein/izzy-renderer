@@ -5,4 +5,4 @@ build/
 .vscode/
 CMakeLists.txt.user
 *.spv
-resources/imgui.ini
+imgui.ini

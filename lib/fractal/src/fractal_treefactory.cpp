@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
-using namespace izz::fractal;
+using namespace lsw::fractal;
 
 std::unique_ptr<FractalTree>
 FractalTreeFactory::makeBinaryTree(unsigned int iteration) {

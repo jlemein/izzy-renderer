@@ -2,15 +2,18 @@
 // Created by jlemein on 17-11-20.
 //
 
-#pragma once
+#ifndef GLVIEWER_IO_COMMAND_H
+#define GLVIEWER_IO_COMMAND_H
 
-namespace izz {
+namespace lsw {
 namespace io {
 
 class Command {
- public:
+public:
   virtual void execute() = 0;
 };
 
-}  // namespace io
-}  // namespace izz
+} // end of package
+} // end of enterprise name
+
+#endif // GLVIEWER_IO_COMMAND_H

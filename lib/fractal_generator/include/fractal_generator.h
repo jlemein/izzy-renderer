@@ -5,13 +5,13 @@
 
 #include <geo_curve.h>
 
-namespace izz {
+namespace lsw {
 namespace fractal {
 class FractalGenerator {
 public:
   FractalGenerator(unsigned int seed);
 
-  izz::geo::Curve makeSierpinskiTriangle(unsigned int iterations);
+  lsw::geo::Curve makeSierpinskiTriangle(unsigned int iterations);
 
 private:
   unsigned int m_seed;

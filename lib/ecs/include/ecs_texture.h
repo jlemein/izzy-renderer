@@ -3,7 +3,7 @@
 
 #include <string>
 
-namespace izz {
+namespace lsw {
 namespace ecs {
 
 /**!

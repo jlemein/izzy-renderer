@@ -6,7 +6,7 @@
 #include <string>
 #include <glm/glm.hpp>
 
-namespace izz {
+namespace lsw {
 namespace geo {
 
 struct Camera {

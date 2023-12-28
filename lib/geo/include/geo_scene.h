@@ -6,11 +6,9 @@
 #include <filesystem>
 #include <glm/glm.hpp>
 #include <list>
-#include <unordered_map>
 #include <vector>
-#include "izz_materialtemplate.h"
 
-namespace izz {
+namespace lsw {
 namespace geo {
 
 struct MeshInstance;
@@ -18,7 +16,6 @@ struct Light;
 struct Camera;
 struct Mesh;
 struct Texture;
-
 
 /**!
  * @brief A scene node is either representing an intermediate transform node,
@@ -40,7 +37,7 @@ class Scene {
   using MeshIterable = std::vector<std::shared_ptr<Mesh>>;
   //  using MeshInstanceIterable = std::vector<std::shared_ptr<MeshInstance>>;
   using TextureIterable = std::vector<std::shared_ptr<Texture>>;
-  using MaterialIterable = std::vector<izz::MaterialTemplate>;
+  using MaterialIterable = std::vector<std::shared_ptr<geo::Material>>;
   using LightIterable = std::vector<std::shared_ptr<Light>>;
   using CameraIterable = std::vector<std::shared_ptr<Camera>>;
   using SceneNodeIterable = std::vector<std::shared_ptr<SceneNode>>;
@@ -76,7 +73,7 @@ class Scene {
 
   std::unordered_map<std::string, SceneNodeIterable> m_sceneNodes;
   std::shared_ptr<SceneNode> m_rootNode{nullptr};
-  MaterialIterable m_materials{};   /// list of material templates.
+  MaterialIterable m_materials{};
   MeshIterable m_meshes{};
   LightIterable m_lights{};
   CameraIterable m_cameras{};

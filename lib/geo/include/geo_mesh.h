@@ -10,11 +10,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include <geo_boundingbox.h>
+#include <geo_material.h>
 #include <boost/functional/hash.hpp>
-#include "izz_boundingbox.h"
-#include "izz_materialtemplate.h"
 
-namespace izz {
+namespace lsw {
 namespace geo {
 
 enum class PolygonMode { kTriangles, kQuads };
@@ -31,14 +31,11 @@ struct universal_hash {
 };
 
 struct Vertex {
-  glm::vec3 position{0, 0, 0};
-  glm::vec3 normal{0, 0, 0};
-  glm::vec2 uv{0, 0};
+  glm::vec3 position {0,0,0};
+  glm::vec3 normal {0, 0, 0};
+  glm::vec2 uv {0, 0};
 };
 
-/**
- * Generic mesh structure containing vertex data.
- */
 struct Mesh {
   struct Vertex {
     float x, y, z;
@@ -46,9 +43,7 @@ struct Mesh {
   struct Normal {
     float x, y, z;
   };
-  struct Uv {
-    float x, y;
-  };
+  struct Uv {float x, y;};
 
   std::string name;
   std::vector<float> vertices;
@@ -59,21 +54,11 @@ struct Mesh {
 
   std::vector<uint32_t> indices;
 
-  int numVertexCoords = 3;  /// set to 3 for 3D (XYZ) coordinates, 2 for 2D (XY) coordinates, etc.
-  int numUvCoords = 2;      /// number of components for UV coordinates (default 2, e.g. UV), but 3 is possible for 3D texture coordinates.
-
-  //  std::shared_ptr<Material> material{nullptr};
-  int materialId;
-  //  std::string materialId;
+  std::shared_ptr<Material> material{nullptr};
 
   // describes the data
   PolygonMode polygonMode{PolygonMode::kTriangles};
 };
-
-// struct RenderableMesh {
-//   Mesh mesh;
-//   izz::geo::MaterialDescription material;
-// };
 
 inline auto as_tuple(Mesh::Vertex const& v) {
   return std::tie(v.x, v.y, v.z);
@@ -94,4 +79,4 @@ inline std::size_t hash_value(Mesh::Vertex const& arg) {
 }
 
 }  // namespace geo
-}  // namespace izz
+}  // namespace lsw

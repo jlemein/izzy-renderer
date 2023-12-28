@@ -1,4 +1,5 @@
-from conans import ConanFile, CMake, tools
+from conan import ConanFile, tools
+from conan.tools.cmake import CMake, CMakeToolchain, CMakeDeps
 from conan.tools.cmake import CMakeDeps
 
 
@@ -15,11 +16,11 @@ class RendererConan(ConanFile):
         "shared": [True, False],
         "fPIC": [True, False]
     }
-    generators = "cmake", "CMakeDeps", "cmake_paths"
+    generators = "CMakeDeps"
     default_options = {
         "shared": False,
         "fPIC": True,
-        "gtest:build_gmock": True
+        "gtest/*:build_gmock": True
     }
 
     def config_options(self):
@@ -35,20 +36,17 @@ class RendererConan(ConanFile):
         cmake = CMake(self)
         cmake.install()
 
-    def build_requirements(self):
-        self.build_requires("gtest/1.11.0")
-
     def requirements(self):
-        self.requires("assimp/5.2.2")
-        self.requires("glm/0.9.9.8")
-        self.requires("entt/3.9.0")
+        self.requires("assimp/5.0.1")
+        self.requires("glm/cci.20230113")
+        self.requires("entt/3.12.2")
         self.requires("glfw/3.3.2")
-        self.requires("spdlog/1.8.2")
-        # self.requires("imgui/1.88")
-        self.requires("imgui/cci.20220621+1.88.docking")
+        self.requires("spdlog/1.12.0")
+        self.requires("imgui/cci.20230105+1.89.2.docking")
         self.requires("nlohmann_json/3.9.1")
-        self.requires("stb/cci.20210910")
-        self.requires("boost/1.80.0")
+        self.requires("stb/cci.20230920")
+        self.requires("boost/1.83.0")
         self.requires("cxxopts/2.2.1")
-        self.requires("openexr/3.1.5")
+        self.requires("openexr/2.5.7")
+        self.requires("gtest/1.14.0", test=True)
 

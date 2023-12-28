@@ -7,7 +7,7 @@
 
 #include <glm/glm.hpp>
 
-namespace izz {
+namespace lsw {
 namespace ecsw {
 
 using Transform = glm::mat4;

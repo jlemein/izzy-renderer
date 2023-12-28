@@ -8,7 +8,7 @@
 #include <memory>
 #include <string>
 
-namespace izz {
+namespace lsw {
 namespace geo {
 struct Mesh;
 }

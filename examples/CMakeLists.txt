@@ -1,60 +1,23 @@
 
 find_package(EnTT REQUIRED)
 find_package(glm REQUIRED)
-find_package(glfw REQUIRED)
+find_package(glfw3 REQUIRED)
 find_package(cxxopts REQUIRED)
 
-add_library(common INTERFACE)
-target_link_libraries(common INTERFACE
-        workspace
-        ecs
-        fractal
-        fractalgenerator
-        EnTT::EnTT geo
-        glm::glm
-        glfw::glfw)
-target_include_directories(common INTERFACE .)
-
-add_executable(izzyrender m_izzyrender.cpp)
-target_link_libraries(izzyrender PRIVATE izzy izzgl izz-gui common cxxopts::cxxopts)
-target_compile_definitions(izzyrender PRIVATE -DVERSION_STR="1.0.0")
-
-add_executable(pb_spheres m_pbspheres.cpp)
-target_link_libraries(pb_spheres PRIVATE izzy izzgl izz-gui common cxxopts::cxxopts)
-target_compile_definitions(pb_spheres PRIVATE -DVERSION_STR="1.0.0")
-
-add_executable(deferredrender m_deferredrender.cpp)
-target_link_libraries(deferredrender PUBLIC izzy izzgl izz-gui common cxxopts::cxxopts)
-target_compile_definitions(deferredrender PRIVATE -DVERSION_STR="1.0.0")
-
-add_executable(bloom m_bloom.cpp m_deferredrender.cpp)
-target_link_libraries(bloom PRIVATE izzy izz-gui common cxxopts::cxxopts)
-target_compile_definitions(bloom PRIVATE -DVERSION_STR="1.0.0")
-
-install(TARGETS izzyrender
-        COMPONENT izzyrender
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib)
-
-# Executable: plane <materialtemplate_name> <width> <height>
-add_executable(plane m_plane.cpp)
-target_link_libraries(plane PRIVATE izzy izz-gui common cxxopts::cxxopts)
-target_compile_definitions(plane PRIVATE -DVERSION_STR="0.1.0")
-
 add_executable(normalmap m_normalmapping.cpp)
-target_link_libraries(normalmap PRIVATE izzy izz-gui common cxxopts::cxxopts)
+target_link_libraries(normalmap PRIVATE lsw-gui common cxxopts::cxxopts)
 
 add_executable(parallax m_parallaxmapping.cpp)
-target_link_libraries(parallax PRIVATE izzy izz-gui common cxxopts::cxxopts)
+target_link_libraries(parallax PRIVATE lsw-gui common cxxopts::cxxopts)
 
 add_executable(debugscene m_debugscene.cpp)
-target_link_libraries(debugscene PRIVATE izzy izz-gui common cxxopts::cxxopts izz-gui)
+target_link_libraries(debugscene PRIVATE lsw-gui common cxxopts::cxxopts lsw-gui)
 
 add_executable(icosphere m_icosphere.cpp)
-target_link_libraries(icosphere PRIVATE izzy common cxxopts::cxxopts izz-gui)
+target_link_libraries(icosphere PRIVATE common cxxopts::cxxopts lsw-gui)
 
 add_executable(glossyness m_glossyness.cpp)
-target_link_libraries(glossyness PRIVATE izzy izz-gui common cxxopts::cxxopts)
+target_link_libraries(glossyness PRIVATE lsw-gui common cxxopts::cxxopts)
 target_compile_definitions(glossyness PRIVATE -DVERSION_STR="1.0.0")
 
 install(TARGETS normalmap icosphere

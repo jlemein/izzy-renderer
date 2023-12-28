@@ -5,7 +5,7 @@
 #ifndef ARTIFAX_ECS_DIRTY_H
 #define ARTIFAX_ECS_DIRTY_H
 
-namespace izz {
+namespace lsw {
 namespace ecs {
 
 struct Dirty {};
