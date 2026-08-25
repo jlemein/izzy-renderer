@@ -20,19 +20,22 @@ GammaCorrectionPE::GammaCorrectionPE(std::shared_ptr<Gpu> gpu, Postprocessor& po
   , m_postprocessor{postprocessor}
   , m_registry{registry} {
 
-  // a simple postprocessor takes a single color attachment, renders it full-screen quad.
-  m_posteffects = Postprocessor(m_gpu.get());
-  PostEffect e {
-      .materialId = m_gpu->materials.createMaterial("gamma_correction"),
-      .meshId = Postprocessor::GetFullScreenQuadVbo(),
-      .colorAttachmentMapping = {},
-      .depthAttachmentMapping = ""
-  };
-  m_posteffects.addPosteffect(e);
-
-  m_posteffects.re
-
-
+  // TODO: unfinished work from commit 6d07ca1 ("Committing what I have left uncommitted").
+  // This block was migrating gamma correction onto the new PostEffect-chain API. It was
+  // left mid-statement (`m_posteffects.re`) and never compiled. Parked as-is so the
+  // restore builds; init()/render() below still use the working Postprocessor path.
+  // To resume: PostEffect::meshId is now `vertexBufferId`, and the full-screen quad comes
+  // from PostProcessorManager::GetFullScreenQuad() rather than Postprocessor.
+  //
+  //  // a simple postprocessor takes a single color attachment, renders it full-screen quad.
+  //  m_posteffects = Postprocessor(m_gpu.get());
+  //  PostEffect e {
+  //      .materialId = m_gpu->materials.createMaterial("gamma_correction"),
+  //      .vertexBufferId = PostProcessorManager::GetFullScreenQuad(),
+  //      .colorAttachmentMapping = {},
+  //      .depthAttachmentMapping = ""
+  //  };
+  //  m_posteffects.addPosteffect(e);
 }
 
 void GammaCorrectionPE::init(int width, int height) {

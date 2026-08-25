@@ -21,6 +21,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        # izz-gui includes thirdparty/IconFontCppHeaders/IconsFontAwesome6.h
+        submodules: recursive
 
     - name: Install Conan
       id: conan

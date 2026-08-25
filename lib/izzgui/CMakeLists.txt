@@ -40,18 +40,20 @@ target_include_directories(izz-gui PRIVATE src PUBLIC include)
 
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
-find_package(glfw REQUIRED)
+find_package(glfw3 REQUIRED)
 find_package(glm REQUIRED)
 find_package(imgui REQUIRED)
 
 target_include_directories(izz-gui PRIVATE "${PROJECT_SOURCE_DIR}/thirdparty")
 target_link_libraries(izz-gui
+        PUBLIC
+        # izzgui_componenteditor.h and friends include <imgui.h> in public headers.
+        imgui::imgui
         PRIVATE
         izzy
         ecs
         izzgl
-        glfw::glfw
+        glfw
         OpenGL::GL
         GLEW::GLEW
-        glm::glm
-        imgui::imgui)
+        glm::glm)

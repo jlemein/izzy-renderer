@@ -6,6 +6,7 @@
 #include <geo_graph.h>
 #include <gl_renderable.h>
 #include <memory>
+#include <vector>
 #include "izzgl_material.h"
 
 namespace izz {

@@ -282,7 +282,9 @@ class Material {
       auto textureBuffer = textures.at(textureTags.at(tag));
       return textureBuffer.texture->id;
     } catch (std::out_of_range e) {
-      throw std::runtime_error(fmt::format("Cannot get texture by tag '{}'. No such tag present in material {}", tag, name));
+      // fmt >= 9 no longer formats scoped enums implicitly; cast to the underlying value.
+      throw std::runtime_error(
+          fmt::format("Cannot get texture by tag '{}'. No such tag present in material {}", static_cast<int>(tag), name));
     }
   }
 

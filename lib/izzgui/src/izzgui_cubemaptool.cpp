@@ -73,18 +73,24 @@ void CubeMapTool::init() {
 }
 
 void CubeMapTool::render(float time, float dt) {
-  // render cubemap to separate texture.
-  glViewport(0, 0, 1024, 768);
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
-  m_meshSystem->bindBuffer(m_vbo);
-  m_materialSystem->bindMaterial(m_material);
+  // NOTE: m_vbo is never assigned -- init() creates the material and framebuffer but no vertex
+  // buffer, so the cube map preview pass is unfinished. Binding id -1 throws out_of_range from
+  // MeshSystem::bindBuffer and kills the frame loop. Skip the pass until a mesh is provided;
+  // the ImGui panel below still works.
+  if (m_vbo != -1) {
+    // render cubemap to separate texture.
+    glViewport(0, 0, 1024, 768);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_fbo);
+    m_meshSystem->bindBuffer(m_vbo);
+    m_materialSystem->bindMaterial(m_material);
 
-  const auto& meshBuffer = m_meshSystem->getMeshBuffer(m_vbo);
-  glClearColor(.0F, .0F, .0F, 0.F);
-  glClear(GL_COLOR_BUFFER_BIT);
-  glDisable(GL_DEPTH_TEST);
-  glDrawArrays(meshBuffer.primitiveType, 0, meshBuffer.drawElementCount);
-  glEnable(GL_DEPTH_TEST);
+    const auto& meshBuffer = m_meshSystem->getMeshBuffer(m_vbo);
+    glClearColor(.0F, .0F, .0F, 0.F);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glDrawArrays(meshBuffer.primitiveType, 0, meshBuffer.drawElementCount);
+    glEnable(GL_DEPTH_TEST);
+  }
 
   if (CubeMapTool::Show) {
     if (ImGui::Begin(CubeMapTool::ID, &CubeMapTool::Show)) {

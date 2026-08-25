@@ -117,7 +117,8 @@ void RenderSystem::onGeometryAdded(izz::SceneGraphEntity& e, izz::gl::RenderStra
     return;
   }
 
-  spdlog::error("Specified render strategy '{}' is not supported", renderStrategy);
+  // fmt >= 9 no longer formats scoped enums implicitly; cast to the underlying value.
+  spdlog::error("Specified render strategy '{}' is not supported", static_cast<int>(renderStrategy));
 }
 
 void RenderSystem::update(float dt, float time) {

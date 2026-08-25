@@ -10,5 +10,7 @@ add_subdirectory(fractal)
 add_subdirectory(fractal_generator)
 add_subdirectory(ecs_inputsystem)
 add_subdirectory(ecs)
-add_subdirectory(ecsw)
+# Disabled: ecsw_model.h includes ecsw_material.h, which does not exist in this tree, so the
+# library has never compiled. Nothing links ecsw. Kept out of the build until it is revived.
+#add_subdirectory(ecsw)
 add_subdirectory(geo)

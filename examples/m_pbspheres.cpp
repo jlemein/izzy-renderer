@@ -149,7 +149,9 @@ void setupScene() {
 }
 
 void setupUserInterface() {
-  izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->entityFactory, izzy->fontSystem));
+  // TODO: gui::LightEditor does not exist in lib/izzgui (it was never ported across the
+  // izzgl/izzgui refactor). Re-enable once a light editor dialog is available again.
+  //  izzy->guiSystem->addDialog(make_shared<gui::LightEditor>(izzy->entityFactory, izzy->fontSystem));
   izzy->guiSystem->addDialog(make_shared<gui::MainMenu>(*izzy));
   izzy->guiSystem->addDialog(make_shared<izz::gui::StatsDialog>());
 }

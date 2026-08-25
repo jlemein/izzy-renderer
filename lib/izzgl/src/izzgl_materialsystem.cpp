@@ -188,7 +188,8 @@ void MaterialSystem::allocateTextureBuffers(Material& material, const std::unord
     tb.location = glGetUniformLocation(material.programId, textureName.c_str());
 
     if (tb.location != GL_INVALID_INDEX) {
-      spdlog::debug("Material {}: added texture {}: '{}'", material.getName(), textureName, texture.path);
+      // fmt >= 9 no longer formats std::filesystem::path implicitly.
+      spdlog::debug("Material {}: added texture {}: '{}'", material.getName(), textureName, texture.path.string());
       material.textures[textureName] = tb;
     } else {
       spdlog::warn("Material {} defines texture \"{}\", but it is not found in the shader.", material.getName(), textureName);

@@ -1,17 +1,14 @@
-cmake_minimum_required(VERSION 3.20.0)
+cmake_minimum_required(VERSION 3.24)
+
+# Conan 2 dependency provider. Must be set before project() so that every
+# find_package() below is served by conan. See cmake/conan.cmake.
+set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
 project(Renderer
         VERSION 0.1.0)
 
 include(CTest)
 enable_testing()
 include(GoogleTest)
-
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-include(conan)
-conan_cmake_run(CONANFILE conanfile.py BASIC_SETUP)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
-conan_basic_setup()
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -69,6 +66,11 @@ find_package(OpenEXR REQUIRED)
 target_link_libraries(izzy
         PUBLIC
         geo izzgl izz-gui
+        # izz_texture.h (a public header) includes <half.h> from IlmBase, and
+        # several public headers format with fmt. Conan 2 CMakeDeps only propagates
+        # include dirs through the link interface, so these must be PUBLIC.
+        openexr::openexr
+        fmt::fmt
         PRIVATE
          ecs
         workspace
@@ -76,14 +78,12 @@ target_link_libraries(izzy
         nlohmann_json::nlohmann_json
         assimp::assimp
         stb::stb
-        fmt::fmt
-        openexr::openexr
         )
 
 if (BUILD_TESTING)
-    find_package(gtest REQUIRED)
+    find_package(GTest REQUIRED)
     add_executable(izzy_test src/izz_scenegraphhelper.t.cpp)
-    target_link_libraries(izzy_test PRIVATE izzy gtest::gtest)
+    target_link_libraries(izzy_test PRIVATE izzy GTest::gtest GTest::gtest_main)
     #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)
     gtest_discover_tests(izzy_test)
 endif()

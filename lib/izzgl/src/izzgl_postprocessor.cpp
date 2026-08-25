@@ -24,20 +24,28 @@ Postprocessor::Postprocessor(Gpu* gpu, Framebuffer* pingPongFramebuffer)
     m_pingPongTexture = m_pingPongBuffer->getColorAttachment(0);
   }
 
-  // create ping pong buffer
-
-  // create screen space quad
-  m_fullScreenQuad = m_gpu->meshes.createVertexBuffer(screenSpaceRect).id;
+  // NOTE: the screen space quad is created lazily (see getFullScreenQuad). RenderSystem owns a
+  // Postprocessor by value and is constructed in Izzy::CreateSystems(), i.e. before the window
+  // calls glfwMakeContextCurrent()/glewInit(). Uploading a vertex buffer here would dereference
+  // a null GL function pointer and segfault.
+  m_fullScreenQuad = -1;
 }
 
-//void Postprocessor::setFramebuffer(Framebuffer* framebuffer) {
-//  m_pingPongBuffer = framebuffer;
-//  m_pingPongTexture = m_pingPongBuffer ? framebuffer->getColorAttachment(0) : nullptr;
-//}
-//
-//Framebuffer* Postprocessor::getFramebuffer() const {
-//  return m_pingPongBuffer;
-//}
+int Postprocessor::getFullScreenQuad() {
+  if (m_fullScreenQuad == -1) {
+    m_fullScreenQuad = m_gpu->meshes.createVertexBuffer(screenSpaceRect).id;
+  }
+  return m_fullScreenQuad;
+}
+
+void Postprocessor::setFramebuffer(Framebuffer* framebuffer) {
+  m_pingPongBuffer = framebuffer;
+  m_pingPongTexture = m_pingPongBuffer ? framebuffer->getColorAttachment(0) : nullptr;
+}
+
+Framebuffer* Postprocessor::getFramebuffer() const {
+  return m_pingPongBuffer;
+}
 
 void Postprocessor::render(Framebuffer* from, Framebuffer* to, PostEffect posteffect) {
   // bind the from-framebuffer is active.
@@ -83,33 +91,27 @@ void Postprocessor::render(Framebuffer* from, Framebuffer* to, PostEffect postef
 
   glDrawElements(mesh.primitiveType, mesh.drawElementCount, GL_UNSIGNED_INT, 0);
 }
-//
-//void Postprocessor::render(Material& material) {
-//  render(material.id);
-//}
-//
-//void Postprocessor::render(MaterialId id) {
-//
-//
-//
-//  // first copy output to depth and color texture
-//  // todo: remove this. The user is responsible for setting correct read buffer, otherwise use different function below.
-//  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-//  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pingPongBuffer->bufferId());
-//  glBlitFramebuffer(0, 0, m_pingPongTexture->width, m_pingPongTexture->height, 0, 0, m_pingPongTexture->width, m_pingPongTexture->height,
-//                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
-//
-//  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-//  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//  glDisable(GL_DEPTH_TEST);
-//
-//  m_gpu->materials.bindMaterial(id);
-//  m_gpu->meshes.bindBuffer(m_fullScreenQuad);
-//
-//  auto& mesh = m_gpu->meshes.getMeshBuffer(m_fullScreenQuad);
-//  glDrawElements(mesh.primitiveType, mesh.drawElementCount, GL_UNSIGNED_INT, 0);
-//  glEnable(GL_DEPTH_TEST);
-//}
+
+void Postprocessor::render(MaterialId id) {
+  // first copy output to depth and color texture
+  // todo: remove this. The user is responsible for setting correct read buffer, otherwise use different function below.
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_pingPongBuffer->bufferId());
+  glBlitFramebuffer(0, 0, m_pingPongTexture->width, m_pingPongTexture->height, 0, 0, m_pingPongTexture->width, m_pingPongTexture->height,
+                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glDisable(GL_DEPTH_TEST);
+
+  m_gpu->materials.bindMaterial(id);
+  auto quad = getFullScreenQuad();
+  m_gpu->meshes.bindBuffer(quad);
+
+  auto& mesh = m_gpu->meshes.getMeshBuffer(quad);
+  glDrawElements(mesh.primitiveType, mesh.drawElementCount, GL_UNSIGNED_INT, 0);
+  glEnable(GL_DEPTH_TEST);
+}
 //
 //void Postprocessor::render(MaterialId materialId, GLuint readFbo, GLuint drawFbo) {
 //  // first copy output to depth and color texture

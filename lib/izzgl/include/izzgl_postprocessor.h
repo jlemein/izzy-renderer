@@ -67,9 +67,14 @@ class Postprocessor {
    */
   ~Postprocessor() = default;
 
-//  void setFramebuffer(Framebuffer* framebuffer);
-//
-//  Framebuffer* getFramebuffer() const;
+  // NOTE: the framebuffer accessors and render(MaterialId) below were commented out
+  // part-way through the postprocessor refactor (commit 6d07ca1). RenderSystem::init and
+  // GammaCorrectionPE still call them, so they are re-enabled here to keep the build green.
+  // The new render(from, to, posteffect) chain API is the intended replacement -- migrate
+  // those two call sites and these can go again.
+  void setFramebuffer(Framebuffer* framebuffer);
+
+  Framebuffer* getFramebuffer() const;
 
   /**
    * Adds a posteffect to the chain of posteffects.
@@ -88,8 +93,7 @@ class Postprocessor {
    * Renders a posteffect using the currently read framebuffer, outputting it on the write framebuffer.
    * @param material
    */
-//  void render(Material& material);
-//  void render(MaterialId id);
+  void render(MaterialId id);
 
   /**
    * Raw method used to directly
@@ -105,6 +109,10 @@ class Postprocessor {
 //  void render(MaterialId id, GLuint from, GLuint to);
 
  private:
+  /// Lazily creates (and caches) the screen space quad vertex buffer. Must not be created in the
+  /// constructor: RenderSystem is built before the GL context exists.
+  int getFullScreenQuad();
+
   Gpu* m_gpu;
   const Texture* m_pingPongTexture{nullptr};
   Framebuffer* m_pingPongBuffer{nullptr};

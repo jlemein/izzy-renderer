@@ -13,6 +13,9 @@ const char* ImGuiX::FOLDER_EXPANDED = ICON_FA_ANGLE_DOWN;
 
 bool TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, const char* label_end, int depth);
 void TreeNodeSetOpen(ImGuiID id, bool open);
+// NOTE: this file keeps its own customized copy of TreeNodeUpdateNextOpen (defined below).
+// Since imgui 1.89, imgui_internal.h also declares ImGui::TreeNodeUpdateNextOpen, so calls
+// must be qualified with :: to pick the local one (see TreeNodeBehavior).
 bool TreeNodeUpdateNextOpen(ImGuiID id, ImGuiTreeNodeFlags flags);
 
 
@@ -99,7 +102,7 @@ bool TreeNodeBehavior(ImGuiID id, ImGuiTreeNodeFlags flags, const char* label, c
   // For this purpose we essentially compare if g.NavIdIsAlive went from 0 to 1 between TreeNode() and TreePop().
   // This is currently only support 32 level deep and we are fine with (1 << Depth) overflowing into a zero.
   const bool is_leaf = (flags & ImGuiTreeNodeFlags_Leaf) != 0;
-  bool is_open = TreeNodeUpdateNextOpen(id, flags);
+  bool is_open = ::TreeNodeUpdateNextOpen(id, flags);
   if (is_open && !g.NavIdIsAlive && (flags & ImGuiTreeNodeFlags_NavLeftJumpsBackHere) && !(flags & ImGuiTreeNodeFlags_NoTreePushOnOpen))
     window->DC.TreeJumpToParentOnPopMask |= (1 << window->DC.TreeDepth);
 

@@ -78,8 +78,23 @@ add_library(izzgl STATIC
 
 find_package(EnTT REQUIRED)
 find_package(spdlog REQUIRED)
+find_package(nlohmann_json REQUIRED)
+find_package(assimp REQUIRED)
+find_package(stb REQUIRED)
+find_package(glm REQUIRED)
 target_include_directories(izzgl PUBLIC include PRIVATE src)
-target_link_libraries(izzgl PUBLIC izzy workspace ecs geo EnTT::EnTT spdlog::spdlog)
+# PUBLIC deps are those appearing in izzgl's public headers:
+#   izzgl_materialsystem.h -> nlohmann/json.hpp, izzgl_materialreader.h -> nlohmann/json_fwd.hpp
+#   izzgl_sceneloader.h    -> assimp/scene.h
+# Conan 2 CMakeDeps only propagates include dirs via the link interface.
+target_link_libraries(izzgl
+        PUBLIC
+        izzy workspace ecs geo
+        EnTT::EnTT spdlog::spdlog glm::glm
+        nlohmann_json::nlohmann_json
+        assimp::assimp
+        PRIVATE
+        stb::stb)
 
 
 find_package(GTest REQUIRED)
@@ -92,4 +107,4 @@ add_executable(izzgl-test
 #        test/izzgl_shadercompiler.t.cpp
 #        test/izzgl_shadercontext.t.cpp
         test/izzgl_exrloader.t.cpp)
-target_link_libraries(izzgl-test PUBLIC gtest::gtest izzgl geo OpenGL::GL GLEW::GLEW)
+target_link_libraries(izzgl-test PUBLIC GTest::gtest GTest::gtest_main izzgl geo OpenGL::GL GLEW::GLEW)
