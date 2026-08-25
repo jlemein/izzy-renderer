@@ -15,7 +15,7 @@
 #include <fractal_rule.h>
 #include <fractal_state.h>
 
-namespace lsw {
+namespace izz {
 namespace fractal {
 
 /**!

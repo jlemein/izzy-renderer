@@ -1,31 +1,31 @@
 //
 // Created by jlemein on 11-03-21.
 //
+
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_light.h>
 #include <ecs_transformutil.h>
-#include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
-#include <georm_fontsystem.h>
-#include <georm_materialsystem.h>
-#include <georm_resourcemanager.h>
-#include <gui_lighteditor.h>
+#include <izz_fontsystem.h>
+#include <izzgui_window.h>
 #include <spdlog/spdlog.h>
-#include <vwr_viewer.h>
 #include <wsp_workspace.h>
 #include <cxxopts.hpp>
 #include <memory>
-#include "gui_guiwindow.h"
+#include "izzgl_entityfactory.h"
+#include "izzgl_materialsystem.h"
+#include "izzgui_iguiwindow.h"
 
 using namespace std;
-using namespace lsw;
+using namespace izz;
 using namespace geo;
-using lsw::core::Util;
+using izz::core::Util;
 using namespace glm;
+using namespace izz;
 
-using lsw::wsp::Workspace;
+using izz::wsp::Workspace;
 
 namespace {
 #ifndef NDEBUG
@@ -53,21 +53,19 @@ int main(int argc, char* argv[]) {
   }
 
   try {
-    auto resourceManager = make_shared<georm::ResourceManager>();
-    auto fontSystem = make_shared<georm::FontSystem>();
-    auto sceneGraph = make_shared<ecsg::SceneGraph>();
-    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    auto fontSystem = make_shared<FontSystem>();
+    auto sceneGraph = make_shared<izz::EntityFactory>();
+    auto materialSystem = make_shared<MaterialSystem>(sceneGraph);
 
 //    materialSystem->loadMaterialsFromFile(wsp::R("materials.json"));
-    resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
-    auto editor = make_shared<gui::GuiLightEditor>(sceneGraph, fontSystem);
-    auto guiSystem = make_shared<gui::GuiSystem>(editor);
-    auto viewer = make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager, guiSystem);
+    auto editor = make_shared<gui::LightEditor>(sceneGraph, fontSystem);
+    auto guiSystem = make_shared<gui::GuiSystem>(fontSystem, editor);
+    auto viewer = make_shared<gui::Window>(sceneGraph, renderSystem, guiSystem);
 
     // ==== SCENE SETUP ======================================================
-    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("Box"), *resourceManager->getMaterialSystem()->createMaterial("NormalMap"));
+    auto boxL = sceneGraph->addGeometry(PrimitiveFactory::MakeBox("Box"), materialSystem->createMaterial("NormalMap"));
     boxL.translate(glm::vec3(0.0F, 0.0F, 0.0F));
     //    boxL.add<anim::LocalRotation>({.radiansPerSecond = Util::ToRadians(-2.0F)});
 

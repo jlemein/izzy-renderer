@@ -8,7 +8,7 @@
 #include <entt/entt.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-using namespace lsw;
+using namespace izz;
 
 ecs::CameraSystem::CameraSystem(entt::registry& registry)
   : m_registry(registry)
