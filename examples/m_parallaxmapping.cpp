@@ -1,25 +1,23 @@
 //
 // Created by jlemein on 11-03-21.
 //
-#include <georm_materialsystem.h>
-#include <spdlog/spdlog.h>
-#include <vwr_viewer.h>
-#include <cxxopts.hpp>
-#include <memory>
 #include <anim_localrotation.h>
 #include <core_util.h>
 #include <ecs_firstpersoncontrol.h>
 #include <ecs_transformutil.h>
-#include <ecsg_scenegraph.h>
 #include <geo_primitivefactory.h>
-#include <georm_materialsystem.h>
-#include <georm_resourcemanager.h>
+#include <izzgui_window.h>
+#include <spdlog/spdlog.h>
 #include <wsp_workspace.h>
+#include <cxxopts.hpp>
+#include <memory>
+#include "izzgl_entityfactory.h"
+#include "izzgl_materialsystem.h"
 
 using namespace std;
-using namespace lsw;
+using namespace izz;
 using namespace geo;
-using lsw::core::Util;
+using izz::core::Util;
 
 std::shared_ptr<wsp::Workspace> parseProgramArguments(int argc, char* argv[]) {
   const std::string PROGRAM_NAME = "parallax";
@@ -59,14 +57,12 @@ int main(int argc, char** argv) {
   auto workspace = parseProgramArguments(argc, argv);
 
   try {
-    auto resourceManager = make_shared<georm::ResourceManager>();
-    auto sceneGraph = make_shared<ecsg::SceneGraph>();
-    auto materialSystem = make_shared<georm::MaterialSystem>(sceneGraph, resourceManager);
+    auto sceneGraph = make_shared<izz::EntityFactory>();
+    auto materialSystem = make_shared<MaterialSystem>(sceneGraph);
     materialSystem->loadMaterialsFromFile(workspace->materialsFile);
-    resourceManager->setMaterialSystem(materialSystem);
 
     auto renderSystem = make_shared<glrs::RenderSystem>(sceneGraph, static_pointer_cast<glrs::IMaterialSystem>(materialSystem));
-    auto viewer = std::make_shared<viewer::Viewer>(sceneGraph, renderSystem, resourceManager);
+    auto viewer = std::make_shared<izz::gui::Window>(sceneGraph, renderSystem);
 
     // TODO: instead of resourceManager->createShared... change to: resourceManager->getMaterialSystem()->createSharedMaterial()
     //    sceneGraph->setDefaultMaterial(

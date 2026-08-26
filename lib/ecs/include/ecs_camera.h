@@ -8,7 +8,7 @@
 #include <vector>
 #include <entt/fwd.hpp>
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 // offscreen render target acts as a camera, but it is not an actual camera.
@@ -35,7 +35,6 @@ struct PosteffectCollection {
 };
 
 struct Posteffect {
-
 };
 
 struct Camera {

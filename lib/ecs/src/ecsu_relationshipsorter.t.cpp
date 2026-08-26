@@ -1,15 +1,15 @@
 //
 // Created by jlemein on 10-01-21.
 //
-#include <ecs_relationship.h>
-#include <ecs_relationshiputil.h>
 #include <ecsu_relationshipsorter.h>
-#include <entt/entt.hpp>
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
-using namespace lsw;
+#include <entt/entt.hpp>
+#include <izz_relationship.h>
+#include <izz_relationshiputil.h>
+using namespace izz;
 using namespace testing;
-using namespace lsw::ecs;
+using namespace izz::ecs;
 
 class RelationshipSorterTest : public ::testing::Test {};
 

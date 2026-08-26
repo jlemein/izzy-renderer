@@ -3,11 +3,9 @@
 //
 #pragma once
 
-#include <geo_boundingbox.h>
 #include <vector>
 
-namespace lsw
-{
+namespace izz {
 namespace geo
 {
 struct Curve {

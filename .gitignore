@@ -1,8 +1,9 @@
 .idea/
 cmake-build-*/
-build/
+build*/
+out/
 .atom-build.yaml
 .vscode/
 CMakeLists.txt.user
 *.spv
-imgui.ini
+resources/imgui.ini

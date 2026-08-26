@@ -1,6 +1,6 @@
 #pragma once
 
-namespace lsw {
+namespace izz {
 namespace ecs {
 
 struct FirstPersonControl {

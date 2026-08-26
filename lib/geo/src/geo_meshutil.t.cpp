@@ -8,7 +8,7 @@
 #include <gtest/gtest.h>
 #include <vector>
 
-using namespace lsw::geo;
+using namespace izz::geo;
 using namespace testing;
 
 class MeshUtilTest : public testing::Test {
@@ -41,7 +41,7 @@ TEST_F(MeshUtilTest, ShouldFailIfResourceNotExist) {
 }
 
 TEST_F(MeshUtilTest, ShouldFillVertices) {
-  auto box = lsw::geo::PrimitiveFactory::MakeBox("");
+  auto box = izz::geo::PrimitiveFactory::MakeBox("");
   for (int i = 0; i < box.vertices.size(); i++) {
     if (i % 3 == 0) std::cout << i / 3 << ": ";
     std::cout << box.vertices.at(i) << " ";
@@ -52,7 +52,7 @@ TEST_F(MeshUtilTest, ShouldFillVertices) {
 }
 
 TEST_F(MeshUtilTest, ShouldFillVerticesFromIndex) {
-  auto box = lsw::geo::PrimitiveFactory::MakeBox("");
+  auto box = izz::geo::PrimitiveFactory::MakeBox("");
   for (int i = 0; i < box.indices.size(); i++) {
     auto vi = box.indices[i] * 3;
     if (i % 3 == 0) {
@@ -81,7 +81,7 @@ TEST_F(MeshUtilTest, ShouldFillVerticesFromIndex) {
 }
 
 TEST_F(MeshUtilTest, ShouldCreateBoxTangents) {
-  auto box = lsw::geo::PrimitiveFactory::MakeBox("");
+  auto box = izz::geo::PrimitiveFactory::MakeBox("");
   for (int t = 0; t < box.indices.size() / 3; t += 3) {
     auto index = box.indices[t];
 

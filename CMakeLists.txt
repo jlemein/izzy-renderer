@@ -1,19 +1,14 @@
-cmake_minimum_required(VERSION 3.16.3)
+cmake_minimum_required(VERSION 3.24)
 
+# Conan 2 dependency provider. Must be set before project() so that every
+# find_package() below is served by conan. See cmake/conan.cmake.
 set(CMAKE_PROJECT_TOP_LEVEL_INCLUDES ${CMAKE_SOURCE_DIR}/cmake/conan.cmake)
 project(Renderer
         VERSION 0.1.0)
-#list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
-#include(conan)
 
 include(CTest)
 enable_testing()
 include(GoogleTest)
-
-
-#conan_cmake_run(CONANFILE conanfile.py
-#        BASIC_SETUP
-#        GENERATORS CMakeDeps)
 
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
@@ -23,22 +18,75 @@ list(APPEND CMAKE_MODULE_PATH
         ${CMAKE_BINARY_DIR}
         ${CMAKE_CURRENT_SOURCE_DIR}/cmake
         )
-list (APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
+list(APPEND CMAKE_PREFIX_PATH ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_STANDARD 20)
 
-set(SHADER_INPUT_FILES
-        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-diffuse-map.vert
-        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-diffuse-map.frag
-        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-parallax-map.vert
-        ${CMAKE_SOURCE_DIR}/resources/shaders/fwd-parallax-map.frag
+add_library(izzy STATIC
+        include/anim_animationsystem.h
+        include/anim_localrotation.h
+        include/izz.h
+        include/izz_capabilities.h
+        include/izz_debug.h
+        include/izz_debugmodel.h
+        include/izz_debugshapefactory.h
+        include/izz_debugsystem.h
+        include/izz_fontsystem.h
+        include/izz_izzy.h
+        include/izz_materialtemplate.h
+        include/izz_relationship.h
+        include/izz_relationshiputil.h
+        include/izz_renderablecomponentfactory.h
+        include/izz_scenecompositionsystem.h
+        include/izz_scenegraphentity.h
+        include/izz_statcounter.h
+        include/izz_util.h
+        src/izz_animationsystem.cpp
+        src/izz_debugshapefactory.cpp
+        src/izz_debugsystem.cpp
+        src/izz_fontsystem.cpp
+        src/izz_relationshiputil.cpp
+        src/izz_scenegraphentity.cpp
+        src/izz_statcounter.cpp
+        src/izz_texture.cpp
         )
 
-set(SHADER_OUTPUT_FILES
-        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-diffuse-map.vert.spv
-        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-diffuse-map.frag.spv
-        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-parallax-map.vert.spv
-        ${CMAKE_BINARY_DIR}/resources/shaders/fwd-parallax-map.frag.spv)
+target_include_directories(izzy
+        PUBLIC include
+        PRIVATE src)
+
+find_package(spdlog REQUIRED)
+find_package(stb REQUIRED)
+find_package(fmt REQUIRED)
+find_package(assimp REQUIRED)
+find_package(nlohmann_json REQUIRED)
+#find_package(Boost REQUIRED COMPONENTS filesystem)
+find_package(OpenEXR REQUIRED)
+
+target_link_libraries(izzy
+        PUBLIC
+        geo izzgl izz-gui
+        # izz_texture.h (a public header) includes <half.h> from IlmBase, and
+        # several public headers format with fmt. Conan 2 CMakeDeps only propagates
+        # include dirs through the link interface, so these must be PUBLIC.
+        openexr::openexr
+        fmt::fmt
+        PRIVATE
+         ecs
+        workspace
+        spdlog::spdlog
+        nlohmann_json::nlohmann_json
+        assimp::assimp
+        stb::stb
+        )
+
+if (BUILD_TESTING)
+    find_package(GTest REQUIRED)
+    add_executable(izzy_test src/izz_scenegraphhelper.t.cpp)
+    target_link_libraries(izzy_test PRIVATE izzy GTest::gtest GTest::gtest_main)
+    #    set_target_properties(geo_test PROPERTIES WORKING_DIRECTORY ./testdata)
+    gtest_discover_tests(izzy_test)
+endif()
 
 # drawback of this method is that it is always considered out-of-date, and therefore always recompiles.
 #add_custom_target(compile-shaders
@@ -75,7 +123,6 @@ file(COPY resources/textures DESTINATION ${CMAKE_BINARY_DIR}/resources)
 #        INPUT ${CMAKE_CURRENT_LIST_DIR}/WELCOME.md)
 
 add_subdirectory(lib)
-add_subdirectory(src)
 add_subdirectory(examples)
 
 #add_dependencies(normalmap compile-shaders)
